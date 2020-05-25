@@ -206,3 +206,273 @@
 // Without OpenMP support: #define cimg_test_abort() if (is_abort) throw CImgAbortException("")
 //
 // or
+//
+// With OpenMP support: #define cimg_test_abort() if (!omp_get_thread_num() && is_abort) throw CImgAbortException("")
+//
+// where 'is_abort' is a boolean variable.
+#ifndef cimg_test_abort
+#define cimg_test_abort()
+#endif
+#ifndef cimg_test_abort2
+#define cimg_test_abort2()
+#endif
+
+// Configure filename separator.
+//
+// Filename separator is set by default to '/', except for Windows where it is '\'.
+#ifndef cimg_file_separator
+#if cimg_OS==2
+#define cimg_file_separator '\\'
+#else
+#define cimg_file_separator '/'
+#endif
+#endif
+
+// Configure verbosity of output messages.
+//
+// Define 'cimg_verbosity' to: '0' to hide library messages (quiet mode).
+//                             '1' to output library messages on the console.
+//                             '2' to output library messages on a basic dialog window (default behavior).
+//                             '3' to do as '1' + add extra warnings (may slow down the code!).
+//                             '4' to do as '2' + add extra warnings (may slow down the code!).
+//
+// Define 'cimg_strict_warnings' to replace warning messages by exception throwns.
+//
+// Define 'cimg_use_vt100' to allow output of color messages on VT100-compatible terminals.
+#ifndef cimg_verbosity
+#if cimg_OS==2
+#define cimg_verbosity 2
+#else
+#define cimg_verbosity 1
+#endif
+#elif !(cimg_verbosity==0 || cimg_verbosity==1 || cimg_verbosity==2 || cimg_verbosity==3 || cimg_verbosity==4)
+#error CImg Library: Configuration variable 'cimg_verbosity' is badly defined.
+#error (should be { 0=quiet | 1=console | 2=dialog | 3=console+warnings | 4=dialog+warnings }).
+#endif
+
+// Configure display framework.
+//
+// Define 'cimg_display' to: '0' to disable display capabilities.
+//                           '1' to use the X-Window framework (X11).
+//                           '2' to use the Microsoft GDI32 framework.
+#ifndef cimg_display
+#if cimg_OS==0
+#define cimg_display 0
+#elif cimg_OS==1
+#define cimg_display 1
+#elif cimg_OS==2
+#define cimg_display 2
+#endif
+#elif !(cimg_display==0 || cimg_display==1 || cimg_display==2)
+#error CImg Library: Configuration variable 'cimg_display' is badly defined.
+#error (should be { 0=none | 1=X-Window (X11) | 2=Microsoft GDI32 }).
+#endif
+
+// Include display-specific headers.
+#if cimg_display==1
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
+#include <pthread.h>
+#ifdef cimg_use_xshm
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
+#endif
+#ifdef cimg_use_xrandr
+#include <X11/extensions/Xrandr.h>
+#endif
+#endif
+#ifndef cimg_appname
+#define cimg_appname "CImg"
+#endif
+
+// Configure OpenMP support.
+// (http://www.openmp.org)
+//
+// Define 'cimg_use_openmp' to enable OpenMP support.
+//
+// OpenMP directives may be used in a (very) few CImg functions to get
+// advantages of multi-core CPUs.
+#ifdef cimg_use_openmp
+#include <omp.h>
+#endif
+
+// Configure OpenCV support.
+// (http://opencv.willowgarage.com/wiki/)
+//
+// Define 'cimg_use_opencv' to enable OpenCV support.
+//
+// OpenCV library may be used to access images from cameras
+// (see method 'CImg<T>::load_camera()').
+#ifdef cimg_use_opencv
+#ifdef True
+#undef True
+#define _cimg_redefine_True
+#endif
+#ifdef False
+#undef False
+#define _cimg_redefine_False
+#endif
+#include <cstddef>
+#include "cv.h"
+#include "highgui.h"
+#endif
+
+// Configure LibPNG support.
+// (http://www.libpng.org)
+//
+// Define 'cimg_use_png' to enable LibPNG support.
+//
+// PNG library may be used to get a native support of '.png' files.
+// (see methods 'CImg<T>::{load,save}_png()'.
+#ifdef cimg_use_png
+extern "C" {
+#include "png.h"
+}
+#endif
+
+// Configure LibJPEG support.
+// (http://en.wikipedia.org/wiki/Libjpeg)
+//
+// Define 'cimg_use_jpeg' to enable LibJPEG support.
+//
+// JPEG library may be used to get a native support of '.jpg' files.
+// (see methods 'CImg<T>::{load,save}_jpeg()').
+#ifdef cimg_use_jpeg
+extern "C" {
+#include "jpeglib.h"
+#include "setjmp.h"
+}
+#endif
+
+// Configure LibTIFF support.
+// (http://www.libtiff.org)
+//
+// Define 'cimg_use_tiff' to enable LibTIFF support.
+//
+// TIFF library may be used to get a native support of '.tif' files.
+// (see methods 'CImg[List]<T>::{load,save}_tiff()').
+#ifdef cimg_use_tiff
+extern "C" {
+#define uint64 uint64_hack_
+#define int64 int64_hack_
+#include "tiffio.h"
+#undef uint64
+#undef int64
+}
+#endif
+
+// Configure LibMINC2 support.
+// (http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference)
+//
+// Define 'cimg_use_minc2' to enable LibMINC2 support.
+//
+// MINC2 library may be used to get a native support of '.mnc' files.
+// (see methods 'CImg<T>::{load,save}_minc2()').
+#ifdef cimg_use_minc2
+#include "minc_io_simple_volume.h"
+#include "minc_1_simple.h"
+#include "minc_1_simple_rw.h"
+#endif
+
+// Configure Zlib support.
+// (http://www.zlib.net)
+//
+// Define 'cimg_use_zlib' to enable Zlib support.
+//
+// Zlib library may be used to allow compressed data in '.cimgz' files
+// (see methods 'CImg[List]<T>::{load,save}_cimg()').
+#ifdef cimg_use_zlib
+extern "C" {
+#include "zlib.h"
+}
+#endif
+
+// Configure libcurl support.
+// (http://curl.haxx.se/libcurl/)
+//
+// Define 'cimg_use_curl' to enable libcurl support.
+//
+// Libcurl may be used to get a native support of file downloading from the network.
+// (see method 'cimg::load_network()'.)
+#ifdef cimg_use_curl
+#include "curl/curl.h"
+#endif
+
+// Configure Magick++ support.
+// (http://www.imagemagick.org/Magick++)
+//
+// Define 'cimg_use_magick' to enable Magick++ support.
+//
+// Magick++ library may be used to get a native support of various image file formats.
+// (see methods 'CImg<T>::{load,save}()').
+#ifdef cimg_use_magick
+#include "Magick++.h"
+#endif
+
+// Configure FFTW3 support.
+// (http://www.fftw.org)
+//
+// Define 'cimg_use_fftw3' to enable libFFTW3 support.
+//
+// FFTW3 library may be used to efficiently compute the Fast Fourier Transform
+// of image data, without restriction on the image size.
+// (see method 'CImg[List]<T>::FFT()').
+#ifdef cimg_use_fftw3
+extern "C" {
+#include "fftw3.h"
+}
+#endif
+
+// Configure LibBoard support.
+// (http://libboard.sourceforge.net/)
+//
+// Define 'cimg_use_board' to enable Board support.
+//
+// Board library may be used to draw 3d objects in vector-graphics canvas
+// that can be saved as '.ps' or '.svg' files afterwards.
+// (see method 'CImg<T>::draw_object3d()').
+#ifdef cimg_use_board
+#ifdef None
+#undef None
+#define _cimg_redefine_None
+#endif
+#include "Board.h"
+#endif
+
+// Configure OpenEXR support.
+// (http://www.openexr.com/)
+//
+// Define 'cimg_use_openexr' to enable OpenEXR support.
+//
+// OpenEXR library may be used to get a native support of '.exr' files.
+// (see methods 'CImg<T>::{load,save}_exr()').
+#ifdef cimg_use_openexr
+#include "ImfRgbaFile.h"
+#include "ImfInputFile.h"
+#include "ImfChannelList.h"
+#include "ImfMatrixAttribute.h"
+#include "ImfArray.h"
+#endif
+
+// Lapack configuration.
+// (http://www.netlib.org/lapack)
+//
+// Define 'cimg_use_lapack' to enable LAPACK support.
+//
+// Lapack library may be used in several CImg methods to speed up
+// matrix computations (eigenvalues, inverse, ...).
+#ifdef cimg_use_lapack
+extern "C" {
+  extern void sgetrf_(int*, int*, float*, int*, int*, int*);
+  extern void sgetri_(int*, float*, int*, int*, float*, int*, int*);
+  extern void sgetrs_(char*, int*, int*, float*, int*, int*, float*, int*, int*);
+  extern void sgesvd_(char*, char*, int*, int*, float*, int*, float*, float*, int*, float*, int*, float*, int*, int*);
+  extern void ssyev_(char*, char*, int*, float*, int*, float*, float*, int*, int*);
+  extern void dgetrf_(int*, int*, double*, int*, int*, int*);
+  extern void dgetri_(int*, double*, int*, int*, double*, int*, int*);
+  extern void dgetrs_(char*, int*, int*, double*, int*, int*, double*, int*, int*);
+  extern void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*,
+                      int*, double*, int*, double*, int*, int*);
+  extern vo
