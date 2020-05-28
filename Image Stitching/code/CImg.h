@@ -475,4 +475,146 @@ extern "C" {
   extern void dgetrs_(char*, int*, int*, double*, int*, int*, double*, int*, int*);
   extern void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*,
                       int*, double*, int*, double*, int*, int*);
-  extern vo
+  extern void dsyev_(char*, char*, int*, double*, int*, double*, double*, int*, int*);
+  extern void dgels_(char*, int*,int*,int*,double*,int*,double*,int*,double*,int*,int*);
+  extern void sgels_(char*, int*,int*,int*,float*,int*,float*,int*,float*,int*,int*);
+}
+#endif
+
+// Check if min/max/PI macros are defined.
+//
+// CImg does not compile if macros 'min', 'max' or 'PI' are defined,
+// because it redefines functions min(), max() and const variable PI in the cimg:: namespace.
+// so it '#undef' these macros if necessary, and restore them to reasonable
+// values at the end of this file.
+#ifdef min
+#undef min
+#define _cimg_redefine_min
+#endif
+#ifdef max
+#undef max
+#define _cimg_redefine_max
+#endif
+#ifdef PI
+#undef PI
+#define _cimg_redefine_PI
+#endif
+
+// Define 'cimg_library' namespace suffix.
+//
+// You may want to add a suffix to the 'cimg_library' namespace, for instance if you need to work
+// with several versions of the library at the same time.
+#ifdef cimg_namespace_suffix
+#define __cimg_library_suffixed(s) cimg_library_##s
+#define _cimg_library_suffixed(s) __cimg_library_suffixed(s)
+#define cimg_library_suffixed _cimg_library_suffixed(cimg_namespace_suffix)
+#else
+#define cimg_library_suffixed cimg_library
+#endif
+
+/*------------------------------------------------------------------------------
+  #
+  # Define user-friendly macros.
+  #
+  # These CImg macros are prefixed by 'cimg_' and can be used safely in your own
+  # code. They are useful to parse command line options, or to write image loops.
+  #
+  ------------------------------------------------------------------------------*/
+
+// Macros to define program usage, and retrieve command line arguments.
+#define cimg_usage(usage) cimg_library_suffixed::cimg::option((char*)0,argc,argv,(char*)0,usage,false)
+#define cimg_help(str) cimg_library_suffixed::cimg::option((char*)0,argc,argv,str,(char*)0)
+#define cimg_option(name,defaut,usage) cimg_library_suffixed::cimg::option(name,argc,argv,defaut,usage)
+
+// Macros to define and manipulate local neighborhoods.
+#define CImg_2x2(I,T) T I[4]; \
+                      T& I##cc = I[0]; T& I##nc = I[1]; \
+                      T& I##cn = I[2]; T& I##nn = I[3]; \
+                      I##cc = I##nc = \
+                      I##cn = I##nn = 0
+
+#define CImg_3x3(I,T) T I[9]; \
+                      T& I##pp = I[0]; T& I##cp = I[1]; T& I##np = I[2]; \
+                      T& I##pc = I[3]; T& I##cc = I[4]; T& I##nc = I[5]; \
+                      T& I##pn = I[6]; T& I##cn = I[7]; T& I##nn = I[8]; \
+                      I##pp = I##cp = I##np = \
+                      I##pc = I##cc = I##nc = \
+                      I##pn = I##cn = I##nn = 0
+
+#define CImg_4x4(I,T) T I[16]; \
+                      T& I##pp = I[0]; T& I##cp = I[1]; T& I##np = I[2]; T& I##ap = I[3]; \
+                      T& I##pc = I[4]; T& I##cc = I[5]; T& I##nc = I[6]; T& I##ac = I[7]; \
+                      T& I##pn = I[8]; T& I##cn = I[9]; T& I##nn = I[10]; T& I##an = I[11]; \
+                      T& I##pa = I[12]; T& I##ca = I[13]; T& I##na = I[14]; T& I##aa = I[15]; \
+                      I##pp = I##cp = I##np = I##ap = \
+                      I##pc = I##cc = I##nc = I##ac = \
+                      I##pn = I##cn = I##nn = I##an = \
+                      I##pa = I##ca = I##na = I##aa = 0
+
+#define CImg_5x5(I,T) T I[25]; \
+                      T& I##bb = I[0]; T& I##pb = I[1]; T& I##cb = I[2]; T& I##nb = I[3]; T& I##ab = I[4]; \
+                      T& I##bp = I[5]; T& I##pp = I[6]; T& I##cp = I[7]; T& I##np = I[8]; T& I##ap = I[9]; \
+                      T& I##bc = I[10]; T& I##pc = I[11]; T& I##cc = I[12]; T& I##nc = I[13]; T& I##ac = I[14]; \
+                      T& I##bn = I[15]; T& I##pn = I[16]; T& I##cn = I[17]; T& I##nn = I[18]; T& I##an = I[19]; \
+                      T& I##ba = I[20]; T& I##pa = I[21]; T& I##ca = I[22]; T& I##na = I[23]; T& I##aa = I[24]; \
+                      I##bb = I##pb = I##cb = I##nb = I##ab = \
+                      I##bp = I##pp = I##cp = I##np = I##ap = \
+                      I##bc = I##pc = I##cc = I##nc = I##ac = \
+                      I##bn = I##pn = I##cn = I##nn = I##an = \
+                      I##ba = I##pa = I##ca = I##na = I##aa = 0
+
+#define CImg_2x2x2(I,T) T I[8]; \
+                      T& I##ccc = I[0]; T& I##ncc = I[1]; \
+                      T& I##cnc = I[2]; T& I##nnc = I[3]; \
+                      T& I##ccn = I[4]; T& I##ncn = I[5]; \
+                      T& I##cnn = I[6]; T& I##nnn = I[7]; \
+                      I##ccc = I##ncc = \
+                      I##cnc = I##nnc = \
+                      I##ccn = I##ncn = \
+                      I##cnn = I##nnn = 0
+
+#define CImg_3x3x3(I,T) T I[27]; \
+                      T& I##ppp = I[0]; T& I##cpp = I[1]; T& I##npp = I[2]; \
+                      T& I##pcp = I[3]; T& I##ccp = I[4]; T& I##ncp = I[5]; \
+                      T& I##pnp = I[6]; T& I##cnp = I[7]; T& I##nnp = I[8]; \
+                      T& I##ppc = I[9]; T& I##cpc = I[10]; T& I##npc = I[11]; \
+                      T& I##pcc = I[12]; T& I##ccc = I[13]; T& I##ncc = I[14]; \
+                      T& I##pnc = I[15]; T& I##cnc = I[16]; T& I##nnc = I[17]; \
+                      T& I##ppn = I[18]; T& I##cpn = I[19]; T& I##npn = I[20]; \
+                      T& I##pcn = I[21]; T& I##ccn = I[22]; T& I##ncn = I[23]; \
+                      T& I##pnn = I[24]; T& I##cnn = I[25]; T& I##nnn = I[26]; \
+                      I##ppp = I##cpp = I##npp = \
+                      I##pcp = I##ccp = I##ncp = \
+                      I##pnp = I##cnp = I##nnp = \
+                      I##ppc = I##cpc = I##npc = \
+                      I##pcc = I##ccc = I##ncc = \
+                      I##pnc = I##cnc = I##nnc = \
+                      I##ppn = I##cpn = I##npn = \
+                      I##pcn = I##ccn = I##ncn = \
+                      I##pnn = I##cnn = I##nnn = 0
+
+#define cimg_get2x2(img,x,y,z,c,I,T) \
+  I[0] = (T)(img)(x,y,z,c), I[1] = (T)(img)(_n1##x,y,z,c), I[2] = (T)(img)(x,_n1##y,z,c), \
+  I[3] = (T)(img)(_n1##x,_n1##y,z,c)
+
+#define cimg_get3x3(img,x,y,z,c,I,T) \
+  I[0] = (T)(img)(_p1##x,_p1##y,z,c), I[1] = (T)(img)(x,_p1##y,z,c), I[2] = (T)(img)(_n1##x,_p1##y,z,c), \
+  I[3] = (T)(img)(_p1##x,y,z,c), I[4] = (T)(img)(x,y,z,c), I[5] = (T)(img)(_n1##x,y,z,c), \
+  I[6] = (T)(img)(_p1##x,_n1##y,z,c), I[7] = (T)(img)(x,_n1##y,z,c), I[8] = (T)(img)(_n1##x,_n1##y,z,c)
+
+#define cimg_get4x4(img,x,y,z,c,I,T) \
+  I[0] = (T)(img)(_p1##x,_p1##y,z,c), I[1] = (T)(img)(x,_p1##y,z,c), I[2] = (T)(img)(_n1##x,_p1##y,z,c), \
+  I[3] = (T)(img)(_n2##x,_p1##y,z,c), I[4] = (T)(img)(_p1##x,y,z,c), I[5] = (T)(img)(x,y,z,c), \
+  I[6] = (T)(img)(_n1##x,y,z,c), I[7] = (T)(img)(_n2##x,y,z,c), I[8] = (T)(img)(_p1##x,_n1##y,z,c), \
+  I[9] = (T)(img)(x,_n1##y,z,c), I[10] = (T)(img)(_n1##x,_n1##y,z,c), I[11] = (T)(img)(_n2##x,_n1##y,z,c), \
+  I[12] = (T)(img)(_p1##x,_n2##y,z,c), I[13] = (T)(img)(x,_n2##y,z,c), I[14] = (T)(img)(_n1##x,_n2##y,z,c), \
+  I[15] = (T)(img)(_n2##x,_n2##y,z,c)
+
+#define cimg_get5x5(img,x,y,z,c,I,T) \
+  I[0] = (T)(img)(_p2##x,_p2##y,z,c), I[1] = (T)(img)(_p1##x,_p2##y,z,c), I[2] = (T)(img)(x,_p2##y,z,c), \
+  I[3] = (T)(img)(_n1##x,_p2##y,z,c), I[4] = (T)(img)(_n2##x,_p2##y,z,c), I[5] = (T)(img)(_p2##x,_p1##y,z,c), \
+  I[6] = (T)(img)(_p1##x,_p1##y,z,c), I[7] = (T)(img)(x,_p1##y,z,c), I[8] = (T)(img)(_n1##x,_p1##y,z,c), \
+  I[9] = (T)(img)(_n2##x,_p1##y,z,c), I[10] = (T)(img)(_p2##x,y,z,c), I[11] = (T)(img)(_p1##x,y,z,c), \
+  I[12] = (T)(img)(x,y,z,c), I[13] = (T)(img)(_n1##x,y,z,c), I[14] = (T)(img)(_n2##x,y,z,c), \
+  I[15] = (T)(img)(_p2##x,_n1##y,z,c), I[16] = (T)(img)(_p1##x,_n1##y,z,c), I[17] = (T)(img)(x,_n1##y,z,c), \
+  I[18] = (T)(img)(_n1
