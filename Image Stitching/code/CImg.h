@@ -1158,4 +1158,150 @@ extern "C" {
       _n2##i = i + 2>=(int)(bound)?(int)(bound) - 1:i + 2, \
       _n3##i = i + 3>=(int)(bound)?(int)(bound) - 1:i + 3, \
       _n4##i = i + 4>=(int)(bound)?(int)(bound) - 1:i + 4; \
-      i<=(int)(i1) && (_n4##i<
+      i<=(int)(i1) && (_n4##i<(int)(bound) || _n3##i==--_n4##i || _n2##i==--_n3##i || _n1##i==--_n2##i || \
+      i==(_n4##i = _n3##i = _n2##i = --_n1##i)); \
+      _p3##i = _p2##i, _p2##i = _p1##i, _p1##i = i++, ++_n1##i, ++_n2##i, ++_n3##i, ++_n4##i)
+#define cimg_for_in8X(img,x0,x1,x) cimg_for_in8((img)._width,x0,x1,x)
+#define cimg_for_in8Y(img,y0,y1,y) cimg_for_in8((img)._height,y0,y1,y)
+#define cimg_for_in8Z(img,z0,z1,z) cimg_for_in8((img)._depth,z0,z1,z)
+#define cimg_for_in8C(img,c0,c1,c) cimg_for_in8((img)._spectrum,c0,c1,c)
+#define cimg_for_in8XY(img,x0,y0,x1,y1,x,y) cimg_for_in8Y(img,y0,y1,y) cimg_for_in8X(img,x0,x1,x)
+#define cimg_for_in8XZ(img,x0,z0,x1,z1,x,z) cimg_for_in8Z(img,z0,z1,z) cimg_for_in8X(img,x0,x1,x)
+#define cimg_for_in8XC(img,x0,c0,x1,c1,x,c) cimg_for_in8C(img,c0,c1,c) cimg_for_in8X(img,x0,x1,x)
+#define cimg_for_in8YZ(img,y0,z0,y1,z1,y,z) cimg_for_in8Z(img,z0,z1,z) cimg_for_in8Y(img,y0,y1,y)
+#define cimg_for_in8YC(img,y0,c0,y1,c1,y,c) cimg_for_in8C(img,c0,c1,c) cimg_for_in8Y(img,y0,y1,y)
+#define cimg_for_in8ZC(img,z0,c0,z1,c1,z,c) cimg_for_in8C(img,c0,c1,c) cimg_for_in8Z(img,z0,z1,z)
+#define cimg_for_in8XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z) cimg_for_in8Z(img,z0,z1,z) cimg_for_in8XY(img,x0,y0,x1,y1,x,y)
+#define cimg_for_in8XZC(img,x0,z0,c0,x1,y1,c1,x,z,c) cimg_for_in8C(img,c0,c1,c) cimg_for_in8XZ(img,x0,y0,x1,y1,x,z)
+#define cimg_for_in8YZC(img,y0,z0,c0,y1,z1,c1,y,z,c) cimg_for_in8C(img,c0,c1,c) cimg_for_in8YZ(img,y0,z0,y1,z1,y,z)
+#define cimg_for_in8XYZC(img,x0,y0,z0,c0,x1,y1,z1,c1,x,y,z,c) \
+  cimg_for_in8C(img,c0,c1,c) cimg_for_in8XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z)
+
+#define cimg_for9(bound,i) \
+  for (int i = 0, _p4##i = 0, _p3##i = 0, _p2##i = 0, _p1##i = 0, \
+       _n1##i = 1>=(int)(bound)?(int)(bound) - 1:1, \
+       _n2##i = 2>=(int)(bound)?(int)(bound) - 1:2, \
+       _n3##i = 3>=(int)(bound)?(int)(bound) - 1:3, \
+       _n4##i = 4>=(int)(bound)?(int)(bound) - 1:4; \
+       _n4##i<(int)(bound) || _n3##i==--_n4##i || _n2##i==--_n3##i || _n1##i==--_n2##i || \
+       i==(_n4##i = _n3##i = _n2##i = --_n1##i); \
+       _p4##i = _p3##i, _p3##i = _p2##i, _p2##i = _p1##i, _p1##i = i++, ++_n1##i, ++_n2##i, ++_n3##i, ++_n4##i)
+#define cimg_for9X(img,x) cimg_for9((img)._width,x)
+#define cimg_for9Y(img,y) cimg_for9((img)._height,y)
+#define cimg_for9Z(img,z) cimg_for9((img)._depth,z)
+#define cimg_for9C(img,c) cimg_for9((img)._spectrum,c)
+#define cimg_for9XY(img,x,y) cimg_for9Y(img,y) cimg_for9X(img,x)
+#define cimg_for9XZ(img,x,z) cimg_for9Z(img,z) cimg_for9X(img,x)
+#define cimg_for9XC(img,x,c) cimg_for9C(img,c) cimg_for9X(img,x)
+#define cimg_for9YZ(img,y,z) cimg_for9Z(img,z) cimg_for9Y(img,y)
+#define cimg_for9YC(img,y,c) cimg_for9C(img,c) cimg_for9Y(img,y)
+#define cimg_for9ZC(img,z,c) cimg_for9C(img,c) cimg_for9Z(img,z)
+#define cimg_for9XYZ(img,x,y,z) cimg_for9Z(img,z) cimg_for9XY(img,x,y)
+#define cimg_for9XZC(img,x,z,c) cimg_for9C(img,c) cimg_for9XZ(img,x,z)
+#define cimg_for9YZC(img,y,z,c) cimg_for9C(img,c) cimg_for9YZ(img,y,z)
+#define cimg_for9XYZC(img,x,y,z,c) cimg_for9C(img,c) cimg_for9XYZ(img,x,y,z)
+
+#define cimg_for_in9(bound,i0,i1,i) \
+  for (int i = (int)(i0)<0?0:(int)(i0), \
+       _p4##i = i - 4<0?0:i - 4, \
+       _p3##i = i - 3<0?0:i - 3, \
+       _p2##i = i - 2<0?0:i - 2, \
+       _p1##i = i - 1<0?0:i - 1, \
+       _n1##i = i + 1>=(int)(bound)?(int)(bound) - 1:i + 1, \
+       _n2##i = i + 2>=(int)(bound)?(int)(bound) - 1:i + 2, \
+       _n3##i = i + 3>=(int)(bound)?(int)(bound) - 1:i + 3, \
+       _n4##i = i + 4>=(int)(bound)?(int)(bound) - 1:i + 4; \
+       i<=(int)(i1) && (_n4##i<(int)(bound) || _n3##i==--_n4##i || _n2##i==--_n3##i || _n1##i==--_n2##i || \
+       i==(_n4##i = _n3##i = _n2##i = --_n1##i)); \
+       _p4##i = _p3##i, _p3##i = _p2##i, _p2##i = _p1##i, _p1##i = i++, ++_n1##i, ++_n2##i, ++_n3##i, ++_n4##i)
+#define cimg_for_in9X(img,x0,x1,x) cimg_for_in9((img)._width,x0,x1,x)
+#define cimg_for_in9Y(img,y0,y1,y) cimg_for_in9((img)._height,y0,y1,y)
+#define cimg_for_in9Z(img,z0,z1,z) cimg_for_in9((img)._depth,z0,z1,z)
+#define cimg_for_in9C(img,c0,c1,c) cimg_for_in9((img)._spectrum,c0,c1,c)
+#define cimg_for_in9XY(img,x0,y0,x1,y1,x,y) cimg_for_in9Y(img,y0,y1,y) cimg_for_in9X(img,x0,x1,x)
+#define cimg_for_in9XZ(img,x0,z0,x1,z1,x,z) cimg_for_in9Z(img,z0,z1,z) cimg_for_in9X(img,x0,x1,x)
+#define cimg_for_in9XC(img,x0,c0,x1,c1,x,c) cimg_for_in9C(img,c0,c1,c) cimg_for_in9X(img,x0,x1,x)
+#define cimg_for_in9YZ(img,y0,z0,y1,z1,y,z) cimg_for_in9Z(img,z0,z1,z) cimg_for_in9Y(img,y0,y1,y)
+#define cimg_for_in9YC(img,y0,c0,y1,c1,y,c) cimg_for_in9C(img,c0,c1,c) cimg_for_in9Y(img,y0,y1,y)
+#define cimg_for_in9ZC(img,z0,c0,z1,c1,z,c) cimg_for_in9C(img,c0,c1,c) cimg_for_in9Z(img,z0,z1,z)
+#define cimg_for_in9XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z) cimg_for_in9Z(img,z0,z1,z) cimg_for_in9XY(img,x0,y0,x1,y1,x,y)
+#define cimg_for_in9XZC(img,x0,z0,c0,x1,y1,c1,x,z,c) cimg_for_in9C(img,c0,c1,c) cimg_for_in9XZ(img,x0,y0,x1,y1,x,z)
+#define cimg_for_in9YZC(img,y0,z0,c0,y1,z1,c1,y,z,c) cimg_for_in9C(img,c0,c1,c) cimg_for_in9YZ(img,y0,z0,y1,z1,y,z)
+#define cimg_for_in9XYZC(img,x0,y0,z0,c0,x1,y1,z1,c1,x,y,z,c) \
+  cimg_for_in9C(img,c0,c1,c) cimg_for_in9XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z)
+
+#define cimg_for2x2(img,x,y,z,c,I,T) \
+  cimg_for2((img)._height,y) for (int x = 0, \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(0,y,z,c)), \
+   (I[2] = (T)(img)(0,_n1##y,z,c)), \
+   1>=(img)._width?(img).width() - 1:1);  \
+   (_n1##x<(img).width() && ( \
+   (I[1] = (T)(img)(_n1##x,y,z,c)), \
+   (I[3] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x; \
+   I[0] = I[1], \
+   I[2] = I[3], \
+   ++x, ++_n1##x)
+
+#define cimg_for_in2x2(img,x0,y0,x1,y1,x,y,z,c,I,T) \
+  cimg_for_in2((img)._height,y0,y1,y) for (int x = (int)(x0)<0?0:(int)(x0), \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(x,y,z,c)), \
+   (I[2] = (T)(img)(x,_n1##y,z,c)), \
+   x + 1>=(int)(img)._width?(img).width() - 1:x + 1); \
+   x<=(int)(x1) && ((_n1##x<(img).width() && (  \
+   (I[1] = (T)(img)(_n1##x,y,z,c)), \
+   (I[3] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x); \
+   I[0] = I[1], \
+   I[2] = I[3], \
+   ++x, ++_n1##x)
+
+#define cimg_for3x3(img,x,y,z,c,I,T) \
+  cimg_for3((img)._height,y) for (int x = 0, \
+   _p1##x = 0, \
+   _n1##x = (int)( \
+   (I[0] = I[1] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[3] = I[4] = (T)(img)(0,y,z,c)), \
+   (I[6] = I[7] = (T)(img)(0,_n1##y,z,c)), \
+   1>=(img)._width?(img).width() - 1:1); \
+   (_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x; \
+   I[0] = I[1], I[1] = I[2], \
+   I[3] = I[4], I[4] = I[5], \
+   I[6] = I[7], I[7] = I[8], \
+   _p1##x = x++, ++_n1##x)
+
+#define cimg_for_in3x3(img,x0,y0,x1,y1,x,y,z,c,I,T) \
+  cimg_for_in3((img)._height,y0,y1,y) for (int x = (int)(x0)<0?0:(int)(x0), \
+   _p1##x = x - 1<0?0:x - 1, \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[3] = (T)(img)(_p1##x,y,z,c)), \
+   (I[6] = (T)(img)(_p1##x,_n1##y,z,c)), \
+   (I[1] = (T)(img)(x,_p1##y,z,c)), \
+   (I[4] = (T)(img)(x,y,z,c)), \
+   (I[7] = (T)(img)(x,_n1##y,z,c)), \
+   x + 1>=(int)(img)._width?(img).width() - 1:x + 1); \
+   x<=(int)(x1) && ((_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x);            \
+   I[0] = I[1], I[1] = I[2], \
+   I[3] = I[4], I[4] = I[5], \
+   I[6] = I[7], I[7] = I[8], \
+   _p1##x = x++, ++_n1##x)
+
+#define cimg_for4x4(img,x,y,z,c,I,T) \
+  cimg_for4((img)._height,y) for (int x = 0, \
+   _p1##x = 0, \
+   _n1##x = 1>=(img)._width?(img).width() - 1:1, \
+   _n2##x = (int)( \
+   (I[0] = I[1] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[4] = I[5] = (T)(img)(0,y,z,c)), \
+  
