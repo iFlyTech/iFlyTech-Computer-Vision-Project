@@ -802,4 +802,123 @@ extern "C" {
   ++i, i = _n1j?i:(i==(int)(i0)?(int)(i1) + 1:i))
 #define cimg_for_out3(boundi,boundj,boundk,i0,j0,k0,i1,j1,k1,i,j,k) \
  for (int k = 0; k<(int)(boundk); ++k) \
- for (int _n1k = (int)(k<(int)(k0) || k>(int)(k1)), j = 0; j<(int)
+ for (int _n1k = (int)(k<(int)(k0) || k>(int)(k1)), j = 0; j<(int)(boundj); ++j) \
+ for (int _n1j = (int)(j<(int)(j0) || j>(int)(j1)), i = _n1j || _n1k?0:(int)(i0)>0?0:(int)(i1) + 1; i<(int)(boundi); \
+  ++i, i = _n1j || _n1k?i:(i==(int)(i0)?(int)(i1) + 1:i))
+#define cimg_for_out4(boundi,boundj,boundk,boundl,i0,j0,k0,l0,i1,j1,k1,l1,i,j,k,l) \
+ for (int l = 0; l<(int)(boundl); ++l) \
+ for (int _n1l = (int)(l<(int)(l0) || l>(int)(l1)), k = 0; k<(int)(boundk); ++k) \
+ for (int _n1k = (int)(k<(int)(k0) || k>(int)(k1)), j = 0; j<(int)(boundj); ++j) \
+ for (int _n1j = (int)(j<(int)(j0) || j>(int)(j1)), i = _n1j || _n1k || _n1l?0:(int)(i0)>0?0:(int)(i1) + 1; \
+  i<(int)(boundi); ++i, i = _n1j || _n1k || _n1l?i:(i==(int)(i0)?(int)(i1) + 1:i))
+#define cimg_for_outX(img,x0,x1,x) cimg_for_out1((img)._width,x0,x1,x)
+#define cimg_for_outY(img,y0,y1,y) cimg_for_out1((img)._height,y0,y1,y)
+#define cimg_for_outZ(img,z0,z1,z) cimg_for_out1((img)._depth,z0,z1,z)
+#define cimg_for_outC(img,c0,c1,c) cimg_for_out1((img)._spectrum,c0,c1,c)
+#define cimg_for_outXY(img,x0,y0,x1,y1,x,y) cimg_for_out2((img)._width,(img)._height,x0,y0,x1,y1,x,y)
+#define cimg_for_outXZ(img,x0,z0,x1,z1,x,z) cimg_for_out2((img)._width,(img)._depth,x0,z0,x1,z1,x,z)
+#define cimg_for_outXC(img,x0,c0,x1,c1,x,c) cimg_for_out2((img)._width,(img)._spectrum,x0,c0,x1,c1,x,c)
+#define cimg_for_outYZ(img,y0,z0,y1,z1,y,z) cimg_for_out2((img)._height,(img)._depth,y0,z0,y1,z1,y,z)
+#define cimg_for_outYC(img,y0,c0,y1,c1,y,c) cimg_for_out2((img)._height,(img)._spectrum,y0,c0,y1,c1,y,c)
+#define cimg_for_outZC(img,z0,c0,z1,c1,z,c) cimg_for_out2((img)._depth,(img)._spectrum,z0,c0,z1,c1,z,c)
+#define cimg_for_outXYZ(img,x0,y0,z0,x1,y1,z1,x,y,z) \
+  cimg_for_out3((img)._width,(img)._height,(img)._depth,x0,y0,z0,x1,y1,z1,x,y,z)
+#define cimg_for_outXYC(img,x0,y0,c0,x1,y1,c1,x,y,c) \
+  cimg_for_out3((img)._width,(img)._height,(img)._spectrum,x0,y0,c0,x1,y1,c1,x,y,c)
+#define cimg_for_outXZC(img,x0,z0,c0,x1,z1,c1,x,z,c) \
+  cimg_for_out3((img)._width,(img)._depth,(img)._spectrum,x0,z0,c0,x1,z1,c1,x,z,c)
+#define cimg_for_outYZC(img,y0,z0,c0,y1,z1,c1,y,z,c) \
+  cimg_for_out3((img)._height,(img)._depth,(img)._spectrum,y0,z0,c0,y1,z1,c1,y,z,c)
+#define cimg_for_outXYZC(img,x0,y0,z0,c0,x1,y1,z1,c1,x,y,z,c) \
+ cimg_for_out4((img)._width,(img)._height,(img)._depth,(img)._spectrum,x0,y0,z0,c0,x1,y1,z1,c1,x,y,z,c)
+#define cimg_for_borderX(img,x,n) cimg_for_outX(img,n,(img)._width - 1 - (n),x)
+#define cimg_for_borderY(img,y,n) cimg_for_outY(img,n,(img)._height - 1 - (n),y)
+#define cimg_for_borderZ(img,z,n) cimg_for_outZ(img,n,(img)._depth - 1 - (n),z)
+#define cimg_for_borderC(img,c,n) cimg_for_outC(img,n,(img)._spectrum - 1 - (n),c)
+#define cimg_for_borderXY(img,x,y,n) cimg_for_outXY(img,n,n,(img)._width - 1 - (n),(img)._height - 1 - (n),x,y)
+#define cimg_for_borderXYZ(img,x,y,z,n) \
+  cimg_for_outXYZ(img,n,n,n,(img)._width - 1 - (n),(img)._height - 1 - (n),(img)._depth - 1 - (n),x,y,z)
+#define cimg_for_borderXYZC(img,x,y,z,c,n) \
+ cimg_for_outXYZC(img,n,n,n,n,(img)._width - 1 - (n),(img)._height - 1 - (n), \
+                  (img)._depth - 1 - (n),(img)._spectrum - 1 - (n),x,y,z,c)
+
+#define cimg_for_spiralXY(img,x,y) \
+ for (int x = 0, y = 0, _n1##x = 1, _n1##y = (img).width()*(img).height(); _n1##y; \
+      --_n1##y, _n1##x+=(_n1##x>>2) - ((!(_n1##x&3)?--y:((_n1##x&3)==1?(img)._width - 1 - ++x:\
+      ((_n1##x&3)==2?(img)._height - 1 - ++y:--x))))?0:1)
+
+#define cimg_for_lineXY(x,y,x0,y0,x1,y1) \
+ for (int x = (int)(x0), y = (int)(y0), _sx = 1, _sy = 1, _steep = 0, \
+      _dx=(x1)>(x0)?(int)(x1) - (int)(x0):(_sx=-1,(int)(x0) - (int)(x1)), \
+      _dy=(y1)>(y0)?(int)(y1) - (int)(y0):(_sy=-1,(int)(y0) - (int)(y1)), \
+      _counter = _dx, \
+      _err = _dx>_dy?(_dy>>1):((_steep=1),(_counter=_dy),(_dx>>1)); \
+      _counter>=0; \
+      --_counter, x+=_steep? \
+      (y+=_sy,(_err-=_dx)<0?_err+=_dy,_sx:0): \
+      (y+=(_err-=_dy)<0?_err+=_dx,_sy:0,_sx))
+
+#define cimg_for2(bound,i) \
+ for (int i = 0, _n1##i = 1>=(bound)?(int)(bound) - 1:1; \
+      _n1##i<(int)(bound) || i==--_n1##i; \
+      ++i, ++_n1##i)
+#define cimg_for2X(img,x) cimg_for2((img)._width,x)
+#define cimg_for2Y(img,y) cimg_for2((img)._height,y)
+#define cimg_for2Z(img,z) cimg_for2((img)._depth,z)
+#define cimg_for2C(img,c) cimg_for2((img)._spectrum,c)
+#define cimg_for2XY(img,x,y) cimg_for2Y(img,y) cimg_for2X(img,x)
+#define cimg_for2XZ(img,x,z) cimg_for2Z(img,z) cimg_for2X(img,x)
+#define cimg_for2XC(img,x,c) cimg_for2C(img,c) cimg_for2X(img,x)
+#define cimg_for2YZ(img,y,z) cimg_for2Z(img,z) cimg_for2Y(img,y)
+#define cimg_for2YC(img,y,c) cimg_for2C(img,c) cimg_for2Y(img,y)
+#define cimg_for2ZC(img,z,c) cimg_for2C(img,c) cimg_for2Z(img,z)
+#define cimg_for2XYZ(img,x,y,z) cimg_for2Z(img,z) cimg_for2XY(img,x,y)
+#define cimg_for2XZC(img,x,z,c) cimg_for2C(img,c) cimg_for2XZ(img,x,z)
+#define cimg_for2YZC(img,y,z,c) cimg_for2C(img,c) cimg_for2YZ(img,y,z)
+#define cimg_for2XYZC(img,x,y,z,c) cimg_for2C(img,c) cimg_for2XYZ(img,x,y,z)
+
+#define cimg_for_in2(bound,i0,i1,i) \
+ for (int i = (int)(i0)<0?0:(int)(i0), \
+      _n1##i = i + 1>=(int)(bound)?(int)(bound) - 1:i + 1; \
+      i<=(int)(i1) && (_n1##i<(int)(bound) || i==--_n1##i); \
+      ++i, ++_n1##i)
+#define cimg_for_in2X(img,x0,x1,x) cimg_for_in2((img)._width,x0,x1,x)
+#define cimg_for_in2Y(img,y0,y1,y) cimg_for_in2((img)._height,y0,y1,y)
+#define cimg_for_in2Z(img,z0,z1,z) cimg_for_in2((img)._depth,z0,z1,z)
+#define cimg_for_in2C(img,c0,c1,c) cimg_for_in2((img)._spectrum,c0,c1,c)
+#define cimg_for_in2XY(img,x0,y0,x1,y1,x,y) cimg_for_in2Y(img,y0,y1,y) cimg_for_in2X(img,x0,x1,x)
+#define cimg_for_in2XZ(img,x0,z0,x1,z1,x,z) cimg_for_in2Z(img,z0,z1,z) cimg_for_in2X(img,x0,x1,x)
+#define cimg_for_in2XC(img,x0,c0,x1,c1,x,c) cimg_for_in2C(img,c0,c1,c) cimg_for_in2X(img,x0,x1,x)
+#define cimg_for_in2YZ(img,y0,z0,y1,z1,y,z) cimg_for_in2Z(img,z0,z1,z) cimg_for_in2Y(img,y0,y1,y)
+#define cimg_for_in2YC(img,y0,c0,y1,c1,y,c) cimg_for_in2C(img,c0,c1,c) cimg_for_in2Y(img,y0,y1,y)
+#define cimg_for_in2ZC(img,z0,c0,z1,c1,z,c) cimg_for_in2C(img,c0,c1,c) cimg_for_in2Z(img,z0,z1,z)
+#define cimg_for_in2XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z) cimg_for_in2Z(img,z0,z1,z) cimg_for_in2XY(img,x0,y0,x1,y1,x,y)
+#define cimg_for_in2XZC(img,x0,z0,c0,x1,y1,c1,x,z,c) cimg_for_in2C(img,c0,c1,c) cimg_for_in2XZ(img,x0,y0,x1,y1,x,z)
+#define cimg_for_in2YZC(img,y0,z0,c0,y1,z1,c1,y,z,c) cimg_for_in2C(img,c0,c1,c) cimg_for_in2YZ(img,y0,z0,y1,z1,y,z)
+#define cimg_for_in2XYZC(img,x0,y0,z0,c0,x1,y1,z1,c1,x,y,z,c) \
+  cimg_for_in2C(img,c0,c1,c) cimg_for_in2XYZ(img,x0,y0,z0,x1,y1,z1,x,y,z)
+
+#define cimg_for3(bound,i) \
+ for (int i = 0, _p1##i = 0, \
+      _n1##i = 1>=(bound)?(int)(bound) - 1:1; \
+      _n1##i<(int)(bound) || i==--_n1##i; \
+      _p1##i = i++, ++_n1##i)
+#define cimg_for3X(img,x) cimg_for3((img)._width,x)
+#define cimg_for3Y(img,y) cimg_for3((img)._height,y)
+#define cimg_for3Z(img,z) cimg_for3((img)._depth,z)
+#define cimg_for3C(img,c) cimg_for3((img)._spectrum,c)
+#define cimg_for3XY(img,x,y) cimg_for3Y(img,y) cimg_for3X(img,x)
+#define cimg_for3XZ(img,x,z) cimg_for3Z(img,z) cimg_for3X(img,x)
+#define cimg_for3XC(img,x,c) cimg_for3C(img,c) cimg_for3X(img,x)
+#define cimg_for3YZ(img,y,z) cimg_for3Z(img,z) cimg_for3Y(img,y)
+#define cimg_for3YC(img,y,c) cimg_for3C(img,c) cimg_for3Y(img,y)
+#define cimg_for3ZC(img,z,c) cimg_for3C(img,c) cimg_for3Z(img,z)
+#define cimg_for3XYZ(img,x,y,z) cimg_for3Z(img,z) cimg_for3XY(img,x,y)
+#define cimg_for3XZC(img,x,z,c) cimg_for3C(img,c) cimg_for3XZ(img,x,z)
+#define cimg_for3YZC(img,y,z,c) cimg_for3C(img,c) cimg_for3YZ(img,y,z)
+#define cimg_for3XYZC(img,x,y,z,c) cimg_for3C(img,c) cimg_for3XYZ(img,x,y,z)
+
+#define cimg_for_in3(bound,i0,i1,i) \
+ for (int i = (int)(i0)<0?0:(int)(i0), \
+      _p1##i = i - 1<0?0:i - 1, \
+      _n1##i = i + 1>=(int)(bound)?(int)(bound) 
