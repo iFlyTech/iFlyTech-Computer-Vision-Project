@@ -1941,4 +1941,170 @@ extern "C" {
    (I[62] = (T)(img)(_n4##x,_n2##y,z,c)), \
    (I[71] = (T)(img)(_n4##x,_n3##y,z,c)), \
    (I[80] = (T)(img)(_n4##x,_n4##y,z,c)),1)) || \
-   _n3##x==--_n4##x || _n2##x==--_n3##x || _n1##x==--_n2##x || x==(_n4##x = _n3##x = _n
+   _n3##x==--_n4##x || _n2##x==--_n3##x || _n1##x==--_n2##x || x==(_n4##x = _n3##x = _n2##x = --_n1##x)); \
+   I[0] = I[1], I[1] = I[2], I[2] = I[3], I[3] = I[4], I[4] = I[5], I[5] = I[6], I[6] = I[7], I[7] = I[8], \
+   I[9] = I[10], I[10] = I[11], I[11] = I[12], I[12] = I[13], I[13] = I[14], I[14] = I[15], I[15] = I[16], \
+   I[16] = I[17], I[18] = I[19], I[19] = I[20], I[20] = I[21], I[21] = I[22], I[22] = I[23], I[23] = I[24], \
+   I[24] = I[25], I[25] = I[26], I[27] = I[28], I[28] = I[29], I[29] = I[30], I[30] = I[31], I[31] = I[32], \
+   I[32] = I[33], I[33] = I[34], I[34] = I[35], I[36] = I[37], I[37] = I[38], I[38] = I[39], I[39] = I[40], \
+   I[40] = I[41], I[41] = I[42], I[42] = I[43], I[43] = I[44], I[45] = I[46], I[46] = I[47], I[47] = I[48], \
+   I[48] = I[49], I[49] = I[50], I[50] = I[51], I[51] = I[52], I[52] = I[53], I[54] = I[55], I[55] = I[56], \
+   I[56] = I[57], I[57] = I[58], I[58] = I[59], I[59] = I[60], I[60] = I[61], I[61] = I[62], I[63] = I[64], \
+   I[64] = I[65], I[65] = I[66], I[66] = I[67], I[67] = I[68], I[68] = I[69], I[69] = I[70], I[70] = I[71], \
+   I[72] = I[73], I[73] = I[74], I[74] = I[75], I[75] = I[76], I[76] = I[77], I[77] = I[78], I[78] = I[79], \
+   I[79] = I[80], \
+   _p4##x = _p3##x, _p3##x = _p2##x, _p2##x = _p1##x, _p1##x = x++, ++_n1##x, ++_n2##x, ++_n3##x, ++_n4##x)
+
+#define cimg_for2x2x2(img,x,y,z,c,I,T) \
+ cimg_for2((img)._depth,z) cimg_for2((img)._height,y) for (int x = 0, \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(0,y,z,c)), \
+   (I[2] = (T)(img)(0,_n1##y,z,c)), \
+   (I[4] = (T)(img)(0,y,_n1##z,c)), \
+   (I[6] = (T)(img)(0,_n1##y,_n1##z,c)), \
+   1>=(img)._width?(img).width() - 1:1); \
+   (_n1##x<(img).width() && ( \
+   (I[1] = (T)(img)(_n1##x,y,z,c)), \
+   (I[3] = (T)(img)(_n1##x,_n1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,_n1##z,c)), \
+   (I[7] = (T)(img)(_n1##x,_n1##y,_n1##z,c)),1)) || \
+   x==--_n1##x; \
+   I[0] = I[1], I[2] = I[3], I[4] = I[5], I[6] = I[7], \
+   ++x, ++_n1##x)
+
+#define cimg_for_in2x2x2(img,x0,y0,z0,x1,y1,z1,x,y,z,c,I,T) \
+ cimg_for_in2((img)._depth,z0,z1,z) cimg_for_in2((img)._height,y0,y1,y) for (int x = (int)(x0)<0?0:(int)(x0), \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(x,y,z,c)), \
+   (I[2] = (T)(img)(x,_n1##y,z,c)), \
+   (I[4] = (T)(img)(x,y,_n1##z,c)), \
+   (I[6] = (T)(img)(x,_n1##y,_n1##z,c)), \
+   x + 1>=(int)(img)._width?(img).width() - 1:x + 1); \
+   x<=(int)(x1) && ((_n1##x<(img).width() && ( \
+   (I[1] = (T)(img)(_n1##x,y,z,c)), \
+   (I[3] = (T)(img)(_n1##x,_n1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,_n1##z,c)), \
+   (I[7] = (T)(img)(_n1##x,_n1##y,_n1##z,c)),1)) || \
+   x==--_n1##x); \
+   I[0] = I[1], I[2] = I[3], I[4] = I[5], I[6] = I[7], \
+   ++x, ++_n1##x)
+
+#define cimg_for3x3x3(img,x,y,z,c,I,T) \
+ cimg_for3((img)._depth,z) cimg_for3((img)._height,y) for (int x = 0, \
+   _p1##x = 0, \
+   _n1##x = (int)( \
+   (I[0] = I[1] = (T)(img)(_p1##x,_p1##y,_p1##z,c)), \
+   (I[3] = I[4] = (T)(img)(0,y,_p1##z,c)),  \
+   (I[6] = I[7] = (T)(img)(0,_n1##y,_p1##z,c)), \
+   (I[9] = I[10] = (T)(img)(0,_p1##y,z,c)), \
+   (I[12] = I[13] = (T)(img)(0,y,z,c)), \
+   (I[15] = I[16] = (T)(img)(0,_n1##y,z,c)), \
+   (I[18] = I[19] = (T)(img)(0,_p1##y,_n1##z,c)), \
+   (I[21] = I[22] = (T)(img)(0,y,_n1##z,c)), \
+   (I[24] = I[25] = (T)(img)(0,_n1##y,_n1##z,c)), \
+   1>=(img)._width?(img).width() - 1:1); \
+   (_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,_p1##z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,_p1##z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,_p1##z,c)), \
+   (I[11] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[14] = (T)(img)(_n1##x,y,z,c)), \
+   (I[17] = (T)(img)(_n1##x,_n1##y,z,c)), \
+   (I[20] = (T)(img)(_n1##x,_p1##y,_n1##z,c)), \
+   (I[23] = (T)(img)(_n1##x,y,_n1##z,c)), \
+   (I[26] = (T)(img)(_n1##x,_n1##y,_n1##z,c)),1)) || \
+   x==--_n1##x; \
+   I[0] = I[1], I[1] = I[2], I[3] = I[4], I[4] = I[5], I[6] = I[7], I[7] = I[8], \
+   I[9] = I[10], I[10] = I[11], I[12] = I[13], I[13] = I[14], I[15] = I[16], I[16] = I[17], \
+   I[18] = I[19], I[19] = I[20], I[21] = I[22], I[22] = I[23], I[24] = I[25], I[25] = I[26], \
+   _p1##x = x++, ++_n1##x)
+
+#define cimg_for_in3x3x3(img,x0,y0,z0,x1,y1,z1,x,y,z,c,I,T) \
+ cimg_for_in3((img)._depth,z0,z1,z) cimg_for_in3((img)._height,y0,y1,y) for (int x = (int)(x0)<0?0:(int)(x0), \
+   _p1##x = x - 1<0?0:x - 1, \
+   _n1##x = (int)( \
+   (I[0] = (T)(img)(_p1##x,_p1##y,_p1##z,c)), \
+   (I[3] = (T)(img)(_p1##x,y,_p1##z,c)),  \
+   (I[6] = (T)(img)(_p1##x,_n1##y,_p1##z,c)), \
+   (I[9] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[12] = (T)(img)(_p1##x,y,z,c)), \
+   (I[15] = (T)(img)(_p1##x,_n1##y,z,c)), \
+   (I[18] = (T)(img)(_p1##x,_p1##y,_n1##z,c)), \
+   (I[21] = (T)(img)(_p1##x,y,_n1##z,c)), \
+   (I[24] = (T)(img)(_p1##x,_n1##y,_n1##z,c)), \
+   (I[1] = (T)(img)(x,_p1##y,_p1##z,c)), \
+   (I[4] = (T)(img)(x,y,_p1##z,c)),  \
+   (I[7] = (T)(img)(x,_n1##y,_p1##z,c)), \
+   (I[10] = (T)(img)(x,_p1##y,z,c)), \
+   (I[13] = (T)(img)(x,y,z,c)), \
+   (I[16] = (T)(img)(x,_n1##y,z,c)), \
+   (I[19] = (T)(img)(x,_p1##y,_n1##z,c)), \
+   (I[22] = (T)(img)(x,y,_n1##z,c)), \
+   (I[25] = (T)(img)(x,_n1##y,_n1##z,c)), \
+   x + 1>=(int)(img)._width?(img).width() - 1:x + 1); \
+   x<=(int)(x1) && ((_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,_p1##z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,_p1##z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,_p1##z,c)), \
+   (I[11] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[14] = (T)(img)(_n1##x,y,z,c)), \
+   (I[17] = (T)(img)(_n1##x,_n1##y,z,c)), \
+   (I[20] = (T)(img)(_n1##x,_p1##y,_n1##z,c)), \
+   (I[23] = (T)(img)(_n1##x,y,_n1##z,c)), \
+   (I[26] = (T)(img)(_n1##x,_n1##y,_n1##z,c)),1)) || \
+   x==--_n1##x); \
+   I[0] = I[1], I[1] = I[2], I[3] = I[4], I[4] = I[5], I[6] = I[7], I[7] = I[8], \
+   I[9] = I[10], I[10] = I[11], I[12] = I[13], I[13] = I[14], I[15] = I[16], I[16] = I[17], \
+   I[18] = I[19], I[19] = I[20], I[21] = I[22], I[22] = I[23], I[24] = I[25], I[25] = I[26], \
+   _p1##x = x++, ++_n1##x)
+
+#define cimglist_for(list,l) for (int l = 0; l<(int)(list)._width; ++l)
+#define cimglist_for_in(list,l0,l1,l) \
+  for (int l = (int)(l0)<0?0:(int)(l0), _max##l = (unsigned int)l1<(list)._width?(int)(l1):(int)(list)._width - 1; \
+  l<=_max##l; ++l)
+
+#define cimglist_apply(list,fn) cimglist_for(list,__##fn) (list)[__##fn].fn
+
+// Macros used to display error messages when exceptions are thrown.
+// You should not use these macros is your own code.
+#define _cimgdisplay_instance "[instance(%u,%u,%u,%c%s%c)] CImgDisplay::"
+#define cimgdisplay_instance _width,_height,_normalization,_title?'\"':'[',_title?_title:"untitled",_title?'\"':']'
+#define _cimg_instance "[instance(%u,%u,%u,%u,%p,%sshared)] CImg<%s>::"
+#define cimg_instance _width,_height,_depth,_spectrum,_data,_is_shared?"":"non-",pixel_type()
+#define _cimglist_instance "[instance(%u,%u,%p)] CImgList<%s>::"
+#define cimglist_instance _width,_allocated_width,_data,pixel_type()
+
+/*------------------------------------------------
+ #
+ #
+ #  Define cimg_library:: namespace
+ #
+ #
+ -------------------------------------------------*/
+//! Contains <i>all classes and functions</i> of the \CImg library.
+/**
+   This namespace is defined to avoid functions and class names collisions
+   that could happen with the inclusion of other C++ header files.
+   Anyway, it should not happen often and you should reasonnably start most of your
+   \CImg-based programs with
+   \code
+   #include "CImg.h"
+   using namespace cimg_library;
+   \endcode
+   to simplify the declaration of \CImg Library objects afterwards.
+**/
+namespace cimg_library_suffixed {
+
+  // Declare the four classes of the CImg Library.
+  template<typename T=float> struct CImg;
+  template<typename T=float> struct CImgList;
+  struct CImgDisplay;
+  struct CImgException;
+
+  // Declare cimg:: namespace.
+  // This is an uncomplete namespace definition here. It only contains some
+  // necessary stuff to ensure a correct declaration order of the classes and functions
+  // defined afterwards.
+  namespace cimg {
+
+    // Define ascii sequences for 
