@@ -2107,4 +2107,193 @@ namespace cimg_library_suffixed {
   // defined afterwards.
   namespace cimg {
 
-    // Define ascii sequences for 
+    // Define ascii sequences for colored terminal output.
+#ifdef cimg_use_vt100
+    static const char t_normal[] = { 0x1b, '[', '0', ';', '0', ';', '0', 'm', 0 };
+    static const char t_black[] = { 0x1b, '[', '0', ';', '3', '0', ';', '5', '9', 'm', 0 };
+    static const char t_red[] = { 0x1b, '[', '0', ';', '3', '1', ';', '5', '9', 'm', 0 };
+    static const char t_green[] = { 0x1b, '[', '0', ';', '3', '2', ';', '5', '9', 'm', 0 };
+    static const char t_yellow[] = { 0x1b, '[', '0', ';', '3', '3', ';', '5', '9', 'm', 0 };
+    static const char t_blue[] = { 0x1b, '[', '0', ';', '3', '4', ';', '5', '9', 'm', 0 };
+    static const char t_magenta[] = { 0x1b, '[', '0', ';', '3', '5', ';', '5', '9', 'm', 0 };
+    static const char t_cyan[] = { 0x1b, '[', '0', ';', '3', '6', ';', '5', '9', 'm', 0 };
+    static const char t_white[] = { 0x1b, '[', '0', ';', '3', '7', ';', '5', '9', 'm', 0 };
+    static const char t_bold[] = { 0x1b, '[', '1', 'm', 0 };
+    static const char t_underscore[] = { 0x1b, '[', '4', 'm', 0 };
+#else
+    static const char t_normal[] = { 0 };
+    static const char *const t_black = cimg::t_normal,
+      *const t_red = cimg::t_normal,
+      *const t_green = cimg::t_normal,
+      *const t_yellow = cimg::t_normal,
+      *const t_blue = cimg::t_normal,
+      *const t_magenta = cimg::t_normal,
+      *const t_cyan = cimg::t_normal,
+      *const t_white = cimg::t_normal,
+      *const t_bold = cimg::t_normal,
+      *const t_underscore = cimg::t_normal;
+#endif
+
+    inline std::FILE* output(std::FILE *file=0);
+    inline void info();
+
+    //! Avoid warning messages due to unused parameters. Do nothing actually.
+    template<typename T>
+    inline void unused(const T&, ...) {}
+
+    // [internal] Lock/unlock a mutex for managing concurrent threads.
+    // 'lock_mode' can be { 0=unlock | 1=lock | 2=trylock }.
+    // 'n' can be in [0,31] but mutex range [0,15] is reserved by CImg.
+    inline int mutex(const unsigned int n, const int lock_mode=1);
+
+    inline unsigned int& _exception_mode(const unsigned int value, const bool is_set) {
+      static unsigned int mode = cimg_verbosity;
+      if (is_set) { cimg::mutex(0); mode = value<4?value:4; cimg::mutex(0,0); }
+      return mode;
+    }
+
+    // Mandatory because Microsoft's _snprintf() and _vsnprintf() do not add the '\0' character
+    // at the end of the string.
+#if cimg_OS==2 && defined(_MSC_VER)
+    inline int _snprintf(char *const s, const size_t size, const char *const format, ...) {
+      va_list ap;
+      va_start(ap,format);
+      const int result = _vsnprintf(s,size,format,ap);
+      va_end(ap);
+      return result;
+    }
+
+    inline int _vsnprintf(char *const s, const size_t size, const char *const format, va_list ap) {
+      int result = -1;
+      cimg::mutex(6);
+      if (size) result = _vsnprintf_s(s,size,_TRUNCATE,format,ap);
+      if (result==-1) result = _vscprintf(format,ap);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    // Mutex-protected version of sscanf, sprintf and snprintf.
+    // Used only MacOSX, as it seems those functions are not re-entrant on MacOSX.
+#elif defined(__MACOSX__) || defined(__APPLE__)
+    inline int _sscanf(const char *const s, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsscanf(s,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _sprintf(char *const s, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsprintf(s,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _snprintf(char *const s, const size_t n, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsnprintf(s,n,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _vsnprintf(char *const s, const size_t size, const char* format, va_list ap) {
+      cimg::mutex(6);
+      const int result = std::vsnprintf(s,size,format,ap);
+      cimg::mutex(6,0);
+      return result;
+    }
+#endif
+
+    //! Set current \CImg exception mode.
+    /**
+       The way error messages are handled by \CImg can be changed dynamically, using this function.
+       \param mode Desired exception mode. Possible values are:
+       - \c 0: Hide library messages (quiet mode).
+       - \c 1: Print library messages on the console.
+       - \c 2: Display library messages on a dialog window (default behavior).
+       - \c 3: Do as \c 1 + add extra debug warnings (slow down the code!).
+       - \c 4: Do as \c 2 + add extra debug warnings (slow down the code!).
+     **/
+    inline unsigned int& exception_mode(const unsigned int mode) {
+      return _exception_mode(mode,true);
+    }
+
+    //! Return current \CImg exception mode.
+    /**
+       \note By default, return the value of configuration macro \c cimg_verbosity
+    **/
+    inline unsigned int& exception_mode() {
+      return _exception_mode(0,false);
+    }
+
+    //! Set current \CImg openmp mode.
+    /**
+       The way openmp-based methods are handled by \CImg can be changed dynamically, using this function.
+       \param mode Desired openmp mode. Possible values are:
+       - \c 0: Never parallelize (quiet mode).
+       - \c 1: Always parallelize.
+       - \c 2: Adaptive parallelization mode (default behavior).
+     **/
+    inline unsigned int& _openmp_mode(const unsigned int value, const bool is_set) {
+      static unsigned int mode = 2;
+      if (is_set)  { cimg::mutex(0); mode = value<2?value:2; cimg::mutex(0,0); }
+      return mode;
+    }
+
+    inline unsigned int& openmp_mode(const unsigned int mode) {
+      return _openmp_mode(mode,true);
+    }
+
+    //! Return current \CImg openmp mode.
+    inline unsigned int& openmp_mode() {
+      return _openmp_mode(0,false);
+    }
+
+#define cimg_openmp_if(cond) if (cimg::openmp_mode()==1 || (cimg::openmp_mode()>1 && (cond)))
+
+    // Display a simple dialog box, and wait for the user's response.
+    inline int dialog(const char *const title, const char *const msg, const char *const button1_label="OK",
+                      const char *const button2_label=0, const char *const button3_label=0,
+                      const char *const button4_label=0, const char *const button5_label=0,
+                      const char *const button6_label=0, const bool centering=false);
+
+    // Evaluate math expression.
+    inline double eval(const char *const expression,
+                       const double x=0, const double y=0, const double z=0, const double c=0);
+
+  }
+
+  /*---------------------------------------
+    #
+    # Define the CImgException structures
+    #
+    --------------------------------------*/
+  //! Instances of \c CImgException are thrown when errors are encountered in a \CImg function call.
+  /**
+     \par Overview
+
+      CImgException is the base class of all exceptions thrown by \CImg (except \b CImgAbortException).
+      CImgException is never thrown itself. Derived classes that specify the type of errord are thrown instead.
+      These classes can be:
+
+      - \b CImgAbortException: Thrown when a computationally-intensive function is aborted by an external signal.
+        This is the only \c non-derived exception class.
+
+      - \b CImgArgumentException: Thrown when one argument of a called \CImg function is invalid.
+      This is probably one of the most thrown exception by \CImg.
+      For instance, the following example throws a \c CImgArgumentException:
+      \code
+      CImg<float> img(100,100,1,3); // Define a 100x100 color image with float-valued pixels.
+      img.mirror('e');              // Try to mirror image along the (non-existing) 'e'-axis.
+      \endcode
+
+      - \b CI
