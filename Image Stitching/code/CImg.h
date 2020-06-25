@@ -2454,4 +2454,154 @@ namespace cimg_library_suffixed {
     //
     template<typename T> struct type {
       static const char* string() {
-        static
+        static const char* s[] = { "unknown",   "unknown8",   "unknown16",  "unknown24",
+                                   "unknown32", "unknown40",  "unknown48",  "unknown56",
+                                   "unknown64", "unknown72",  "unknown80",  "unknown88",
+                                   "unknown96", "unknown104", "unknown112", "unknown120",
+                                   "unknown128" };
+        return s[(sizeof(T)<17)?sizeof(T):0];
+      }
+      static bool is_float() { return false; }
+      static bool is_inf(const T) { return false; }
+      static bool is_nan(const T) { return false; }
+      static T min() { return ~max(); }
+      static T max() { return (T)1<<(8*sizeof(T) - 1); }
+      static T inf() { return max(); }
+      static T cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(T)val; }
+      static const char* format() { return "%s"; }
+      static const char* format(const T& val) { static const char *const s = "unknown"; cimg::unused(val); return s; }
+    };
+
+    template<> struct type<bool> {
+      static const char* string() { static const char *const s = "bool"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const bool) { return false; }
+      static bool is_nan(const bool) { return false; }
+      static bool min() { return false; }
+      static bool max() { return true; }
+      static bool inf() { return max(); }
+      static bool is_inf() { return false; }
+      static bool cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(bool)val; }
+      static const char* format() { return "%s"; }
+      static const char* format(const bool val) { static const char* s[] = { "false", "true" }; return s[val?1:0]; }
+    };
+
+    template<> struct type<unsigned char> {
+      static const char* string() { static const char *const s = "unsigned char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const unsigned char) { return false; }
+      static bool is_nan(const unsigned char) { return false; }
+      static unsigned char min() { return 0; }
+      static unsigned char max() { return (unsigned char)-1; }
+      static unsigned char inf() { return max(); }
+      static unsigned char cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned char)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const unsigned char val) { return (unsigned int)val; }
+    };
+
+#if defined(CHAR_MAX) && CHAR_MAX==255
+    template<> struct type<char> {
+      static const char* string() { static const char *const s = "char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const char) { return false; }
+      static bool is_nan(const char) { return false; }
+      static char min() { return 0; }
+      static char max() { return (char)-1; }
+      static char inf() { return max(); }
+      static char cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned char)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const char val) { return (unsigned int)val; }
+    };
+#else
+    template<> struct type<char> {
+      static const char* string() { static const char *const s = "char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const char) { return false; }
+      static bool is_nan(const char) { return false; }
+      static char min() { return ~max(); }
+      static char max() { return (char)((unsigned char)-1>>1); }
+      static char inf() { return max(); }
+      static char cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(char)val; }
+      static const char* format() { return "%d"; }
+      static int format(const char val) { return (int)val; }
+    };
+#endif
+
+    template<> struct type<signed char> {
+      static const char* string() { static const char *const s = "signed char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const signed char) { return false; }
+      static bool is_nan(const signed char) { return false; }
+      static signed char min() { return ~max(); }
+      static signed char max() { return (signed char)((unsigned char)-1>>1); }
+      static signed char inf() { return max(); }
+      static signed char cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(signed char)val; }
+      static const char* format() { return "%d"; }
+      static int format(const signed char val) { return (int)val; }
+    };
+
+    template<> struct type<unsigned short> {
+      static const char* string() { static const char *const s = "unsigned short"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const unsigned short) { return false; }
+      static bool is_nan(const unsigned short) { return false; }
+      static unsigned short min() { return 0; }
+      static unsigned short max() { return (unsigned short)-1; }
+      static unsigned short inf() { return max(); }
+      static unsigned short cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned short)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const unsigned short val) { return (unsigned int)val; }
+    };
+
+    template<> struct type<short> {
+      static const char* string() { static const char *const s = "short"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const short) { return false; }
+      static bool is_nan(const short) { return false; }
+      static short min() { return ~max(); }
+      static short max() { return (short)((unsigned short)-1>>1); }
+      static short inf() { return max(); }
+      static short cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(short)val; }
+      static const char* format() { return "%d"; }
+      static int format(const short val) { return (int)val; }
+    };
+
+    template<> struct type<unsigned int> {
+      static const char* string() { static const char *const s = "unsigned int"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const unsigned int) { return false; }
+      static bool is_nan(const unsigned int) { return false; }
+      static unsigned int min() { return 0; }
+      static unsigned int max() { return (unsigned int)-1; }
+      static unsigned int inf() { return max(); }
+      static unsigned int cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned int)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const unsigned int val) { return val; }
+    };
+
+    template<> struct type<int> {
+      static const char* string() { static const char *const s = "int"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const int) { return false; }
+      static bool is_nan(const int) { return false; }
+      static int min() { return ~max(); }
+      static int max() { return (int)((unsigned int)-1>>1); }
+      static int inf() { return max(); }
+      static int cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(int)val; }
+      static const char* format() { return "%d"; }
+      static int format(const int val) { return val; }
+    };
+
+    template<> struct type<cimg_uint64> {
+      static const char* string() { static const char *const s = "unsigned int64"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const cimg_uint64) { return false; }
+      static bool is_nan(const cimg_uint64) { return false; }
+      static cimg_uint64 min() { return 0; }
+      static cimg_uint64 max() { return (cimg_uint64)-1; }
+      static c
