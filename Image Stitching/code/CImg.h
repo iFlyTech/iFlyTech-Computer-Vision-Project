@@ -2604,4 +2604,161 @@ namespace cimg_library_suffixed {
       static bool is_nan(const cimg_uint64) { return false; }
       static cimg_uint64 min() { return 0; }
       static cimg_uint64 max() { return (cimg_uint64)-1; }
-      static c
+      static cimg_uint64 inf() { return max(); }
+      static cimg_uint64 cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(cimg_uint64)val; }
+      static const char* format() { return "%lu"; }
+      static unsigned long format(const cimg_uint64 val) { return (unsigned long)val; }
+    };
+
+    template<> struct type<cimg_int64> {
+      static const char* string() { static const char *const s = "int64"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const cimg_int64) { return false; }
+      static bool is_nan(const cimg_int64) { return false; }
+      static cimg_int64 min() { return ~max(); }
+      static cimg_int64 max() { return (cimg_int64)((cimg_uint64)-1>>1); }
+      static cimg_int64 inf() { return max(); }
+      static cimg_int64 cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(cimg_int64)val; }
+      static const char* format() { return "%ld"; }
+      static long format(const long val) { return (long)val; }
+    };
+
+    template<> struct type<double> {
+      static const char* string() { static const char *const s = "double"; return s; }
+      static bool is_float() { return true; }
+      static bool is_inf(const double val) {
+#ifdef isinf
+        return (bool)isinf(val);
+#else
+        return !is_nan(val) && (val<cimg::type<double>::min() || val>cimg::type<double>::max());
+#endif
+      }
+      static bool is_nan(const double val) {
+#ifdef isnan
+        return (bool)isnan(val);
+#else
+        return !(val==val);
+#endif
+      }
+      static double min() { return -DBL_MAX; }
+      static double max() { return DBL_MAX; }
+      static double inf() {
+#ifdef INFINITY
+        return (double)INFINITY;
+#else
+        return max()*max();
+#endif
+      }
+      static double nan() {
+#ifdef NAN
+        return (double)NAN;
+#else
+        const double val_nan = -std::sqrt(-1.0); return val_nan;
+#endif
+      }
+      static double cut(const double val) { return val<min()?min():val>max()?max():val; }
+      static const char* format() { return "%.16g"; }
+      static double format(const double val) { return val; }
+    };
+
+    template<> struct type<float> {
+      static const char* string() { static const char *const s = "float"; return s; }
+      static bool is_float() { return true; }
+      static bool is_inf(const float val) {
+#ifdef isinf
+        return (bool)isinf(val);
+#else
+        return !is_nan(val) && (val<cimg::type<float>::min() || val>cimg::type<float>::max());
+#endif
+      }
+      static bool is_nan(const float val) {
+#ifdef isnan
+        return (bool)isnan(val);
+#else
+        return !(val==val);
+#endif
+      }
+      static float min() { return -FLT_MAX; }
+      static float max() { return FLT_MAX; }
+      static float inf() { return (float)cimg::type<double>::inf(); }
+      static float nan() { return (float)cimg::type<double>::nan(); }
+      static float cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(float)val; }
+      static const char* format() { return "%.16g"; }
+      static double format(const float val) { return (double)val; }
+    };
+
+    template<> struct type<long double> {
+      static const char* string() { static const char *const s = "long double"; return s; }
+      static bool is_float() { return true; }
+      static bool is_inf(const long double val) {
+#ifdef isinf
+        return (bool)isinf(val);
+#else
+        return !is_nan(val) && (val<cimg::type<long double>::min() || val>cimg::type<long double>::max());
+#endif
+      }
+      static bool is_nan(const long double val) {
+#ifdef isnan
+        return (bool)isnan(val);
+#else
+        return !(val==val);
+#endif
+      }
+      static long double min() { return -LDBL_MAX; }
+      static long double max() { return LDBL_MAX; }
+      static long double inf() { return max()*max(); }
+      static long double nan() { const long double val_nan = -std::sqrt(-1.0L); return val_nan; }
+      static long double cut(const long double val) { return val<min()?min():val>max()?max():val; }
+      static const char* format() { return "%.16g"; }
+      static double format(const long double val) { return (double)val; }
+    };
+
+    template<typename T, typename t> struct superset { typedef T type; };
+    template<> struct superset<bool,unsigned char> { typedef unsigned char type; };
+    template<> struct superset<bool,char> { typedef char type; };
+    template<> struct superset<bool,signed char> { typedef signed char type; };
+    template<> struct superset<bool,unsigned short> { typedef unsigned short type; };
+    template<> struct superset<bool,short> { typedef short type; };
+    template<> struct superset<bool,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<bool,int> { typedef int type; };
+    template<> struct superset<bool,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<bool,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<bool,float> { typedef float type; };
+    template<> struct superset<bool,double> { typedef double type; };
+    template<> struct superset<unsigned char,char> { typedef short type; };
+    template<> struct superset<unsigned char,signed char> { typedef short type; };
+    template<> struct superset<unsigned char,unsigned short> { typedef unsigned short type; };
+    template<> struct superset<unsigned char,short> { typedef short type; };
+    template<> struct superset<unsigned char,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<unsigned char,int> { typedef int type; };
+    template<> struct superset<unsigned char,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned char,float> { typedef float type; };
+    template<> struct superset<unsigned char,double> { typedef double type; };
+    template<> struct superset<signed char,unsigned char> { typedef short type; };
+    template<> struct superset<signed char,char> { typedef short type; };
+    template<> struct superset<signed char,unsigned short> { typedef int type; };
+    template<> struct superset<signed char,short> { typedef short type; };
+    template<> struct superset<signed char,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,int> { typedef int type; };
+    template<> struct superset<signed char,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,float> { typedef float type; };
+    template<> struct superset<signed char,double> { typedef double type; };
+    template<> struct superset<char,unsigned char> { typedef short type; };
+    template<> struct superset<char,signed char> { typedef short type; };
+    template<> struct superset<char,unsigned short> { typedef int type; };
+    template<> struct superset<char,short> { typedef short type; };
+    template<> struct superset<char,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<char,int> { typedef int type; };
+    template<> struct superset<char,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<char,float> { typedef float type; };
+    template<> struct superset<char,double> { typedef double type; };
+    template<> struct superset<unsigned short,char> { typedef int type; };
+    template<> struct superset<unsigned short,signed char> { typedef int type; };
+    template<> struct superset<unsigned short,short> { typedef int type; };
+    template<> struct superset<unsigned short,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<unsigned short,int> { typedef int type; };
+    template
