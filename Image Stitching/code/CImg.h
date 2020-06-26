@@ -2761,4 +2761,187 @@ namespace cimg_library_suffixed {
     template<> struct superset<unsigned short,short> { typedef int type; };
     template<> struct superset<unsigned short,unsigned int> { typedef unsigned int type; };
     template<> struct superset<unsigned short,int> { typedef int type; };
-    template
+    template<> struct superset<unsigned short,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned short,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned short,float> { typedef float type; };
+    template<> struct superset<unsigned short,double> { typedef double type; };
+    template<> struct superset<short,unsigned short> { typedef int type; };
+    template<> struct superset<short,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<short,int> { typedef int type; };
+    template<> struct superset<short,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<short,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<short,float> { typedef float type; };
+    template<> struct superset<short,double> { typedef double type; };
+    template<> struct superset<unsigned int,char> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,signed char> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,short> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,int> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned int,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,float> { typedef float type; };
+    template<> struct superset<unsigned int,double> { typedef double type; };
+    template<> struct superset<int,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<int,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<int,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<int,float> { typedef float type; };
+    template<> struct superset<int,double> { typedef double type; };
+    template<> struct superset<cimg_uint64,char> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,signed char> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,short> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,int> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,float> { typedef double type; };
+    template<> struct superset<cimg_uint64,double> { typedef double type; };
+    template<> struct superset<cimg_int64,float> { typedef double type; };
+    template<> struct superset<cimg_int64,double> { typedef double type; };
+    template<> struct superset<float,double> { typedef double type; };
+
+    template<typename t1, typename t2, typename t3> struct superset2 {
+      typedef typename superset<t1, typename superset<t2,t3>::type>::type type;
+    };
+
+    template<typename t1, typename t2, typename t3, typename t4> struct superset3 {
+      typedef typename superset<t1, typename superset2<t2,t3,t4>::type>::type type;
+    };
+
+    template<typename t1, typename t2> struct last { typedef t2 type; };
+
+#define _cimg_Tt typename cimg::superset<T,t>::type
+#define _cimg_Tfloat typename cimg::superset<T,float>::type
+#define _cimg_Ttfloat typename cimg::superset2<T,t,float>::type
+#define _cimg_Ttdouble typename cimg::superset2<T,t,double>::type
+
+    // Define variables used internally by CImg.
+#if cimg_display==1
+    struct X11_info {
+      unsigned int nb_wins;
+      pthread_t *events_thread;
+      pthread_cond_t wait_event;
+      pthread_mutex_t wait_event_mutex;
+      CImgDisplay **wins;
+      Display *display;
+      unsigned int nb_bits;
+      bool is_blue_first;
+      bool is_shm_enabled;
+      bool byte_order;
+#ifdef cimg_use_xrandr
+      XRRScreenSize *resolutions;
+      Rotation curr_rotation;
+      unsigned int curr_resolution;
+      unsigned int nb_resolutions;
+#endif
+      X11_info():nb_wins(0),events_thread(0),display(0),
+                 nb_bits(0),is_blue_first(false),is_shm_enabled(false),byte_order(false) {
+#ifdef __FreeBSD__
+        XInitThreads();
+#endif
+        wins = new CImgDisplay*[1024];
+        pthread_mutex_init(&wait_event_mutex,0);
+        pthread_cond_init(&wait_event,0);
+#ifdef cimg_use_xrandr
+        resolutions = 0;
+        curr_rotation = 0;
+        curr_resolution = nb_resolutions = 0;
+#endif
+      }
+
+      ~X11_info() {
+        delete[] wins;
+        /*
+          if (events_thread) {
+          pthread_cancel(*events_thread);
+          delete events_thread;
+          }
+          if (display) { } // XCloseDisplay(display); }
+          pthread_cond_destroy(&wait_event);
+          pthread_mutex_unlock(&wait_event_mutex);
+          pthread_mutex_destroy(&wait_event_mutex);
+        */
+      }
+    };
+#if defined(cimg_module)
+    X11_info& X11_attr();
+#elif defined(cimg_main)
+    X11_info& X11_attr() { static X11_info val; return val; }
+#else
+    inline X11_info& X11_attr() { static X11_info val; return val; }
+#endif
+#define cimg_lock_display() cimg::mutex(15)
+#define cimg_unlock_display() cimg::mutex(15,0)
+
+#elif cimg_display==2
+    struct Win32_info {
+      HANDLE wait_event;
+      Win32_info() { wait_event = CreateEvent(0,FALSE,FALSE,0); }
+    };
+#if defined(cimg_module)
+    Win32_info& Win32_attr();
+#elif defined(cimg_main)
+    Win32_info& Win32_attr() { static Win32_info val; return val; }
+#else
+    inline Win32_info& Win32_attr() { static Win32_info val; return val; }
+#endif
+#endif
+
+    struct Mutex_info {
+#if cimg_OS==2
+      HANDLE mutex[32];
+      Mutex_info() { for (unsigned int i = 0; i<32; ++i) mutex[i] = CreateMutex(0,FALSE,0); }
+      void lock(const unsigned int n) { WaitForSingleObject(mutex[n],INFINITE); }
+      void unlock(const unsigned int n) { ReleaseMutex(mutex[n]); }
+      int trylock(const unsigned int) { return 0; }
+#elif defined(_PTHREAD_H)
+      pthread_mutex_t mutex[32];
+      Mutex_info() { for (unsigned int i = 0; i<32; ++i) pthread_mutex_init(&mutex[i],0); }
+      void lock(const unsigned int n) { pthread_mutex_lock(&mutex[n]); }
+      void unlock(const unsigned int n) { pthread_mutex_unlock(&mutex[n]); }
+      int trylock(const unsigned int n) { return pthread_mutex_trylock(&mutex[n]); }
+#else
+      Mutex_info() {}
+      void lock(const unsigned int) {}
+      void unlock(const unsigned int) {}
+      int trylock(const unsigned int) { return 0; }
+#endif
+    };
+#if defined(cimg_module)
+    Mutex_info& Mutex_attr();
+#elif defined(cimg_main)
+    Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
+#else
+    inline Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
+#endif
+
+#if defined(cimg_use_magick)
+    static struct Magick_info {
+      Magick_info() {
+        Magick::InitializeMagick("");
+      }
+    } _Magick_info;
+#endif
+
+#if cimg_display==1
+    // Define keycodes for X11-based graphical systems.
+    const unsigned int keyESC        = XK_Escape;
+    const unsigned int keyF1         = XK_F1;
+    const unsigned int keyF2         = XK_F2;
+    const unsigned int keyF3         = XK_F3;
+    const unsigned int keyF4         = XK_F4;
+    const unsigned int keyF5         = XK_F5;
+    const unsigned int keyF6         = XK_F6;
+    const unsigned int keyF7         = XK_F7;
+    const unsigned int keyF8         = XK_F8;
+    const unsigned int keyF9         = XK_F9;
+    const unsigned int keyF10        = XK_F10;
+    const unsigned int keyF11        = XK_F11;
+    const unsigned int keyF12        = XK_F12;
+    const unsigned int keyPAUSE      = XK_Pause;
+    const unsigned int key1          = XK_1;
+    const unsigned int key2          = XK_2;
+    const unsigned int key3          = XK_3;
+    const unsigned int key4          = XK_4;
+    const unsigned int key5          = XK_5;
+    const unsigned int key6          = XK_6;
+    const unsigned int key7          = XK_7;
+    const unsigned int key8          = XK_8;
+    const unsigned int key9          = XK_9;
+    const unsigned 
