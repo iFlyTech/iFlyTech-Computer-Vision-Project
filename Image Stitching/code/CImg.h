@@ -4066,4 +4066,198 @@ namespace cimg_library_suffixed {
 
     //! Get/set default output stream for the \CImg library messages.
     /**
-       \param file Desired output stream. Set to \c 0 to get 
+       \param file Desired output stream. Set to \c 0 to get the currently used output stream only.
+       \return Currently used output stream.
+    **/
+    inline std::FILE* output(std::FILE *file) {
+      cimg::mutex(1);
+      static std::FILE *res = stderr;
+      if (file) res = file;
+      cimg::mutex(1,0);
+      return res;
+    }
+
+    // Return number of available CPU cores.
+    inline unsigned int nb_cpus() {
+      unsigned int res = 1;
+#if cimg_OS==2
+      SYSTEM_INFO sysinfo;
+      GetSystemInfo(&sysinfo);
+      res = (unsigned int)sysinfo.dwNumberOfProcessors;
+#else
+      res = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+      return res?res:1U;
+    }
+
+    // Lock/unlock mutex for CImg multi-thread programming.
+    inline int mutex(const unsigned int n, const int lock_mode) {
+      switch (lock_mode) {
+      case 0 : cimg::Mutex_attr().unlock(n); return 0;
+      case 1 : cimg::Mutex_attr().lock(n); return 0;
+      default : return cimg::Mutex_attr().trylock(n);
+      }
+    }
+
+    //! Display a warning message on the default output stream.
+    /**
+       \param format C-string containing the format of the message, as with <tt>std::printf()</tt>.
+       \note If configuration macro \c cimg_strict_warnings is set, this function throws a
+       \c CImgWarningException instead.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       cimg::warn("%s",warning_message);
+       \endcode
+       instead of
+       \code
+       cimg::warn(warning_message);
+       \endcode
+       if \c warning_message can be arbitrary, to prevent nasty memory access.
+    **/
+    inline void warn(const char *const format, ...) {
+      if (cimg::exception_mode()>=1) {
+        char *const message = new char[16384];
+        std::va_list ap;
+        va_start(ap,format);
+        cimg_vsnprintf(message,16384,format,ap);
+        va_end(ap);
+#ifdef cimg_strict_warnings
+        throw CImgWarningException(message);
+#else
+        std::fprintf(cimg::output(),"\n%s[CImg] *** Warning ***%s%s\n",cimg::t_red,cimg::t_normal,message);
+#endif
+        delete[] message;
+      }
+    }
+
+    // Execute an external system command.
+    /**
+       \param command C-string containing the command line to execute.
+       \param module_name Module name.
+       \return Status value of the executed command, whose meaning is OS-dependent.
+       \note This function is similar to <tt>std::system()</tt>
+       but it does not open an extra console windows
+       on Windows-based systems.
+    **/
+    inline int system(const char *const command, const char *const module_name=0) {
+      cimg::unused(module_name);
+#ifdef cimg_no_system_calls
+      return -1;
+#else
+#if cimg_OS==1
+      const unsigned int l = (unsigned int)std::strlen(command);
+      if (l) {
+        char *const ncommand = new char[l + 16];
+        std::strncpy(ncommand,command,l);
+        std::strcpy(ncommand + l," 2> /dev/null"); // Make command silent.
+        const int out_val = std::system(ncommand);
+        delete[] ncommand;
+        return out_val;
+      } else return -1;
+#elif cimg_OS==2
+      PROCESS_INFORMATION pi;
+      STARTUPINFO si;
+      std::memset(&pi,0,sizeof(PROCESS_INFORMATION));
+      std::memset(&si,0,sizeof(STARTUPINFO));
+      GetStartupInfo(&si);
+      si.cb = sizeof(si);
+      si.wShowWindow = SW_HIDE;
+      si.dwFlags |= SW_HIDE | STARTF_USESHOWWINDOW;
+      const BOOL res = CreateProcess((LPCTSTR)module_name,(LPTSTR)command,0,0,FALSE,0,0,0,&si,&pi);
+      if (res) {
+        WaitForSingleObject(pi.hProcess,INFINITE);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        return 0;
+      } else return std::system(command);
+#endif
+#endif
+    }
+
+    //! Return a reference to a temporary variable of type T.
+    template<typename T>
+    inline T& temporary(const T&) {
+      static T temp;
+      return temp;
+    }
+
+    //! Exchange values of variables \c a and \c b.
+    template<typename T>
+    inline void swap(T& a, T& b) { T t = a; a = b; b = t; }
+
+    //! Exchange values of variables (\c a1,\c a2) and (\c b1,\c b2).
+    template<typename T1, typename T2>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
+      cimg::swap(a1,b1); cimg::swap(a2,b2);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,\c a3) and (\c b1,\c b2,\c b3).
+    template<typename T1, typename T2, typename T3>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3) {
+      cimg::swap(a1,b1,a2,b2); cimg::swap(a3,b3);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a4) and (\c b1,\c b2,...,\c b4).
+    template<typename T1, typename T2, typename T3, typename T4>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4) {
+      cimg::swap(a1,b1,a2,b2,a3,b3); cimg::swap(a4,b4);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a5) and (\c b1,\c b2,...,\c b5).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4); cimg::swap(a5,b5);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a6) and (\c b1,\c b2,...,\c b6).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5); cimg::swap(a6,b6);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a7) and (\c b1,\c b2,...,\c b7).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6); cimg::swap(a7,b7);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a8) and (\c b1,\c b2,...,\c b8).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7, T8& a8, T8& b8) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6,a7,b7); cimg::swap(a8,b8);
+    }
+
+    //! Return the endianness of the current architecture.
+    /**
+       \return \c false for <i>Little Endian</i> or \c true for <i>Big Endian</i>.
+    **/
+    inline bool endianness() {
+      const int x = 1;
+      return ((unsigned char*)&x)[0]?false:true;
+    }
+
+    //! Reverse endianness of all elements in a memory buffer.
+    /**
+       \param[in,out] buffer Memory buffer whose endianness must be reversed.
+       \param size Number of buffer elements to reverse.
+    **/
+    template<typename T>
+    inline void invert_endianness(T* const buffer, const cimg_ulong size) {
+      if (size) switch (sizeof(T)) {
+        case 1 : break;
+        case 2 : { for (unsigned short *ptr = (unsigned short*)buffer + size; ptr>(unsigned short*)buffer; ) {
+              const unsigned short val = *(--ptr);
+              *ptr = (unsigned short)((val>>8)|((val<<8)));
+            }
+        } break;
+        case 4 : { for (unsigned int *ptr = (unsigned int*)buffer + size; ptr>(unsigned int*)buffer; ) {
+              const unsigned int val = *(--ptr);
+              *ptr = (val>>24)|((val>>8)&0xff00)|((val<<8)&0xff0000)|(val<<24);
+            }
+        } break;
+        default : { for (T* ptr = buffer + size; ptr>buffer; ) {
+              unsigned char *pb = (unsigned char*)(--ptr), *pe = pb + sizeof(T);
+              for (int i = 0; i<(int)sizeof(T)/2; ++i) swap(*(pb++),*(--pe));
+          
