@@ -4505,4 +4505,231 @@ namespace cimg_library_suffixed {
     }
 
     inline double ror(const long double a, const unsigned int n=1) {
-      return (double
+      return (double)ror((cimg_long)a,n);
+    }
+
+    //! Return absolute value of a value.
+    template<typename T>
+    inline T abs(const T& a) {
+      return a>=0?a:-a;
+    }
+    inline bool abs(const bool a) {
+      return a;
+    }
+    inline int abs(const unsigned char a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned short a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned int a) {
+      return (int)a;
+    }
+    inline int abs(const int a) {
+      return std::abs(a);
+    }
+    inline cimg_int64 abs(const cimg_uint64 a) {
+      return (cimg_int64)a;
+    }
+    inline double abs(const double a) {
+      return std::fabs(a);
+    }
+    inline float abs(const float a) {
+      return (float)std::fabs((double)a);
+    }
+
+    //! Return square of a value.
+    template<typename T>
+    inline T sqr(const T& val) {
+      return val*val;
+    }
+
+    //! Return <tt>1 + log_10(x)</tt> of a value \c x.
+    inline int xln(const int x) {
+      return x>0?(int)(1 + std::log10((double)x)):1;
+    }
+
+    //! Return the minimum between two values.
+    template<typename t1, typename t2>
+    inline typename cimg::superset<t1,t2>::type min(const t1& a, const t2& b) {
+      typedef typename cimg::superset<t1,t2>::type t1t2;
+      return (t1t2)(a<=b?a:b);
+    }
+
+    //! Return the minimum between three values.
+    template<typename t1, typename t2, typename t3>
+    inline typename cimg::superset2<t1,t2,t3>::type min(const t1& a, const t2& b, const t3& c) {
+      typedef typename cimg::superset2<t1,t2,t3>::type t1t2t3;
+      return (t1t2t3)cimg::min(cimg::min(a,b),c);
+    }
+
+    //! Return the minimum between four values.
+    template<typename t1, typename t2, typename t3, typename t4>
+    inline typename cimg::superset3<t1,t2,t3,t4>::type min(const t1& a, const t2& b, const t3& c, const t4& d) {
+      typedef typename cimg::superset3<t1,t2,t3,t4>::type t1t2t3t4;
+      return (t1t2t3t4)cimg::min(cimg::min(a,b,c),d);
+    }
+
+    //! Return the maximum between two values.
+    template<typename t1, typename t2>
+    inline typename cimg::superset<t1,t2>::type max(const t1& a, const t2& b) {
+      typedef typename cimg::superset<t1,t2>::type t1t2;
+      return (t1t2)(a>=b?a:b);
+    }
+
+    //! Return the maximum between three values.
+    template<typename t1, typename t2, typename t3>
+    inline typename cimg::superset2<t1,t2,t3>::type max(const t1& a, const t2& b, const t3& c) {
+      typedef typename cimg::superset2<t1,t2,t3>::type t1t2t3;
+      return (t1t2t3)cimg::max(cimg::max(a,b),c);
+    }
+
+    //! Return the maximum between four values.
+    template<typename t1, typename t2, typename t3, typename t4>
+    inline typename cimg::superset3<t1,t2,t3,t4>::type max(const t1& a, const t2& b, const t3& c, const t4& d) {
+      typedef typename cimg::superset3<t1,t2,t3,t4>::type t1t2t3t4;
+      return (t1t2t3t4)cimg::max(cimg::max(a,b,c),d);
+    }
+
+    //! Return the sign of a value.
+    template<typename T>
+    inline T sign(const T& x) {
+      return (x<0)?(T)(-1):(x==0?(T)0:(T)1);
+    }
+
+    //! Return the nearest power of 2 higher than given value.
+    template<typename T>
+    inline cimg_ulong nearest_pow2(const T& x) {
+      cimg_ulong i = 1;
+      while (x>i) i<<=1;
+      return i;
+    }
+
+    //! Return the sinc of a given value.
+    inline double sinc(const double x) {
+      return x?std::sin(x)/x:1;
+    }
+
+    //! Return the modulo of a value.
+    /**
+       \param x Input value.
+       \param m Modulo value.
+       \note This modulo function accepts negative and floating-points modulo numbers, as well as variables of any type.
+    **/
+    template<typename T>
+    inline T mod(const T& x, const T& m) {
+      const double dx = (double)x, dm = (double)m;
+      return (T)(dx - dm * std::floor(dx / dm));
+    }
+    inline int mod(const bool x, const bool m) {
+      return m?(x?1:0):0;
+    }
+    inline int mod(const unsigned char x, const unsigned char m) {
+      return x%m;
+    }
+    inline int mod(const char x, const char m) {
+#if defined(CHAR_MAX) && CHAR_MAX==255
+      return x%m;
+#else
+      return x>=0?x%m:(x%m?m + x%m:0);
+#endif
+    }
+    inline int mod(const unsigned short x, const unsigned short m) {
+      return x%m;
+    }
+    inline int mod(const short x, const short m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline int mod(const unsigned int x, const unsigned int m) {
+      return (int)(x%m);
+    }
+    inline int mod(const int x, const int m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline cimg_int64 mod(const cimg_uint64 x, const cimg_uint64 m) {
+      return x%m;
+    }
+    inline cimg_int64 mod(const cimg_int64 x, const cimg_int64 m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+
+    //! Return the min-mod of two values.
+    /**
+       \note <i>minmod(\p a,\p b)</i> is defined to be:
+       - <i>minmod(\p a,\p b) = min(\p a,\p b)</i>, if \p a and \p b have the same sign.
+       - <i>minmod(\p a,\p b) = 0</i>, if \p a and \p b have different signs.
+    **/
+    template<typename T>
+    inline T minmod(const T& a, const T& b) {
+      return a*b<=0?0:(a>0?(a<b?a:b):(a<b?b:a));
+    }
+
+    //! Return base-2 logarithm of a value.
+    inline double log2(const double x) {
+      const double base = std::log(2.0);
+      return std::log(x)/base;
+    }
+
+    //! Return rounded value.
+    /**
+       \param x Value to be rounded.
+       \param y Rounding precision.
+       \param rounding_type Type of rounding operation (\c 0 = nearest, \c -1 = backward, \c 1 = forward).
+       \return Rounded value, having the same type as input value \c x.
+    **/
+    template<typename T>
+    inline T round(const T& x, const double y=1, const int rounding_type=0) {
+      if (y<=0) return x;
+      const double sx = (double)x/y, floor = std::floor(sx), delta =  sx - floor;
+      return (T)(y*(rounding_type<0?floor:rounding_type>0?std::ceil(sx):delta<0.5?floor:std::ceil(sx)));
+    }
+
+    inline double _pythagore(double a, double b) {
+      const double absa = cimg::abs(a), absb = cimg::abs(b);
+      if (absa>absb) { const double tmp = absb/absa; return absa*std::sqrt(1.0 + tmp*tmp); }
+      else { const double tmp = absa/absb; return absb==0?0:absb*std::sqrt(1.0 + tmp*tmp); }
+    }
+
+    //! Return sqrt(x^2 + y^2).
+    inline double hypot(const double x, const double y) {
+      double nx = cimg::abs(x), ny = cimg::abs(y), t;
+      if (nx<ny) { t = nx; nx = ny; } else t = ny;
+      if (nx>0) { t/=nx; return nx*std::sqrt(1+t*t); }
+      return 0;
+    }
+
+    //! Convert ascii character to lower case.
+    inline char uncase(const char x) {
+      return (char)((x<'A'||x>'Z')?x:x - 'A' + 'a');
+    }
+
+    //! Convert C-string to lower case.
+    inline void uncase(char *const str) {
+      if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = uncase(*ptr);
+    }
+
+    //! Read value in a C-string.
+    /**
+       \param str C-string containing the float value to read.
+       \return Read value.
+       \note Same as <tt>std::atof()</tt> extended to manage the retrieval of fractions from C-strings,
+       as in <em>"1/2"</em>.
+    **/
+    inline double atof(const char *const str) {
+      double x = 0, y = 1;
+      return str && cimg_sscanf(str,"%lf/%lf",&x,&y)>0?x/y:0;
+    }
+
+    //! Compare the first \p l characters of two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \param l Number of characters to compare.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strncasecmp(const char *const str1, const char *const str2, const int l) {
+      if (!l) return 0;
+      if (!str1) return str2?-1:0;
+      const char *nstr1 = str1, *nstr2 = str2;
+      int k, diff = 
