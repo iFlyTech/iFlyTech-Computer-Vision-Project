@@ -4732,4 +4732,193 @@ namespace cimg_library_suffixed {
       if (!l) return 0;
       if (!str1) return str2?-1:0;
       const char *nstr1 = str1, *nstr2 = str2;
-      int k, diff = 
+      int k, diff = 0; for (k = 0; k<l && !(diff = uncase(*nstr1) - uncase(*nstr2)); ++k) { ++nstr1; ++nstr2; }
+      return k!=l?diff:0;
+    }
+
+    //! Compare two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strcasecmp(const char *const str1, const char *const str2) {
+      if (!str1) return str2?-1:0;
+      const int
+        l1 = (int)std::strlen(str1),
+        l2 = (int)std::strlen(str2);
+      return cimg::strncasecmp(str1,str2,1 + (l1<l2?l1:l2));
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(char *const str, const unsigned int l=64,
+                              const bool is_ending=true) {
+      if (!str) return str;
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) return str;
+      if (is_ending) std::strcpy(str + nl - 5,"(...)");
+      else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strcpy(str + ll,"(...)");
+        std::memmove(str + ll + 5,str + ls - lr,lr);
+      }
+      str[nl] = 0;
+      return str;
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param res output C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(const char *const str, char *const res, const unsigned int l=64,
+                              const bool is_ending=true) {
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) { std::strcpy(res,str); return res; }
+      if (is_ending) {
+        std::strncpy(res,str,nl - 5);
+        std::strcpy(res + nl -5,"(...)");
+      } else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strncpy(res,str,ll);
+        std::strcpy(res + ll,"(...)");
+        std::strncpy(res + ll + 5,str + ls - lr,lr);
+      }
+      res[nl] = 0;
+      return res;
+    }
+
+    //! Remove delimiters on the start and/or end of a C-string.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param delimiter Delimiter character code to remove.
+       \param is_symmetric Tells if the removal is done only if delimiters are symmetric
+       (both at the beginning and the end of \c s).
+       \param is_iterative Tells if the removal is done if several iterations are possible.
+       \return \c true if delimiters have been removed, \c false otherwise.
+   **/
+    inline bool strpare(char *const str, const char delimiter=' ',
+                        const bool is_symmetric=false, const bool is_iterative=false) {
+      if (!str) return false;
+      const int l = (int)std::strlen(str);
+      int p, q;
+      if (is_symmetric) for (p = 0, q = l - 1; p<q && str[p]==delimiter && str[q]==delimiter; ) {
+          --q; ++p; if (!is_iterative) break;
+        } else {
+        for (p = 0; p<l && str[p]==delimiter; ) { ++p; if (!is_iterative) break; }
+        for (q = l - 1; q>p && str[q]==delimiter; ) { --q; if (!is_iterative) break; }
+      }
+      const int n = q - p + 1;
+      if (n!=l) { std::memmove(str,str + p,(unsigned int)n); str[n] = 0; return true; }
+      return false;
+    }
+
+    //! Replace reserved characters (for Windows filename) by another character.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param[in] c Replacement character.
+    **/
+    inline void strwindows_reserved(char *const str, const char c='_') {
+      for (char *s = str; *s; ++s) {
+        const char i = *s;
+        if (i=='<' || i=='>' || i==':' || i=='\"' || i=='/' || i=='\\' || i=='|' || i=='?' || i=='*') *s = c;
+      }
+    }
+
+    //! Replace escape sequences in C-strings by their binary ascii values.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+    **/
+    inline void strunescape(char *const str) {
+#define cimg_strunescape(ci,co) case ci : *nd = co; ++ns; break;
+      unsigned int val = 0;
+      for (char *ns = str, *nd = str; *ns || (bool)(*nd=0); ++nd) if (*ns=='\\') switch (*(++ns)) {
+            cimg_strunescape('a','\a');
+            cimg_strunescape('b','\b');
+            cimg_strunescape('e',0x1B);
+            cimg_strunescape('f','\f');
+            cimg_strunescape('n','\n');
+            cimg_strunescape('r','\r');
+            cimg_strunescape('t','\t');
+            cimg_strunescape('v','\v');
+            cimg_strunescape('\\','\\');
+            cimg_strunescape('\'','\'');
+            cimg_strunescape('\"','\"');
+            cimg_strunescape('\?','\?');
+          case 0 : *nd = 0; break;
+          case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' :
+            cimg_sscanf(ns,"%o",&val); while (*ns>='0' && *ns<='7') ++ns;
+            *nd = (char)val; break;
+          case 'x' :
+            cimg_sscanf(++ns,"%x",&val);
+            while ((*ns>='0' && *ns<='9') || (*ns>='a' && *ns<='f') || (*ns>='A' && *ns<='F')) ++ns;
+            *nd = (char)val; break;
+          default : *nd = *(ns++);
+          } else *nd = *(ns++);
+    }
+
+    // Return a temporary string describing the size of a memory buffer.
+    inline const char *strbuffersize(const cimg_ulong size);
+
+    // Return string that identifies the running OS.
+    inline const char *stros() {
+#if defined(linux) || defined(__linux) || defined(__linux__)
+      static const char *const str = "Linux";
+#elif defined(sun) || defined(__sun)
+      static const char *const str = "Sun OS";
+#elif defined(BSD) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined (__DragonFly__)
+      static const char *const str = "BSD";
+#elif defined(sgi) || defined(__sgi)
+      static const char *const str = "Irix";
+#elif defined(__MACOSX__) || defined(__APPLE__)
+      static const char *const str = "Mac OS";
+#elif defined(unix) || defined(__unix) || defined(__unix__)
+      static const char *const str = "Generic Unix";
+#elif defined(_MSC_VER) || defined(WIN32)  || defined(_WIN32) || defined(__WIN32__) || \
+  defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+      static const char *const str = "Windows";
+#else
+      const char
+        *const _str1 = std::getenv("OSTYPE"),
+        *const _str2 = _str1?_str1:std::getenv("OS"),
+        *const str = _str2?_str2:"Unknown OS";
+#endif
+      return str;
+    }
+
+    //! Return the basename of a filename.
+    inline const char* basename(const char *const s, const char separator=cimg_file_separator)  {
+      const char *p = 0, *np = s;
+      while (np>=s && (p=np)) np = std::strchr(np,separator) + 1;
+      return p;
+    }
+
+    // Return a random filename.
+    inline const char* filenamerand() {
+      cimg::mutex(6);
+      static char randomid[9];
+      cimg::srand();
+      for (unsigned int k = 0; k<8; ++k) {
+        const int v = (int)cimg::rand(65535)%3;
+        randomid[k] = (char)(v==0?('0' + ((int)cimg::rand(65535)%10)):
+                             (v==1?('a' + ((int)cimg::rand(65535)%26)):('A' + ((int)cimg::rand(65535)%26))));
+      }
+      cimg::mutex(6,0);
+      return randomid;
+    }
+
+    // Convert filename as a Windows-style filename (short path name).
+    inline void winformat_string(char *const str) {
+      if (str && *str) {
+#if cimg_OS==2
+        char *const nstr = new char[MAX_PATH];
+        if (GetShortPathNameA(str,nstr,MAX_PATH)) std::strcpy(str,nstr);
+        delete[] nstr;
