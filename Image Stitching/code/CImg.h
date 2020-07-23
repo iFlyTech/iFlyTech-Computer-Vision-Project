@@ -5125,4 +5125,170 @@ namespace cimg_library_suffixed {
     }
 
     //! Generate a numbered version of a filename.
- 
+    inline char* number_filename(const char *const filename, const int number,
+                                 const unsigned int digits, char *const str) {
+      if (!filename) { if (str) *str = 0; return 0; }
+      char *const format = new char[1024], *const body = new char[1024];
+      const char *const ext = cimg::split_filename(filename,body);
+      if (*ext) cimg_snprintf(format,1024,"%%s_%%.%ud.%%s",digits);
+      else cimg_snprintf(format,1024,"%%s_%%.%ud",digits);
+      cimg_sprintf(str,format,body,number,ext);
+      delete[] format; delete[] body;
+      return str;
+    }
+
+    //! Read data from file.
+    /**
+       \param[out] ptr Pointer to memory buffer that will contain the binary data read from file.
+       \param nmemb Number of elements to read.
+       \param stream File to read data from.
+       \return Number of read elements.
+       \note Same as <tt>std::fread()</tt> but may display warning message if all elements could not be read.
+    **/
+    template<typename T>
+    inline size_t fread(T *const ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fread(): Invalid reading request of %u %s%s from file %p to buffer %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",stream,ptr);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_read = nmemb, al_read = 0, l_to_read = 0, l_al_read = 0;
+      do {
+        l_to_read = (to_read*sizeof(T))<wlimitT?to_read:wlimit;
+        l_al_read = std::fread((void*)(ptr + al_read),sizeof(T),l_to_read,stream);
+        al_read+=l_al_read;
+        to_read-=l_al_read;
+      } while (l_to_read==l_al_read && to_read>0);
+      if (to_read>0)
+        warn("cimg::fread(): Only %lu/%lu elements could be read from file.",
+             (unsigned long)al_read,(unsigned long)nmemb);
+      return al_read;
+    }
+
+    //! Write data to file.
+    /**
+       \param ptr Pointer to memory buffer containing the binary data to write on file.
+       \param nmemb Number of elements to write.
+       \param[out] stream File to write data on.
+       \return Number of written elements.
+       \note Similar to <tt>std::fwrite</tt> but may display warning messages if all elements could not be written.
+    **/
+    template<typename T>
+    inline size_t fwrite(const T *ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fwrite(): Invalid writing request of %u %s%s from buffer %p to file %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",ptr,stream);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_write = nmemb, al_write = 0, l_to_write = 0, l_al_write = 0;
+      do {
+        l_to_write = (to_write*sizeof(T))<wlimitT?to_write:wlimit;
+        l_al_write = std::fwrite((void*)(ptr + al_write),sizeof(T),l_to_write,stream);
+        al_write+=l_al_write;
+        to_write-=l_al_write;
+      } while (l_to_write==l_al_write && to_write>0);
+      if (to_write>0)
+        warn("cimg::fwrite(): Only %lu/%lu elements could be written in file.",
+             (unsigned long)al_write,(unsigned long)nmemb);
+      return al_write;
+    }
+
+    //! Create an empty file.
+    /**
+       \param file Input file (can be \c 0 if \c filename is set).
+       \param filename Filename, as a C-string (can be \c 0 if \c file is set).
+    **/
+    inline void fempty(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException("cimg::fempty(): Specified filename is (null).");
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      if (!file) cimg::fclose(nfile);
+    }
+
+    // Try to guess format from an image file.
+    inline const char *ftype(std::FILE *const file, const char *const filename);
+
+    // Load file from network as a local temporary file.
+    inline char *load_network(const char *const url, char *const filename_local,
+                              const unsigned int timeout=0, const bool try_fallback=false,
+                              const char *const referer=0);
+
+    //! Return options specified on the command line.
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage, const bool reset_static) {
+      static bool first = true, visu = false;
+      if (reset_static) { first = true; return 0; }
+      const char *res = 0;
+      if (first) {
+        first = false;
+        visu = cimg::option("-h",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("-help",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("--help",argc,argv,(char*)0,(char*)0,false)!=0;
+      }
+      if (!name && visu) {
+        if (usage) {
+          std::fprintf(cimg::output(),"\n %s%s%s",cimg::t_red,cimg::basename(argv[0]),cimg::t_normal);
+          std::fprintf(cimg::output(),": %s",usage);
+          std::fprintf(cimg::output()," (%s, %s)\n\n",__DATE__,__TIME__);
+        }
+        if (defaut) std::fprintf(cimg::output(),"%s\n",defaut);
+      }
+      if (name) {
+        if (argc>0) {
+          int k = 0;
+          while (k<argc && std::strcmp(argv[k],name)) ++k;
+          res = (k++==argc?defaut:(k==argc?argv[--k]:argv[k]));
+        } else res = defaut;
+        if (visu && usage) std::fprintf(cimg::output(),"    %s%-16s%s %-24s %s%s%s\n",
+                                        cimg::t_bold,name,cimg::t_normal,res?res:"0",
+                                        cimg::t_green,usage,cimg::t_normal);
+      }
+      return res;
+    }
+
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage=0) {
+      return option(name,argc,argv,defaut,usage,false);
+    }
+
+    inline bool option(const char *const name, const int argc, const char *const *const argv,
+                       const bool defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const bool res = s?(cimg::strcasecmp(s,"false") && cimg::strcasecmp(s,"off") && cimg::strcasecmp(s,"0")):defaut;
+      cimg::option(name,0,0,res?"true":"false",usage);
+      return res;
+    }
+
+    inline int option(const char *const name, const int argc, const char *const *const argv,
+                      const int defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const int res = s?std::atoi(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%d",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline char option(const char *const name, const int argc, const char *const *const argv,
+                       const char defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const char res = s?*s:defaut;
+      char tmp[8];
+      *tmp = res; tmp[1] = 0;
+      cimg::option(name,0,0,tmp,usage);
+      return res;
+    }
+
+    inline float option(const char *const name, const int argc, const char *const *const argv,
+                        const float defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const float res = s?(float)cimg::atof(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%g",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline double option(const char *const name, const int arg
