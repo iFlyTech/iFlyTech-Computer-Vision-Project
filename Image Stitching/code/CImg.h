@@ -4922,3 +4922,207 @@ namespace cimg_library_suffixed {
         char *const nstr = new char[MAX_PATH];
         if (GetShortPathNameA(str,nstr,MAX_PATH)) std::strcpy(str,nstr);
         delete[] nstr;
+#endif
+      }
+    }
+
+    //! Open a file.
+    /**
+       \param path Path of the filename to open.
+       \param mode C-string describing the opening mode.
+       \return Opened file.
+       \note Same as <tt>std::fopen()</tt> but throw a \c CImgIOException when
+       the specified file cannot be opened, instead of returning \c 0.
+    **/
+    inline std::FILE *fopen(const char *const path, const char *const mode) {
+      if (!path)
+        throw CImgArgumentException("cimg::fopen(): Specified file path is (null).");
+      if (!mode)
+        throw CImgArgumentException("cimg::fopen(): File '%s', specified mode is (null).",
+                                    path);
+      std::FILE *res = 0;
+      if (*path=='-' && (!path[1] || path[1]=='.')) {
+        res = (*mode=='r')?stdin:stdout;
+#if cimg_OS==2
+        if (*mode && mode[1]=='b') { // Force stdin/stdout to be in binary mode.
+          if (_setmode(_fileno(res),0x8000)==-1) res = 0;
+        }
+#endif
+      } else res = std::fopen(path,mode);
+      if (!res) throw CImgIOException("cimg::fopen(): Failed to open file '%s' with mode '%s'.",
+                                      path,mode);
+      return res;
+    }
+
+    //! Close a file.
+    /**
+       \param file File to close.
+       \return \c 0 if file has been closed properly, something else otherwise.
+       \note Same as <tt>std::fclose()</tt> but display a warning message if
+       the file has not been closed properly.
+    **/
+    inline int fclose(std::FILE *file) {
+      if (!file) warn("cimg::fclose(): Specified file is (null).");
+      if (!file || file==stdin || file==stdout) return 0;
+      const int errn = std::fclose(file);
+      if (errn!=0) warn("cimg::fclose(): Error code %d returned during file closing.",
+                        errn);
+      return errn;
+    }
+
+    //! Version of 'fseek()' that supports >=64bits offsets everywhere (for Windows).
+    inline int fseek(FILE *stream, cimg_long offset, int origin) {
+#if cimg_OS==2
+      return _fseeki64(stream,(__int64)offset,origin);
+#else
+      return std::fseek(stream,offset,origin);
+#endif
+    }
+
+    //! Version of 'ftell()' that supports >=64bits offsets everywhere (for Windows).
+    inline cimg_long ftell(FILE *stream) {
+#if cimg_OS==2
+      return (cimg_long)_ftelli64(stream);
+#else
+      return (cimg_long)std::ftell(stream);
+#endif
+    }
+
+    //! Check if a path is a directory.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_directory(const char *const path) {
+      if (!path || !*path) return false;
+#if cimg_OS==1
+      struct stat st_buf;
+      return (!stat(path,&st_buf) && S_ISDIR(st_buf.st_mode));
+#elif cimg_OS==2
+      const unsigned int res = (unsigned int)GetFileAttributesA(path);
+      return res==INVALID_FILE_ATTRIBUTES?false:(res&16);
+#endif
+    }
+
+    //! Check if a path is a file.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_file(const char *const path) {
+      if (!path || !*path) return false;
+      std::FILE *const file = std::fopen(path,"rb");
+      if (!file) return false;
+      std::fclose(file);
+      return !is_directory(path);
+    }
+
+    //! Get last write time of a given file or directory.
+    /**
+       \param path Specified path to get attributes from.
+       \param attr Type of requested time attribute.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+       \return -1 if requested attribute could not be read.
+    **/
+    inline int fdate(const char *const path, const unsigned int attr) {
+      int res = -1;
+      if (!path || !*path || attr>6) return -1;
+      cimg::mutex(6);
+#if cimg_OS==2
+      HANDLE file = CreateFileA(path,GENERIC_READ,0,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+      if (file!=INVALID_HANDLE_VALUE) {
+        FILETIME _ft;
+        SYSTEMTIME ft;
+        if (GetFileTime(file,0,0,&_ft) && FileTimeToSystemTime(&_ft,&ft))
+          res = (int)(attr==0?ft.wYear:attr==1?ft.wMonth:attr==2?ft.wDay:attr==3?ft.wDayOfWeek:
+                      attr==4?ft.wHour:attr==5?ft.wMinute:ft.wSecond);
+        CloseHandle(file);
+      }
+#else
+      struct stat st_buf;
+      if (!stat(path,&st_buf)) {
+        const time_t _ft = st_buf.st_mtime;
+        const struct tm& ft = *std::localtime(&_ft);
+        res = (int)(attr==0?ft.tm_year + 1900:attr==1?ft.tm_mon + 1:attr==2?ft.tm_mday:attr==3?ft.tm_wday:
+                    attr==4?ft.tm_hour:attr==5?ft.tm_min:ft.tm_sec);
+      }
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    //! Get current local time.
+    /**
+       \param attr Type of requested time attribute.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+    **/
+    inline int date(const unsigned int attr) {
+      int res;
+      cimg::mutex(6);
+#if cimg_OS==2
+      SYSTEMTIME st;
+      GetLocalTime(&st);
+      res = (int)(attr==0?st.wYear:attr==1?st.wMonth:attr==2?st.wDay:attr==3?st.wDayOfWeek:
+                  attr==4?st.wHour:attr==5?st.wMinute:st.wSecond);
+#else
+      time_t _st;
+      std::time(&_st);
+      struct tm *st = std::localtime(&_st);
+      res = (int)(attr==0?st->tm_year + 1900:attr==1?st->tm_mon + 1:attr==2?st->tm_mday:attr==3?st->tm_wday:
+                  attr==4?st->tm_hour:attr==5?st->tm_min:st->tm_sec);
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    // Get/set path to store temporary files.
+    inline const char* temporary_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the <i>Program Files/</i> directory (Windows only).
+#if cimg_OS==2
+    inline const char* programfiles_path(const char *const user_path=0, const bool reinit_path=false);
+#endif
+
+    // Get/set path to the ImageMagick's \c convert binary.
+    inline const char* imagemagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the GraphicsMagick's \c gm binary.
+    inline const char* graphicsmagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the XMedcon's \c medcon binary.
+    inline const char* medcon_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the FFMPEG's \c ffmpeg binary.
+    inline const char *ffmpeg_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gzip binary.
+    inline const char *gzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gunzip binary.
+    inline const char *gunzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c dcraw binary.
+    inline const char *dcraw_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c wget binary.
+    inline const char *wget_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c curl binary.
+    inline const char *curl_path(const char *const user_path=0, const bool reinit_path=false);
+
+    //! Split filename into two C-strings \c body and \c extension.
+    /**
+       filename and body must not overlap!
+    **/
+    inline const char *split_filename(const char *const filename, char *const body=0) {
+      if (!filename) { if (body) *body = 0; return 0; }
+      const char *p = 0; for (const char *np = filename; np>=filename && (p=np); np = std::strchr(np,'.') + 1) {}
+      if (p==filename) {
+        if (body) std::strcpy(body,filename);
+        return filename + std::strlen(filename);
+      }
+      const unsigned int l = (unsigned int)(p - filename - 1);
+      if (body) { if (l) std::memcpy(body,filename,l); body[l] = 0; }
+      return p;
+    }
+
+    //! Generate a numbered version of a filename.
+ 
