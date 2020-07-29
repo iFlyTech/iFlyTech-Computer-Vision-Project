@@ -5488,4 +5488,258 @@ namespace cimg_library_suffixed {
     }
 
     template<typename T>
-    inline void gesvd(char &JOB, int &M,
+    inline void gesvd(char &JOB, int &M, int &N, T *lapA, int &MN,
+                      T *lapS, T *lapU, T *lapV, T *WORK, int &LWORK, int &INFO) {
+      dgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    inline void gesvd(char &JOB, int &M, int &N, float *lapA, int &MN,
+                      float *lapS, float *lapU, float *lapV, float *WORK, int &LWORK, int &INFO) {
+      sgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void getrs(char &TRANS, int &N, T *lapA, int *IPIV, T *lapB, int &INFO) {
+      int one = 1;
+      dgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    inline void getrs(char &TRANS, int &N, float *lapA, int *IPIV, float *lapB, int &INFO) {
+      int one = 1;
+      sgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    template<typename T>
+    inline void syev(char &JOB, char &UPLO, int &N, T *lapA, T *lapW, T *WORK, int &LWORK, int &INFO) {
+      dsyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    inline void syev(char &JOB, char &UPLO, int &N, float *lapA, float *lapW, float *WORK, int &LWORK, int &INFO) {
+      ssyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, T* lapA, int &LDA,
+                      T* lapB, int &LDB, T* WORK, int &LWORK, int &INFO){
+      dgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, float* lapA, int &LDA,
+                      float* lapB, int &LDB, float* WORK, int &LWORK, int &INFO){
+      sgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+#endif
+
+    // End of the 'cimg' namespace
+  }
+
+  /*------------------------------------------------
+   #
+   #
+   #   Definition of mathematical operators and
+   #   external functions.
+   #
+   #
+   -------------------------------------------------*/
+
+#define _cimg_create_ext_operators(typ) \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator+(const typ val, const CImg<T>& img) { \
+    return img + val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator-(const typ val, const CImg<T>& img) { \
+    typedef typename cimg::superset<T,typ>::type Tt; \
+    return CImg<Tt>(img._width,img._height,img._depth,img._spectrum,val)-=img; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator*(const typ val, const CImg<T>& img) { \
+    return img*val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator/(const typ val, const CImg<T>& img) { \
+    return val*img.get_invert(); \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator&(const typ val, const CImg<T>& img) { \
+    return img & val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator|(const typ val, const CImg<T>& img) { \
+    return img | val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator^(const typ val, const CImg<T>& img) { \
+    return img ^ val; \
+  } \
+  template<typename T> \
+  inline bool operator==(const typ val, const CImg<T>& img) {   \
+    return img == val; \
+  } \
+  template<typename T> \
+  inline bool operator!=(const typ val, const CImg<T>& img) { \
+    return img != val; \
+  }
+
+  _cimg_create_ext_operators(bool)
+  _cimg_create_ext_operators(unsigned char)
+  _cimg_create_ext_operators(char)
+  _cimg_create_ext_operators(signed char)
+  _cimg_create_ext_operators(unsigned short)
+  _cimg_create_ext_operators(short)
+  _cimg_create_ext_operators(unsigned int)
+  _cimg_create_ext_operators(int)
+  _cimg_create_ext_operators(cimg_uint64)
+  _cimg_create_ext_operators(cimg_int64)
+  _cimg_create_ext_operators(float)
+  _cimg_create_ext_operators(double)
+  _cimg_create_ext_operators(long double)
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator+(const char *const expression, const CImg<T>& img) {
+    return img + expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator-(const char *const expression, const CImg<T>& img) {
+    return CImg<_cimg_Tfloat>(img,false).fill(expression,true)-=img;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator*(const char *const expression, const CImg<T>& img) {
+    return img*expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
+    return expression*img.get_invert();
+  }
+
+  template<typename T>
+  inline CImg<T> operator&(const char *const expression, const CImg<T>& img) {
+    return img & expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator|(const char *const expression, const CImg<T>& img) {
+    return img | expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator^(const char *const expression, const CImg<T>& img) {
+    return img ^ expression;
+  }
+
+  template<typename T>
+  inline bool operator==(const char *const expression, const CImg<T>& img) {
+    return img==expression;
+  }
+
+  template<typename T>
+  inline bool operator!=(const char *const expression, const CImg<T>& img) {
+    return img!=expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sqr(const CImg<T>& instance) {
+    return instance.get_sqr();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sqrt(const CImg<T>& instance) {
+    return instance.get_sqrt();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> exp(const CImg<T>& instance) {
+    return instance.get_exp();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log(const CImg<T>& instance) {
+    return instance.get_log();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log2(const CImg<T>& instance) {
+    return instance.get_log2();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log10(const CImg<T>& instance) {
+    return instance.get_log10();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> abs(const CImg<T>& instance) {
+    return instance.get_abs();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sign(const CImg<T>& instance) {
+    return instance.get_sign();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> cos(const CImg<T>& instance) {
+    return instance.get_cos();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sin(const CImg<T>& instance) {
+    return instance.get_sin();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sinc(const CImg<T>& instance) {
+    return instance.get_sinc();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> tan(const CImg<T>& instance) {
+    return instance.get_tan();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> acos(const CImg<T>& instance) {
+    return instance.get_acos();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> asin(const CImg<T>& instance) {
+    return instance.get_asin();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> atan(const CImg<T>& instance) {
+    return instance.get_atan();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> cosh(const CImg<T>& instance) {
+    return instance.get_cosh();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sinh(const CImg<T>& instance) {
+    return instance.get_sinh();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> tanh(const CImg<T>& instance) {
+    return instance.get_tanh();
+  }
+
+  template<typename T>
+  inline CImg<T> transpose(const CImg<T>& instance) {
+    return instance.get_transpose();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> invert(const CImg<T>& instance) {
+    return instance.get_invert();
+  }
+
+  template<typename T>
+  inline
