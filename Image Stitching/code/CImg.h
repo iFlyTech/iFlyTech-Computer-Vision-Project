@@ -6272,4 +6272,173 @@ namespace cimg_library_suffixed {
     /**
        \param keycodes_sequence Buffer of keycodes to test.
        \param length Number of keys in the \c keycodes_sequence buffer.
-       \param remove_sequence Tells if the key sequence must be rem
+       \param remove_sequence Tells if the key sequence must be removed from the key history, if found.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const unsigned int key_seq[] = { cimg::keyCTRLLEFT, cimg::keyD };
+       while (!disp.is_closed()) {
+         if (disp.is_key_sequence(key_seq,2)) { ... }  // Test for the 'CTRL+D' keyboard event.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool is_key_sequence(const unsigned int *const keycodes_sequence, const unsigned int length,
+                         const bool remove_sequence=false) {
+      if (keycodes_sequence && length) {
+        const unsigned int
+          *const ps_end = keycodes_sequence + length - 1,
+          *const pk_end = (unsigned int*)_keys + 1 + 128 - length,
+          k = *ps_end;
+        for (unsigned int *pk = (unsigned int*)_keys; pk<pk_end; ) {
+          if (*(pk++)==k) {
+            bool res = true;
+            const unsigned int *ps = ps_end, *pk2 = pk;
+            for (unsigned int i = 1; i<length; ++i) res = (*(--ps)==*(pk2++));
+            if (res) {
+              if (remove_sequence) std::memset((void*)(pk - 1),0,sizeof(unsigned int)*length);
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+#define _cimg_iskey_def(k) \
+    bool is_key##k() const { \
+      return _is_key##k; \
+    }
+
+    //! Return \c true if the \c ESC key is being pressed on the associated window, \c false otherwise.
+    /**
+       \note Similar methods exist for all keys managed by \CImg (see cimg::keyESC).
+    **/
+    _cimg_iskey_def(ESC); _cimg_iskey_def(F1); _cimg_iskey_def(F2); _cimg_iskey_def(F3);
+    _cimg_iskey_def(F4); _cimg_iskey_def(F5); _cimg_iskey_def(F6); _cimg_iskey_def(F7);
+    _cimg_iskey_def(F8); _cimg_iskey_def(F9); _cimg_iskey_def(F10); _cimg_iskey_def(F11);
+    _cimg_iskey_def(F12); _cimg_iskey_def(PAUSE); _cimg_iskey_def(1); _cimg_iskey_def(2);
+    _cimg_iskey_def(3); _cimg_iskey_def(4); _cimg_iskey_def(5); _cimg_iskey_def(6);
+    _cimg_iskey_def(7); _cimg_iskey_def(8); _cimg_iskey_def(9); _cimg_iskey_def(0);
+    _cimg_iskey_def(BACKSPACE); _cimg_iskey_def(INSERT); _cimg_iskey_def(HOME);
+    _cimg_iskey_def(PAGEUP); _cimg_iskey_def(TAB); _cimg_iskey_def(Q); _cimg_iskey_def(W);
+    _cimg_iskey_def(E); _cimg_iskey_def(R); _cimg_iskey_def(T); _cimg_iskey_def(Y);
+    _cimg_iskey_def(U); _cimg_iskey_def(I); _cimg_iskey_def(O); _cimg_iskey_def(P);
+    _cimg_iskey_def(DELETE); _cimg_iskey_def(END); _cimg_iskey_def(PAGEDOWN);
+    _cimg_iskey_def(CAPSLOCK); _cimg_iskey_def(A); _cimg_iskey_def(S); _cimg_iskey_def(D);
+    _cimg_iskey_def(F); _cimg_iskey_def(G); _cimg_iskey_def(H); _cimg_iskey_def(J);
+    _cimg_iskey_def(K); _cimg_iskey_def(L); _cimg_iskey_def(ENTER);
+    _cimg_iskey_def(SHIFTLEFT); _cimg_iskey_def(Z); _cimg_iskey_def(X); _cimg_iskey_def(C);
+    _cimg_iskey_def(V); _cimg_iskey_def(B); _cimg_iskey_def(N); _cimg_iskey_def(M);
+    _cimg_iskey_def(SHIFTRIGHT); _cimg_iskey_def(ARROWUP); _cimg_iskey_def(CTRLLEFT);
+    _cimg_iskey_def(APPLEFT); _cimg_iskey_def(ALT); _cimg_iskey_def(SPACE); _cimg_iskey_def(ALTGR);
+    _cimg_iskey_def(APPRIGHT); _cimg_iskey_def(MENU); _cimg_iskey_def(CTRLRIGHT);
+    _cimg_iskey_def(ARROWLEFT); _cimg_iskey_def(ARROWDOWN); _cimg_iskey_def(ARROWRIGHT);
+    _cimg_iskey_def(PAD0); _cimg_iskey_def(PAD1); _cimg_iskey_def(PAD2);
+    _cimg_iskey_def(PAD3); _cimg_iskey_def(PAD4); _cimg_iskey_def(PAD5);
+    _cimg_iskey_def(PAD6); _cimg_iskey_def(PAD7); _cimg_iskey_def(PAD8);
+    _cimg_iskey_def(PAD9); _cimg_iskey_def(PADADD); _cimg_iskey_def(PADSUB);
+    _cimg_iskey_def(PADMUL); _cimg_iskey_def(PADDIV);
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //------------------------------------------
+
+#if cimg_display==0
+
+    //! Return width of the screen (current resolution along the X-axis).
+    /**
+    **/
+    static int screen_width() {
+      _no_display_exception();
+      return 0;
+    }
+
+    //! Return height of the screen (current resolution along the Y-axis).
+    /**
+    **/
+    static int screen_height() {
+      _no_display_exception();
+      return 0;
+    }
+
+#endif
+
+    //! Return display width.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the associated window.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return display height.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int height() const {
+      return (int)_height;
+    }
+
+    //! Return normalization type of the display.
+    /**
+       The normalization type tells about how the values of an input image are normalized by the CImgDisplay to be
+       correctly displayed. The range of values for pixels displayed on screen is <tt>[0,255]</tt>.
+       If the range of values of the data to display is different, a normalization may be required for displaying
+       the data in a correct way. The normalization type can be one of:
+       - \c 0: Value normalization is disabled. It is then assumed that all input data to be displayed by the
+       CImgDisplay instance have values in range <tt>[0,255]</tt>.
+       - \c 1: Value normalization is always performed (this is the default behavior).
+       Before displaying an input image, its values will be (virtually) stretched
+       in range <tt>[0,255]</tt>, so that the contrast of the displayed pixels will be maximum.
+       Use this mode for images whose minimum and maximum values are not prescribed to known values
+       (e.g. float-valued images).
+       Note that when normalized versions of images are computed for display purposes, the actual values of these
+       images are not modified.
+       - \c 2: Value normalization is performed once (on the first image display), then the same normalization
+       coefficients are kept for next displayed frames.
+       - \c 3: Value normalization depends on the pixel type of the data to display. For integer pixel types,
+       the normalization is done regarding the minimum/maximum values of the type (no normalization occurs then
+       for <tt>unsigned char</tt>).
+       For float-valued pixel types, the normalization is done regarding the minimum/maximum value of the image
+       data instead.
+    **/
+    unsigned int normalization() const {
+      return _normalization;
+    }
+
+    //! Return title of the associated window as a C-string.
+    /**
+       \note Window title may be not visible, depending on the used window manager or if the current display is
+       in fullscreen mode.
+    **/
+    const char *title() const {
+      return _title?_title:"";
+    }
+
+    //! Return width of the associated window.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the associated window.
+    **/
+    int window_width() const {
+      return (int)_window_width;
+    }
+
+    //! Return height of the associated window.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int window_height() const {
+      return (int)_window_height;
+    }
+
+    //! Return X-coordinate of the associated window
