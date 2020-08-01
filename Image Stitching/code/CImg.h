@@ -5920,4 +5920,232 @@ namespace cimg_library_suffixed {
         (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
         \param is_fullscreen Tells if fullscreen mode is enabled.
         \param is_closed Tells if associated window is initially visible or not.
-        \note All images of the list, appended along the X-axi
+        \note All images of the list, appended along the X-axis, are initially displayed on the associated window.
+    **/
+    template<typename T>
+    explicit CImgDisplay(const CImgList<T>& list,
+                         const char *const title=0, const unsigned int normalization=3,
+                         const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(list,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of an existing one.
+    /**
+        \param disp Display instance to copy.
+        \note The pixel buffer of the input window is initially displayed on the associated window.
+    **/
+    CImgDisplay(const CImgDisplay& disp):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(disp);
+    }
+
+#if cimg_display==0
+
+    static void _no_display_exception() {
+      throw CImgDisplayException("CImgDisplay(): No display available.");
+    }
+
+    //! Destructor - Empty constructor \inplace.
+    /**
+       \note Replace the current instance by an empty display.
+    **/
+    CImgDisplay& assign() {
+      return flush();
+    }
+
+    //! Construct a display with specified dimensions \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const unsigned int width, const unsigned int height,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      cimg::unused(width,height,title,normalization,is_fullscreen,is_closed);
+      _no_display_exception();
+      return assign();
+    }
+
+    //! Construct a display from an image \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(img._width,img._height,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image list \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(list._width,list._width,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of another one \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const CImgDisplay &disp) {
+      _no_display_exception();
+      return assign(disp._width,disp._height);
+    }
+
+#endif
+
+    //! Return a reference to an empty display.
+    /**
+       \note Can be useful for writing function prototypes where one of the argument (of type CImgDisplay&)
+       must have a default value.
+       \par Example
+       \code
+       void foo(CImgDisplay& disp=CImgDisplay::empty());
+       \endcode
+    **/
+    static CImgDisplay& empty() {
+      static CImgDisplay _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty display \const.
+    static const CImgDisplay& const_empty() {
+      static const CImgDisplay _empty;
+      return _empty;
+    }
+
+#define cimg_fitscreen(dx,dy,dz) CImgDisplay::_fitscreen(dx,dy,dz,128,-85,false), \
+                                 CImgDisplay::_fitscreen(dx,dy,dz,128,-85,true)
+    static unsigned int _fitscreen(const unsigned int dx, const unsigned int dy, const unsigned int dz,
+                                   const int dmin, const int dmax,const bool return_y) {
+      const unsigned int _nw = dx + (dz>1?dz:0), _nh = dy + (dz>1?dz:0);
+      unsigned int nw = _nw?_nw:1, nh = _nh?_nh:1;
+      const unsigned int
+        sw = (unsigned int)CImgDisplay::screen_width(),
+        sh = (unsigned int)CImgDisplay::screen_height(),
+        mw = dmin<0?(unsigned int)(sw*-dmin/100):(unsigned int)dmin,
+        mh = dmin<0?(unsigned int)(sh*-dmin/100):(unsigned int)dmin,
+        Mw = dmax<0?(unsigned int)(sw*-dmax/100):(unsigned int)dmax,
+        Mh = dmax<0?(unsigned int)(sh*-dmax/100):(unsigned int)dmax;
+      if (nw<mw) { nh = nh*mw/nw; nh+=(nh==0?1:0); nw = mw; }
+      if (nh<mh) { nw = nw*mh/nh; nw+=(nw==0?1:0); nh = mh; }
+      if (nw>Mw) { nh = nh*Mw/nw; nh+=(nh==0?1:0); nw = Mw; }
+      if (nh>Mh) { nw = nw*Mh/nh; nw+=(nw==0?1:0); nh = Mh; }
+      if (nw<mw) nw = mw;
+      if (nh<mh) nh = mh;
+      return return_y?nh:nw;
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Overloaded Operators
+    //@{
+    //------------------------------------------
+
+    //! Display image on associated window.
+    /**
+       \note <tt>disp = img</tt> is equivalent to <tt>disp.display(img)</tt>.
+    **/
+    template<typename t>
+    CImgDisplay& operator=(const CImg<t>& img) {
+      return display(img);
+    }
+
+    //! Display list of images on associated window.
+    /**
+       \note <tt>disp = list</tt> is equivalent to <tt>disp.display(list)</tt>.
+    **/
+    template<typename t>
+    CImgDisplay& operator=(const CImgList<t>& list) {
+      return display(list);
+    }
+
+    //! Construct a display as a copy of another one \inplace.
+    /**
+       \note Equivalent to assign(const CImgDisplay&).
+     **/
+    CImgDisplay& operator=(const CImgDisplay& disp) {
+      return assign(disp);
+    }
+
+    //! Return \c false if display is empty, \c true otherwise.
+    /**
+       \note <tt>if (disp) { ... }</tt> is equivalent to <tt>if (!disp.is_empty()) { ... }</tt>.
+    **/
+    operator bool() const {
+      return !is_empty();
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Instance Checking
+    //@{
+    //------------------------------------------
+
+    //! Return \c true if display is empty, \c false otherwise.
+    /**
+    **/
+    bool is_empty() const {
+      return !(_width && _height);
+    }
+
+    //! Return \c true if display is closed (i.e. not visible on the screen), \c false otherwise.
+    /**
+       \note
+       - When a user physically closes the associated window, the display is set to closed.
+       - A closed display is not destroyed. Its associated window can be show again on the screen using show().
+    **/
+    bool is_closed() const {
+      return _is_closed;
+    }
+
+    //! Return \c true if associated window has been resized on the screen, \c false otherwise.
+    /**
+    **/
+    bool is_resized() const {
+      return _is_resized;
+    }
+
+    //! Return \c true if associated window has been moved on the screen, \c false otherwise.
+    /**
+    **/
+    bool is_moved() const {
+      return _is_moved;
+    }
+
+    //! Return \c true if any event has occured on the associated window, \c false otherwise.
+    /**
+    **/
+    bool is_event() const {
+      return _is_event;
+    }
+
+    //! Return \c true if current display is in fullscreen mode, \c false otherwise.
+    /**
+    **/
+    bool is_fullscreen() const {
+      return _is_fullscreen;
+    }
+
+    //! Return \c true if any key is being pressed on the associated window, \c false otherwise.
+    /**
+       \
