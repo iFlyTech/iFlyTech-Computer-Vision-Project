@@ -6148,4 +6148,128 @@ namespace cimg_library_suffixed {
 
     //! Return \c true if any key is being pressed on the associated window, \c false otherwise.
     /**
-       \
+       \note The methods below do the same only for specific keys.
+    **/
+    bool is_key() const {
+      return _is_keyESC || _is_keyF1 || _is_keyF2 || _is_keyF3 ||
+        _is_keyF4 || _is_keyF5 || _is_keyF6 || _is_keyF7 ||
+        _is_keyF8 || _is_keyF9 || _is_keyF10 || _is_keyF11 ||
+        _is_keyF12 || _is_keyPAUSE || _is_key1 || _is_key2 ||
+        _is_key3 || _is_key4 || _is_key5 || _is_key6 ||
+        _is_key7 || _is_key8 || _is_key9 || _is_key0 ||
+        _is_keyBACKSPACE || _is_keyINSERT || _is_keyHOME ||
+        _is_keyPAGEUP || _is_keyTAB || _is_keyQ || _is_keyW ||
+        _is_keyE || _is_keyR || _is_keyT || _is_keyY ||
+        _is_keyU || _is_keyI || _is_keyO || _is_keyP ||
+        _is_keyDELETE || _is_keyEND || _is_keyPAGEDOWN ||
+        _is_keyCAPSLOCK || _is_keyA || _is_keyS || _is_keyD ||
+        _is_keyF || _is_keyG || _is_keyH || _is_keyJ ||
+        _is_keyK || _is_keyL || _is_keyENTER ||
+        _is_keySHIFTLEFT || _is_keyZ || _is_keyX || _is_keyC ||
+        _is_keyV || _is_keyB || _is_keyN || _is_keyM ||
+        _is_keySHIFTRIGHT || _is_keyARROWUP || _is_keyCTRLLEFT ||
+        _is_keyAPPLEFT || _is_keyALT || _is_keySPACE || _is_keyALTGR ||
+        _is_keyAPPRIGHT || _is_keyMENU || _is_keyCTRLRIGHT ||
+        _is_keyARROWLEFT || _is_keyARROWDOWN || _is_keyARROWRIGHT ||
+        _is_keyPAD0 || _is_keyPAD1 || _is_keyPAD2 ||
+        _is_keyPAD3 || _is_keyPAD4 || _is_keyPAD5 ||
+        _is_keyPAD6 || _is_keyPAD7 || _is_keyPAD8 ||
+        _is_keyPAD9 || _is_keyPADADD || _is_keyPADSUB ||
+        _is_keyPADMUL || _is_keyPADDIV;
+    }
+
+    //! Return \c true if key specified by given keycode is being pressed on the associated window, \c false otherwise.
+    /**
+       \param keycode Keycode to test.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.key(cimg::keyTAB)) { ... }  // Equivalent to 'if (disp.is_keyTAB())'.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool is_key(const unsigned int keycode) const {
+#define _cimg_iskey_test(k) if (keycode==cimg::key##k) return _is_key##k;
+      _cimg_iskey_test(ESC); _cimg_iskey_test(F1); _cimg_iskey_test(F2); _cimg_iskey_test(F3);
+      _cimg_iskey_test(F4); _cimg_iskey_test(F5); _cimg_iskey_test(F6); _cimg_iskey_test(F7);
+      _cimg_iskey_test(F8); _cimg_iskey_test(F9); _cimg_iskey_test(F10); _cimg_iskey_test(F11);
+      _cimg_iskey_test(F12); _cimg_iskey_test(PAUSE); _cimg_iskey_test(1); _cimg_iskey_test(2);
+      _cimg_iskey_test(3); _cimg_iskey_test(4); _cimg_iskey_test(5); _cimg_iskey_test(6);
+      _cimg_iskey_test(7); _cimg_iskey_test(8); _cimg_iskey_test(9); _cimg_iskey_test(0);
+      _cimg_iskey_test(BACKSPACE); _cimg_iskey_test(INSERT); _cimg_iskey_test(HOME);
+      _cimg_iskey_test(PAGEUP); _cimg_iskey_test(TAB); _cimg_iskey_test(Q); _cimg_iskey_test(W);
+      _cimg_iskey_test(E); _cimg_iskey_test(R); _cimg_iskey_test(T); _cimg_iskey_test(Y);
+      _cimg_iskey_test(U); _cimg_iskey_test(I); _cimg_iskey_test(O); _cimg_iskey_test(P);
+      _cimg_iskey_test(DELETE); _cimg_iskey_test(END); _cimg_iskey_test(PAGEDOWN);
+      _cimg_iskey_test(CAPSLOCK); _cimg_iskey_test(A); _cimg_iskey_test(S); _cimg_iskey_test(D);
+      _cimg_iskey_test(F); _cimg_iskey_test(G); _cimg_iskey_test(H); _cimg_iskey_test(J);
+      _cimg_iskey_test(K); _cimg_iskey_test(L); _cimg_iskey_test(ENTER);
+      _cimg_iskey_test(SHIFTLEFT); _cimg_iskey_test(Z); _cimg_iskey_test(X); _cimg_iskey_test(C);
+      _cimg_iskey_test(V); _cimg_iskey_test(B); _cimg_iskey_test(N); _cimg_iskey_test(M);
+      _cimg_iskey_test(SHIFTRIGHT); _cimg_iskey_test(ARROWUP); _cimg_iskey_test(CTRLLEFT);
+      _cimg_iskey_test(APPLEFT); _cimg_iskey_test(ALT); _cimg_iskey_test(SPACE); _cimg_iskey_test(ALTGR);
+      _cimg_iskey_test(APPRIGHT); _cimg_iskey_test(MENU); _cimg_iskey_test(CTRLRIGHT);
+      _cimg_iskey_test(ARROWLEFT); _cimg_iskey_test(ARROWDOWN); _cimg_iskey_test(ARROWRIGHT);
+      _cimg_iskey_test(PAD0); _cimg_iskey_test(PAD1); _cimg_iskey_test(PAD2);
+      _cimg_iskey_test(PAD3); _cimg_iskey_test(PAD4); _cimg_iskey_test(PAD5);
+      _cimg_iskey_test(PAD6); _cimg_iskey_test(PAD7); _cimg_iskey_test(PAD8);
+      _cimg_iskey_test(PAD9); _cimg_iskey_test(PADADD); _cimg_iskey_test(PADSUB);
+      _cimg_iskey_test(PADMUL); _cimg_iskey_test(PADDIV);
+      return false;
+    }
+
+    //! Return \c true if key specified by given keycode is being pressed on the associated window, \c false otherwise.
+    /**
+       \param keycode C-string containing the keycode label of the key to test.
+       \note Use it when the key you want to test can be dynamically set by the user.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const char *const keycode = "TAB";
+       while (!disp.is_closed()) {
+         if (disp.is_key(keycode)) { ... }  // Equivalent to 'if (disp.is_keyTAB())'.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool& is_key(const char *const keycode) {
+      static bool f = false;
+      f = false;
+#define _cimg_iskey_test2(k) if (!cimg::strcasecmp(keycode,#k)) return _is_key##k;
+      _cimg_iskey_test2(ESC); _cimg_iskey_test2(F1); _cimg_iskey_test2(F2); _cimg_iskey_test2(F3);
+      _cimg_iskey_test2(F4); _cimg_iskey_test2(F5); _cimg_iskey_test2(F6); _cimg_iskey_test2(F7);
+      _cimg_iskey_test2(F8); _cimg_iskey_test2(F9); _cimg_iskey_test2(F10); _cimg_iskey_test2(F11);
+      _cimg_iskey_test2(F12); _cimg_iskey_test2(PAUSE); _cimg_iskey_test2(1); _cimg_iskey_test2(2);
+      _cimg_iskey_test2(3); _cimg_iskey_test2(4); _cimg_iskey_test2(5); _cimg_iskey_test2(6);
+      _cimg_iskey_test2(7); _cimg_iskey_test2(8); _cimg_iskey_test2(9); _cimg_iskey_test2(0);
+      _cimg_iskey_test2(BACKSPACE); _cimg_iskey_test2(INSERT); _cimg_iskey_test2(HOME);
+      _cimg_iskey_test2(PAGEUP); _cimg_iskey_test2(TAB); _cimg_iskey_test2(Q); _cimg_iskey_test2(W);
+      _cimg_iskey_test2(E); _cimg_iskey_test2(R); _cimg_iskey_test2(T); _cimg_iskey_test2(Y);
+      _cimg_iskey_test2(U); _cimg_iskey_test2(I); _cimg_iskey_test2(O); _cimg_iskey_test2(P);
+      _cimg_iskey_test2(DELETE); _cimg_iskey_test2(END); _cimg_iskey_test2(PAGEDOWN);
+      _cimg_iskey_test2(CAPSLOCK); _cimg_iskey_test2(A); _cimg_iskey_test2(S); _cimg_iskey_test2(D);
+      _cimg_iskey_test2(F); _cimg_iskey_test2(G); _cimg_iskey_test2(H); _cimg_iskey_test2(J);
+      _cimg_iskey_test2(K); _cimg_iskey_test2(L); _cimg_iskey_test2(ENTER);
+      _cimg_iskey_test2(SHIFTLEFT); _cimg_iskey_test2(Z); _cimg_iskey_test2(X); _cimg_iskey_test2(C);
+      _cimg_iskey_test2(V); _cimg_iskey_test2(B); _cimg_iskey_test2(N); _cimg_iskey_test2(M);
+      _cimg_iskey_test2(SHIFTRIGHT); _cimg_iskey_test2(ARROWUP); _cimg_iskey_test2(CTRLLEFT);
+      _cimg_iskey_test2(APPLEFT); _cimg_iskey_test2(ALT); _cimg_iskey_test2(SPACE); _cimg_iskey_test2(ALTGR);
+      _cimg_iskey_test2(APPRIGHT); _cimg_iskey_test2(MENU); _cimg_iskey_test2(CTRLRIGHT);
+      _cimg_iskey_test2(ARROWLEFT); _cimg_iskey_test2(ARROWDOWN); _cimg_iskey_test2(ARROWRIGHT);
+      _cimg_iskey_test2(PAD0); _cimg_iskey_test2(PAD1); _cimg_iskey_test2(PAD2);
+      _cimg_iskey_test2(PAD3); _cimg_iskey_test2(PAD4); _cimg_iskey_test2(PAD5);
+      _cimg_iskey_test2(PAD6); _cimg_iskey_test2(PAD7); _cimg_iskey_test2(PAD8);
+      _cimg_iskey_test2(PAD9); _cimg_iskey_test2(PADADD); _cimg_iskey_test2(PADSUB);
+      _cimg_iskey_test2(PADMUL); _cimg_iskey_test2(PADDIV);
+      return f;
+    }
+
+    //! Return \c true if specified key sequence has been typed on the associated window, \c false otherwise.
+    /**
+       \param keycodes_sequence Buffer of keycodes to test.
+       \param length Number of keys in the \c keycodes_sequence buffer.
+       \param remove_sequence Tells if the key sequence must be rem
