@@ -6441,4 +6441,168 @@ namespace cimg_library_suffixed {
       return (int)_window_height;
     }
 
-    //! Return X-coordinate of the associated window
+    //! Return X-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_x() const {
+      return _window_x;
+    }
+
+    //! Return Y-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_y() const {
+      return _window_y;
+    }
+
+    //! Return X-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,width()-1].
+    **/
+    int mouse_x() const {
+      return _mouse_x;
+    }
+
+    //! Return Y-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,height()-1].
+    **/
+    int mouse_y() const {
+      return _mouse_y;
+    }
+
+    //! Return current state of the mouse buttons.
+    /**
+       \note Three mouse buttons can be managed. If one button is pressed, its corresponding bit in the returned
+       value is set:
+       - bit \c 0 (value \c 0x1): State of the left mouse button.
+       - bit \c 1 (value \c 0x2): State of the right mouse button.
+       - bit \c 2 (value \c 0x4): State of the middle mouse button.
+
+       Several bits can be activated if more than one button are pressed at the same time.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.button()&1) { // Left button clicked.
+           ...
+         }
+         if (disp.button()&2) { // Right button clicked.
+           ...
+         }
+         if (disp.button()&4) { // Middle button clicked.
+           ...
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    unsigned int button() const {
+      return _button;
+    }
+
+    //! Return current state of the mouse wheel.
+    /**
+       \note
+       - The returned value can be positive or negative depending on whether the mouse wheel has been scrolled
+       forward or backward.
+       - Scrolling the wheel forward add \c 1 to the wheel value.
+       - Scrolling the wheel backward substract \c 1 to the wheel value.
+       - The returned value cumulates the number of forward of backward scrolls since the creation of the display,
+       or since the last reset of the wheel value (using set_wheel()). It is strongly recommended to quickly reset
+       the wheel counter when an action has been performed regarding the current wheel value.
+       Otherwise, the returned wheel value may be for instance \c 0 despite the fact that many scrolls have been done
+       (as many in forward as in backward directions).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.wheel()) {
+           int counter = disp.wheel();  // Read the state of the mouse wheel.
+           ...                          // Do what you want with 'counter'.
+           disp.set_wheel();            // Reset the wheel value to 0.
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    int wheel() const {
+      return _wheel;
+    }
+
+    //! Return one entry from the pressed keys history.
+    /**
+       \param pos Indice to read from the pressed keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a pressed key or \c 0 for a released key.
+       \note
+       - Each CImgDisplay stores a history of the pressed keys in a buffer of size \c 128. When a new key is pressed,
+       its keycode is stored in the pressed keys history. When a key is released, \c 0 is put instead.
+       This means that up to the 64 last pressed keys may be read from the pressed keys history.
+       When a new value is stored, the pressed keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int key(const unsigned int pos=0) const {
+      return pos<128?_keys[pos]:0;
+    }
+
+    //! Return one entry from the released keys history.
+    /**
+       \param pos Indice to read from the released keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a released key or \c 0 for a pressed key.
+       \note
+       - Each CImgDisplay stores a history of the released keys in a buffer of size \c 128. When a new key is released,
+       its keycode is stored in the pressed keys history. When a key is pressed, \c 0 is put instead.
+       This means that up to the 64 last released keys may be read from the released keys history.
+       When a new value is stored, the released keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int released_key(const unsigned int pos=0) const {
+      return pos<128?_released_keys[pos]:0;
+    }
+
+    //! Return keycode corresponding to the specified string.
+    /**
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       const unsigned int keyTAB = CImgDisplay::keycode("TAB");  // Return cimg::keyTAB.
+       \endcode
+    **/
+    static unsigned int keycode(const char *const keycode) {
+#define _cimg_keycode(k) if (!cimg::strcasecmp(keycode,#k)) return cimg::key##k;
+      _cimg_keycode(ESC); _cimg_keycode(F1); _cimg_keycode(F2); _cimg_keycode(F3);
+      _cimg_keycode(F4); _cimg_keycode(F5); _cimg_keycode(F6); _cimg_keycode(F7);
+      _cimg_keycode(F8); _cimg_keycode(F9); _cimg_keycode(F10); _cimg_keycode(F11);
+      _cimg_keycode(F12); _cimg_keycode(PAUSE); _cimg_keycode(1); _cimg_keycode(2);
+      _cimg_keycode(3); _cimg_keycode(4); _cimg_keycode(5); _cimg_keycode(6);
+      _cimg_keycode(7); _cimg_keycode(8); _cimg_keycode(9); _cimg_keycode(0);
+      _cimg_keycode(BACKSPACE); _cimg_keycode(INSERT); _cimg_keycode(HOME);
+      _cimg_keycode(PAGEUP); _cimg_keycode(TAB); _cimg_keycode(Q); _cimg_keycode(W);
+      _cimg_keycode(E); _cimg_keycode(R); _cimg_keycode(T); _cimg_keycode(Y);
+      _cimg_keycode(U); _cimg_keycode(I); _cimg_keycode(O); _cimg_keycode(P);
+      _cimg_keycode(DELETE); _cimg_keycode(END); _cimg_keycode(PAGEDOWN);
+      _cimg_keycode(CAPSLOCK); _cimg_keycode(A); _cimg_keycode(S); _cimg_keycode(D);
+      _cimg_keycode(F); _cimg_keycode(G); _cimg_keycode(H); _cimg_keycode(J);
+      _cimg_keycode(K); _cimg_keycode(L); _cimg_keycode(ENTER);
+      _cimg_keycode(SHIFTLEFT); _cimg_keycode(Z); _cimg_keycode(X); _cimg_keycode(C);
+      _cimg_keycode(V); _cimg_keycode(B); _cimg_keycode(N); _cimg_keycode(M);
+      _cimg_keycode(SHIFTRIGHT); _cimg_keycode(ARROWUP); _cimg_keycode(CTRLLEFT);
+      _cimg_keycode(APPLEFT); _cimg_keycode(ALT); _cimg_keycode(SPACE); _cimg_keycode(ALTGR);
+      _cimg_keycode(APPRIGHT); _cimg_keycode(MENU); _cimg_keycode(CTRLRIGHT);
+      _cimg_keycode(ARROWLEFT); _cimg_keycode(ARROWDOWN); _cimg_keycode(ARROWRIGHT);
+      _cimg_keycode(PAD0); _cimg_keycode(PAD1); _cimg_keycode(PAD2);
+      _cimg_keycode(PAD3); _cimg_keycode(PAD4); _cimg_keycode(PAD5);
+      _cimg_keycode(PAD6); _cimg_keycode(PAD7); _cimg_keycode(PAD8);
+      _cimg_keycode(PAD9); _cimg_keycode(PADADD); _cimg_keycode(PADSUB);
+      _cimg_keycode(PADMUL); _cimg_k
