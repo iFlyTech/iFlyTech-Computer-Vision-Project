@@ -6820,4 +6820,187 @@ namespace cimg_library_suffixed {
        if \c window_title can be arbitrary, to prevent nasty memory access.
     **/
     CImgDisplay& set_title(const char *const format, ...) {
-      retu
+      return assign(0,0,format);
+    }
+
+#endif
+
+    //! Enable or disable fullscreen mode.
+    /**
+       \param is_fullscreen Tells is the fullscreen mode must be activated or not.
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note
+       - When the fullscreen mode is enabled, the associated window fills the entire screen but the size of the
+       current display is not modified.
+       - The screen resolution may be switched to fit the associated window size and ensure it appears the largest
+       as possible.
+       For X-Window (X11) users, the configuration flag \c cimg_use_xrandr has to be set to allow the screen
+       resolution change (requires the X11 extensions to be enabled).
+    **/
+    CImgDisplay& set_fullscreen(const bool is_fullscreen, const bool force_redraw=true) {
+      if (is_empty() || _is_fullscreen==is_fullscreen) return *this;
+      return toggle_fullscreen(force_redraw);
+    }
+
+#if cimg_display==0
+
+    //! Toggle fullscreen mode.
+    /**
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note Enable fullscreen mode if it was not enabled, and disable it otherwise.
+    **/
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      return assign(_width,_height,0,3,force_redraw);
+    }
+
+    //! Show mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& show_mouse() {
+      return assign();
+    }
+
+    //! Hide mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& hide_mouse() {
+      return assign();
+    }
+
+    //! Move mouse pointer to a specified location.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& set_mouse(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Simulate a mouse button release event.
+    /**
+       \note All mouse buttons are considered released at the same time.
+    **/
+    CImgDisplay& set_button() {
+      _button = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a mouse button press or release event.
+    /**
+       \param button Buttons event code, where each button is associated to a single bit.
+       \param is_pressed Tells if the mouse button is considered as pressed or released.
+    **/
+    CImgDisplay& set_button(const unsigned int button, const bool is_pressed=true) {
+      const unsigned int buttoncode = button==1U?1U:button==2U?2U:button==3U?4U:0U;
+      if (is_pressed) _button |= buttoncode; else _button &= ~buttoncode;
+      _is_event = buttoncode?true:false;
+      if (buttoncode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all mouse wheel events.
+    /**
+       \note Make wheel() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_wheel() {
+      _wheel = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a wheel event.
+    /**
+       \param amplitude Amplitude of the wheel scrolling to simulate.
+       \note Make wheel() to return \c amplitude, if called afterwards.
+    **/
+    CImgDisplay& set_wheel(const int amplitude) {
+      _wheel+=amplitude;
+      _is_event = amplitude?true:false;
+      if (amplitude) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all key events.
+    /**
+       \note Make key() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_key() {
+      std::memset((void*)_keys,0,128*sizeof(unsigned int));
+      std::memset((void*)_released_keys,0,128*sizeof(unsigned int));
+      _is_keyESC = _is_keyF1 = _is_keyF2 = _is_keyF3 = _is_keyF4 = _is_keyF5 = _is_keyF6 = _is_keyF7 = _is_keyF8 =
+        _is_keyF9 = _is_keyF10 = _is_keyF11 = _is_keyF12 = _is_keyPAUSE = _is_key1 = _is_key2 = _is_key3 = _is_key4 =
+        _is_key5 = _is_key6 = _is_key7 = _is_key8 = _is_key9 = _is_key0 = _is_keyBACKSPACE = _is_keyINSERT =
+        _is_keyHOME = _is_keyPAGEUP = _is_keyTAB = _is_keyQ = _is_keyW = _is_keyE = _is_keyR = _is_keyT = _is_keyY =
+        _is_keyU = _is_keyI = _is_keyO = _is_keyP = _is_keyDELETE = _is_keyEND = _is_keyPAGEDOWN = _is_keyCAPSLOCK =
+        _is_keyA = _is_keyS = _is_keyD = _is_keyF = _is_keyG = _is_keyH = _is_keyJ = _is_keyK = _is_keyL =
+        _is_keyENTER = _is_keySHIFTLEFT = _is_keyZ = _is_keyX = _is_keyC = _is_keyV = _is_keyB = _is_keyN =
+        _is_keyM = _is_keySHIFTRIGHT = _is_keyARROWUP = _is_keyCTRLLEFT = _is_keyAPPLEFT = _is_keyALT = _is_keySPACE =
+        _is_keyALTGR = _is_keyAPPRIGHT = _is_keyMENU = _is_keyCTRLRIGHT = _is_keyARROWLEFT = _is_keyARROWDOWN =
+        _is_keyARROWRIGHT = _is_keyPAD0 = _is_keyPAD1 = _is_keyPAD2 = _is_keyPAD3 = _is_keyPAD4 = _is_keyPAD5 =
+        _is_keyPAD6 = _is_keyPAD7 = _is_keyPAD8 = _is_keyPAD9 = _is_keyPADADD = _is_keyPADSUB = _is_keyPADMUL =
+        _is_keyPADDIV = false;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a keyboard press/release event.
+    /**
+       \param keycode Keycode of the associated key.
+       \param is_pressed Tells if the key is considered as pressed or released.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    CImgDisplay& set_key(const unsigned int keycode, const bool is_pressed=true) {
+#define _cimg_set_key(k) if (keycode==cimg::key##k) _is_key##k = is_pressed;
+      _cimg_set_key(ESC); _cimg_set_key(F1); _cimg_set_key(F2); _cimg_set_key(F3);
+      _cimg_set_key(F4); _cimg_set_key(F5); _cimg_set_key(F6); _cimg_set_key(F7);
+      _cimg_set_key(F8); _cimg_set_key(F9); _cimg_set_key(F10); _cimg_set_key(F11);
+      _cimg_set_key(F12); _cimg_set_key(PAUSE); _cimg_set_key(1); _cimg_set_key(2);
+      _cimg_set_key(3); _cimg_set_key(4); _cimg_set_key(5); _cimg_set_key(6);
+      _cimg_set_key(7); _cimg_set_key(8); _cimg_set_key(9); _cimg_set_key(0);
+      _cimg_set_key(BACKSPACE); _cimg_set_key(INSERT); _cimg_set_key(HOME);
+      _cimg_set_key(PAGEUP); _cimg_set_key(TAB); _cimg_set_key(Q); _cimg_set_key(W);
+      _cimg_set_key(E); _cimg_set_key(R); _cimg_set_key(T); _cimg_set_key(Y);
+      _cimg_set_key(U); _cimg_set_key(I); _cimg_set_key(O); _cimg_set_key(P);
+      _cimg_set_key(DELETE); _cimg_set_key(END); _cimg_set_key(PAGEDOWN);
+      _cimg_set_key(CAPSLOCK); _cimg_set_key(A); _cimg_set_key(S); _cimg_set_key(D);
+      _cimg_set_key(F); _cimg_set_key(G); _cimg_set_key(H); _cimg_set_key(J);
+      _cimg_set_key(K); _cimg_set_key(L); _cimg_set_key(ENTER);
+      _cimg_set_key(SHIFTLEFT); _cimg_set_key(Z); _cimg_set_key(X); _cimg_set_key(C);
+      _cimg_set_key(V); _cimg_set_key(B); _cimg_set_key(N); _cimg_set_key(M);
+      _cimg_set_key(SHIFTRIGHT); _cimg_set_key(ARROWUP); _cimg_set_key(CTRLLEFT);
+      _cimg_set_key(APPLEFT); _cimg_set_key(ALT); _cimg_set_key(SPACE); _cimg_set_ke
