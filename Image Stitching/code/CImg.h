@@ -7003,4 +7003,150 @@ namespace cimg_library_suffixed {
       _cimg_set_key(SHIFTLEFT); _cimg_set_key(Z); _cimg_set_key(X); _cimg_set_key(C);
       _cimg_set_key(V); _cimg_set_key(B); _cimg_set_key(N); _cimg_set_key(M);
       _cimg_set_key(SHIFTRIGHT); _cimg_set_key(ARROWUP); _cimg_set_key(CTRLLEFT);
-      _cimg_set_key(APPLEFT); _cimg_set_key(ALT); _cimg_set_key(SPACE); _cimg_set_ke
+      _cimg_set_key(APPLEFT); _cimg_set_key(ALT); _cimg_set_key(SPACE); _cimg_set_key(ALTGR);
+      _cimg_set_key(APPRIGHT); _cimg_set_key(MENU); _cimg_set_key(CTRLRIGHT);
+      _cimg_set_key(ARROWLEFT); _cimg_set_key(ARROWDOWN); _cimg_set_key(ARROWRIGHT);
+      _cimg_set_key(PAD0); _cimg_set_key(PAD1); _cimg_set_key(PAD2);
+      _cimg_set_key(PAD3); _cimg_set_key(PAD4); _cimg_set_key(PAD5);
+      _cimg_set_key(PAD6); _cimg_set_key(PAD7); _cimg_set_key(PAD8);
+      _cimg_set_key(PAD9); _cimg_set_key(PADADD); _cimg_set_key(PADSUB);
+      _cimg_set_key(PADMUL); _cimg_set_key(PADDIV);
+      if (is_pressed) {
+        if (*_keys)
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+        *_keys = keycode;
+        if (*_released_keys) {
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+          *_released_keys = 0;
+        }
+      } else {
+        if (*_keys) {
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+          *_keys = 0;
+        }
+        if (*_released_keys)
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+        *_released_keys = keycode;
+      }
+      _is_event = keycode?true:false;
+      if (keycode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all display events.
+    /**
+       \note Remove all passed events from the current display.
+    **/
+    CImgDisplay& flush() {
+      set_key().set_button().set_wheel();
+      _is_resized = _is_moved = _is_event = false;
+      _fps_timer = _fps_frames = _timer = 0;
+      _fps_fps = 0;
+      return *this;
+    }
+
+    //! Wait for any user event occuring on the current display.
+    CImgDisplay& wait() {
+      wait(*this);
+      return *this;
+    }
+
+    //! Wait for a given number of milliseconds since the last call to wait().
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \note Similar to cimg::wait().
+    **/
+    CImgDisplay& wait(const unsigned int milliseconds) {
+      cimg::_wait(milliseconds,_timer);
+      return *this;
+    }
+
+    //! Wait for any event occuring on the display \c disp1.
+    static void wait(CImgDisplay& disp1) {
+      disp1._is_event = false;
+      while (!disp1._is_closed && !disp1._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1 or \c disp2.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2) {
+      disp1._is_event = disp2._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed) &&
+             !disp1._is_event && !disp2._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2 or \c disp3.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3) {
+      disp1._is_event = disp2._is_event = disp3._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3 or \c disp4.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4 or \c disp5.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4,
+                     CImgDisplay& disp5) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event)
+        wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp6.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp7.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp8.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp9.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8, CImgDisplay& disp9) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = disp9._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed || !disp9._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event && !disp9._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp10.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& 
