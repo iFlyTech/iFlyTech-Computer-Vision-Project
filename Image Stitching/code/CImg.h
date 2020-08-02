@@ -6605,4 +6605,219 @@ namespace cimg_library_suffixed {
       _cimg_keycode(PAD3); _cimg_keycode(PAD4); _cimg_keycode(PAD5);
       _cimg_keycode(PAD6); _cimg_keycode(PAD7); _cimg_keycode(PAD8);
       _cimg_keycode(PAD9); _cimg_keycode(PADADD); _cimg_keycode(PADSUB);
-      _cimg_keycode(PADMUL); _cimg_k
+      _cimg_keycode(PADMUL); _cimg_keycode(PADDIV);
+      return 0;
+    }
+
+    //! Return the current refresh rate, in frames per second.
+    /**
+       \note Returns a significant value when the current instance is used to display successive frames.
+       It measures the delay between successive calls to frames_per_second().
+    **/
+    float frames_per_second() {
+      if (!_fps_timer) _fps_timer = cimg::time();
+      const float delta = (cimg::time() - _fps_timer)/1000.0f;
+      ++_fps_frames;
+      if (delta>=1) {
+        _fps_fps = _fps_frames/delta;
+        _fps_frames = 0;
+        _fps_timer = cimg::time();
+      }
+      return _fps_fps;
+    }
+
+    //@}
+    //---------------------------------------
+    //
+    //! \name Window Manipulation
+    //@{
+    //---------------------------------------
+
+#if cimg_display==0
+
+    //! Display image on associated window.
+    /**
+       \param img Input image to display.
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      return assign(img);
+    }
+
+#endif
+
+    //! Display list of images on associated window.
+    /**
+       \param list List of images to display.
+       \param axis Axis used to append the images along, for the visualization (can be \c x, \c y, \c z or \c c).
+       \param align Relative position of aligned images when displaying lists with images of different sizes
+       (\c 0 for upper-left, \c 0.5 for centering and \c 1 for lower-right).
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImgList<T>& list, const char axis='x', const float align=0) {
+      if (list._width==1) {
+        const CImg<T>& img = list[0];
+        if (img._depth==1 && (img._spectrum==1 || img._spectrum>=3) && _normalization!=1) return display(img);
+      }
+      CImgList<typename CImg<T>::ucharT> visu(list._width);
+      unsigned int dims = 0;
+      cimglist_for(list,l) {
+        const CImg<T>& img = list._data[l];
+        img.__get_select(*this,_normalization,(img._width - 1)/2,(img._height - 1)/2,
+                         (img._depth - 1)/2).move_to(visu[l]);
+        dims = cimg::max(dims,visu[l]._spectrum);
+      }
+      cimglist_for(list,l) if (visu[l]._spectrum<dims) visu[l].resize(-100,-100,-100,dims,1);
+      visu.get_append(axis,align).display(*this);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Show (closed) associated window on the screen.
+    /**
+       \note
+       - Force the associated window of a display to be visible on the screen, even if it has been closed before.
+       - Using show() on a visible display does nothing.
+    **/
+    CImgDisplay& show() {
+      return assign();
+    }
+
+    //! Close (visible) associated window and make it disappear from the screen.
+    /**
+       \note
+       - A closed display only means the associated window is not visible anymore. This does not mean the display has
+       been destroyed.
+       Use show() to make the associated window reappear.
+       - Using close() on a closed display does nothing.
+    **/
+    CImgDisplay& close() {
+      return assign();
+    }
+
+    //! Move associated window to a new location.
+    /**
+       \param pos_x X-coordinate of the new window location.
+       \param pos_y Y-coordinate of the new window location.
+       \note Depending on the window manager behavior, this method may not succeed (no exceptions are thrown
+       nevertheless).
+    **/
+    CImgDisplay& move(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Resize display to the size of the associated window.
+    /**
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note
+       - Calling this method ensures that width() and window_width() become equal, as well as height() and
+       window_height().
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const bool force_redraw=true) {
+      resize(window_width(),window_height(),force_redraw);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Resize display to the specified size.
+    /**
+       \param width Requested display width.
+       \param height Requested display height.
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const int width, const int height, const bool force_redraw=true) {
+      return assign(width,height,0,3,force_redraw);
+    }
+
+#endif
+
+    //! Resize display to the size of an input image.
+    /**
+       \param img Input image to take size from.
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>img.width()</tt> become equal, as well as height() and
+       <tt>img.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    template<typename T>
+    CImgDisplay& resize(const CImg<T>& img, const bool force_redraw=true) {
+      return resize(img._width,img._height,force_redraw);
+    }
+
+    //! Resize display to the size of another CImgDisplay instance.
+    /**
+       \param disp Input display to take size from.
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>disp.width()</tt> become equal, as well as height() and
+       <tt>disp.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const CImgDisplay& disp, const bool force_redraw=true) {
+      return resize(disp.width(),disp.height(),force_redraw);
+    }
+
+    // [internal] Render pixel buffer with size (wd,hd) from source buffer of size (ws,hs).
+    template<typename t, typename T>
+    static void _render_resize(const T *ptrs, const unsigned int ws, const unsigned int hs,
+                               t *ptrd, const unsigned int wd, const unsigned int hd) {
+      unsigned int *const offx = new unsigned int[wd], *const offy = new unsigned int[hd + 1], *poffx, *poffy;
+      float s, curr, old;
+      s = (float)ws/wd;
+      poffx = offx; curr = 0; for (unsigned int x = 0; x<wd; ++x) {
+        old = curr; curr+=s; *(poffx++) = (unsigned int)curr - (unsigned int)old;
+      }
+      s = (float)hs/hd;
+      poffy = offy; curr = 0; for (unsigned int y = 0; y<hd; ++y) {
+        old = curr; curr+=s; *(poffy++) = ws*((unsigned int)curr - (unsigned int)old);
+      }
+      *poffy = 0;
+      poffy = offy;
+      for (unsigned int y = 0; y<hd; ) {
+        const T *ptr = ptrs;
+        poffx = offx;
+        for (unsigned int x = 0; x<wd; ++x) { *(ptrd++) = *ptr; ptr+=*(poffx++); }
+        ++y;
+        unsigned int dy = *(poffy++);
+        for ( ; !dy && y<hd; std::memcpy(ptrd,ptrd - wd,sizeof(t)*wd), ++y, ptrd+=wd, dy = *(poffy++)) {}
+        ptrs+=dy;
+      }
+      delete[] offx; delete[] offy;
+    }
+
+    //! Set normalization type.
+    /**
+       \param normalization New normalization mode.
+    **/
+    CImgDisplay& set_normalization(const unsigned int normalization) {
+      _normalization = normalization;
+      _min = _max = 0;
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Set title of the associated window.
+    /**
+       \param format C-string containing the format of the title, as with <tt>std::printf()</tt>.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       disp.set_title("%s",window_title);
+       \endcode
+       instead of
+       \code
+       disp.set_title(window_title);
+       \endcode
+       if \c window_title can be arbitrary, to prevent nasty memory access.
+    **/
+    CImgDisplay& set_title(const char *const format, ...) {
+      retu
