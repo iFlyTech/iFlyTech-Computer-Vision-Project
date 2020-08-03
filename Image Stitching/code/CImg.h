@@ -7149,4 +7149,197 @@ namespace cimg_library_suffixed {
 
     //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp10.
     static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
-                     CImgDisplay& 
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8, CImgDisplay& disp9,
+                     CImgDisplay& disp10) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = disp9._is_event = disp10._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed || !disp9._is_closed || !disp10._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event && !disp9._is_event && !disp10._is_event)
+        wait_all();
+    }
+
+#if cimg_display==0
+
+    //! Wait for any window event occuring in any opened CImgDisplay.
+    static void wait_all() {
+      return _no_display_exception();
+    }
+
+    //! Render image into internal display buffer.
+    /**
+       \param img Input image data to render.
+       \note
+       - Convert image data representation into the internal display buffer (architecture-dependent structure).
+       - The content of the associated window is not modified, until paint() is called.
+       - Should not be used for common CImgDisplay uses, since display() is more useful.
+    **/
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img) {
+      return assign(img);
+    }
+
+    //! Paint internal display buffer on associated window.
+    /**
+       \note
+       - Update the content of the associated window with the internal display buffer, e.g. after a render() call.
+       - Should not be used for common CImgDisplay uses, since display() is more useful.
+    **/
+    CImgDisplay& paint() {
+      return assign();
+    }
+
+    //! Take a snapshot of the associated window content.
+    /**
+       \param[out] img Output snapshot. Can be empty on input.
+    **/
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      cimg::unused(img);
+      _no_display_exception();
+      return *this;
+    }
+#endif
+
+    // X11-based implementation
+    //--------------------------
+#if cimg_display==1
+
+    Atom _wm_window_atom, _wm_protocol_atom;
+    Window _window, _background_window;
+    Colormap _colormap;
+    XImage *_image;
+    void *_data;
+#ifdef cimg_use_xshm
+    XShmSegmentInfo *_shminfo;
+#endif
+
+    static int screen_width() {
+      Display *const dpy = cimg::X11_attr().display;
+      int res = 0;
+      if (!dpy) {
+        Display *const _dpy = XOpenDisplay(0);
+        if (!_dpy)
+          throw CImgDisplayException("CImgDisplay::screen_width(): Failed to open X11 display.");
+        res = DisplayWidth(_dpy,DefaultScreen(_dpy));
+        XCloseDisplay(_dpy);
+      } else {
+#ifdef cimg_use_xrandr
+        if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution)
+          res = cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].width;
+        else res = DisplayWidth(dpy,DefaultScreen(dpy));
+#else
+        res = DisplayWidth(dpy,DefaultScreen(dpy));
+#endif
+      }
+      return res;
+    }
+
+    static int screen_height() {
+      Display *const dpy = cimg::X11_attr().display;
+      int res = 0;
+      if (!dpy) {
+        Display *const _dpy = XOpenDisplay(0);
+        if (!_dpy)
+          throw CImgDisplayException("CImgDisplay::screen_height(): Failed to open X11 display.");
+        res = DisplayHeight(_dpy,DefaultScreen(_dpy));
+        XCloseDisplay(_dpy);
+      } else {
+#ifdef cimg_use_xrandr
+        if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution)
+          res = cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].height;
+        else res = DisplayHeight(dpy,DefaultScreen(dpy));
+#else
+        res = DisplayHeight(dpy,DefaultScreen(dpy));
+#endif
+      }
+      return res;
+    }
+
+    static void wait_all() {
+      if (!cimg::X11_attr().display) return;
+      pthread_mutex_lock(&cimg::X11_attr().wait_event_mutex);
+      pthread_cond_wait(&cimg::X11_attr().wait_event,&cimg::X11_attr().wait_event_mutex);
+      pthread_mutex_unlock(&cimg::X11_attr().wait_event_mutex);
+    }
+
+    void _handle_events(const XEvent *const pevent) {
+      Display *const dpy = cimg::X11_attr().display;
+      XEvent event = *pevent;
+      switch (event.type) {
+      case ClientMessage : {
+        if ((int)event.xclient.message_type==(int)_wm_protocol_atom &&
+            (int)event.xclient.data.l[0]==(int)_wm_window_atom) {
+          XUnmapWindow(cimg::X11_attr().display,_window);
+          _is_closed = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+      } break;
+      case ConfigureNotify : {
+        while (XCheckWindowEvent(dpy,_window,StructureNotifyMask,&event)) {}
+        const unsigned int nw = event.xconfigure.width, nh = event.xconfigure.height;
+        const int nx = event.xconfigure.x, ny = event.xconfigure.y;
+        if (nw && nh && (nw!=_window_width || nh!=_window_height)) {
+          _window_width = nw; _window_height = nh; _mouse_x = _mouse_y = -1;
+          XResizeWindow(dpy,_window,_window_width,_window_height);
+          _is_resized = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+        if (nx!=_window_x || ny!=_window_y) {
+          _window_x = nx; _window_y = ny; _is_moved = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+      } break;
+      case Expose : {
+        while (XCheckWindowEvent(dpy,_window,ExposureMask,&event)) {}
+        _paint(false);
+        if (_is_fullscreen) {
+          XWindowAttributes attr;
+          XGetWindowAttributes(dpy,_window,&attr);
+          while (attr.map_state!=IsViewable) XSync(dpy,0);
+          XSetInputFocus(dpy,_window,RevertToParent,CurrentTime);
+        }
+      } break;
+      case ButtonPress : {
+        do {
+          _mouse_x = event.xmotion.x; _mouse_y = event.xmotion.y;
+          if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+          switch (event.xbutton.button) {
+          case 1 : set_button(1); break;
+          case 3 : set_button(2); break;
+          case 2 : set_button(3); break;
+          }
+        } while (XCheckWindowEvent(dpy,_window,ButtonPressMask,&event));
+      } break;
+      case ButtonRelease : {
+        do {
+          _mouse_x = event.xmotion.x; _mouse_y = event.xmotion.y;
+          if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+          switch (event.xbutton.button) {
+          case 1 : set_button(1,false); break;
+          case 3 : set_button(2,false); break;
+          case 2 : set_button(3,false); break;
+          case 4 : set_wheel(1); break;
+          case 5 : set_wheel(-1); break;
+          }
+        } while (XCheckWindowEvent(dpy,_window,ButtonReleaseMask,&event));
+      } break;
+      case KeyPress : {
+        char tmp = 0; KeySym ksym;
+        XLookupString(&event.xkey,&tmp,1,&ksym,0);
+        set_key((unsigned int)ksym,true);
+      } break;
+      case KeyRelease : {
+        char keys_return[32];  // Check that the key has been physically unpressed.
+        XQueryKeymap(dpy,keys_return);
+        const unsigned int kc = event.xkey.keycode, kc1 = kc/8, kc2 = kc%8;
+        const bool is_key_pressed = kc1>=32?false:(keys_return[kc1]>>kc2)&1;
+        if (!is_key_pressed) {
+          char tmp = 0; KeySym ksym;
+          XLookupString(&event.xkey,&tmp,1,&ksym,0);
+          set_key((unsigned int)ksym,false);
+        }
+      } break;
+      case EnterNotify: {
+     
