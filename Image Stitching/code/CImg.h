@@ -7688,4 +7688,178 @@ namespace cimg_library_suffixed {
         _window = XCreateSimpleWindow(dpy,DefaultRootWindow(dpy),0,0,_width,_height,0,0L,0L);
 
       XSelectInput(dpy,_window,
-                   ExposureMask | StructureNotifyMask | ButtonPressMask | KeyPressMask
+                   ExposureMask | StructureNotifyMask | ButtonPressMask | KeyPressMask | PointerMotionMask |
+                   EnterWindowMask | LeaveWindowMask | ButtonReleaseMask | KeyReleaseMask);
+
+      XStoreName(dpy,_window,_title?_title:" ");
+      if (cimg::X11_attr().nb_bits==8) {
+        _colormap = XCreateColormap(dpy,_window,DefaultVisual(dpy,DefaultScreen(dpy)),AllocAll);
+        _set_colormap(_colormap,3);
+        XSetWindowColormap(dpy,_window,_colormap);
+      }
+
+      static const char *const _window_class = cimg_appname;
+      XClassHint *const window_class = XAllocClassHint();
+      window_class->res_name = (char*)_window_class;
+      window_class->res_class = (char*)_window_class;
+      XSetClassHint(dpy,_window,window_class);
+      XFree(window_class);
+
+      _window_width = _width;
+      _window_height = _height;
+
+      // Create XImage
+#ifdef cimg_use_xshm
+      _shminfo = 0;
+      if (XShmQueryExtension(dpy)) {
+        _shminfo = new XShmSegmentInfo;
+        _image = XShmCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                 ZPixmap,0,_shminfo,_width,_height);
+        if (!_image) { delete _shminfo; _shminfo = 0; }
+        else {
+          _shminfo->shmid = shmget(IPC_PRIVATE,_image->bytes_per_line*_image->height,IPC_CREAT|0777);
+          if (_shminfo->shmid==-1) { XDestroyImage(_image); delete _shminfo; _shminfo = 0; }
+          else {
+            _shminfo->shmaddr = _image->data = (char*)(_data = shmat(_shminfo->shmid,0,0));
+            if (_shminfo->shmaddr==(char*)-1) {
+              shmctl(_shminfo->shmid,IPC_RMID,0); XDestroyImage(_image); delete _shminfo; _shminfo = 0;
+            } else {
+              _shminfo->readOnly = 0;
+              cimg::X11_attr().is_shm_enabled = true;
+              XErrorHandler oldXErrorHandler = XSetErrorHandler(_assign_xshm);
+              XShmAttach(dpy,_shminfo);
+              XSync(dpy,0);
+              XSetErrorHandler(oldXErrorHandler);
+              if (!cimg::X11_attr().is_shm_enabled) {
+                shmdt(_shminfo->shmaddr); shmctl(_shminfo->shmid,IPC_RMID,0); XDestroyImage(_image);
+                delete _shminfo; _shminfo = 0;
+              }
+            }
+          }
+        }
+      }
+      if (!_shminfo)
+#endif
+        {
+          const cimg_ulong buf_size = (cimg_ulong)_width*_height*(cimg::X11_attr().nb_bits==8?1:
+                                                                  (cimg::X11_attr().nb_bits==16?2:4));
+          _data = std::malloc(buf_size);
+          _image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                ZPixmap,0,(char*)_data,_width,_height,8,0);
+        }
+
+      _wm_window_atom = XInternAtom(dpy,"WM_DELETE_WINDOW",0);
+      _wm_protocol_atom = XInternAtom(dpy,"WM_PROTOCOLS",0);
+      XSetWMProtocols(dpy,_window,&_wm_window_atom,1);
+
+      if (_is_fullscreen) XGrabKeyboard(dpy,_window,1,GrabModeAsync,GrabModeAsync,CurrentTime);
+      cimg::X11_attr().wins[cimg::X11_attr().nb_wins++]=this;
+      if (!_is_closed) _map_window(); else { _window_x = _window_y = cimg::type<int>::min(); }
+      cimg_unlock_display();
+      cimg::mutex(14,0);
+    }
+
+    CImgDisplay& assign() {
+      if (is_empty()) return flush();
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+
+      // Remove display window from event thread list.
+      unsigned int i;
+      for (i = 0; i<cimg::X11_attr().nb_wins && cimg::X11_attr().wins[i]!=this; ++i) {}
+      for ( ; i<cimg::X11_attr().nb_wins - 1; ++i) cimg::X11_attr().wins[i] = cimg::X11_attr().wins[i + 1];
+      --cimg::X11_attr().nb_wins;
+
+      // Destroy window, image, colormap and title.
+      if (_is_fullscreen && !_is_closed) _desinit_fullscreen();
+      XDestroyWindow(dpy,_window);
+      _window = 0;
+#ifdef cimg_use_xshm
+      if (_shminfo) {
+        XShmDetach(dpy,_shminfo);
+        XDestroyImage(_image);
+        shmdt(_shminfo->shmaddr);
+        shmctl(_shminfo->shmid,IPC_RMID,0);
+        delete _shminfo;
+        _shminfo = 0;
+      } else
+#endif
+        XDestroyImage(_image);
+      _data = 0; _image = 0;
+      if (cimg::X11_attr().nb_bits==8) XFreeColormap(dpy,_colormap);
+      _colormap = 0;
+      XSync(dpy,0);
+
+      // Reset display variables.
+      delete[] _title;
+      _width = _height = _normalization = _window_width = _window_height = 0;
+      _window_x = _window_y = 0;
+      _is_fullscreen = false;
+      _is_closed = true;
+      _min = _max = 0;
+      _title = 0;
+      flush();
+
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& assign(const unsigned int dimw, const unsigned int dimh, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!dimw || !dimh) return assign();
+      _assign(dimw,dimh,title,normalization_type,fullscreen_flag,closed_flag);
+      _min = _max = 0;
+      std::memset(_data,0,(cimg::X11_attr().nb_bits==8?sizeof(unsigned char):
+                           (cimg::X11_attr().nb_bits==16?sizeof(unsigned short):sizeof(unsigned int)))*
+                  (size_t)_width*_height);
+      return paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!img) return assign();
+      CImg<T> tmp;
+      const CImg<T>& nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                           (img._height - 1)/2,
+                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return render(nimg).paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!list) return assign();
+      CImg<T> tmp;
+      const CImg<T> img = list>'x', &nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                                           (img._height - 1)/2,
+                                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return render(nimg).paint();
+    }
+
+    CImgDisplay& assign(const CImgDisplay& disp) {
+      if (!disp) return assign();
+      _assign(disp._width,disp._height,disp._title,disp._normalization,disp._is_fullscreen,disp._is_closed);
+      std::memcpy(_data,disp._data,(cimg::X11_attr().nb_bits==8?sizeof(unsigned char):
+                                    cimg::X11_attr().nb_bits==16?sizeof(unsigned short):
+                                    sizeof(unsigned int))*(size_t)_width*_height);
+      return paint();
+    }
+
+    CImgDisplay& resize(const int nwidth, const int nheight, const bool force_redraw=true) {
+      if (!nwidth || !nheight || (is_empty() && (nwidth<0 || nheight<0))) return assign();
+      if (is_empty()) return assign(nwidth,nheight);
+      Display *const dpy = cimg::X11_attr().display;
+      const unsigned int
+        tmpdimx = (nwidth>0)?nwidth:(-nwidth*width()/100),
+        tmpdimy = (nheight>0)?nheight:(-nheight*height()/100),
+        dimx = tmpdimx?tmpdimx:1,
+        dimy = tmpdimy?tmpdimy:1;
+      if (_width!=dimx || _height!=dimy 
