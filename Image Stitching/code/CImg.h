@@ -7342,4 +7342,184 @@ namespace cimg_library_suffixed {
         }
       } break;
       case EnterNotify: {
-     
+        while (XCheckWindowEvent(dpy,_window,EnterWindowMask,&event)) {}
+        _mouse_x = event.xmotion.x;
+        _mouse_y = event.xmotion.y;
+        if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+      } break;
+      case LeaveNotify : {
+        while (XCheckWindowEvent(dpy,_window,LeaveWindowMask,&event)) {}
+        _mouse_x = _mouse_y = -1; _is_event = true;
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+      } break;
+      case MotionNotify : {
+        while (XCheckWindowEvent(dpy,_window,PointerMotionMask,&event)) {}
+        _mouse_x = event.xmotion.x;
+        _mouse_y = event.xmotion.y;
+        if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+        _is_event = true;
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+      } break;
+      }
+    }
+
+    static void* _events_thread(void *arg) { // Thread to manage events for all opened display windows.
+      Display *const dpy = cimg::X11_attr().display;
+      XEvent event;
+      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,0);
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,0);
+      if (!arg) for ( ; ; ) {
+        cimg_lock_display();
+        bool event_flag = XCheckTypedEvent(dpy,ClientMessage,&event);
+        if (!event_flag) event_flag = XCheckMaskEvent(dpy,
+                                                      ExposureMask | StructureNotifyMask | ButtonPressMask |
+                                                      KeyPressMask | PointerMotionMask | EnterWindowMask |
+                                                      LeaveWindowMask | ButtonReleaseMask | KeyReleaseMask,&event);
+        if (event_flag)
+          for (unsigned int i = 0; i<cimg::X11_attr().nb_wins; ++i)
+            if (!cimg::X11_attr().wins[i]->_is_closed && event.xany.window==cimg::X11_attr().wins[i]->_window)
+              cimg::X11_attr().wins[i]->_handle_events(&event);
+        cimg_unlock_display();
+        pthread_testcancel();
+        cimg::sleep(8);
+      }
+      return 0;
+    }
+
+    void _set_colormap(Colormap& _colormap, const unsigned int dim) {
+      XColor *const colormap = new XColor[256];
+      switch (dim) {
+      case 1 : { // colormap for greyscale images
+        for (unsigned int index = 0; index<256; ++index) {
+          colormap[index].pixel = index;
+          colormap[index].red = colormap[index].green = colormap[index].blue = (unsigned short)(index<<8);
+          colormap[index].flags = DoRed | DoGreen | DoBlue;
+        }
+      } break;
+      case 2 : { // colormap for RG images
+        for (unsigned int index = 0, r = 8; r<256; r+=16)
+          for (unsigned int g = 8; g<256; g+=16) {
+            colormap[index].pixel = index;
+            colormap[index].red = colormap[index].blue = (unsigned short)(r<<8);
+            colormap[index].green = (unsigned short)(g<<8);
+            colormap[index++].flags = DoRed | DoGreen | DoBlue;
+          }
+      } break;
+      default : { // colormap for RGB images
+        for (unsigned int index = 0, r = 16; r<256; r+=32)
+          for (unsigned int g = 16; g<256; g+=32)
+            for (unsigned int b = 32; b<256; b+=64) {
+              colormap[index].pixel = index;
+              colormap[index].red = (unsigned short)(r<<8);
+              colormap[index].green = (unsigned short)(g<<8);
+              colormap[index].blue = (unsigned short)(b<<8);
+              colormap[index++].flags = DoRed | DoGreen | DoBlue;
+            }
+      }
+      }
+      XStoreColors(cimg::X11_attr().display,_colormap,colormap,256);
+      delete[] colormap;
+    }
+
+    void _map_window() {
+      Display *const dpy = cimg::X11_attr().display;
+      bool is_exposed = false, is_mapped = false;
+      XWindowAttributes attr;
+      XEvent event;
+      XMapRaised(dpy,_window);
+      do { // Wait for the window to be mapped.
+        XWindowEvent(dpy,_window,StructureNotifyMask | ExposureMask,&event);
+        switch (event.type) {
+        case MapNotify : is_mapped = true; break;
+        case Expose : is_exposed = true; break;
+        }
+      } while (!is_exposed || !is_mapped);
+      do { // Wait for the window to be visible.
+        XGetWindowAttributes(dpy,_window,&attr);
+        if (attr.map_state!=IsViewable) { XSync(dpy,0); cimg::sleep(10); }
+      } while (attr.map_state!=IsViewable);
+      _window_x = attr.x;
+      _window_y = attr.y;
+    }
+
+    void _paint(const bool wait_expose=true) {
+      if (_is_closed || !_image) return;
+      Display *const dpy = cimg::X11_attr().display;
+      if (wait_expose) { // Send an expose event sticked to display window to force repaint.
+        XEvent event;
+        event.xexpose.type = Expose;
+        event.xexpose.serial = 0;
+        event.xexpose.send_event = 1;
+        event.xexpose.display = dpy;
+        event.xexpose.window = _window;
+        event.xexpose.x = 0;
+        event.xexpose.y = 0;
+        event.xexpose.width = width();
+        event.xexpose.height = height();
+        event.xexpose.count = 0;
+        XSendEvent(dpy,_window,0,0,&event);
+      } else { // Repaint directly (may be called from the expose event).
+        GC gc = DefaultGC(dpy,DefaultScreen(dpy));
+#ifdef cimg_use_xshm
+        if (_shminfo) XShmPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height,1);
+        else XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#else
+        XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#endif
+      }
+    }
+
+    template<typename T>
+    void _resize(T pixel_type, const unsigned int ndimx, const unsigned int ndimy, const bool force_redraw) {
+      Display *const dpy = cimg::X11_attr().display;
+      cimg::unused(pixel_type);
+
+#ifdef cimg_use_xshm
+      if (_shminfo) {
+        XShmSegmentInfo *const nshminfo = new XShmSegmentInfo;
+        XImage *const nimage = XShmCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),
+                                               cimg::X11_attr().nb_bits,ZPixmap,0,nshminfo,ndimx,ndimy);
+        if (!nimage) { delete nshminfo; return; }
+        else {
+          nshminfo->shmid = shmget(IPC_PRIVATE,ndimx*ndimy*sizeof(T),IPC_CREAT | 0777);
+          if (nshminfo->shmid==-1) { XDestroyImage(nimage); delete nshminfo; return; }
+          else {
+            nshminfo->shmaddr = nimage->data = (char*)shmat(nshminfo->shmid,0,0);
+            if (nshminfo->shmaddr==(char*)-1) {
+              shmctl(nshminfo->shmid,IPC_RMID,0); XDestroyImage(nimage); delete nshminfo; return;
+            } else {
+              nshminfo->readOnly = 0;
+              cimg::X11_attr().is_shm_enabled = true;
+              XErrorHandler oldXErrorHandler = XSetErrorHandler(_assign_xshm);
+              XShmAttach(dpy,nshminfo);
+              XFlush(dpy);
+              XSetErrorHandler(oldXErrorHandler);
+              if (!cimg::X11_attr().is_shm_enabled) {
+                shmdt(nshminfo->shmaddr);
+                shmctl(nshminfo->shmid,IPC_RMID,0);
+                XDestroyImage(nimage);
+                delete nshminfo;
+                return;
+              } else {
+                T *const ndata = (T*)nimage->data;
+                if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+                else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+                XShmDetach(dpy,_shminfo);
+                XDestroyImage(_image);
+                shmdt(_shminfo->shmaddr);
+                shmctl(_shminfo->shmid,IPC_RMID,0);
+                delete _shminfo;
+                _shminfo = nshminfo;
+                _image = nimage;
+                _data = (void*)ndata;
+              }
+            }
+          }
+        }
+      } else
+#endif
+        {
+          T *ndata = (T*)std::malloc(ndimx*ndimy*sizeof(T));
+          if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+          else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+   
