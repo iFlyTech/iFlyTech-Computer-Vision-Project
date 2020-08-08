@@ -7862,4 +7862,211 @@ namespace cimg_library_suffixed {
         tmpdimy = (nheight>0)?nheight:(-nheight*height()/100),
         dimx = tmpdimx?tmpdimx:1,
         dimy = tmpdimy?tmpdimy:1;
-      if (_width!=dimx || _height!=dimy 
+      if (_width!=dimx || _height!=dimy || _window_width!=dimx || _window_height!=dimy) {
+        show();
+        cimg_lock_display();
+        if (_window_width!=dimx || _window_height!=dimy) {
+          XWindowAttributes attr;
+          for (unsigned int i = 0; i<10; ++i) {
+            XResizeWindow(dpy,_window,dimx,dimy);
+            XGetWindowAttributes(dpy,_window,&attr);
+            if (attr.width==(int)dimx && attr.height==(int)dimy) break;
+            cimg::wait(5);
+          }
+        }
+        if (_width!=dimx || _height!=dimy) switch (cimg::X11_attr().nb_bits) {
+          case 8 :  { unsigned char pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); } break;
+          case 16 : { unsigned short pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); } break;
+          default : { unsigned int pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); }
+          }
+        _window_width = _width = dimx; _window_height = _height = dimy;
+        cimg_unlock_display();
+      }
+      _is_resized = false;
+      if (_is_fullscreen) move((screen_width() - _width)/2,(screen_height() - _height)/2);
+      if (force_redraw) return paint();
+      return *this;
+    }
+
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      if (is_empty()) return *this;
+      if (force_redraw) {
+        const cimg_ulong buf_size = (cimg_ulong)_width*_height*
+          (cimg::X11_attr().nb_bits==8?1:(cimg::X11_attr().nb_bits==16?2:4));
+        void *image_data = std::malloc(buf_size);
+        std::memcpy(image_data,_data,buf_size);
+        assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+        std::memcpy(_data,image_data,buf_size);
+        std::free(image_data);
+        return paint();
+      }
+      return assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+    }
+
+    CImgDisplay& show() {
+      if (is_empty() || !_is_closed) return *this;
+      cimg_lock_display();
+      if (_is_fullscreen) _init_fullscreen();
+      _map_window();
+      _is_closed = false;
+      cimg_unlock_display();
+      return paint();
+    }
+
+    CImgDisplay& close() {
+      if (is_empty() || _is_closed) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      if (_is_fullscreen) _desinit_fullscreen();
+      XUnmapWindow(dpy,_window);
+      _window_x = _window_y = -1;
+      _is_closed = true;
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& move(const int posx, const int posy) {
+      if (is_empty()) return *this;
+      if (_window_x!=posx || _window_y!=posy) {
+        show();
+        Display *const dpy = cimg::X11_attr().display;
+        cimg_lock_display();
+        XMoveWindow(dpy,_window,posx,posy);
+        _window_x = posx; _window_y = posy;
+        cimg_unlock_display();
+      }
+      _is_moved = false;
+      return paint();
+    }
+
+    CImgDisplay& show_mouse() {
+      if (is_empty()) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XUndefineCursor(dpy,_window);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& hide_mouse() {
+      if (is_empty()) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      static const char pix_data[8] = { 0 };
+      XColor col;
+      col.red = col.green = col.blue = 0;
+      Pixmap pix = XCreateBitmapFromData(dpy,_window,pix_data,8,8);
+      Cursor cur = XCreatePixmapCursor(dpy,pix,pix,&col,&col,0,0);
+      XFreePixmap(dpy,pix);
+      XDefineCursor(dpy,_window,cur);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& set_mouse(const int posx, const int posy) {
+      if (is_empty() || _is_closed) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XWarpPointer(dpy,0L,_window,0,0,0,0,posx,posy);
+      _mouse_x = posx; _mouse_y = posy;
+      _is_moved = false;
+      XSync(dpy,0);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& set_title(const char *const format, ...) {
+      if (is_empty()) return *this;
+      char *const tmp = new char[1024];
+      va_list ap;
+      va_start(ap, format);
+      cimg_vsnprintf(tmp,1024,format,ap);
+      va_end(ap);
+      if (!std::strcmp(_title,tmp)) { delete[] tmp; return *this; }
+      delete[] _title;
+      const unsigned int s = (unsigned int)std::strlen(tmp) + 1;
+      _title = new char[s];
+      std::memcpy(_title,tmp,s*sizeof(char));
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XStoreName(dpy,_window,tmp);
+      cimg_unlock_display();
+      delete[] tmp;
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "display(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return assign(img);
+      return render(img).paint(false);
+    }
+
+    CImgDisplay& paint(const bool wait_expose=true) {
+      if (is_empty()) return *this;
+      cimg_lock_display();
+      _paint(wait_expose);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img, const bool flag8=false) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "render(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return *this;
+      if (img._depth!=1) return render(img.get_projections2d((img._width - 1)/2,(img._height - 1)/2,
+                                                             (img._depth - 1)/2));
+      if (cimg::X11_attr().nb_bits==8 && (img._width!=_width || img._height!=_height))
+        return render(img.get_resize(_width,_height,1,-100,1));
+      if (cimg::X11_attr().nb_bits==8 && !flag8 && img._spectrum==3) {
+        static const CImg<typename CImg<T>::ucharT> default_colormap = CImg<typename CImg<T>::ucharT>::default_LUT256();
+        return render(img.get_index(default_colormap,1,false));
+      }
+
+      const T
+        *data1 = img._data,
+        *data2 = (img._spectrum>1)?img.data(0,0,0,1):data1,
+        *data3 = (img._spectrum>2)?img.data(0,0,0,2):data1;
+
+      if (cimg::X11_attr().is_blue_first) cimg::swap(data1,data3);
+      cimg_lock_display();
+
+      if (!_normalization || (_normalization==3 && cimg::type<T>::string()==cimg::type<unsigned char>::string())) {
+        _min = _max = 0;
+        switch (cimg::X11_attr().nb_bits) {
+        case 8 : { // 256 colormap, no normalization
+          _set_colormap(_colormap,img._spectrum);
+          unsigned char
+            *const ndata = (img._width==_width && img._height==_height)?(unsigned char*)_data:
+            new unsigned char[(size_t)img._width*img._height],
+            *ptrd = (unsigned char*)ndata;
+          switch (img._spectrum) {
+          case 1 :
+            for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+              (*ptrd++) = (unsigned char)*(data1++);
+            break;
+          case 2 : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char R = (unsigned char)*(data1++), G = (unsigned char)*(data2++);
+              (*ptrd++) = (R&0xf0) | (G>>4);
+            } break;
+          default : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char
+                R = (unsigned char)*(data1++),
+                G = (unsigned char)*(data2++),
+                B = (unsigned char)*(data3++);
+              (*ptrd++) = (R&0xe0) | ((G>>5)<<2) | (B>>6);
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned char*)_data,_width,_height);
+            delete[] ndata;
+          }
+        } break;
+        case 16 : { // 16 bits colors, no normalization
+          unsigned short *const ndata = (img._width==_width && img._height=
