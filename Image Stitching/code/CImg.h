@@ -8592,4 +8592,183 @@ namespace cimg_library_suffixed {
       disp->_bmi.bmiHeader.biBitCount = 32;
       disp->_bmi.bmiHeader.biCompression = BI_RGB;
       disp->_bmi.bmiHeader.biSizeImage = 0;
-      disp
+      disp->_bmi.bmiHeader.biXPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biYPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biClrUsed = 0;
+      disp->_bmi.bmiHeader.biClrImportant = 0;
+      disp->_data = new unsigned int[(size_t)disp->_width*disp->_height];
+      if (!disp->_is_fullscreen) { // Normal window
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)disp->_width - 1; rect.bottom = (LONG)disp->_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - disp->_width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - disp->_height - border1);
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_OVERLAPPEDWINDOW | (disp->_is_closed?0:WS_VISIBLE), CW_USEDEFAULT,CW_USEDEFAULT,
+                                     disp->_width + 2*border1, disp->_height + border1 + border2,
+                                     0,0,0,&(disp->_ccs));
+        if (!disp->_is_closed) {
+          GetWindowRect(disp->_window,&rect);
+          disp->_window_x = rect.left + border1;
+          disp->_window_y = rect.top + border2;
+        } else disp->_window_x = disp->_window_y = 0;
+      } else { // Fullscreen window
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_POPUP | (disp->_is_closed?0:WS_VISIBLE),
+                                      (sx - disp->_width)/2,
+                                      (sy - disp->_height)/2,
+                                     disp->_width,disp->_height,0,0,0,&(disp->_ccs));
+        disp->_window_x = disp->_window_y = 0;
+      }
+      SetForegroundWindow(disp->_window);
+      disp->_hdc = GetDC(disp->_window);
+      disp->_window_width = disp->_width;
+      disp->_window_height = disp->_height;
+      disp->flush();
+#ifdef _WIN64
+      SetWindowLongPtr(disp->_window,GWLP_USERDATA,(LONG_PTR)disp);
+      SetWindowLongPtr(disp->_window,GWLP_WNDPROC,(LONG_PTR)_handle_events);
+#else
+      SetWindowLong(disp->_window,GWL_USERDATA,(LONG)disp);
+      SetWindowLong(disp->_window,GWL_WNDPROC,(LONG)_handle_events);
+#endif
+      SetEvent(disp->_is_created);
+      while (GetMessage(&msg,0,0,0)) DispatchMessage(&msg);
+      return 0;
+    }
+
+    CImgDisplay& _update_window_pos() {
+      if (_is_closed) _window_x = _window_y = -1;
+      else {
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)_width - 1; rect.bottom = (LONG)_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - _width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - _height - border1);
+        GetWindowRect(_window,&rect);
+        _window_x = rect.left + border1;
+        _window_y = rect.top + border2;
+      }
+      return *this;
+    }
+
+    void _init_fullscreen() {
+      _background_window = 0;
+      if (!_is_fullscreen || _is_closed) _curr_mode.dmSize = 0;
+      else {
+        DEVMODE mode;
+        unsigned int imode = 0, ibest = 0, bestbpp = 0, bw = ~0U, bh = ~0U;
+        for (mode.dmSize = sizeof(DEVMODE), mode.dmDriverExtra = 0; EnumDisplaySettings(0,imode,&mode); ++imode) {
+          const unsigned int nw = mode.dmPelsWidth, nh = mode.dmPelsHeight;
+          if (nw>=_width && nh>=_height && mode.dmBitsPerPel>=bestbpp && nw<=bw && nh<=bh) {
+            bestbpp = mode.dmBitsPerPel;
+            ibest = imode;
+            bw = nw; bh = nh;
+          }
+        }
+        if (bestbpp) {
+          _curr_mode.dmSize = sizeof(DEVMODE); _curr_mode.dmDriverExtra = 0;
+          EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&_curr_mode);
+          EnumDisplaySettings(0,ibest,&mode);
+          ChangeDisplaySettings(&mode,0);
+        } else _curr_mode.dmSize = 0;
+
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        if (sx!=_width || sy!=_height) {
+          CLIENTCREATESTRUCT background_ccs;
+          _background_window = CreateWindowA("MDICLIENT","",WS_POPUP | WS_VISIBLE, 0,0,sx,sy,0,0,0,&background_ccs);
+          SetForegroundWindow(_background_window);
+        }
+      }
+    }
+
+    void _desinit_fullscreen() {
+      if (!_is_fullscreen) return;
+      if (_background_window) DestroyWindow(_background_window);
+      _background_window = 0;
+      if (_curr_mode.dmSize) ChangeDisplaySettings(&_curr_mode,0);
+      _is_fullscreen = false;
+    }
+
+    CImgDisplay& _assign(const unsigned int dimw, const unsigned int dimh, const char *const ptitle=0,
+                         const unsigned int normalization_type=3,
+                         const bool fullscreen_flag=false, const bool closed_flag=false) {
+
+      // Allocate space for window title
+      const char *const nptitle = ptitle?ptitle:"";
+      const unsigned int s = (unsigned int)std::strlen(nptitle) + 1;
+      char *const tmp_title = s?new char[s]:0;
+      if (s) std::memcpy(tmp_title,nptitle,s*sizeof(char));
+
+      // Destroy previous window if existing
+      if (!is_empty()) assign();
+
+      // Set display variables
+      _width = cimg::min(dimw,(unsigned int)screen_width());
+      _height = cimg::min(dimh,(unsigned int)screen_height());
+      _normalization = normalization_type<4?normalization_type:3;
+      _is_fullscreen = fullscreen_flag;
+      _window_x = _window_y = 0;
+      _is_closed = closed_flag;
+      _is_cursor_visible = true;
+      _is_mouse_tracked = false;
+      _title = tmp_title;
+      flush();
+      if (_is_fullscreen) _init_fullscreen();
+
+      // Create event thread
+      void *const arg = (void*)(new void*[2]);
+      ((void**)arg)[0] = (void*)this;
+      ((void**)arg)[1] = (void*)_title;
+      _mutex = CreateMutex(0,FALSE,0);
+      _is_created = CreateEvent(0,FALSE,FALSE,0);
+      _thread = CreateThread(0,0,_events_thread,arg,0,0);
+      WaitForSingleObject(_is_created,INFINITE);
+      return *this;
+    }
+
+    CImgDisplay& assign() {
+      if (is_empty()) return flush();
+      DestroyWindow(_window);
+      TerminateThread(_thread,0);
+      delete[] _data;
+      delete[] _title;
+      _data = 0;
+      _title = 0;
+      if (_is_fullscreen) _desinit_fullscreen();
+      _width = _height = _normalization = _window_width = _window_height = 0;
+      _window_x = _window_y = 0;
+      _is_fullscreen = false;
+      _is_closed = true;
+      _min = _max = 0;
+      _title = 0;
+      flush();
+      return *this;
+    }
+
+    CImgDisplay& assign(const unsigned int dimw, const unsigned int dimh, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!dimw || !dimh) return assign();
+      _assign(dimw,dimh,title,normalization_type,fullscreen_flag,closed_flag);
+      _min = _max = 0;
+      std::memset(_data,0,sizeof(unsigned int)*_width*_height);
+      return paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!img) return assign();
+      CImg<T> tmp;
+      const CImg<T>& nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                           (img._height - 1)/2,
+                   
