@@ -8380,4 +8380,216 @@ namespace cimg_library_suffixed {
       return *this;
     }
 
-  
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      if (is_empty()) { img.assign(); return *this; }
+      const unsigned char *ptrs = (unsigned char*)_data;
+      img.assign(_width,_height,1,3);
+      T
+        *data1 = img.data(0,0,0,0),
+        *data2 = img.data(0,0,0,1),
+        *data3 = img.data(0,0,0,2);
+      if (cimg::X11_attr().is_blue_first) cimg::swap(data1,data3);
+      switch (cimg::X11_attr().nb_bits) {
+      case 8 : {
+        for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char val = *(ptrs++);
+          *(data1++) = (T)(val&0xe0);
+          *(data2++) = (T)((val&0x1c)<<3);
+          *(data3++) = (T)(val<<6);
+        }
+      } break;
+      case 16 : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char val0 = *(ptrs++), val1 = *(ptrs++);
+          *(data1++) = (T)(val0&0xf8);
+          *(data2++) = (T)((val0<<5) | ((val1&0xe0)>>5));
+          *(data3++) = (T)(val1<<3);
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned short val0 = *(ptrs++), val1 = *(ptrs++);
+          *(data1++) = (T)(val1&0xf8);
+          *(data2++) = (T)((val1<<5) | ((val0&0xe0)>>5));
+          *(data3++) = (T)(val0<<3);
+        }
+      } break;
+      default : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          ++ptrs;
+          *(data1++) = (T)*(ptrs++);
+          *(data2++) = (T)*(ptrs++);
+          *(data3++) = (T)*(ptrs++);
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            *(data3++) = (T)*(ptrs++);
+            *(data2++) = (T)*(ptrs++);
+            *(data1++) = (T)*(ptrs++);
+            ++ptrs;
+          }
+      }
+      }
+      return *this;
+    }
+
+    // Windows-based implementation.
+    //-------------------------------
+#elif cimg_display==2
+
+    bool _is_mouse_tracked, _is_cursor_visible;
+    HANDLE _thread, _is_created, _mutex;
+    HWND _window, _background_window;
+    CLIENTCREATESTRUCT _ccs;
+    unsigned int *_data;
+    DEVMODE _curr_mode;
+    BITMAPINFO _bmi;
+    HDC _hdc;
+
+    static int screen_width() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsWidth;
+    }
+
+    static int screen_height() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsHeight;
+    }
+
+    static void wait_all() {
+      WaitForSingleObject(cimg::Win32_attr().wait_event,INFINITE);
+    }
+
+    static LRESULT APIENTRY _handle_events(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
+#ifdef _WIN64
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLongPtr(window,GWLP_USERDATA);
+#else
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLong(window,GWL_USERDATA);
+#endif
+      MSG st_msg;
+      switch (msg) {
+      case WM_CLOSE :
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_window_x = disp->_window_y = 0;
+        disp->set_button().set_key(0).set_key(0,false)._is_closed = true;
+        ReleaseMutex(disp->_mutex);
+        ShowWindow(disp->_window,SW_HIDE);
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        return 0;
+      case WM_SIZE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const unsigned int nw = LOWORD(lParam),nh = HIWORD(lParam);
+        if (nw && nh && (nw!=disp->_width || nh!=disp->_height)) {
+          disp->_window_width = nw;
+          disp->_window_height = nh;
+          disp->_mouse_x = disp->_mouse_y = -1;
+          disp->_is_resized = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_MOVE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const int nx = (int)(short)(LOWORD(lParam)), ny = (int)(short)(HIWORD(lParam));
+        if (nx!=disp->_window_x || ny!=disp->_window_y) {
+          disp->_window_x = nx;
+          disp->_window_y = ny;
+          disp->_is_moved = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_PAINT :
+        disp->paint();
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+        break;
+      case WM_ERASEBKGND :
+        //        return 0;
+        break;
+      case WM_KEYDOWN :
+        disp->set_key((unsigned int)wParam);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_KEYUP :
+        disp->set_key((unsigned int)wParam,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MOUSEMOVE : {
+        while (PeekMessage(&st_msg,window,WM_MOUSEMOVE,WM_MOUSEMOVE,PM_REMOVE)) {}
+        disp->_mouse_x = LOWORD(lParam);
+        disp->_mouse_y = HIWORD(lParam);
+#if (_WIN32_WINNT>=0x0400) && !defined(NOTRACKMOUSEEVENT)
+        if (!disp->_is_mouse_tracked) {
+          TRACKMOUSEEVENT tme;
+          tme.cbSize = sizeof(TRACKMOUSEEVENT);
+          tme.dwFlags = TME_LEAVE;
+          tme.hwndTrack = disp->_window;
+          if (TrackMouseEvent(&tme)) disp->_is_mouse_tracked = true;
+        }
+#endif
+        if (disp->_mouse_x<0 || disp->_mouse_y<0 || disp->_mouse_x>=disp->width() || disp->_mouse_y>=disp->height())
+          disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+      } break;
+      case WM_MOUSELEAVE : {
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_mouse_tracked = false;
+        cimg::mutex(15);
+        while (ShowCursor(TRUE)<0);
+        cimg::mutex(15,0);
+      } break;
+      case WM_LBUTTONDOWN :
+        disp->set_button(1);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONDOWN :
+        disp->set_button(2);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONDOWN :
+        disp->set_button(3);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_LBUTTONUP :
+        disp->set_button(1,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONUP :
+        disp->set_button(2,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONUP :
+        disp->set_button(3,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case 0x020A : // WM_MOUSEWHEEL:
+        disp->set_wheel((int)((short)HIWORD(wParam))/120);
+        SetEvent(cimg::Win32_attr().wait_event);
+      }
+      return DefWindowProc(window,msg,wParam,lParam);
+    }
+
+    static DWORD WINAPI _events_thread(void* arg) {
+      CImgDisplay *const disp = (CImgDisplay*)(((void**)arg)[0]);
+      const char *const title = (const char*)(((void**)arg)[1]);
+      MSG msg;
+      delete[] (void**)arg;
+      disp->_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+      disp->_bmi.bmiHeader.biWidth = disp->width();
+      disp->_bmi.bmiHeader.biHeight = -disp->height();
+      disp->_bmi.bmiHeader.biPlanes = 1;
+      disp->_bmi.bmiHeader.biBitCount = 32;
+      disp->_bmi.bmiHeader.biCompression = BI_RGB;
+      disp->_bmi.bmiHeader.biSizeImage = 0;
+      disp
