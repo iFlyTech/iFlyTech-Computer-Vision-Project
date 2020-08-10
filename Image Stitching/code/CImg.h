@@ -8771,4 +8771,197 @@ namespace cimg_library_suffixed {
       CImg<T> tmp;
       const CImg<T>& nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
                                                                            (img._height - 1)/2,
-                   
+                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return display(nimg);
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!list) return assign();
+      CImg<T> tmp;
+      const CImg<T> img = list>'x', &nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                                           (img._height - 1)/2,
+                                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return display(nimg);
+    }
+
+    CImgDisplay& assign(const CImgDisplay& disp) {
+      if (!disp) return assign();
+      _assign(disp._width,disp._height,disp._title,disp._normalization,disp._is_fullscreen,disp._is_closed);
+      std::memcpy(_data,disp._data,sizeof(unsigned int)*_width*_height);
+      return paint();
+    }
+
+    CImgDisplay& resize(const int nwidth, const int nheight, const bool force_redraw=true) {
+      if (!nwidth || !nheight || (is_empty() && (nwidth<0 || nheight<0))) return assign();
+      if (is_empty()) return assign(nwidth,nheight);
+      const unsigned int
+        tmpdimx = (nwidth>0)?nwidth:(-nwidth*_width/100),
+        tmpdimy = (nheight>0)?nheight:(-nheight*_height/100),
+        dimx = tmpdimx?tmpdimx:1,
+        dimy = tmpdimy?tmpdimy:1;
+      if (_width!=dimx || _height!=dimy || _window_width!=dimx || _window_height!=dimy) {
+        if (_window_width!=dimx || _window_height!=dimy) {
+          RECT rect; rect.left = rect.top = 0; rect.right = (LONG)dimx - 1; rect.bottom = (LONG)dimy - 1;
+          AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+          const int cwidth = rect.right - rect.left + 1, cheight = rect.bottom - rect.top + 1;
+          SetWindowPos(_window,0,0,0,cwidth,cheight,SWP_NOMOVE | SWP_NOZORDER | SWP_NOCOPYBITS);
+        }
+        if (_width!=dimx || _height!=dimy) {
+          unsigned int *const ndata = new unsigned int[dimx*dimy];
+          if (force_redraw) _render_resize(_data,_width,_height,ndata,dimx,dimy);
+          else std::memset(ndata,0x80,sizeof(unsigned int)*dimx*dimy);
+          delete[] _data;
+          _data = ndata;
+          _bmi.bmiHeader.biWidth = (LONG)dimx;
+          _bmi.bmiHeader.biHeight = -(int)dimy;
+          _width = dimx;
+          _height = dimy;
+        }
+        _window_width = dimx; _window_height = dimy;
+        show();
+      }
+      _is_resized = false;
+      if (_is_fullscreen) move((screen_width() - width())/2,(screen_height() - height())/2);
+      if (force_redraw) return paint();
+      return *this;
+    }
+
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      if (is_empty()) return *this;
+      if (force_redraw) {
+        const cimg_ulong buf_size = (cimg_ulong)_width*_height*4;
+        void *odata = std::malloc(buf_size);
+        if (odata) {
+          std::memcpy(odata,_data,buf_size);
+          assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+          std::memcpy(_data,odata,buf_size);
+          std::free(odata);
+        }
+        return paint();
+      }
+      return assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+    }
+
+    CImgDisplay& show() {
+      if (is_empty() || !_is_closed) return *this;
+      _is_closed = false;
+      if (_is_fullscreen) _init_fullscreen();
+      ShowWindow(_window,SW_SHOW);
+      _update_window_pos();
+      return paint();
+    }
+
+    CImgDisplay& close() {
+      if (is_empty() || _is_closed) return *this;
+      _is_closed = true;
+      if (_is_fullscreen) _desinit_fullscreen();
+      ShowWindow(_window,SW_HIDE);
+      _window_x = _window_y = 0;
+      return *this;
+    }
+
+    CImgDisplay& move(const int posx, const int posy) {
+      if (is_empty()) return *this;
+      if (_window_x!=posx || _window_y!=posy) {
+        if (!_is_fullscreen) {
+          RECT rect;
+          rect.left = rect.top = 0; rect.right = (LONG)_window_width - 1; rect.bottom = (LONG)_window_height - 1;
+          AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+          const int
+            border1 = (int)((rect.right - rect.left + 1 -_width)/2),
+            border2 = (int)(rect.bottom - rect.top + 1 - _height - border1);
+          SetWindowPos(_window,0,posx - border1,posy - border2,0,0,SWP_NOSIZE | SWP_NOZORDER);
+        } else SetWindowPos(_window,0,posx,posy,0,0,SWP_NOSIZE | SWP_NOZORDER);
+        _window_x = posx;
+        _window_y = posy;
+        show();
+      }
+      _is_moved = false;
+      return *this;
+    }
+
+    CImgDisplay& show_mouse() {
+      if (is_empty()) return *this;
+      _is_cursor_visible = true;
+      return *this;
+    }
+
+    CImgDisplay& hide_mouse() {
+      if (is_empty()) return *this;
+      _is_cursor_visible = false;
+      return *this;
+    }
+
+    CImgDisplay& set_mouse(const int posx, const int posy) {
+      if (is_empty() || _is_closed || posx<0 || posy<0) return *this;
+      _update_window_pos();
+      const int res = (int)SetCursorPos(_window_x + posx,_window_y + posy);
+      if (res) { _mouse_x = posx; _mouse_y = posy; }
+      return *this;
+    }
+
+    CImgDisplay& set_title(const char *const format, ...) {
+      if (is_empty()) return *this;
+      char *const tmp = new char[1024];
+      va_list ap;
+      va_start(ap, format);
+      cimg_vsnprintf(tmp,1024,format,ap);
+      va_end(ap);
+      if (!std::strcmp(_title,tmp)) { delete[] tmp; return *this; }
+      delete[] _title;
+      const unsigned int s = (unsigned int)std::strlen(tmp) + 1;
+      _title = new char[s];
+      std::memcpy(_title,tmp,s*sizeof(char));
+      SetWindowTextA(_window, tmp);
+      delete[] tmp;
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "display(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return assign(img);
+      return render(img).paint();
+    }
+
+    CImgDisplay& paint() {
+      if (_is_closed) return *this;
+      WaitForSingleObject(_mutex,INFINITE);
+      SetDIBitsToDevice(_hdc,0,0,_width,_height,0,0,0,_height,_data,&_bmi,DIB_RGB_COLORS);
+      ReleaseMutex(_mutex);
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "render(): Empty specified image.",
+                                    cimgdisplay_instance);
+
+      if (is_empty()) return *this;
+      if (img._depth!=1) return render(img.get_projections2d((img._width - 1)/2,(img._height - 1)/2,
+                                                             (img._depth - 1)/2));
+
+      const T
+        *data1 = img._data,
+        *data2 = (img._spectrum>=2)?img.data(0,0,0,1):data1,
+        *data3 = (img._spectrum>=3)?img.data(0,0,0,2):data1;
+
+      WaitForSingleObject(_mutex,INFINITE);
+      unsigned int
+        *const ndata = (img._width==_width && img._height==_height)?_data:
+        new unsigned int[(size_t)img._width*img._height],
+        *ptrd = ndata;
+
+      if (!_normalization || (
