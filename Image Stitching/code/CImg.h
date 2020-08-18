@@ -8964,4 +8964,165 @@ namespace cimg_library_suffixed {
         new unsigned int[(size_t)img._width*img._height],
         *ptrd = ndata;
 
-      if (!_normalization || (
+      if (!_normalization || (_normalization==3 && cimg::type<T>::string()==cimg::type<unsigned char>::string())) {
+        _min = _max = 0;
+        switch (img._spectrum) {
+        case 1 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char val = (unsigned char)*(data1++);
+            *(ptrd++) = (unsigned int)((val<<16) | (val<<8) | val);
+          }
+        } break;
+        case 2 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)*(data1++),
+              G = (unsigned char)*(data2++);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8));
+          }
+        } break;
+        default : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)*(data1++),
+              G = (unsigned char)*(data2++),
+              B = (unsigned char)*(data3++);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8) | B);
+          }
+        }
+        }
+      } else {
+        if (_normalization==3) {
+          if (cimg::type<T>::is_float()) _min = (float)img.min_max(_max);
+          else { _min = (float)cimg::type<T>::min(); _max = (float)cimg::type<T>::max(); }
+        } else if ((_min>_max) || _normalization==1) _min = (float)img.min_max(_max);
+        const float delta = _max - _min, mm = 255/(delta?delta:1.0f);
+        switch (img._spectrum) {
+        case 1 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((val<<16) | (val<<8) | val);
+          }
+        } break;
+        case 2 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)((*(data1++) - _min)*mm),
+              G = (unsigned char)((*(data2++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8));
+          }
+        } break;
+        default : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)((*(data1++) - _min)*mm),
+              G = (unsigned char)((*(data2++) - _min)*mm),
+              B = (unsigned char)((*(data3++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8) | B);
+          }
+        }
+        }
+      }
+      if (ndata!=_data) { _render_resize(ndata,img._width,img._height,_data,_width,_height); delete[] ndata; }
+      ReleaseMutex(_mutex);
+      return *this;
+    }
+
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      if (is_empty()) { img.assign(); return *this; }
+      const unsigned int *ptrs = _data;
+      img.assign(_width,_height,1,3);
+      T
+        *data1 = img.data(0,0,0,0),
+        *data2 = img.data(0,0,0,1),
+        *data3 = img.data(0,0,0,2);
+      for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+        const unsigned int val = *(ptrs++);
+        *(data1++) = (T)(unsigned char)(val>>16);
+        *(data2++) = (T)(unsigned char)((val>>8)&0xFF);
+        *(data3++) = (T)(unsigned char)(val&0xFF);
+      }
+      return *this;
+    }
+#endif
+
+    //@}
+  };
+
+  /*
+   #--------------------------------------
+   #
+   #
+   #
+   # Definition of the CImg<T> structure
+   #
+   #
+   #
+   #--------------------------------------
+   */
+
+  //! Class representing an image (up to 4 dimensions wide), each pixel being of type \c T.
+  /**
+     This is the main class of the %CImg Library. It declares and constructs
+     an image, allows access to its pixel values, and is able to perform various image operations.
+
+     \par Image representation
+
+     A %CImg image is defined as an instance of the container \c CImg<T>, which contains a regular grid of pixels,
+     each pixel value being of type \c T. The image grid can have up to 4 dimensions: width, height, depth
+     and number of channels.
+     Usually, the three first dimensions are used to describe spatial coordinates <tt>(x,y,z)</tt>,
+     while the number of channels is rather used as a vector-valued dimension
+     (it may describe the R,G,B color channels for instance).
+     If you need a fifth dimension, you can use image lists \c CImgList<T> rather than simple images \c CImg<T>.
+
+     Thus, the \c CImg<T> class is able to represent volumetric images of vector-valued pixels,
+     as well as images with less dimensions (1d scalar signal, 2d color images, ...).
+     Most member functions of the class CImg<\c T> are designed to handle this maximum case of (3+1) dimensions.
+
+     Concerning the pixel value type \c T:
+     fully supported template types are the basic C++ types: <tt>unsigned char, char, short, unsigned int, int,
+     unsigned long, long, float, double, ... </tt>.
+     Typically, fast image display can be done using <tt>CImg<unsigned char></tt> images,
+     while complex image processing algorithms may be rather coded using <tt>CImg<float></tt> or <tt>CImg<double></tt>
+     images that have floating-point pixel values. The default value for the template T is \c float.
+     Using your own template types may be possible. However, you will certainly have to define the complete set
+     of arithmetic and logical operators for your class.
+
+     \par Image structure
+
+     The \c CImg<T> structure contains \e six fields:
+     - \c _width defines the number of \a columns of the image (size along the X-axis).
+     - \c _height defines the number of \a rows of the image (size along the Y-axis).
+     - \c _depth defines the number of \a slices of the image (size along the Z-axis).
+     - \c _spectrum defines the number of \a channels of the image (size along the C-axis).
+     - \c _data defines a \a pointer to the \a pixel \a data (of type \c T).
+     - \c _is_shared is a boolean that tells if the memory buffer \c data is shared with
+       another image.
+
+     You can access these fields publicly although it is recommended to use the dedicated functions
+     width(), height(), depth(), spectrum() and ptr() to do so.
+     Image dimensions are not limited to a specific range (as long as you got enough available memory).
+     A value of \e 1 usually means that the corresponding dimension is \a flat.
+     If one of the dimensions is \e 0, or if the data pointer is null, the image is considered as \e empty.
+     Empty images should not contain any pixel data and thus, will not be processed by CImg member functions
+     (a CImgInstanceException will be thrown instead).
+     Pixel data are stored in memory, in a non interlaced mode (See \ref cimg_storage).
+
+     \par Image declaration and construction
+
+     Declaring an image can be done by using one of the several available constructors.
+     Here is a list of the most used:
+
+     - Construct images from arbitrary dimensions:
+         - <tt>CImg<char> img;</tt> declares an empty image.
+         - <tt>CImg<unsigned char> img(128,128);</tt> declares a 128x128 greyscale image with
+         \c unsigned \c char pixel values.
+         - <tt>CImg<double> img(3,3);</tt> declares a 3x3 matrix with \c double coefficients.
+         - <tt>CImg<unsigned char> img(256,256,1,3);</tt> declares a 256x256x1x3 (color) image
+         (colors are stored as an image with three channels).
+         - <tt>CImg<double> img(128,128,128);</tt> declares a 128x128x128 volumetric and greyscale image
+         (with \c double pixel values).
+         - <tt>CImg<> img(128,128,128,3);</tt> declares a 128x128x128 volumetric color image
+         (with \c float pixels, which is the default value of the template p
