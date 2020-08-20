@@ -9125,4 +9125,187 @@ namespace cimg_library_suffixed {
          - <tt>CImg<double> img(128,128,128);</tt> declares a 128x128x128 volumetric and greyscale image
          (with \c double pixel values).
          - <tt>CImg<> img(128,128,128,3);</tt> declares a 128x128x128 volumetric color image
-         (with \c float pixels, which is the default value of the template p
+         (with \c float pixels, which is the default value of the template parameter \c T).
+         - \b Note: images pixels are <b>not automatically initialized to 0</b>. You may use the function \c fill() to
+         do it, or use the specific constructor taking 5 parameters like this:
+         <tt>CImg<> img(128,128,128,3,0);</tt> declares a 128x128x128 volumetric color image with all pixel values to 0.
+
+     - Construct images from filenames:
+         - <tt>CImg<unsigned char> img("image.jpg");</tt> reads a JPEG color image from the file "image.jpg".
+         - <tt>CImg<float> img("analyze.hdr");</tt> reads a volumetric image (ANALYZE7.5 format) from the
+         file "analyze.hdr".
+         - \b Note: You need to install <a href="http://www.imagemagick.org">ImageMagick</a>
+         to be able to read common compressed image formats (JPG,PNG, ...) (See \ref cimg_files_io).
+
+     - Construct images from C-style arrays:
+         - <tt>CImg<int> img(data_buffer,256,256);</tt> constructs a 256x256 greyscale image from a \c int* buffer
+         \c data_buffer (of size 256x256=65536).
+         - <tt>CImg<unsigned char> img(data_buffer,256,256,1,3);</tt> constructs a 256x256 color image
+         from a \c unsigned \c char* buffer \c data_buffer (where R,G,B channels follow each others).
+
+         The complete list of constructors can be found <a href="#constructors">here</a>.
+
+     \par Most useful functions
+
+     The \c CImg<T> class contains a lot of functions that operates on images.
+     Some of the most useful are:
+
+     - operator()(): Read or write pixel values.
+     - display(): displays the image in a new window.
+  **/
+  template<typename T>
+  struct CImg {
+
+    unsigned int _width, _height, _depth, _spectrum;
+    bool _is_shared;
+    T *_data;
+
+    //! Simple iterator type, to loop through each pixel value of an image instance.
+    /**
+       \note
+       - The \c CImg<T>::iterator type is defined to be a <tt>T*</tt>.
+       - You will seldom have to use iterators in %CImg, most classical operations
+         being achieved (often in a faster way) using methods of \c CImg<T>.
+       \par Example
+       \code
+       CImg<float> img("reference.jpg");                                         // Load image from file.
+       for (CImg<float>::iterator it = img.begin(), it<img.end(); ++it) *it = 0; // Set all pixels to '0', with a CImg iterator.
+       img.fill(0);                                                              // Do the same with a built-in method.
+       \endcode
+   **/
+    typedef T* iterator;
+
+    //! Simple const iterator type, to loop through each pixel value of a \c const image instance.
+    /**
+       \note
+       - The \c CImg<T>::const_iterator type is defined to be a \c const \c T*.
+       - You will seldom have to use iterators in %CImg, most classical operations
+         being achieved (often in a faster way) using methods of \c CImg<T>.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");                                    // Load image from file.
+       float sum = 0;
+       for (CImg<float>::iterator it = img.begin(), it<img.end(); ++it) sum+=*it; // Compute sum of all pixel values, with a CImg iterator.
+       const float sum2 = img.sum();                                              // Do the same with a built-in method.
+       \endcode
+    **/
+    typedef const T* const_iterator;
+
+    //! Pixel value type.
+    /**
+       Refer to the type of the pixel values of an image instance.
+       \note
+       - The \c CImg<T>::value_type type of a \c CImg<T> is defined to be a \c T.
+       - \c CImg<T>::value_type is actually not used in %CImg methods. It has been mainly defined for
+         compatibility with STL naming conventions.
+    **/
+    typedef T value_type;
+
+    // Define common types related to template type T.
+    typedef typename cimg::superset<T,bool>::type Tbool;
+    typedef typename cimg::superset<T,unsigned char>::type Tuchar;
+    typedef typename cimg::superset<T,char>::type Tchar;
+    typedef typename cimg::superset<T,unsigned short>::type Tushort;
+    typedef typename cimg::superset<T,short>::type Tshort;
+    typedef typename cimg::superset<T,unsigned int>::type Tuint;
+    typedef typename cimg::superset<T,int>::type Tint;
+    typedef typename cimg::superset<T,cimg_ulong>::type Tulong;
+    typedef typename cimg::superset<T,cimg_long>::type Tlong;
+    typedef typename cimg::superset<T,float>::type Tfloat;
+    typedef typename cimg::superset<T,double>::type Tdouble;
+    typedef typename cimg::last<T,bool>::type boolT;
+    typedef typename cimg::last<T,unsigned char>::type ucharT;
+    typedef typename cimg::last<T,char>::type charT;
+    typedef typename cimg::last<T,unsigned short>::type ushortT;
+    typedef typename cimg::last<T,short>::type shortT;
+    typedef typename cimg::last<T,unsigned int>::type uintT;
+    typedef typename cimg::last<T,int>::type intT;
+    typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+    typedef typename cimg::last<T,cimg_long>::type longT;
+    typedef typename cimg::last<T,cimg_uint64>::type uint64T;
+    typedef typename cimg::last<T,cimg_int64>::type int64T;
+    typedef typename cimg::last<T,float>::type floatT;
+    typedef typename cimg::last<T,double>::type doubleT;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+#ifdef cimg_plugin
+#include cimg_plugin
+#endif
+#ifdef cimg_plugin1
+#include cimg_plugin1
+#endif
+#ifdef cimg_plugin2
+#include cimg_plugin2
+#endif
+#ifdef cimg_plugin3
+#include cimg_plugin3
+#endif
+#ifdef cimg_plugin4
+#include cimg_plugin4
+#endif
+#ifdef cimg_plugin5
+#include cimg_plugin5
+#endif
+#ifdef cimg_plugin6
+#include cimg_plugin6
+#endif
+#ifdef cimg_plugin7
+#include cimg_plugin7
+#endif
+#ifdef cimg_plugin8
+#include cimg_plugin8
+#endif
+
+    //@}
+    //---------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //---------------------------------------------------------
+
+    //! Destroy image.
+    /**
+       \note
+       - The pixel buffer data() is deallocated if necessary, e.g. for non-empty and non-shared image instances.
+       - Destroying an empty or shared image does nothing actually.
+       \warning
+       - When destroying a non-shared image, make sure that you will \e not operate on a remaining shared image
+         that shares its buffer with the destroyed instance, in order to avoid further invalid memory access
+         (to a deallocated buffer).
+    **/
+    ~CImg() {
+      if (!_is_shared) delete[] _data;
+    }
+
+    //! Construct empty image.
+    /**
+       \note
+       - An empty image has no pixel data and all of its dimensions width(), height(), depth(), spectrum()
+         are set to \c 0, as well as its pixel buffer pointer data().
+       - An empty image may be re-assigned afterwards, e.g. with the family of
+         assign(unsigned int,unsigned int,unsigned int,unsigned int) methods,
+         or by operator=(const CImg<t>&). In all cases, the type of pixels stays \c T.
+       - An empty image is never shared.
+       \par Example
+       \code
+       CImg<float> img1, img2;      // Construct two empty images.
+       img1.assign(256,256,1,3);    // Re-assign 'img1' to be a 256x256x1x3 (color) image.
+       img2 = img1.get_rand(0,255); // Re-assign 'img2' to be a random-valued version of 'img1'.
+       img2.assign();               // Re-assign 'img2' to be an empty image again.
+       \endcode
+    **/
+    CImg():_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {}
+
+    //! Construct image with specified size.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \note
+       - It is able to create only \e non-shared images, and allocates thus a pixel 
