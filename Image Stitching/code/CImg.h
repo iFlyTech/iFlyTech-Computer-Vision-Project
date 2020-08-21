@@ -9308,4 +9308,155 @@ namespace cimg_library_suffixed {
        \param size_z Image depth().
        \param size_c Image spectrum() (number of channels).
        \note
-       - It is able to create only \e non-shared images, and allocates thus a pixel 
+       - It is able to create only \e non-shared images, and allocates thus a pixel buffer data()
+         for each constructed image instance.
+       - Setting one dimension \c size_x,\c size_y,\c size_z or \c size_c to \c 0 leads to the construction of
+         an \e empty image.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values during construction (e.g. with \c 0), use constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) instead.
+       \par Example
+       \code
+       CImg<float> img1(256,256,1,3);   // Construct a 256x256x1x3 (color) image, filled with garbage values.
+       CImg<float> img2(256,256,1,3,0); // Construct a 256x256x1x3 (color) image, filled with value '0'.
+       \endcode
+    **/
+    explicit CImg(const unsigned int size_x, const unsigned int size_y=1,
+                  const unsigned int size_z=1, const unsigned int size_c=1):
+      _is_shared(false) {
+      size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value Initialization value.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int),
+         but it also fills the pixel buffer with the specified \c value.
+       \warning
+       - It cannot be used to construct a vector-valued image and initialize it with \e vector-valued pixels
+         (e.g. RGB vector, for color images).
+         For this task, you may use fillC() after construction.
+    **/
+    CImg(const unsigned int size_x, const unsigned int size_y,
+         const unsigned int size_z, const unsigned int size_c, const T& value):
+      _is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(value);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of integers.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c,
+       with pixels of type \c T, and initialize pixel
+       values from the specified sequence of integers \c value0,\c value1,\c ...
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value0 First value of the initialization sequence (must be an \e integer).
+       \param value1 Second value of the initialization sequence (must be an \e integer).
+       \param ...
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with a sequence of specified integer values.
+       \warning
+       - You must specify \e exactly \c size_x*\c size_y*\c size_z*\c size_c integers in the initialization sequence.
+         Otherwise, the constructor may crash or fill your image pixels with garbage.
+       \par Example
+       \code
+       const CImg<float> img(2,2,1,3,      // Construct a 2x2 color (RGB) image.
+                             0,255,0,255,  // Set the 4 values for the red component.
+                             0,0,255,255,  // Set the 4 values for the green component.
+                             64,64,64,64); // Set the 4 values for the blue component.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const int value0, const int value1, ...):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+#define _CImg_stdarg(img,a0,a1,N,t) { \
+        size_t _siz = (size_t)N; \
+        if (_siz--) { \
+          va_list ap; \
+          va_start(ap,a1); \
+          T *ptrd = (img)._data; \
+          *(ptrd++) = (T)a0; \
+          if (_siz--) { \
+            *(ptrd++) = (T)a1; \
+            for ( ; _siz; --_siz) *(ptrd++) = (T)va_arg(ap,t); \
+          } \
+          va_end(ap); \
+        } \
+      }
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,int);
+    }
+
+#if defined(cimg_use_cpp11) && cimg_use_cpp11!=0
+    //! Construct image with specified size and initialize pixel values from an initializer list of integers.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c,
+       with pixels of type \c T, and initialize pixel
+       values from the specified initializer list of integers { \c value0,\c value1,\c ... }
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param { value0, value1, ... } Initialization list
+       \param repeat_values Tells if the value filling process is repeated over the image.
+
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with a sequence of specified integer values.
+       \par Example
+       \code
+       const CImg<float> img(2,2,1,3,      // Construct a 2x2 color (RGB) image.
+                             { 0,255,0,255,    // Set the 4 values for the red component.
+                               0,0,255,255,    // Set the 4 values for the green component.
+                               64,64,64,64 }); // Set the 4 values for the blue component.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+    **/
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+#define _cimg_constructor_cpp11(repeat_values) \
+  auto it = values.begin(); \
+  size_t siz = size(); \
+  if (repeat_values) for (T *ptrd = _data; siz--; ) { \
+    *(ptrd++) = (T)(*(it++)); if (it==values.end()) it = values.begin(); } \
+  else { siz = cimg::min(s
