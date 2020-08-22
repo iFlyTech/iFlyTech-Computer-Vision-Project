@@ -9608,4 +9608,138 @@ namespace cimg_library_suffixed {
        \param size_y Image height().
        \param size_z Image depth().
        \param size_c Image spectrum() (number of channels).
-       \param is_shared Tells if input memory buffe
+       \param is_shared Tells if input memory buffer must be shared by the current instance.
+       \note
+       - If \c is_shared is \c false, the image instance allocates its own pixel buffer,
+         and values from the specified input buffer are copied to the instance buffer.
+         If buffer types \c T and \c t are different, a regular static cast is performed during buffer copy.
+       - Otherwise, the image instance does \e not allocate a new buffer, and uses the input memory buffer as its
+         own pixel buffer. This case requires that types \c T and \c t are the same. Later, destroying such a shared
+         image will not deallocate the pixel buffer, this task being obviously charged to the initial buffer allocator.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - You must take care when operating on a shared image, since it may have an invalid pixel buffer pointer data()
+         (e.g. already deallocated).
+       \par Example
+       \code
+       unsigned char tab[256*256] = { 0 };
+       CImg<unsigned char> img1(tab,256,256,1,1,false), // Construct new non-shared image from buffer 'tab'.
+                           img2(tab,256,256,1,1,true);  // Construct new shared-image from buffer 'tab'.
+       tab[1024] = 255;                                 // Here, 'img2' is indirectly modified, but not 'img1'.
+       \endcode
+    **/
+    template<typename t>
+    CImg(const t *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false):_is_shared(false) {
+      if (is_shared) {
+        _width = _height = _depth = _spectrum = 0; _data = 0;
+        throw CImgArgumentException(_cimg_instance
+                                    "CImg(): Invalid construction request of a (%u,%u,%u,%u) shared instance "
+                                    "from a (%s*) buffer (pixel types are different).",
+                                    cimg_instance,
+                                    size_x,size_y,size_z,size_c,CImg<t>::pixel_type());
+      }
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+
+        }
+        const t *ptrs = values; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \specialization.
+    CImg(const T *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = is_shared;
+        if (_is_shared) _data = const_cast<T*>(values);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                        size_x,size_y,size_z,size_c);
+          }
+          std::memcpy(_data,values,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Construct image from reading an image file.
+    /**
+       Construct a new image instance with pixels of type \c T, and initialize pixel values with the data read from
+       an image file.
+       \param filename Filename, as a C-string.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it reads the image
+         dimensions and pixel values from the specified image file.
+       - The recognition of the image file format by %CImg higly depends on the tools installed on your system
+         and on the external libraries you used to link your code against.
+       - Considered pixel type \c T should better fit the file format specification, or data loss may occur during
+         file load (e.g. constructing a \c CImg<unsigned char> from a float-valued image file).
+       - A \c CImgIOException is thrown when the specified \c filename cannot be read, or if the file format is not
+         recognized.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       img.display();
+       \endcode
+       \image html ref_image.jpg
+    **/
+    explicit CImg(const char *const filename):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(filename);
+    }
+
+    //! Construct image copy.
+    /**
+       Construct a new image instance with pixels of type \c T, as a copy of an existing \c CImg<t> instance.
+       \param img Input image to copy.
+       \note
+       - Constructed copy has the same size width() x height() x depth() x spectrum() and pixel values as the
+         input image \c img.
+       - If input image \c img is \e shared and if types \c T and \c t are the same, the constructed copy is also
+         \e shared, and shares its pixel buffer with \c img.
+         Modifying a pixel value in the constructed copy will thus also modifies it in the input image \c img.
+         This behavior is needful to allow functions to return shared images.
+       - Otherwise, the constructed copy allocates its own pixel buffer, and copies pixel values from the input
+         image \c img into its buffer. The copied pixel values may be eventually statically casted if types \c T and
+         \c t are different.
+       - Constructing a copy from an image \c img when types \c t and \c T are the same is significantly faster than
+         with different types.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. not enough available memory).
+    **/
+    template<typename t>
+    CImg(const CImg<t>& img):_is_shared(false) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                      img._width,img._height,img._depth,img._spectrum);
+        }
+        const t *ptrs = img._data; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image copy \specialization.
+    CImg(const CImg<T>& img) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._heigh
