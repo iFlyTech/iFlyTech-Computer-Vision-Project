@@ -9742,4 +9742,147 @@ namespace cimg_library_suffixed {
     CImg(const CImg<T>& img) {
       const size_t siz = (size_t)img.size();
       if (img._data && siz) {
-        _width = img._width; _height = img._heigh
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        _is_shared = img._is_shared;
+        if (_is_shared) _data = const_cast<T*>(img._data);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                        img._width,img._height,img._depth,img._spectrum);
+
+          }
+          std::memcpy(_data,img._data,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Advanced copy constructor.
+    /**
+       Construct a new image instance with pixels of type \c T, as a copy of an existing \c CImg<t> instance,
+       while forcing the shared state of the constructed copy.
+       \param img Input image to copy.
+       \param is_shared Tells about the shared state of the constructed copy.
+       \note
+       - Similar to CImg(const CImg<t>&), except that it allows to decide the shared state of
+         the constructed image, which does not depend anymore on the shared state of the input image \c img:
+         - If \c is_shared is \c true, the constructed copy will share its pixel buffer with the input image \c img.
+           For that case, the pixel types \c T and \c t \e must be the same.
+         - If \c is_shared is \c false, the constructed copy will allocate its own pixel buffer, whether the input
+           image \c img is shared or not.
+       - A \c CImgArgumentException is thrown when a shared copy is requested with different pixel types \c T and \c t.
+    **/
+    template<typename t>
+    CImg(const CImg<t>& img, const bool is_shared):_is_shared(false) {
+      if (is_shared) {
+        _width = _height = _depth = _spectrum = 0; _data = 0;
+        throw CImgArgumentException(_cimg_instance
+                                    "CImg(): Invalid construction request of a shared instance from a "
+                                    "CImg<%s> image (%u,%u,%u,%u,%p) (pixel types are different).",
+                                    cimg_instance,
+                                    CImg<t>::pixel_type(),img._width,img._height,img._depth,img._spectrum,img._data);
+      }
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                      img._width,img._height,img._depth,img._spectrum);
+        }
+        const t *ptrs = img._data; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Advanced copy constructor \specialization.
+    CImg(const CImg<T>& img, const bool is_shared) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        _is_shared = is_shared;
+        if (_is_shared) _data = const_cast<T*>(img._data);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                        img._width,img._height,img._depth,img._spectrum);
+          }
+          std::memcpy(_data,img._data,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Construct image with dimensions borrowed from another image.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from some dimensions of an existing
+       \c CImg<t> instance.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions C-string describing the image size along the X,Y,Z and C-dimensions.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it takes the image dimensions
+         (\e not its pixel values) from an existing \c CImg<t> instance.
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values (e.g. with \c 0), use constructor CImg(const CImg<t>&,const char*,T)
+         instead.
+       \par Example
+       \code
+       const CImg<float> img1(256,128,1,3),      // 'img1' is a 256x128x1x3 image.
+                         img2(img1,"xyzc"),      // 'img2' is a 256x128x1x3 image.
+                         img3(img1,"y,x,z,c"),   // 'img3' is a 128x256x1x3 image.
+                         img4(img1,"c,x,y,3",0), // 'img4' is a 3x128x256x3 image (with pixels initialized to '0').
+       \endcode
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from the dimensions of an existing
+       \c CImg<t> instance, and set all pixel values to specified \c value.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions String describing the image size along the X,Y,Z and V-dimensions.
+       \param value Value used for initialization.
+       \note
+       - Similar to CImg(const CImg<t>&,const char*), but it also fills the pixel buffer with the specified \c value.
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions, const T& value):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window.
+    /**
+       Construct a new image instance with pixels of type \c T, as a snapshot of an existing \c CImgDisplay instance.
+       \param disp Input display window.
+       \note
+       - The width() and height() of the constructed image instance are the same as the specified \c CImgDisplay.
+       - The depth() and spectrum() of the constructed image instance are respectively set to \c 1 and \c 3
+         (i.e. a 2d color image).
+       - The image pixels are read as 8-bits RGB values.
+     **/
+    explicit CImg(const CImgDisplay &disp):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      disp.snapshot(*this);
+    }
+
+    // Constructor and assignment operator for rvalue references (c++11).
+    // This avoids an additional image copy for methods returning new images. Can save RAM for big images !
+#if defined(cimg_use_cpp11) && cimg_use_cpp11!=0
+    CImg(CImg<T>&& img):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      swap(img);
+    }
+    CImg<T>& operator=(CImg<T>&& img) {
+      if (_is_shared) return assign(img);
+      return i
