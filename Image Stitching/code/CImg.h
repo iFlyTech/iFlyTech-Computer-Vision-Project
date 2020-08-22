@@ -9459,4 +9459,153 @@ namespace cimg_library_suffixed {
   size_t siz = size(); \
   if (repeat_values) for (T *ptrd = _data; siz--; ) { \
     *(ptrd++) = (T)(*(it++)); if (it==values.end()) it = values.begin(); } \
-  else { siz = cimg::min(s
+  else { siz = cimg::min(siz,values.size()); for (T *ptrd = _data; siz--; ) *(ptrd++) = (T)(*(it++)); }
+      assign(size_x,size_y,size_z,size_c);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y,size_z);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    //! Construct single channel 1D image with pixel values and width obtained from an initializer list of integers.
+    /**
+       Construct a new image instance of size \c width x \c 1 x \c 1 x \c 1,
+       with pixels of type \c T, and initialize pixel
+       values from the specified initializer list of integers { \c value0,\c value1,\c ... }. Image width is
+       given by the size of the initializer list.
+       \param { value0, value1, ... } Initialization list
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int) with height=1, depth=1, and spectrum=1,
+         but it also fills the pixel buffer with a sequence of specified integer values.
+       \par Example
+       \code
+       const CImg<float> img = {10,20,30,20,10 }; // Construct a 5x1 image with one channel, and set its pixel values.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+     **/
+    template<typename t>
+    CImg(const std::initializer_list<t> values):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(values.size(),1,1,1);
+      auto it = values.begin();
+      unsigned int siz = _width;
+      for (T *ptrd = _data; siz--; ) *(ptrd++) = (T)(*(it++));
+    }
+
+    template<typename t>
+    CImg<T> & operator=(std::initializer_list<t> values) {
+      _cimg_constructor_cpp11(siz>values.size());
+      return *this;
+    }
+#endif
+
+    //! Construct image with specified size and initialize pixel values from a sequence of doubles.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initialize pixel values from the specified sequence of doubles \c value0,\c value1,\c ...
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value0 First value of the initialization sequence (must be a \e double).
+       \param value1 Second value of the initialization sequence (must be a \e double).
+       \param ...
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int,int,int,...), but
+         takes a sequence of double values instead of integers.
+       \warning
+       - You must specify \e exactly \c dx*\c dy*\c dz*\c dc doubles in the initialization sequence.
+         Otherwise, the constructor may crash or fill your image with garbage.
+         For instance, the code below will probably crash on most platforms:
+         \code
+         const CImg<float> img(2,2,1,1, 0.5,0.5,255,255); // FAIL: The two last arguments are 'int', not 'double'!
+         \endcode
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const double value0, const double value1, ...):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,double);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a value string.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified string \c values.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param values Value string describing the way pixel values are set.
+       \param repeat_values Tells if the value filling process is repeated over the image.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with values described in the value string \c values.
+       - Value string \c values may describe two different filling processes:
+         - Either \c values is a sequences of values assigned to the image pixels, as in <tt>"1,2,3,7,8,2"</tt>.
+           In this case, set \c repeat_values to \c true to periodically fill the image with the value sequence.
+         - Either, \c values is a formula, as in <tt>"cos(x/10)*sin(y/20)"</tt>.
+           In this case, parameter \c repeat_values is pointless.
+       - For both cases, specifying \c repeat_values is mandatory.
+         It disambiguates the possible overloading of constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) with \c T being a <tt>const char*</tt>.
+       - A \c CImgArgumentException is thrown when an invalid value string \c values is specified.
+       \par Example
+       \code
+       const CImg<float> img1(129,129,1,3,"0,64,128,192,255",true),                   // Construct image filled from a value sequence.
+                         img2(129,129,1,3,"if(c==0,255*abs(cos(x/10)),1.8*y)",false); // Construct image filled from a formula.
+       (img1,img2).display();
+       \endcode
+       \image html ref_constructor2.jpg
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const char *const values, const bool repeat_values):_is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(values,repeat_values);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified \c t* memory buffer.
+       \param values Pointer to the input memory buffer.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param is_shared Tells if input memory buffe
