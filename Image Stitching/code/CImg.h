@@ -10039,4 +10039,207 @@ namespace cimg_library_suffixed {
           if (values + siz<_data || values>=_data + size()) assign();
           else cimg::warn(_cimg_instance
                           "assign(): Shared image instance has overlapping memory.",
-                          cimg
+                          cimg_instance);
+        }
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = true;
+        _data = const_cast<T*>(values);
+      }
+      return *this;
+    }
+
+    //! Construct image from reading an image file \inplace.
+    /**
+       In-place version of the constructor CImg(const char*).
+    **/
+    CImg<T>& assign(const char *const filename) {
+      return load(filename);
+    }
+
+    //! Construct image copy \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum);
+    }
+
+    //! In-place version of the advanced copy constructor.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,bool).
+     **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const bool is_shared) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum,is_shared);
+    }
+
+    //! Construct image with dimensions borrowed from another image \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions) {
+      if (!dimensions || !*dimensions) return assign(img._width,img._height,img._depth,img._spectrum);
+      unsigned int siz[4] = { 0,1,1,1 }, k = 0;
+      CImg<charT> item(256);
+      for (const char *s = dimensions; *s && k<4; ++k) {
+        if (cimg_sscanf(s,"%255[^0-9%xyzvwhdcXYZVWHDC]",item._data)>0) s+=std::strlen(item);
+        if (*s) {
+          unsigned int val = 0; char sep = 0;
+          if (cimg_sscanf(s,"%u%c",&val,&sep)>0) {
+            if (sep=='%') siz[k] = val*(k==0?_width:k==1?_height:k==2?_depth:_spectrum)/100;
+            else siz[k] = val;
+            while (*s>='0' && *s<='9') ++s; if (sep=='%') ++s;
+          } else switch (cimg::uncase(*s)) {
+          case 'x' : case 'w' : siz[k] = img._width; ++s; break;
+          case 'y' : case 'h' : siz[k] = img._height; ++s; break;
+          case 'z' : case 'd' : siz[k] = img._depth; ++s; break;
+          case 'c' : case 's' : siz[k] = img._spectrum; ++s; break;
+          default :
+            throw CImgArgumentException(_cimg_instance
+                                        "assign(): Invalid character '%c' detected in specified dimension string '%s'.",
+                                        cimg_instance,
+                                        *s,dimensions);
+          }
+        }
+      }
+      return assign(siz[0],siz[1],siz[2],siz[3]);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*,T).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions, const T& value) {
+      return assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window \inplace.
+    /**
+       In-place version of the constructor CImg(const CImgDisplay&).
+    **/
+    CImg<T>& assign(const CImgDisplay &disp) {
+      disp.snapshot(*this);
+      return *this;
+    }
+
+    //! Construct empty image \inplace.
+    /**
+       Equivalent to assign().
+       \note
+       - It has been defined for compatibility with STL naming conventions.
+    **/
+    CImg<T>& clear() {
+      return assign();
+    }
+
+    //! Transfer content of an image instance into another one.
+    /**
+       Transfer the dimensions and the pixel buffer content of an image instance into another one,
+       and replace instance by an empty image. It avoids the copy of the pixel buffer
+       when possible.
+       \param img Destination image.
+       \note
+       - Pixel types \c T and \c t of source and destination images can be different, though the process is
+         designed to be instantaneous when \c T and \c t are the same.
+       \par Example
+       \code
+       CImg<float> src(256,256,1,3,0), // Construct a 256x256x1x3 (color) image filled with value '0'.
+                   dest(16,16);        // Construct a 16x16x1x1 (scalar) image.
+       src.move_to(dest);              // Now, 'src' is empty and 'dest' is the 256x256x1x3 image.
+       \endcode
+    **/
+    template<typename t>
+    CImg<t>& move_to(CImg<t>& img) {
+      img.assign(*this);
+      assign();
+      return img;
+    }
+
+    //! Transfer content of an image instance into another one \specialization.
+    CImg<T>& move_to(CImg<T>& img) {
+      if (_is_shared || img._is_shared) img.assign(*this);
+      else swap(img);
+      assign();
+      return img;
+    }
+
+    //! Transfer content of an image instance into a new image in an image list.
+    /**
+       Transfer the dimensions and the pixel buffer content of an image instance
+       into a newly inserted image at position \c pos in specified \c CImgList<t> instance.
+       \param list Destination list.
+       \param pos Position of the newly inserted image in the list.
+       \note
+       - When optionnal parameter \c pos is ommited, the image instance is transfered as a new
+         image at the end of the specified \c list.
+       - It is convenient to sequentially insert new images into image lists, with no
+         additional copies of memory buffer.
+       \par Example
+       \code
+       CImgList<float> list;             // Construct an empty image list.
+       CImg<float> img("reference.jpg"); // Read image from filename.
+       img.move_to(list);                // Transfer image content as a new item in the list (no buffer copy).
+       \endcode
+    **/
+    template<typename t>
+    CImgList<t>& move_to(CImgList<t>& list, const unsigned int pos=~0U) {
+      const unsigned int npos = pos>list._width?list._width:pos;
+      move_to(list.insert(1,npos)[npos]);
+      return list;
+    }
+
+    //! Swap fields of two image instances.
+    /**
+      \param img Image to swap fields with.
+      \note
+      - It can be used to interchange the content of two images in a very fast way. Can be convenient when dealing
+        with algorithms requiring two swapping buffers.
+      \par Example
+      \code
+      CImg<float> img1("lena.jpg"),
+                  img2("milla.jpg");
+      img1.swap(img2);               // Now, 'img1' is 'milla' and 'img2' is 'lena'.
+      \endcode
+    **/
+    CImg<T>& swap(CImg<T>& img) {
+      cimg::swap(_width,img._width,_height,img._height,_depth,img._depth,_spectrum,img._spectrum);
+      cimg::swap(_data,img._data);
+      cimg::swap(_is_shared,img._is_shared);
+      return img;
+    }
+
+    //! Return a reference to an empty image.
+    /**
+       \note
+       This function is useful mainly to declare optional parameters having type \c CImg<T> in functions prototypes,
+       e.g.
+       \code
+       void f(const int x=0, const int y=0, const CImg<float>& img=CImg<float>::empty());
+       \endcode
+     **/
+    static CImg<T>& empty() {
+      static CImg<T> _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty image \const.
+    static const CImg<T>& const_empty() {
+      static const CImg<T> _empty;
+      return _empty;
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Overloaded Operators
+    //@{
+    //------------------------------------------
+
+    //! Access to a pixel value.
+    /**
+       Return a reference to a located pixel value of the image instance,
+       being possibly \e const, whether the image instance is \e const or not.
+       This is the standard method to get/set pixel values in \c CImg<T> images.
+       \param x X-coordinate of the pixel val
