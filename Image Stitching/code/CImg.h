@@ -10418,4 +10418,175 @@ namespace cimg_library_suffixed {
       return fill(value);
     }
 
-    //!
+    //! Assign pixels values from a specified expression.
+    /**
+       Initialize all pixel values from the specified string \c expression.
+       \param expression Value string describing the way pixel values are set.
+       \note
+       - String parameter \c expression may describe different things:
+         - If \c expression is a list of values (as in \c "1,2,3,8,3,2"), or a formula (as in \c "(x*y)%255"),
+           the pixel values are set from specified \c expression and the image size is not modified.
+         - If \c expression is a filename (as in \c "reference.jpg"), the corresponding image file is loaded and
+           replace the image instance. The image size is modified if necessary.
+       \par Example
+       \code
+       CImg<float> img1(100,100), img2(img1), img3(img1); // Declare three 100x100 scalar images with unitialized pixel values.
+       img1 = "0,50,100,150,200,250,200,150,100,50";      // Set pixel values of 'img1' from a value sequence.
+       img2 = "10*((x*y)%25)";                            // Set pixel values of 'img2' from a formula.
+       img3 = "reference.jpg";                            // Set pixel values of 'img3' from a file (image size is modified).
+       (img1,img2,img3).display();
+       \endcode
+       \image html ref_operator_eq.jpg
+    **/
+    CImg<T>& operator=(const char *const expression) {
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+        _fill(expression,true,true,0,0,"operator=",0);
+      } catch (CImgException&) {
+        cimg::exception_mode(omode);
+        load(expression);
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Copy an image into the current image instance.
+    /**
+       Similar to the in-place copy constructor assign(const CImg<t>&).
+    **/
+    template<typename t>
+    CImg<T>& operator=(const CImg<t>& img) {
+      return assign(img);
+    }
+
+    //! Copy an image into the current image instance \specialization.
+    CImg<T>& operator=(const CImg<T>& img) {
+      return assign(img);
+    }
+
+    //! Copy the content of a display window to the current image instance.
+    /**
+       Similar to assign(const CImgDisplay&).
+    **/
+    CImg<T>& operator=(const CImgDisplay& disp) {
+      disp.snapshot(*this);
+      return *this;
+    }
+
+    //! In-place addition operator.
+    /**
+       Add specified \c value to all pixels of an image instance.
+       \param value Value to add.
+       \note
+       - Resulting pixel values are casted to fit the pixel type \c T.
+         For instance, adding \c 0.2 to a \c CImg<char> is possible but does nothing indeed.
+       - Overflow values are treated as with standard C++ numeric types. For instance,
+       \code
+       CImg<unsigned char> img(100,100,1,1,255); // Construct a 100x100 image with pixel values '255'.
+       img+=1;                                   // Add '1' to each pixels -> Overflow.
+       // here all pixels of image 'img' are equal to '0'.
+       \endcode
+       - To prevent value overflow, you may want to consider pixel type \c T as \c float or \c double,
+         and use cut() after addition.
+       \par Example
+       \code
+       CImg<unsigned char> img1("reference.jpg");          // Load a 8-bits RGB image (values in [0,255]).
+       CImg<float> img2(img1);                             // Construct a float-valued copy of 'img1'.
+       img2+=100;                                          // Add '100' to pixel values -> goes out of [0,255] but no problems with floats.
+       img2.cut(0,255);                                    // Cut values in [0,255] to fit the 'unsigned char' constraint.
+       img1 = img2;                                        // Rewrite safe result in 'unsigned char' version 'img1'.
+       const CImg<unsigned char> img3 = (img1 + 100).cut(0,255); // Do the same in a more simple and elegant way.
+       (img1,img2,img3).display();
+       \endcode
+       \image html ref_operator_plus.jpg
+     **/
+    template<typename t>
+    CImg<T>& operator+=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(*ptrd + value);
+      return *this;
+    }
+
+    //! In-place addition operator.
+    /**
+       Add values to image pixels, according to the specified string \c expression.
+       \param expression Value string describing the way pixel values are added.
+       \note
+       - Similar to operator=(const char*), except that it adds values to the pixels of the current image instance,
+         instead of assigning them.
+    **/
+    CImg<T>& operator+=(const char *const expression) {
+      return *this+=(+*this)._fill(expression,true,true,0,0,"operator+=",this);
+    }
+
+    //! In-place addition operator.
+    /**
+       Add values to image pixels, according to the values of the input image \c img.
+       \param img Input image to add.
+       \note
+       - The size of the image instance is never modified.
+       - It is not mandatory that input image \c img has the same size as the image instance.
+         If less values are available in \c img, then the values are added periodically. For instance, adding one
+         WxH scalar image (spectrum() equal to \c 1) to one WxH color image (spectrum() equal to \c 3)
+         means each color channel will be incremented with the same values at the same locations.
+       \par Example
+       \code
+       CImg<float> img1("reference.jpg");                                   // Load a RGB color image (img1.spectrum()==3)
+       const CImg<float> img2(img1.width(),img.height(),1,1,"255*(x/w)^2"); // Construct a scalar shading (img2.spectrum()==1).
+       img1+=img2;                                                          // Add shading to each channel of 'img1'.
+       img1.cut(0,255);                                                     // Prevent [0,255] overflow.
+       (img2,img1).display();
+       \endcode
+       \image html ref_operator_plus1.jpg
+    **/
+    template<typename t>
+    CImg<T>& operator+=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this+=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)(*ptrd + *(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)(*ptrd + *(ptrs++));
+      }
+      return *this;
+    }
+
+    //! In-place increment operator (prefix).
+    /**
+       Add \c 1 to all image pixels, and return a reference to the current incremented image instance.
+       \note
+       - Writing \c ++img is equivalent to \c img+=1.
+     **/
+    CImg<T>& operator++() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) ++*ptrd;
+      return *this;
+    }
+
+    //! In-place increment operator (postfix).
+    /**
+       Add \c 1 to all image pixels, and return a new copy of the initial (pre-incremented) image instance.
+       \note
+       - Use the prefixed version operator++() if you don't need a copy of the initial
+         (pre-incremented) image instance, since a useless image copy may be expensive in terms of memory usage.
+     **/
+    CImg<T> operator++(int) {
+      const CImg<T> copy(*this,false);
+      ++*this;
+      return copy;
+    }
+
+    //! Return a non-shared copy of the image instance.
+    /**
+       \note
+       - Use this operator to ensure you get a non-shared copy of an image instance with same pixel type \c T.
+         Indeed, the usual copy constructor CImg<T>(const CImg<T>&) returns a shared copy of a shared input i
