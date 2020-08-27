@@ -10242,4 +10242,180 @@ namespace cimg_library_suffixed {
        Return a reference to a located pixel value of the image instance,
        being possibly \e const, whether the image instance is \e const or not.
        This is the standard method to get/set pixel values in \c CImg<T> images.
-       \param x X-coordinate of the pixel val
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Range of pixel coordinates start from <tt>(0,0,0,0)</tt> to
+         <tt>(width() - 1,height() - 1,depth() - 1,spectrum() - 1)</tt>.
+       - Due to the particular arrangement of the pixel buffers defined in %CImg, you can omit one coordinate if the
+         corresponding dimension is equal to \c 1.
+         For instance, pixels of a 2d image (depth() equal to \c 1) can be accessed by <tt>img(x,y,c)</tt> instead of
+         <tt>img(x,y,0,c)</tt>.
+       \warning
+       - There is \e no boundary checking done in this operator, to make it as fast as possible.
+         You \e must take care of out-of-bounds access by yourself, if necessary.
+         For debuging purposes, you may want to define macro \c 'cimg_verbosity'>=3 to enable additional boundary
+         checking operations in this operator. In that case, warning messages will be printed on the error output
+         when accessing out-of-bounds pixels.
+       \par Example
+       \code
+       CImg<float> img(100,100,1,3,0);                   // Construct a 100x100x1x3 (color) image with pixels set to '0'.
+       const float
+          valR = img(10,10,0,0),                         // Read red value at coordinates (10,10).
+          valG = img(10,10,0,1),                         // Read green value at coordinates (10,10)
+          valB = img(10,10,2),                           // Read blue value at coordinates (10,10) (Z-coordinate can be omitted).
+          avg = (valR + valG + valB)/3;                  // Compute average pixel value.
+       img(10,10,0) = img(10,10,1) = img(10,10,2) = avg; // Replace the color pixel (10,10) by the average grey value.
+       \endcode
+    **/
+#if cimg_verbosity>=3
+    T& operator()(const unsigned int x, const unsigned int y=0,
+                  const unsigned int z=0, const unsigned int c=0) {
+      const ulongT off = (ulongT)offset(x,y,z,c);
+      if (!_data || off>=size()) {
+        cimg::warn(_cimg_instance
+                   "operator(): Invalid pixel request, at coordinates (%d,%d,%d,%d) [offset=%u].",
+                   cimg_instance,
+                   (int)x,(int)y,(int)z,(int)c,off);
+        return *_data;
+      }
+      else return _data[off];
+    }
+
+    //! Access to a pixel value \const.
+    const T& operator()(const unsigned int x, const unsigned int y=0,
+                        const unsigned int z=0, const unsigned int c=0) const {
+      return const_cast<CImg<T>*>(this)->operator()(x,y,z,c);
+    }
+
+    //! Access to a pixel value.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param wh Precomputed offset, must be equal to <tt>width()*\ref height()</tt>.
+       \param whd Precomputed offset, must be equal to <tt>width()*\ref height()*\ref depth()</tt>.
+       \note
+       - Similar to (but faster than) operator()().
+         It uses precomputed offsets to optimize memory access. You may use it to optimize
+         the reading/writing of several pixel values in the same image (e.g. in a loop).
+     **/
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                  const ulongT wh, const ulongT whd=0) {
+      cimg::unused(wh,whd);
+      return (*this)(x,y,z,c);
+    }
+
+    //! Access to a pixel value \const.
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                        const ulongT wh, const ulongT whd=0) const {
+      cimg::unused(wh,whd);
+      return (*this)(x,y,z,c);
+    }
+#else
+    T& operator()(const unsigned int x) {
+      return _data[x];
+    }
+
+    const T& operator()(const unsigned int x) const {
+      return _data[x];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y) {
+      return _data[x + y*_width];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y) const {
+      return _data[x + y*_width];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z) {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height];
+   }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z) const {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c) {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height + c*(ulongT)_width*_height*_depth];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c) const {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height + c*(ulongT)_width*_height*_depth];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int,
+                  const ulongT wh) {
+      return _data[x + y*_width + z*wh];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int,
+                        const ulongT wh) const {
+      return _data[x + y*_width + z*wh];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                  const ulongT wh, const ulongT whd) {
+      return _data[x + y*_width + z*wh + c*whd];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                        const ulongT wh, const ulongT whd) const {
+      return _data[x + y*_width + z*wh + c*whd];
+    }
+#endif
+
+    //! Implicitely cast an image into a \c T*.
+    /**
+       Implicitely cast a \c CImg<T> instance into a \c T* or \c const \c T* pointer, whether the image instance
+       is \e const or not. The returned pointer points on the first value of the image pixel buffer.
+       \note
+       - It simply returns the pointer data() to the pixel buffer.
+       - This implicit conversion is convenient to test the empty state of images (data() being \c 0 in this case), e.g.
+       \code
+       CImg<float> img1(100,100), img2; // 'img1' is a 100x100 image, 'img2' is an empty image.
+       if (img1) {                      // Test succeeds, 'img1' is not an empty image.
+         if (!img2) {                   // Test succeeds, 'img2' is an empty image.
+           std::printf("'img1' is not empty, 'img2' is empty.");
+         }
+       }
+       \endcode
+       - It also allows to use brackets to access pixel values, without need for a \c CImg<T>::operator[](), e.g.
+       \code
+       CImg<float> img(100,100);
+       const float value = img[99]; // Access to value of the last pixel on the first row.
+       img[510] = 255;              // Set pixel value at (10,5).
+       \endcode
+    **/
+    operator T*() {
+      return _data;
+    }
+
+    //! Implicitely cast an image into a \c T* \const.
+    operator const T*() const {
+      return _data;
+    }
+
+    //! Assign a value to all image pixels.
+    /**
+       Assign specified \c value to each pixel value of the image instance.
+       \param value Value that will be assigned to image pixels.
+       \note
+       - The image size is never modified.
+       - The \c value may be casted to pixel type \c T if necessary.
+       \par Example
+       \code
+       CImg<char> img(100,100); // Declare image (with garbage values).
+       img = 0;                 // Set all pixel values to '0'.
+       img = 1.2;               // Set all pixel values to '1' (cast of '1.2' as a 'char').
+       \endcode
+    **/
+    CImg<T>& operator=(const T& value) {
+      return fill(value);
+    }
+
+    //!
