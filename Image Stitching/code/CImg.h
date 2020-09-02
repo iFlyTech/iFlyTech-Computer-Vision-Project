@@ -11199,4 +11199,202 @@ namespace cimg_library_suffixed {
       return *this<<=(+*this)._fill(expression,true,true,0,0,"operator<<=",this);
     }
 
-    //! In-place bitwise l
+    //! In-place bitwise left shift operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a bitwise left shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator<<=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this^=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)((longT)*ptrd << (int)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)((longT)*ptrd << (int)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator<<(const t value) const {
+      return (+*this)<<=value;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    CImg<T> operator<<(const char *const expression) const {
+      return (+*this)<<=expression;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const CImg<t>&), except that it returns a new image instance instead of
+       operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator<<(const CImg<t>& img) const {
+      return (+*this)<<=img;
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const t), except that it performs a bitwise right shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator>>=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(((longT)*ptrd) >> (int)value);
+      return *this;
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a bitwise right shift instead of an addition.
+    **/
+    CImg<T>& operator>>=(const char *const expression) {
+      return *this>>=(+*this)._fill(expression,true,true,0,0,"operator>>=",this);
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a bitwise right shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator>>=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this^=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)((longT)*ptrd >> (int)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)((longT)*ptrd >> (int)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator>>(const t value) const {
+      return (+*this)>>=value;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    CImg<T> operator>>(const char *const expression) const {
+      return (+*this)>>=expression;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const CImg<t>&), except that it returns a new image instance instead of
+       operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator>>(const CImg<t>& img) const {
+      return (+*this)>>=img;
+    }
+
+    //! Bitwise inversion operator.
+    /**
+       Similar to operator-(), except that it compute the bitwise inverse instead of the opposite value.
+    **/
+    CImg<T> operator~() const {
+      CImg<T> res(_width,_height,_depth,_spectrum);
+      const T *ptrs = _data;
+      cimg_for(res,ptrd,T) { const ulongT value = (ulongT)*(ptrs++); *ptrd = (T)~value; }
+      return res;
+    }
+
+    //! Test if all pixels of an image have the same value.
+    /**
+       Return \c true is all pixels of the image instance are equal to the specified \c value.
+       \param value Reference value to compare with.
+    **/
+    template<typename t>
+    bool operator==(const t value) const {
+      if (is_empty()) return false;
+      typedef _cimg_Tt Tt;
+      bool is_equal = true;
+      for (T *ptrd = _data + size(); is_equal && ptrd>_data; is_equal = ((Tt)*(--ptrd)==(Tt)value)) {}
+      return is_equal;
+    }
+
+    //! Test if all pixel values of an image follow a specified expression.
+    /**
+       Return \c true is all pixels of the image instance are equal to the specified \c expression.
+       \param expression Value string describing the way pixel values are compared.
+    **/
+    bool operator==(const char *const expression) const {
+      return *this==(+*this)._fill(expression,true,true,0,0,"operator==",this);
+    }
+
+    //! Test if two images have the same size and values.
+    /**
+       Return \c true if the image instance and the input image \c img have the same dimensions and pixel values,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - The pixel buffer pointers data() of the two compared images do not have to be the same for operator==()
+         to return \c true.
+         Only the dimensions and the pixel values matter. Thus, the comparison can be \c true even for different
+         pixel types \c T and \c t.
+       \par Example
+       \code
+       const CImg<float> img1(1,3,1,1, 0,1,2); // Construct a 1x3 vector [0;1;2] (with 'float' pixel values).
+       const CImg<char> img2(1,3,1,1, 0,1,2);  // Construct a 1x3 vector [0;1;2] (with 'char' pixel values).
+       if (img1==img2) {                       // Test succeeds, image dimensions and values are the same.
+         std::printf("'img1' and 'img2' have same dimensions and values.");
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool operator==(const CImg<t>& img) const {
+      typedef _cimg_Tt Tt;
+      const ulongT siz = size();
+      bool is_equal = true;
+      if (siz!=img.size()) return false;
+      t *ptrs = img._data + siz;
+      for (T *ptrd = _data + siz; is_equal && ptrd>_data; is_equal = ((Tt)*(--ptrd)==(Tt)*(--ptrs))) {}
+      return is_equal;
+    }
+
+    //! Test if pixels of an image are all different from a value.
+    /**
+       Return \c true is all pixels of the image instance are different than the specified \c value.
+       \param value Reference value to compare with.
+    **/
+    template<typename t>
+    bool operator!=(const t value) const {
+      return !((*this)==value);
+    }
+
+    //! Test if all pixel values of an image are different from a specified expression.
+    /**
+       Return \c true is all pixels of the image instance are different to the specified \c expression.
+       \param expression Value string describing the way pixel values are compared.
+    **/
+    bool operator!=(const char *const expression) const {
+      return !((*this)==expression);
