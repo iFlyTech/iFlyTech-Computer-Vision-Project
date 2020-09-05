@@ -11565,4 +11565,186 @@ namespace cimg_library_suffixed {
          <tt>(*this)._spectrum</tt>.
     **/
     int spectrum() const {
-      return (
+      return (int)_spectrum;
+    }
+
+    //! Return the total number of pixel values.
+    /**
+       Return <tt>width()*\ref height()*\ref depth()*\ref spectrum()</tt>,
+       i.e. the total number of values of type \c T in the pixel buffer of the image instance.
+       \note
+       - The size() of an empty image is equal to \c 0.
+       - The allocated memory size for a pixel buffer of a non-shared \c CImg<T> instance is equal to
+         <tt>size()*sizeof(T)</tt>.
+       \par Example
+       \code
+       const CImg<float> img(100,100,1,3);               // Construct new 100x100 color image.
+       if (img.size()==30000)                            // Test succeeds.
+         std::printf("Pixel buffer uses %lu bytes",
+                     img.size()*sizeof(float));
+       \endcode
+    **/
+    ulongT size() const {
+      return (ulongT)_width*_height*_depth*_spectrum;
+    }
+
+    //! Return a pointer to the first pixel value.
+    /**
+       Return a \c T*, or a \c const \c T* pointer to the first value in the pixel buffer of the image instance,
+       whether the instance is \c const or not.
+       \note
+       - The data() of an empty image is equal to \c 0 (null pointer).
+       - The allocated pixel buffer for the image instance starts from \c data()
+         and goes to <tt>data()+\ref size() - 1</tt> (included).
+       - To get the pointer to one particular location of the pixel buffer, use
+         data(unsigned int,unsigned int,unsigned int,unsigned int) instead.
+    **/
+    T* data() {
+      return _data;
+    }
+
+    //! Return a pointer to the first pixel value \const.
+    const T* data() const {
+      return _data;
+    }
+
+    //! Return a pointer to a located pixel value.
+    /**
+       Return a \c T*, or a \c const \c T* pointer to the value located at (\c x,\c y,\c z,\c c) in the pixel buffer
+       of the image instance,
+       whether the instance is \c const or not.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Writing \c img.data(x,y,z,c) is equivalent to <tt>&(img(x,y,z,c))</tt>. Thus, this method has the same
+         properties as operator()(unsigned int,unsigned int,unsigned int,unsigned int).
+     **/
+#if cimg_verbosity>=3
+    T *data(const unsigned int x, const unsigned int y=0, const unsigned int z=0, const unsigned int c=0) {
+      const ulongT off = (ulongT)offset(x,y,z,c);
+      if (off>=size())
+        cimg::warn(_cimg_instance
+                   "data(): Invalid pointer request, at coordinates (%u,%u,%u,%u) [offset=%u].",
+                   cimg_instance,
+                   x,y,z,c,off);
+      return _data + off;
+    }
+
+    //! Return a pointer to a located pixel value \const.
+    const T* data(const unsigned int x, const unsigned int y=0, const unsigned int z=0, const unsigned int c=0) const {
+      return const_cast<CImg<T>*>(this)->data(x,y,z,c);
+    }
+#else
+    T* data(const unsigned int x, const unsigned int y=0, const unsigned int z=0, const unsigned int c=0) {
+      return _data + x + (ulongT)y*_width + (ulongT)z*_width*_height + (ulongT)c*_width*_height*_depth;
+    }
+
+    const T* data(const unsigned int x, const unsigned int y=0, const unsigned int z=0, const unsigned int c=0) const {
+      return _data + x + (ulongT)y*_width + (ulongT)z*_width*_height + (ulongT)c*_width*_height*_depth;
+    }
+#endif
+
+    //! Return the offset to a located pixel value, with respect to the beginning of the pixel buffer.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Writing \c img.data(x,y,z,c) is equivalent to <tt>&(img(x,y,z,c)) - img.data()</tt>.
+         Thus, this method has the same properties as operator()(unsigned int,unsigned int,unsigned int,unsigned int).
+       \par Example
+       \code
+       const CImg<float> img(100,100,1,3);      // Define a 100x100 RGB-color image.
+       const long off = img.offset(10,10,0,2);  // Get the offset of the blue value of the pixel located at (10,10).
+       const float val = img[off];              // Get the blue value of this pixel.
+       \endcode
+    **/
+    longT offset(const int x, const int y=0, const int z=0, const int c=0) const {
+      return x + (longT)y*_width + (longT)z*_width*_height + (longT)c*_width*_height*_depth;
+    }
+
+    //! Return a CImg<T>::iterator pointing to the first pixel value.
+    /**
+       \note
+       - Equivalent to data().
+       - It has been mainly defined for compatibility with STL naming conventions.
+     **/
+    iterator begin() {
+      return _data;
+    }
+
+    //! Return a CImg<T>::iterator pointing to the first value of the pixel buffer \const.
+    const_iterator begin() const {
+      return _data;
+    }
+
+    //! Return a CImg<T>::iterator pointing next to the last pixel value.
+    /**
+       \note
+       - Writing \c img.end() is equivalent to <tt>img.data() + img.size()</tt>.
+       - It has been mainly defined for compatibility with STL naming conventions.
+       \warning
+       - The returned iterator actually points to a value located \e outside the acceptable bounds of the pixel buffer.
+         Trying to read or write the content of the returned iterator will probably result in a crash.
+         Use it mainly as a strict upper bound for a CImg<T>::iterator.
+       \par Example
+       \code
+       CImg<float> img(100,100,1,3);                                     // Define a 100x100 RGB color image.
+       for (CImg<float>::iterator it = img.begin(); it<img.end(); ++it)  // 'img.end()' used here as an upper bound for the iterator.
+         *it = 0;
+       \endcode
+    **/
+    iterator end() {
+      return _data + size();
+    }
+
+    //! Return a CImg<T>::iterator pointing next to the last pixel value \const.
+    const_iterator end() const {
+      return _data + size();
+    }
+
+    //! Return a reference to the first pixel value.
+    /**
+       \note
+       - Writing \c img.front() is equivalent to <tt>img[0]</tt>, or <tt>img(0,0,0,0)</tt>.
+       - It has been mainly defined for compatibility with STL naming conventions.
+    **/
+    T& front() {
+      return *_data;
+    }
+
+    //! Return a reference to the first pixel value \const.
+    const T& front() const {
+      return *_data;
+    }
+
+    //! Return a reference to the last pixel value.
+    /**
+       \note
+       - Writing \c img.end() is equivalent to <tt>img[img.size() - 1]</tt>, or
+         <tt>img(img.width() - 1,img.height() - 1,img.depth() - 1,img.spectrum() - 1)</tt>.
+       - It has been mainly defined for compatibility with STL naming conventions.
+    **/
+    T& back() {
+      return *(_data + size() - 1);
+    }
+
+    //! Return a reference to the last pixel value \const.
+    const T& back() const {
+      return *(_data + size() - 1);
+    }
+
+    //! Access to a pixel value at a specified offset, using Dirichlet boundary conditions.
+    /**
+       Return a reference to the pixel value of the image instance located at a specified \c offset,
+       or to a specified default value in case of out-of-bounds access.
+       \param offset Offset to the desired pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+       \note
+       - Writing \c img.at(offset,out_value) is similar to <tt>img[offset]</tt>, except that if \c offset
+         is outside bounds (e.g. \c offset<0 or \c offset>=img.size()), a reference to a value \c out_value
+         is safely returned instead.
+       - Due to the additional boundary checking operation, this met
