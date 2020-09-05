@@ -11747,4 +11747,158 @@ namespace cimg_library_suffixed {
        - Writing \c img.at(offset,out_value) is similar to <tt>img[offset]</tt>, except that if \c offset
          is outside bounds (e.g. \c offset<0 or \c offset>=img.size()), a reference to a value \c out_value
          is safely returned instead.
-       - Due to the additional boundary checking operation, this met
+       - Due to the additional boundary checking operation, this method is slower than operator()(). Use it when
+         you are \e not sure about the validity of the specified pixel offset.
+    **/
+    T& at(const int offset, const T& out_value) {
+      return (offset<0 || offset>=(int)size())?(cimg::temporary(out_value)=out_value):(*this)[offset];
+    }
+
+    //! Access to a pixel value at a specified offset, using Dirichlet boundary conditions \const.
+    T at(const int offset, const T& out_value) const {
+      return (offset<0 || offset>=(int)size())?out_value:(*this)[offset];
+    }
+
+    //! Access to a pixel value at a specified offset, using Neumann boundary conditions.
+    /**
+       Return a reference to the pixel value of the image instance located at a specified \c offset,
+       or to the nearest pixel location in the image instance in case of out-of-bounds access.
+       \param offset Offset to the desired pixel value.
+       \note
+       - Similar to at(int,const T), except that an out-of-bounds access returns the value of the
+         nearest pixel in the image instance, regarding the specified offset, i.e.
+         - If \c offset<0, then \c img[0] is returned.
+         - If \c offset>=img.size(), then \c img[img.size() - 1] is returned.
+       - Due to the additional boundary checking operation, this method is slower than operator()(). Use it when
+         you are \e not sure about the validity of the specified pixel offset.
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method \c _at(int).
+     **/
+    T& at(const int offset) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "at(): Empty instance.",
+                                    cimg_instance);
+      return _at(offset);
+    }
+
+    T& _at(const int offset) {
+      const unsigned int siz = (unsigned int)size();
+      return (*this)[offset<0?0:(unsigned int)offset>=siz?siz - 1:offset];
+    }
+
+    //! Access to a pixel value at a specified offset, using Neumann boundary conditions \const.
+    const T& at(const int offset) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "at(): Empty instance.",
+                                    cimg_instance);
+      return _at(offset);
+    }
+
+    const T& _at(const int offset) const {
+      const unsigned int siz = (unsigned int)size();
+      return (*this)[offset<0?0:(unsigned int)offset>=siz?siz - 1:offset];
+    }
+
+    //! Access to a pixel value, using Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Return a reference to the pixel value of the image instance located at (\c x,\c y,\c z,\c c),
+       or to a specified default value in case of out-of-bounds access along the X-axis.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c (\c x,\c y,\c z,\c c) is outside image bounds.
+       \note
+       - Similar to operator()(), except that an out-of-bounds access along the X-axis returns the specified value
+         \c out_value.
+       - Due to the additional boundary checking operation, this method is slower than operator()(). Use it when
+         you are \e not sure about the validity of the specified pixel coordinates.
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    T& atX(const int x, const int y, const int z, const int c, const T& out_value) {
+      return (x<0 || x>=width())?(cimg::temporary(out_value)=out_value):(*this)(x,y,z,c);
+    }
+
+    //! Access to a pixel value, using Dirichlet boundary conditions for the X-coordinate \const.
+    T atX(const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (x<0 || x>=width())?out_value:(*this)(x,y,z,c);
+    }
+
+    //! Access to a pixel value, using Neumann boundary conditions for the X-coordinate.
+    /**
+       Return a reference to the pixel value of the image instance located at (\c x,\c y,\c z,\c c),
+       or to the nearest pixel location in the image instance in case of out-of-bounds access along the X-axis.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Similar to at(int,int,int,int,const T), except that an out-of-bounds access returns the value of the
+         nearest pixel in the image instance, regarding the specified X-coordinate.
+       - Due to the additional boundary checking operation, this method is slower than operator()(). Use it when
+         you are \e not sure about the validity of the specified pixel coordinates.
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _at(int,int,int,int).
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+     **/
+    T& atX(const int x, const int y=0, const int z=0, const int c=0) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "atX(): Empty instance.",
+                                    cimg_instance);
+      return _atX(x,y,z,c);
+    }
+
+    T& _atX(const int x, const int y=0, const int z=0, const int c=0) {
+      return (*this)(x<0?0:(x>=width()?width() - 1:x),y,z,c);
+    }
+
+    //! Access to a pixel value, using Neumann boundary conditions for the X-coordinate \const.
+    const T& atX(const int x, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "atX(): Empty instance.",
+                                    cimg_instance);
+      return _atX(x,y,z,c);
+    }
+
+    const T& _atX(const int x, const int y=0, const int z=0, const int c=0) const {
+      return (*this)(x<0?0:(x>=width()?width() - 1:x),y,z,c);
+    }
+
+    //! Access to a pixel value, using Dirichlet boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to atX(int,int,int,int,const T), except that boundary checking is performed both on X and Y-coordinates.
+    **/
+    T& atXY(const int x, const int y, const int z, const int c, const T& out_value) {
+      return (x<0 || y<0 || x>=width() || y>=height())?(cimg::temporary(out_value)=out_value):(*this)(x,y,z,c);
+    }
+
+    //! Access to a pixel value, using Dirichlet boundary conditions for the X and Y coordinates \const.
+    T atXY(const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (x<0 || y<0 || x>=width() || y>=height())?out_value:(*this)(x,y,z,c);
+    }
+
+    //! Access to a pixel value, using Neumann boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to atX(int,int,int,int), except that boundary checking is performed both on X and Y-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _atXY(int,int,int,int).
+     **/
+    T& atXY(const int x, const int y, const int z=0, const int c=0) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "atXY(): Empty instance.",
+                                    cimg_instance);
+      return _atXY(x,y,z,c);
+    }
+
+    T& _atXY(const int x, const int y, const int z=0, const int c=0) {
+      return (*this)(x<0?0:(x>=width()?width() - 1:x), y<0?0:(y>=height()?height() - 1:y),z,c);
+    }
+
+    //! Access to a pixel value, using Neumann boundary conditions for the X and Y-co
