@@ -11398,3 +11398,171 @@ namespace cimg_library_suffixed {
     **/
     bool operator!=(const char *const expression) const {
       return !((*this)==expression);
+    }
+
+    //! Test if two images have different sizes or values.
+    /**
+       Return \c true if the image instance and the input image \c img have different dimensions or pixel values,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - Writing \c img1!=img2 is equivalent to \c !(img1==img2).
+    **/
+    template<typename t>
+    bool operator!=(const CImg<t>& img) const {
+      return !((*this)==img);
+    }
+
+    //! Construct an image list from two images.
+    /**
+       Return a new list of image (\c CImgList instance) containing exactly two elements:
+         - A copy of the image instance, at position [\c 0].
+         - A copy of the specified image \c img, at position [\c 1].
+
+       \param img Input image that will be the second image of the resulting list.
+       \note
+       - The family of operator,() is convenient to easily create list of images, but it is also \e quite \e slow
+         in practice (see warning below).
+       - Constructed lists contain no shared images. If image instance or input image \c img are shared, they are
+         inserted as new non-shared copies in the resulting list.
+       - The pixel type of the returned list may be a superset of the initial pixel type \c T, if necessary.
+       \warning
+       - Pipelining operator,() \c N times will perform \c N copies of the entire content of a (growing) image list.
+         This may become very expensive in terms of speed and used memory. You should avoid using this technique to
+         build a new CImgList instance from several images, if you are seeking for performance.
+         Fast insertions of images in an image list are possible with
+         CImgList<T>::insert(const CImg<t>&,unsigned int,bool) or move_to(CImgList<t>&,unsigned int).
+       \par Example
+       \code
+       const CImg<float>
+          img1("reference.jpg"),
+          img2 = img1.get_mirror('x'),
+          img3 = img2.get_blur(5);
+       const CImgList<float> list = (img1,img2); // Create list of two elements from 'img1' and 'img2'.
+       (list,img3).display();                    // Display image list containing copies of 'img1','img2' and 'img3'.
+       \endcode
+       \image html ref_operator_comma.jpg
+    **/
+    template<typename t>
+    CImgList<_cimg_Tt> operator,(const CImg<t>& img) const {
+      return CImgList<_cimg_Tt>(*this,img);
+    }
+
+    //! Construct an image list from image instance and an input image list.
+    /**
+       Return a new list of images (\c CImgList instance) containing exactly \c list.size() \c + \c 1 elements:
+         - A copy of the image instance, at position [\c 0].
+         - A copy of the specified image list \c list, from positions [\c 1] to [\c list.size()].
+
+       \param list Input image list that will be appended to the image instance.
+       \note
+       - Similar to operator,(const CImg<t>&) const, except that it takes an image list as an argument.
+    **/
+    template<typename t>
+    CImgList<_cimg_Tt> operator,(const CImgList<t>& list) const {
+      return CImgList<_cimg_Tt>(list,false).insert(*this,0);
+    }
+
+    //! Split image along specified axis.
+    /**
+       Return a new list of images (\c CImgList instance) containing the splitted components
+       of the instance image along the specified axis.
+       \param axis Splitting axis (can be '\c x','\c y','\c z' or '\c c')
+       \note
+       - Similar to get_split(char,int) const, with default second argument.
+       \par Example
+       \code
+       const CImg<unsigned char> img("reference.jpg"); // Load a RGB color image.
+       const CImgList<unsigned char> list = (img<'c'); // Get a list of its three R,G,B channels.
+       (img,list).display();
+       \endcode
+       \image html ref_operator_less.jpg
+    **/
+    CImgList<T> operator<(const char axis) const {
+      return get_split(axis);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //-------------------------------------
+
+    //! Return the type of image pixel values as a C string.
+    /**
+       Return a \c char* string containing the usual type name of the image pixel values
+       (i.e. a stringified version of the template parameter \c T).
+       \note
+       - The returned string may contain spaces (as in \c "unsigned char").
+       - If the pixel type \c T does not correspond to a registered type, the string <tt>"unknown"</tt> is returned.
+    **/
+    static const char* pixel_type() {
+      return cimg::type<T>::string();
+    }
+
+    //! Return the number of image columns.
+    /**
+       Return the image width, i.e. the image dimension along the X-axis.
+       \note
+       - The width() of an empty image is equal to \c 0.
+       - width() is typically equal to \c 1 when considering images as \e vectors for matrix calculations.
+       - width() returns an \c int, although the image width is internally stored as an \c unsigned \c int.
+         Using an \c int is safer and prevents arithmetic traps possibly encountered when doing calculations involving
+         \c unsigned \c int variables.
+         Access to the initial \c unsigned \c int variable is possible (though not recommended) by
+         <tt>(*this)._width</tt>.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return the number of image rows.
+    /**
+       Return the image height, i.e. the image dimension along the Y-axis.
+       \note
+       - The height() of an empty image is equal to \c 0.
+       - height() returns an \c int, although the image height is internally stored as an \c unsigned \c int.
+         Using an \c int is safer and prevents arithmetic traps possibly encountered when doing calculations involving
+         \c unsigned \c int variables.
+         Access to the initial \c unsigned \c int variable is possible (though not recommended) by
+         <tt>(*this)._height</tt>.
+    **/
+    int height() const {
+      return (int)_height;
+    }
+
+    //! Return the number of image slices.
+    /**
+       Return the image depth, i.e. the image dimension along the Z-axis.
+       \note
+       - The depth() of an empty image is equal to \c 0.
+       - depth() is typically equal to \c 1 when considering usual 2d images. When depth()\c > \c 1, the image
+         is said to be \e volumetric.
+       - depth() returns an \c int, although the image depth is internally stored as an \c unsigned \c int.
+         Using an \c int is safer and prevents arithmetic traps possibly encountered when doing calculations involving
+         \c unsigned \c int variables.
+         Access to the initial \c unsigned \c int variable is possible (though not recommended) by
+         <tt>(*this)._depth</tt>.
+    **/
+    int depth() const {
+      return (int)_depth;
+    }
+
+    //! Return the number of image channels.
+    /**
+       Return the number of image channels, i.e. the image dimension along the C-axis.
+       \note
+       - The spectrum() of an empty image is equal to \c 0.
+       - spectrum() is typically equal to \c 1 when considering scalar-valued images, to \c 3
+         for RGB-coded color images, and to \c 4 for RGBA-coded color images (with alpha-channel).
+         The number of channels of an image instance is not limited. The meaning of the pixel values is not linked
+         up to the number of channels (e.g. a 4-channel image may indifferently stands for a RGBA or CMYK color image).
+       - spectrum() returns an \c int, although the image spectrum is internally stored as an \c unsigned \c int.
+         Using an \c int is safer and prevents arithmetic traps possibly encountered when doing calculations involving
+         \c unsigned \c int variables.
+         Access to the initial \c unsigned \c int variable is possible (though not recommended) by
+         <tt>(*this)._spectrum</tt>.
+    **/
+    int spectrum() const {
+      return (
