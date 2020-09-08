@@ -12058,4 +12058,180 @@ namespace cimg_library_suffixed {
     **/
     Tfloat linear_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
       if (is_empty())
-        throw CImgInstanceException(_cimg_ins
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atX(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atX(fx,y,z,c);
+    }
+
+    Tfloat _linear_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx);
+      const unsigned int
+        x = (unsigned int)nfx;
+      const float
+        dx = nfx - x;
+      const unsigned int
+        nx = dx>0?x + 1:x;
+      const Tfloat
+        Ic = (Tfloat)(*this)(x,y,z,c), In = (Tfloat)(*this)(nx,y,z,c);
+      return Ic + dx*(In - Ic);
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int,const T) const, except that the linear interpolation and the
+       boundary checking are achieved both for X and Y-coordinates.
+    **/
+    Tfloat linear_atXY(const float fx, const float fy, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y;
+      const Tfloat
+        Icc = (Tfloat)atXY(x,y,z,c,out_value),  Inc = (Tfloat)atXY(nx,y,z,c,out_value),
+        Icn = (Tfloat)atXY(x,ny,z,c,out_value), Inn = (Tfloat)atXY(nx,ny,z,c,out_value);
+      return Icc + dx*(Inc - Icc + dy*(Icc + Inn - Icn - Inc)) + dy*(Icn - Icc);
+    }
+
+    //! Return pixel value, using linear interpolation and Neumann boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int) const, except that the linear interpolation and the boundary checking
+       are achieved both for X and Y-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _linear_atXY(float,float,int,int).
+    **/
+    Tfloat linear_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atXY(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atXY(fx,fy,z,c);
+    }
+
+    Tfloat _linear_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx),
+        nfy = fy<0?0:(fy>_height - 1?_height - 1:fy);
+      const unsigned int
+        x = (unsigned int)nfx,
+        y = (unsigned int)nfy;
+      const float
+        dx = nfx - x,
+        dy = nfy - y;
+      const unsigned int
+        nx = dx>0?x + 1:x,
+        ny = dy>0?y + 1:y;
+      const Tfloat
+        Icc = (Tfloat)(*this)(x,y,z,c),  Inc = (Tfloat)(*this)(nx,y,z,c),
+        Icn = (Tfloat)(*this)(x,ny,z,c), Inn = (Tfloat)(*this)(nx,ny,z,c);
+      return Icc + dx*(Inc - Icc + dy*(Icc + Inn - Icn - Inc)) + dy*(Icn - Icc);
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for the X,Y and Z-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int,const T) const, except that the linear interpolation and the
+       boundary checking are achieved both for X,Y and Z-coordinates.
+    **/
+    Tfloat linear_atXYZ(const float fx, const float fy, const float fz, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1,
+        z = (int)fz - (fz>=0?0:1), nz = z + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y,
+        dz = fz - z;
+      const Tfloat
+        Iccc = (Tfloat)atXYZ(x,y,z,c,out_value), Incc = (Tfloat)atXYZ(nx,y,z,c,out_value),
+        Icnc = (Tfloat)atXYZ(x,ny,z,c,out_value), Innc = (Tfloat)atXYZ(nx,ny,z,c,out_value),
+        Iccn = (Tfloat)atXYZ(x,y,nz,c,out_value), Incn = (Tfloat)atXYZ(nx,y,nz,c,out_value),
+        Icnn = (Tfloat)atXYZ(x,ny,nz,c,out_value), Innn = (Tfloat)atXYZ(nx,ny,nz,c,out_value);
+      return Iccc +
+        dx*(Incc - Iccc +
+            dy*(Iccc + Innc - Icnc - Incc +
+                dz*(Iccn + Innn + Icnc + Incc - Icnn - Incn - Iccc - Innc)) +
+            dz*(Iccc + Incn - Iccn - Incc)) +
+        dy*(Icnc - Iccc +
+            dz*(Iccc + Icnn - Iccn - Icnc)) +
+        dz*(Iccn - Iccc);
+    }
+
+    //! Return pixel value, using linear interpolation and Neumann boundary conditions for the X,Y and Z-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int) const, except that the linear interpolation and the boundary checking
+       are achieved both for X,Y and Z-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _linear_atXYZ(float,float,float,int).
+    **/
+    Tfloat linear_atXYZ(const float fx, const float fy=0, const float fz=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atXYZ(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atXYZ(fx,fy,fz,c);
+    }
+
+    Tfloat _linear_atXYZ(const float fx, const float fy=0, const float fz=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx),
+        nfy = fy<0?0:(fy>_height - 1?_height - 1:fy),
+        nfz = fz<0?0:(fz>_depth - 1?_depth - 1:fz);
+      const unsigned int
+        x = (unsigned int)nfx,
+        y = (unsigned int)nfy,
+        z = (unsigned int)nfz;
+      const float
+        dx = nfx - x,
+        dy = nfy - y,
+        dz = nfz - z;
+      const unsigned int
+        nx = dx>0?x + 1:x,
+        ny = dy>0?y + 1:y,
+        nz = dz>0?z + 1:z;
+      const Tfloat
+        Iccc = (Tfloat)(*this)(x,y,z,c), Incc = (Tfloat)(*this)(nx,y,z,c),
+        Icnc = (Tfloat)(*this)(x,ny,z,c), Innc = (Tfloat)(*this)(nx,ny,z,c),
+        Iccn = (Tfloat)(*this)(x,y,nz,c), Incn = (Tfloat)(*this)(nx,y,nz,c),
+        Icnn = (Tfloat)(*this)(x,ny,nz,c), Innn = (Tfloat)(*this)(nx,ny,nz,c);
+      return Iccc +
+        dx*(Incc - Iccc +
+            dy*(Iccc + Innc - Icnc - Incc +
+                dz*(Iccn + Innn + Icnc + Incc - Icnn - Incn - Iccc - Innc)) +
+            dz*(Iccc + Incn - Iccn - Incc)) +
+        dy*(Icnc - Iccc +
+            dz*(Iccc + Icnn - Iccn - Icnc)) +
+        dz*(Iccn - Iccc);
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for all X,Y,Z,C-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int,const T) const, except that the linear interpolation and the
+       boundary checking are achieved for all X,Y,Z and C-coordinates.
+    **/
+    Tfloat linear_atXYZC(const float fx, const float fy, const float fz, const float fc, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1,
+        z = (int)fz - (fz>=0?0:1), nz = z + 1,
+        c = (int)fc - (fc>=0?0:1), nc = c + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y,
+        dz = fz - z,
+        dc = fc - c;
+      const Tfloat
+        Icccc = (Tfloat)atXYZC(x,y,z,c,out_value), Inccc = (Tfloat)atXYZC(nx,y,z,c,out_value),
+        Icncc = (Tfloat)atXYZC(x,ny,z,c,out_value), Inncc = (Tfloat)atXYZC(nx,ny,z,c,out_value),
+        Iccnc = (Tfloat)atXYZC(x,y,nz,c,out_value), Incnc = (Tfloat)atXYZC(nx,y,nz,c,out_value),
+        Icnnc = (Tfloat)atXYZC(x,ny,nz,c,out_value), Innnc = (Tfloat)atXYZC(nx,ny,nz,c,out_value),
+        Icccn = (Tfloat)atXYZC(x,y,z,nc,out_value), Inccn = (Tfloat)atXYZC(nx,y,z,nc,out_value),
+        Icncn = (Tfloat)atXYZC(x,ny,z,nc,out_value), Inncn = (Tfloat)atXYZC(nx,ny,z,nc,out_value),
+   
