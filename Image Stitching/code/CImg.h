@@ -12234,4 +12234,145 @@ namespace cimg_library_suffixed {
         Icnnc = (Tfloat)atXYZC(x,ny,nz,c,out_value), Innnc = (Tfloat)atXYZC(nx,ny,nz,c,out_value),
         Icccn = (Tfloat)atXYZC(x,y,z,nc,out_value), Inccn = (Tfloat)atXYZC(nx,y,z,nc,out_value),
         Icncn = (Tfloat)atXYZC(x,ny,z,nc,out_value), Inncn = (Tfloat)atXYZC(nx,ny,z,nc,out_value),
-   
+        Iccnn = (Tfloat)atXYZC(x,y,nz,nc,out_value), Incnn = (Tfloat)atXYZC(nx,y,nz,nc,out_value),
+        Icnnn = (Tfloat)atXYZC(x,ny,nz,nc,out_value), Innnn = (Tfloat)atXYZC(nx,ny,nz,nc,out_value);
+      return Icccc +
+        dx*(Inccc - Icccc +
+            dy*(Icccc + Inncc - Icncc - Inccc +
+                dz*(Iccnc + Innnc + Icncc + Inccc - Icnnc - Incnc - Icccc - Inncc +
+                    dc*(Iccnn + Innnn + Icncn + Inccn + Icnnc + Incnc + Icccc + Inncc -
+                        Icnnn - Incnn - Icccn - Inncn - Iccnc - Innnc - Icncc - Inccc)) +
+                dc*(Icccn + Inncn + Icncc + Inccc - Icncn - Inccn - Icccc - Inncc)) +
+            dz*(Icccc + Incnc - Iccnc - Inccc +
+                dc*(Icccn + Incnn + Iccnc + Inccc - Iccnn - Inccn - Icccc - Incnc)) +
+            dc*(Icccc + Inccn - Inccc - Icccn)) +
+        dy*(Icncc - Icccc +
+            dz*(Icccc + Icnnc - Iccnc - Icncc +
+                dc*(Icccn + Icnnn + Iccnc + Icncc - Iccnn - Icncn - Icccc - Icnnc)) +
+            dc*(Icccc + Icncn - Icncc - Icccn)) +
+        dz*(Iccnc - Icccc +
+            dc*(Icccc + Iccnn - Iccnc - Icccn)) +
+        dc*(Icccn  -Icccc);
+    }
+
+    //! Return pixel value, using linear interpolation and Neumann boundary conditions for all X,Y,Z and C-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int) const, except that the linear interpolation and the boundary checking
+       are achieved for all X,Y,Z and C-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _linear_atXYZC(float,float,float,float).
+    **/
+    Tfloat linear_atXYZC(const float fx, const float fy=0, const float fz=0, const float fc=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atXYZC(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atXYZC(fx,fy,fz,fc);
+    }
+
+    Tfloat _linear_atXYZC(const float fx, const float fy=0, const float fz=0, const float fc=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx),
+        nfy = fy<0?0:(fy>_height - 1?_height - 1:fy),
+        nfz = fz<0?0:(fz>_depth - 1?_depth - 1:fz),
+        nfc = fc<0?0:(fc>_spectrum - 1?_spectrum - 1:fc);
+      const unsigned int
+        x = (unsigned int)nfx,
+        y = (unsigned int)nfy,
+        z = (unsigned int)nfz,
+        c = (unsigned int)nfc;
+      const float
+        dx = nfx - x,
+        dy = nfy - y,
+        dz = nfz - z,
+        dc = nfc - c;
+      const unsigned int
+        nx = dx>0?x + 1:x,
+        ny = dy>0?y + 1:y,
+        nz = dz>0?z + 1:z,
+        nc = dc>0?c + 1:c;
+      const Tfloat
+        Icccc = (Tfloat)(*this)(x,y,z,c), Inccc = (Tfloat)(*this)(nx,y,z,c),
+        Icncc = (Tfloat)(*this)(x,ny,z,c), Inncc = (Tfloat)(*this)(nx,ny,z,c),
+        Iccnc = (Tfloat)(*this)(x,y,nz,c), Incnc = (Tfloat)(*this)(nx,y,nz,c),
+        Icnnc = (Tfloat)(*this)(x,ny,nz,c), Innnc = (Tfloat)(*this)(nx,ny,nz,c),
+        Icccn = (Tfloat)(*this)(x,y,z,nc), Inccn = (Tfloat)(*this)(nx,y,z,nc),
+        Icncn = (Tfloat)(*this)(x,ny,z,nc), Inncn = (Tfloat)(*this)(nx,ny,z,nc),
+        Iccnn = (Tfloat)(*this)(x,y,nz,nc), Incnn = (Tfloat)(*this)(nx,y,nz,nc),
+        Icnnn = (Tfloat)(*this)(x,ny,nz,nc), Innnn = (Tfloat)(*this)(nx,ny,nz,nc);
+      return Icccc +
+        dx*(Inccc - Icccc +
+            dy*(Icccc + Inncc - Icncc - Inccc +
+                dz*(Iccnc + Innnc + Icncc + Inccc - Icnnc - Incnc - Icccc - Inncc +
+                    dc*(Iccnn + Innnn + Icncn + Inccn + Icnnc + Incnc + Icccc + Inncc -
+                        Icnnn - Incnn - Icccn - Inncn - Iccnc - Innnc - Icncc - Inccc)) +
+                dc*(Icccn + Inncn + Icncc + Inccc - Icncn - Inccn - Icccc - Inncc)) +
+            dz*(Icccc + Incnc - Iccnc - Inccc +
+                dc*(Icccn + Incnn + Iccnc + Inccc - Iccnn - Inccn - Icccc - Incnc)) +
+            dc*(Icccc + Inccn - Inccc - Icccn)) +
+        dy*(Icncc - Icccc +
+            dz*(Icccc + Icnnc - Iccnc - Icncc +
+                dc*(Icccn + Icnnn + Iccnc + Icncc - Iccnn - Icncn - Icccc - Icnnc)) +
+            dc*(Icccc + Icncn - Icncc - Icccn)) +
+        dz*(Iccnc - Icccc +
+            dc*(Icccc + Iccnn - Iccnc - Icccn)) +
+        dc*(Icccn - Icccc);
+    }
+
+    //! Return pixel value, using cubic interpolation and Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Return a cubicly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or a specified default value in case of out-of-bounds access along the X-axis.
+       The cubic interpolation uses Hermite splines.
+       \param fx d X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c (\c fx,\c y,\c z,\c c) is outside image bounds.
+       \note
+       - Similar to linear_atX(float,int,int,int,const T) const, except that the returned pixel value is
+         approximated by a \e cubic interpolation along the X-axis.
+       - The type of the returned pixel value is extended to \c float, if the pixel type \c T is not float-valued.
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    Tfloat cubic_atX(const float fx, const int y, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), px = x - 1, nx = x + 1, ax = x + 2;
+      const float
+        dx = fx - x;
+      const Tfloat
+        Ip = (Tfloat)atX(px,y,z,c,out_value), Ic = (Tfloat)atX(x,y,z,c,out_value),
+        In = (Tfloat)atX(nx,y,z,c,out_value), Ia = (Tfloat)atX(ax,y,z,c,out_value);
+      return Ic + 0.5f*(dx*(-Ip + In) + dx*dx*(2*Ip - 5*Ic + 4*In - Ia) + dx*dx*dx*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Similar to cubic_atX(float,int,int,int,const T) const, except that you can specify the authorized minimum
+       and maximum of the returned value.
+    **/
+    Tfloat cubic_atX(const float fx, const int y, const int z, const int c, const T& out_value,
+                     const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atX(fx,y,z,c,out_value);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Return pixel value, using cubic interpolation and Neumann boundary conditions for the X-coordinate.
+    /**
+       Return a cubicly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or the value of the nearest pixel location in the image instance in case of out-of-bounds access
+       along the X-axis. The cubic interpolation uses Hermite splines.
+       \param fx X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Similar to cubic_atX(float,int,int,int,const T) const, except that the returned pixel value is
+         approximated by a cubic interpolation along the X-axis.
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _cubic_atX(float,int,int,int).
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so
