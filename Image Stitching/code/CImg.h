@@ -13119,4 +13119,182 @@ namespace cimg_library_suffixed {
     /**
        Test if is_sameXY(unsigned int,unsigned int) const and is_sameZ(unsigned int) const are both verified.
     **/
-    bool is_sameXYZ(const unsigned int size_x, const unsigned int size_y, const unsigned int size
+    bool is_sameXYZ(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z) const {
+      return is_sameXY(size_x,size_y) && _depth==size_z;
+    }
+
+    //! Test if image width, height and depth are the same as that of another image.
+    /**
+       Test if is_sameXY(const CImg<t>&) const and is_sameZ(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYZ(const CImg<t>& img) const {
+      return is_sameXYZ(img._width,img._height,img._depth);
+    }
+
+    //! Test if image width, height and spectrum are equal to specified values.
+    /**
+       Test if is_sameXY(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameXYC(const unsigned int size_x, const unsigned int size_y, const unsigned int size_c) const {
+      return is_sameXY(size_x,size_y) && _spectrum==size_c;
+    }
+
+    //! Test if image width, height and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXY(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYC(const CImg<t>& img) const {
+      return is_sameXYC(img._width,img._height,img._spectrum);
+    }
+
+    //! Test if image width, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameXZ(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameXZC(const unsigned int size_x, const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameXZ(size_x,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image width, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXZC(const CImg<t>& img) const {
+      return is_sameXZC(img._width,img._depth,img._spectrum);
+    }
+
+    //! Test if image height, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameYZ(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameYZC(const unsigned int size_y, const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameYZ(size_y,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image height, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameYZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameYZC(const CImg<t>& img) const {
+      return is_sameYZC(img._height,img._depth,img._spectrum);
+    }
+
+    //! Test if image width, height, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameXYZ(unsigned int,unsigned int,unsigned int) const and is_sameC(unsigned int) const are both
+       verified.
+    **/
+    bool is_sameXYZC(const unsigned int size_x, const unsigned int size_y,
+                     const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameXYZ(size_x,size_y,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image width, height, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXYZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYZC(const CImg<t>& img) const {
+      return is_sameXYZC(img._width,img._height,img._depth,img._spectrum);
+    }
+
+    //! Test if specified coordinates are inside image bounds.
+    /**
+       Return \c true if pixel located at (\c x,\c y,\c z,\c c) is inside bounds of the image instance,
+       and \c false otherwise.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Return \c true only if all these conditions are verified:
+         - The image instance is \e not empty.
+         - <tt>0<=x<=\ref width() - 1</tt>.
+         - <tt>0<=y<=\ref height() - 1</tt>.
+         - <tt>0<=z<=\ref depth() - 1</tt>.
+         - <tt>0<=c<=\ref spectrum() - 1</tt>.
+    **/
+    bool containsXYZC(const int x, const int y=0, const int z=0, const int c=0) const {
+      return !is_empty() && x>=0 && x<width() && y>=0 && y<height() && z>=0 && z<depth() && c>=0 && c<spectrum();
+    }
+
+    //! Test if pixel value is inside image bounds and get its X,Y,Z and C-coordinates.
+    /**
+       Return \c true, if specified reference refers to a pixel value inside bounds of the image instance,
+       and \c false otherwise.
+       \param pixel Reference to pixel value to test.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \param[out] c C-coordinate of the pixel value, if test succeeds.
+       \note
+       - Useful to convert an offset to a buffer value into pixel value coordinates:
+       \code
+       const CImg<float> img(100,100,1,3);      // Construct a 100x100 RGB color image.
+       const unsigned long offset = 1249;       // Offset to the pixel (49,12,0,0).
+       unsigned int x,y,z,c;
+       if (img.contains(img[offset],x,y,z,c)) { // Convert offset to (x,y,z,c) coordinates.
+         std::printf("Offset %u refers to pixel located at (%u,%u,%u,%u).\n",
+                     offset,x,y,z,c);
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y, t& z, t& c) const {
+      const ulongT wh = (ulongT)_width*_height, whd = wh*_depth, siz = whd*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = (ulongT)(ppixel - _data);
+      const ulongT nc = off/whd;
+      off%=whd;
+      const ulongT nz = off/wh;
+      off%=wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny; z = (t)nz; c = (t)nc;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X,Y and Z-coordinates.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X,Y and Z-coordinates are set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y, t& z) const {
+      const ulongT wh = (ulongT)_width*_height, whd = wh*_depth, siz = whd*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = ((ulongT)(ppixel - _data))%whd;
+      const ulongT nz = off/wh;
+      off%=wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny; z = (t)nz;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X and Y-coordinates.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X and Y-coordinates are set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y) const {
+      const ulongT wh = (ulongT)_width*_height, siz = wh*_depth*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = ((unsigned int)(ppixel - _data))%wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X-coordinate.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X-coordinate is set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x) const {
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data ||
