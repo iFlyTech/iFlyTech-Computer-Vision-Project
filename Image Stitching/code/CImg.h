@@ -13297,4 +13297,164 @@ namespace cimg_library_suffixed {
     template<typename t>
     bool contains(const T& pixel, t& x) const {
       const T *const ppixel = &pixel;
-      if (is_empty() || ppixel<_data ||
+      if (is_empty() || ppixel<_data || ppixel>=_data + size()) return false;
+      x = (t)(((ulongT)(ppixel - _data))%_width);
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that no pixel coordinates are set.
+    **/
+    bool contains(const T& pixel) const {
+      const T *const ppixel = &pixel;
+      return !is_empty() && ppixel>=_data && ppixel<_data + size();
+    }
+
+    //! Test if pixel buffers of instance and input images overlap.
+    /**
+       Return \c true, if pixel buffers attached to image instance and input image \c img overlap,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - Buffer overlapping may happen when manipulating \e shared images.
+       - If two image buffers overlap, operating on one of the image will probably modify the other one.
+       - Most of the time, \c CImg<T> instances are \e non-shared and do not overlap between each others.
+       \par Example
+       \code
+       const CImg<float>
+         img1("reference.jpg"),             // Load RGB-color image.
+         img2 = img1.get_shared_channel(1); // Get shared version of the green channel.
+       if (img1.is_overlapped(img2)) {      // Test succeeds, 'img1' and 'img2' overlaps.
+         std::printf("Buffers overlap!\n");
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool is_overlapped(const CImg<t>& img) const {
+      const ulongT csiz = size(), isiz = img.size();
+      return !((void*)(_data + csiz)<=(void*)img._data || (void*)_data>=(void*)(img._data + isiz));
+    }
+
+    //! Test if the set {\c *this,\c primitives,\c colors,\c opacities} defines a valid 3d object.
+    /**
+       Return \c true is the 3d object represented by the set {\c *this,\c primitives,\c colors,\c opacities} defines a
+       valid 3d object, and \c false otherwise. The vertex coordinates are defined by the instance image.
+       \param primitives List of primitives of the 3d object.
+       \param colors List of colors of the 3d object.
+       \param opacities List (or image) of opacities of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+       \param[out] error_message C-string to contain the error message, if the test does not succeed.
+       \note
+       - Set \c full_checking to \c false to speed-up the 3d object checking. In this case, only the size of
+         each 3d object component is checked.
+       - Size of the string \c error_message should be at least 128-bytes long, to be able to contain the error message.
+    **/
+    template<typename tp, typename tc, typename to>
+    bool is_object3d(const CImgList<tp>& primitives,
+                     const CImgList<tc>& colors,
+                     const to& opacities,
+                     const bool full_check=true,
+                     char *const error_message=0) const {
+      if (error_message) *error_message = 0;
+
+      // Check consistency for the particular case of an empty 3d object.
+      if (is_empty()) {
+        if (primitives || colors || opacities) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines no vertices but %u primitives, "
+                                          "%u colors and %lu opacities",
+                                          _width,primitives._width,primitives._width,
+                                          colors._width,(unsigned long)opacities.size());
+          return false;
+        }
+        return true;
+      }
+
+      // Check consistency of vertices.
+      if (_height!=3 || _depth>1 || _spectrum>1) { // Check vertices dimensions.
+        if (error_message) cimg_sprintf(error_message,
+                                        "3d object (%u,%u) has invalid vertex dimensions (%u,%u,%u,%u)",
+                                        _width,primitives._width,_width,_height,_depth,_spectrum);
+        return false;
+      }
+      if (colors._width>primitives._width + 1) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "3d object (%u,%u) defines %u colors",
+                                        _width,primitives._width,colors._width);
+        return false;
+      }
+      if (opacities.size()>primitives._width) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "3d object (%u,%u) defines %lu opacities",
+                                        _width,primitives._width,(unsigned long)opacities.size());
+        return false;
+      }
+      if (!full_check) return true;
+
+      // Check consistency of primitives.
+      cimglist_for(primitives,l) {
+        const CImg<tp>& primitive = primitives[l];
+        const unsigned int psiz = primitive.size();
+        switch (psiz) {
+        case 1 : { // Point.
+          const unsigned int i0 = (unsigned int)primitive(0);
+          if (i0>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indice %u in "
+                                            "point primitive [%u]",
+                                            _width,primitives._width,i0,l);
+            return false;
+          }
+        } break;
+        case 5 : { // Sphere.
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          if (i0>=_width || i1>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "sphere primitive [%u]",
+                                            _width,primitives._width,i0,i1,l);
+            return false;
+          }
+        } break;
+        case 2 : // Segment.
+        case 6 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          if (i0>=_width || i1>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "segment primitive [%u]",
+                                            _width,primitives._width,i0,i1,l);
+            return false;
+          }
+        } break;
+        case 3 : // Triangle.
+        case 9 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2);
+          if (i0>=_width || i1>=_width || i2>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u,%u) in "
+                                            "triangle primitive [%u]",
+                                            _width,primitives._width,i0,i1,i2,l);
+            return false;
+          }
+        } break;
+        case 4 : // Quadrangle.
+        case 12 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2),
+            i3 = (unsigned int)primitive(3);
+          if (i0>=_width || i1>=_width || i2>=_width || i3>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u,%u,%u) in "
+                                            "quadrangle primitive [%u]",
+    
