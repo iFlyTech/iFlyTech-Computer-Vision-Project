@@ -13626,4 +13626,170 @@ namespace cimg_library_suffixed {
         } break;
         case 4 : case 12 : { // Quadrangle.
           const unsigned int
-            i0 = cimg::float2uin
+            i0 = cimg::float2uint((float)*(ptrs++)),
+            i1 = cimg::float2uint((float)*(ptrs++)),
+            i2 = cimg::float2uint((float)*(ptrs++)),
+            i3 = cimg::float2uint((float)*(ptrs++));
+          if (nb_inds==12) ptrs+=8;
+          if (i0>=nb_points || i1>=nb_points || i2>=nb_points || i3>=nb_points) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "CImg3d (%u,%u) refers to invalid vertex indices (%u,%u,%u,%u) in "
+                                            "quadrangle primitive [%u]",
+                                            nb_points,nb_primitives,i0,i1,i2,i3,p);
+            return false;
+          }
+        } break;
+        default :
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) defines an invalid primitive [%u] of size %u",
+                                          nb_points,nb_primitives,p,nb_inds);
+          return false;
+        }
+        if (ptrs>ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) has incomplete primitive data for primitive [%u], "
+                                          "%u values missing",
+                                          nb_points,nb_primitives,p,(unsigned int)(ptrs - ptre));
+          return false;
+        }
+      }
+
+      // Check consistency of color data.
+      if (ptrs==ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) defines no color/texture data",
+                                        nb_points,nb_primitives);
+        return false;
+      }
+      for (unsigned int c = 0; c<nb_primitives; ++c) {
+        if (*(ptrs++)!=(T)-128) ptrs+=2;
+        else if ((ptrs+=3)<ptre) {
+          const unsigned int
+            w = (unsigned int)*(ptrs - 3),
+            h = (unsigned int)*(ptrs - 2),
+            s = (unsigned int)*(ptrs - 1);
+          if (!h && !s) {
+            if (w>=c) {
+              if (error_message) cimg_sprintf(error_message,
+                                              "CImg3d (%u,%u) refers to invalid shared sprite/texture indice %u "
+                                              "for primitive [%u]",
+                                              nb_points,nb_primitives,w,c);
+              return false;
+            }
+          } else ptrs+=w*h*s;
+        }
+        if (ptrs>ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) has incomplete color/texture data for primitive [%u], "
+                                          "%u values missing",
+                                          nb_points,nb_primitives,c,(unsigned int)(ptrs - ptre));
+          return false;
+        }
+      }
+
+      // Check consistency of opacity data.
+      if (ptrs==ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) defines no opacity data",
+                                        nb_points,nb_primitives);
+        return false;
+      }
+      for (unsigned int o = 0; o<nb_primitives; ++o) {
+        if (*(ptrs++)==(T)-128 && (ptrs+=3)<ptre) {
+          const unsigned int
+            w = (unsigned int)*(ptrs - 3),
+            h = (unsigned int)*(ptrs - 2),
+            s = (unsigned int)*(ptrs - 1);
+          if (!h && !s) {
+            if (w>=o) {
+              if (error_message) cimg_sprintf(error_message,
+                                              "CImg3d (%u,%u) refers to invalid shared opacity indice %u "
+                                              "for primitive [%u]",
+                                              nb_points,nb_primitives,w,o);
+              return false;
+            }
+          } else ptrs+=w*h*s;
+        }
+        if (ptrs>ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) has incomplete opacity data for primitive [%u]",
+                                          nb_points,nb_primitives,o);
+          return false;
+        }
+      }
+
+      // Check end of data.
+      if (ptrs<ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) contains %u value%s more than expected",
+                                        nb_points,nb_primitives,(unsigned int)(ptre - ptrs),(ptre - ptrs)>1?"s":"");
+        return false;
+      }
+      return true;
+    }
+
+    static bool _is_CImg3d(const T val, const char c) {
+      return val>=(T)c && val<(T)(c + 1);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Mathematical Functions
+    //@{
+    //-------------------------------------
+
+    // Define the math formula parser/compiler and expression evaluator.
+    struct _cimg_math_parser {
+      CImg<doubleT> mem;
+      CImg<intT> memtype;
+      CImgList<ulongT> _code, &code;
+      CImg<ulongT> opcode;
+      const CImg<ulongT> *p_code_begin, *p_code_end, *p_code;
+
+      CImg<charT> expr, pexpr;
+      const CImg<T>& imgin;
+      const CImgList<T>& listin;
+      CImg<T> &imgout;
+      CImgList<T>& listout;
+
+      CImg<doubleT> _img_stats, &img_stats;
+      CImgList<doubleT> _list_stats, &list_stats, _list_median, &list_median;
+      CImg<uintT> mem_img_stats;
+
+      CImg<uintT> level, variable_pos, reserved_label;
+      CImgList<charT> variable_def, function_def, function_body;
+      char *user_function;
+
+      unsigned int mempos, mem_img_median, debug_indent, init_size, result_dim;
+      bool is_parallelizable, need_input_copy;
+      double *result;
+      const char *const calling_function, *s_op, *ss_op;
+      typedef double (*mp_func)(_cimg_math_parser&);
+
+#define _cimg_mp_is_constant(arg) (memtype[arg]==1) // Is constant?
+#define _cimg_mp_is_scalar(arg) (memtype[arg]<2) // Is scalar?
+#define _cimg_mp_is_temp(arg) (!memtype[arg]) // Is temporary scalar?
+#define _cimg_mp_is_variable(arg) (memtype[arg]==-1) // Is scalar variable?
+#define _cimg_mp_is_vector(arg) (memtype[arg]>1) // Is vector?
+#define _cimg_mp_vector_size(arg) (_cimg_mp_is_scalar(arg)?0U:(unsigned int)memtype[arg] - 1) // Vector size
+#define _cimg_mp_calling_function calling_function_s()._data
+#define _cimg_mp_op(s) s_op = s; ss_op = ss
+#define _cimg_mp_check_type(arg,n_arg,mode,N) check_type(arg,n_arg,mode,N,ss,se,saved_char)
+#define _cimg_mp_check_constant(arg,n_arg,is_strict) check_constant(arg,n_arg,is_strict,ss,se,saved_char)
+#define _cimg_mp_check_matrix_square(arg,n_arg) check_matrix_square(arg,n_arg,ss,se,saved_char)
+#define _cimg_mp_check_vector0(dim) check_vector0(dim,ss,se,saved_char)
+#define _cimg_mp_check_list(is_out) check_list(is_out,ss,se,saved_char)
+#define _cimg_mp_defunc(mp) (*(mp_func)(*(mp).opcode))(mp)
+#define _cimg_mp_return(x) { *se = saved_char; s_op = previous_s_op; ss_op = previous_ss_op; return x; }
+#define _cimg_mp_constant(val) _cimg_mp_return(constant((double)(val)))
+#define _cimg_mp_scalar0(op) _cimg_mp_return(scalar0(op))
+#define _cimg_mp_scalar1(op,i1) _cimg_mp_return(scalar1(op,i1))
+#define _cimg_mp_scalar2(op,i1,i2) _cimg_mp_return(scalar2(op,i1,i2))
+#define _cimg_mp_scalar3(op,i1,i2,i3) _cimg_mp_return(scalar3(op,i1,i2,i3))
+#define _cimg_mp_scalar6(op,i1,i2,i3,i4,i5,i6) _cimg_mp_return(scalar6(op,i1,i2,i3,i4,i5,i6))
+#define _cimg_mp_scalar7(op,i1,i2,i3,i4,i5,i6,i7) _cimg_mp_return(scalar7(op,i1,i2,i3,i4,i5,i6,i7))
+#define _cimg_mp_vector1_v(op,i1) _cimg_mp_return(vector1_v(op,i1))
+#define _cimg_mp_vector2_sv(op,i1,i2) _cimg_mp_return(vector2_sv(op,i1,i2))
+#define _cimg_mp_vector2_vs(op,i1,i2) _cimg_mp_return(vector2_vs(op,i1,i2))
+#define _cimg_mp_vector2_
