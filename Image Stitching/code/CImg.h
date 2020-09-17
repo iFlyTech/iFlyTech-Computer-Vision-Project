@@ -13457,4 +13457,173 @@ namespace cimg_library_suffixed {
             if (error_message) cimg_sprintf(error_message,
                                             "3d object (%u,%u) refers to invalid vertex indices (%u,%u,%u,%u) in "
                                             "quadrangle primitive [%u]",
-    
+                                            _width,primitives._width,i0,i1,i2,i3,l);
+            return false;
+          }
+        } break;
+        default :
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines an invalid primitive [%u] of size %u",
+                                          _width,primitives._width,l,(unsigned int)psiz);
+          return false;
+        }
+      }
+
+      // Check consistency of colors.
+      cimglist_for(colors,c) {
+        const CImg<tc>& color = colors[c];
+        if (!color) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines no color for primitive [%u]",
+                                          _width,primitives._width,c);
+          return false;
+        }
+      }
+
+      // Check consistency of light texture.
+      if (colors._width>primitives._width) {
+        const CImg<tc> &light = colors.back();
+        if (!light || light._depth>1) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines an invalid light texture (%u,%u,%u,%u)",
+                                          _width,primitives._width,light._width,
+                                          light._height,light._depth,light._spectrum);
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    //! Test if image instance represents a valid serialization of a 3d object.
+    /**
+       Return \c true if the image instance represents a valid serialization of a 3d object, and \c false otherwise.
+       \param full_check Tells if full checking of the instance must be performed.
+       \param[out] error_message C-string to contain the error message, if the test does not succeed.
+       \note
+       - Set \c full_check to \c false to speed-up the 3d object checking. In this case, only the size of
+         each 3d object component is checked.
+       - Size of the string \c error_message should be at least 128-bytes long, to be able to contain the error message.
+    **/
+    bool is_CImg3d(const bool full_check=true, char *const error_message=0) const {
+      if (error_message) *error_message = 0;
+
+      // Check instance dimension and header.
+      if (_width!=1 || _height<8 || _depth!=1 || _spectrum!=1) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d has invalid dimensions (%u,%u,%u,%u)",
+                                        _width,_height,_depth,_spectrum);
+        return false;
+      }
+      const T *ptrs = _data, *const ptre = end();
+      if (!_is_CImg3d(*(ptrs++),'C') || !_is_CImg3d(*(ptrs++),'I') || !_is_CImg3d(*(ptrs++),'m') ||
+          !_is_CImg3d(*(ptrs++),'g') || !_is_CImg3d(*(ptrs++),'3') || !_is_CImg3d(*(ptrs++),'d')) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d header not found");
+        return false;
+      }
+      const unsigned int
+        nb_points = cimg::float2uint((float)*(ptrs++)),
+        nb_primitives = cimg::float2uint((float)*(ptrs++));
+
+      // Check consistency of number of vertices / primitives.
+      if (!full_check) {
+        const ulongT minimal_size = 8UL + 3*nb_points + 6*nb_primitives;
+        if (_data + minimal_size>ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) has only %lu values, while at least %lu values were expected",
+                                          nb_points,nb_primitives,size(),minimal_size);
+          return false;
+        }
+      }
+
+      // Check consistency of vertex data.
+      if (!nb_points) {
+        if (nb_primitives) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) defines no vertices but %u primitives",
+                                          nb_points,nb_primitives,nb_primitives);
+          return false;
+        }
+        if (ptrs!=ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) is an empty object but contains %u value%s "
+                                          "more than expected",
+                                          nb_points,nb_primitives,(unsigned int)(ptre - ptrs),(ptre - ptrs)>1?"s":"");
+          return false;
+        }
+        return true;
+      }
+      if (ptrs + 3*nb_points>ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) defines only %u vertices data",
+                                        nb_points,nb_primitives,(unsigned int)(ptre - ptrs)/3);
+        return false;
+      }
+      ptrs+=3*nb_points;
+
+      // Check consistency of primitive data.
+      if (ptrs==ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) defines %u vertices but no primitive",
+                                        nb_points,nb_primitives,nb_points);
+        return false;
+      }
+
+      if (!full_check) return true;
+
+      for (unsigned int p = 0; p<nb_primitives; ++p) {
+        const unsigned int nb_inds = (unsigned int)*(ptrs++);
+        switch (nb_inds) {
+        case 1 : { // Point.
+          const unsigned int i0 = cimg::float2uint((float)*(ptrs++));
+          if (i0>=nb_points) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "CImg3d (%u,%u) refers to invalid vertex indice %u in point primitive [%u]",
+                                            nb_points,nb_primitives,i0,p);
+            return false;
+          }
+        } break;
+        case 5 : { // Sphere.
+          const unsigned int
+            i0 = cimg::float2uint((float)*(ptrs++)),
+            i1 = cimg::float2uint((float)*(ptrs++));
+          ptrs+=3;
+          if (i0>=nb_points || i1>=nb_points) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "CImg3d (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "sphere primitive [%u]",
+                                            nb_points,nb_primitives,i0,i1,p);
+            return false;
+          }
+        } break;
+        case 2 : case 6 : { // Segment.
+          const unsigned int
+            i0 = cimg::float2uint((float)*(ptrs++)),
+            i1 = cimg::float2uint((float)*(ptrs++));
+          if (nb_inds==6) ptrs+=4;
+          if (i0>=nb_points || i1>=nb_points) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "CImg3d (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "segment primitive [%u]",
+                                            nb_points,nb_primitives,i0,i1,p);
+            return false;
+          }
+        } break;
+        case 3 : case 9 : { // Triangle.
+          const unsigned int
+            i0 = cimg::float2uint((float)*(ptrs++)),
+            i1 = cimg::float2uint((float)*(ptrs++)),
+            i2 = cimg::float2uint((float)*(ptrs++));
+          if (nb_inds==9) ptrs+=6;
+          if (i0>=nb_points || i1>=nb_points || i2>=nb_points) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "CImg3d (%u,%u) refers to invalid vertex indices (%u,%u,%u) in "
+                                            "triangle primitive [%u]",
+                                            nb_points,nb_primitives,i0,i1,i2,p);
+            return false;
+          }
+        } break;
+        case 4 : case 12 : { // Quadrangle.
+          const unsigned int
+            i0 = cimg::float2uin
