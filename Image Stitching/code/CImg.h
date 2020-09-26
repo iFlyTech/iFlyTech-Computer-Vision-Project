@@ -14387,4 +14387,145 @@ namespace cimg_library_suffixed {
                   while (*ns && *ns<=' ') ++ns;
                   if (!is_sth || s2==s3 || (*ns!=',' && ns!=s1)) {
                     *se = saved_char; cimg::strellipsize(variable_name,64); cimg::strellipsize(expr,64);
-                    throw CImgArgumentException("[_cimg_math_p
+                    throw CImgArgumentException("[_cimg_math_parser] "
+                                                "CImg<%s>::%s: %s: %s name specified for argument %u when defining "
+                                                "function '%s()', in expression '%s%s%s'.",
+                                                pixel_type(),_cimg_mp_calling_function,s_op,
+                                                is_sth?"Empty":"Invalid",p1,
+                                                variable_name._data,
+                                                (ss - 4)>expr._data?"...":"",
+                                                (ss - 4)>expr._data?ss - 4:expr._data,
+                                                se<&expr.back()?"...":"");
+                  }
+                  if (ns==s1 || *ns==',') { // New argument found
+                    *s3 = 0;
+                    p2 = (unsigned int)(s3 - s2); // Argument length
+                    p3 = function_body[0]._width - p2 + 1; // Related to copy length
+                    for (ps = std::strstr(function_body[0],s2); ps; ps = std::strstr(ps,s2)) { // Replace by arg number
+                      if (!((ps>function_body[0]._data && is_varchar(*(ps - 1))) ||
+                            (ps + p2<function_body[0].end() && is_varchar(*(ps + p2))))) {
+                        *(ps++) = (char)p1;
+                        if (p2>1) {
+                          std::memmove(ps,ps + p2 - 1,function_body[0]._data + p3 - ps);
+                          function_body[0]._width-=p2 - 1;
+                        }
+                      } else ++ps;
+                    }
+                  }
+                }
+                // Store number of arguments
+                function_def[0].resize(function_def[0]._width + 1,1,1,1,0).back() = (char)(p1 - 1);
+                _cimg_mp_return(28);
+              }
+            }
+
+            // Check if the variable name could be valid. If not, this is probably an lvalue assignment.
+            is_sth = true; // is_valid_variable_name?
+            if (*variable_name>='0' && *variable_name<='9') is_sth = false;
+            else for (ns = variable_name._data; *ns; ++ns)
+                   if (!is_varchar(*ns)) { is_sth = false; break; }
+
+            // Assign variable (direct).
+            if (is_sth) {
+              if (variable_name[1] && !variable_name[2]) { // Two-chars variable
+                c1 = variable_name[0];
+                c2 = variable_name[1];
+                if (c1=='w' && c2=='h') variable_name.fill((char)0,(char)0); // wh
+                else if (c1=='p' && c2=='i') variable_name.fill(3,0); // pi
+                else if (c1=='i') {
+                  if (c2>='0' && c2<='9') variable_name.fill(19 + c2 - '0',0); // i0...i9
+                  else if (c2=='m') variable_name.fill(4,0); // im
+                  else if (c2=='M') variable_name.fill(5,0); // iM
+                  else if (c2=='a') variable_name.fill(6,0); // ia
+                  else if (c2=='v') variable_name.fill(7,0); // iv
+                  else if (c2=='s') variable_name.fill(8,0); // is
+                  else if (c2=='p') variable_name.fill(9,0); // ip
+                  else if (c2=='c') variable_name.fill(10,0); // ic
+                } else if (c2=='m') {
+                  if (c1=='x') variable_name.fill(11,0); // xm
+                  else if (c1=='y') variable_name.fill(12,0); // ym
+                  else if (c1=='z') variable_name.fill(13,0); // zm
+                  else if (c1=='c') variable_name.fill(14,0); // cm
+                } else if (c2=='M') {
+                  if (c1=='x') variable_name.fill(15,0); // xM
+                  else if (c1=='y') variable_name.fill(16,0); // yM
+                  else if (c1=='z') variable_name.fill(17,0); // zM
+                  else if (c1=='c') variable_name.fill(18,0); // cM
+                }
+              } else if (variable_name[1] && variable_name[2] && !variable_name[3]) { // Three-chars variable
+                c1 = variable_name[0];
+                c2 = variable_name[1];
+                c3 = variable_name[2];
+                if (c1=='w' && c2=='h' && c3=='d') variable_name.fill(1,0); // whd
+              } else if (variable_name[1] && variable_name[2] && variable_name[3] &&
+                         !variable_name[4]) { // Four-chars variable
+                c1 = variable_name[0];
+                c2 = variable_name[1];
+                c3 = variable_name[2];
+                c4 = variable_name[3];
+                if (c1=='w' && c2=='h' && c3=='d' && c4=='s') variable_name.fill(2,0); // whds
+              } else if (!std::strcmp(variable_name,"interpolation")) variable_name.fill(29,0);
+              else if (!std::strcmp(variable_name,"boundary")) variable_name.fill(30,0);
+
+              arg1 = ~0U;
+              arg2 = compile(s + 1,se,depth1,0);
+              if (!variable_name[1]) // One-char variable, or variable in reserved_labels
+                arg1 = reserved_label[*variable_name];
+              else // Multi-char variable name : check for existing variable with same name
+                cimglist_for(variable_def,i)
+                  if (!std::strcmp(variable_name,variable_def[i])) { arg1 = variable_pos[i]; break; }
+
+              if (arg1==~0U || arg1<=_cimg_mp_c) { // Create new variable
+                if (_cimg_mp_is_vector(arg2)) { // Vector variable
+                  arg1 = vector_copy(arg2);
+                  set_variable_vector(arg1);
+                } else { // Scalar variable
+                  arg1 = scalar1(mp_copy,arg2);
+                  memtype[arg1] = -1;
+                }
+
+                if (!variable_name[1]) reserved_label[*variable_name] = arg1;
+                else {
+                  if (variable_def._width>=variable_pos._width) variable_pos.resize(-200,1,1,1,0);
+                  variable_pos[variable_def._width] = arg1;
+                  variable_name.move_to(variable_def);
+                }
+
+              } else { // Variable already exists -> assign a new value
+                _cimg_mp_check_type(arg2,2,_cimg_mp_is_vector(arg1)?3:1,_cimg_mp_vector_size(arg1));
+                if (_cimg_mp_is_vector(arg1)) { // Vector
+                  if (_cimg_mp_is_vector(arg2)) // From vector
+                    CImg<ulongT>::vector((ulongT)mp_vector_copy,arg1,arg2,(ulongT)_cimg_mp_vector_size(arg1)).
+                      move_to(code);
+                  else // From scalar
+                    CImg<ulongT>::vector((ulongT)mp_vector_init,arg1,(ulongT)_cimg_mp_vector_size(arg1),arg2).
+                      move_to(code);
+                } else // Scalar
+                  CImg<ulongT>::vector((ulongT)mp_copy,arg1,arg2).move_to(code);
+              }
+              _cimg_mp_return(arg1);
+            }
+
+            // Assign lvalue (variable name was not valid).
+            is_sth = (bool)std::strchr(variable_name,'?'); // Contains_ternary_operator?
+            if (is_sth) break; // Do nothing and make ternary operator prioritary over assignment
+
+            if (l_variable_name>2 && (std::strchr(variable_name,'(') || std::strchr(variable_name,'['))) {
+              ref.assign(7);
+              arg1 = compile(ss,s,depth1,ref); // Lvalue slot
+              arg2 = compile(s + 1,se,depth1,0); // Value to assign
+
+              if (*ref==1) { // Vector value (scalar): V[k] = scalar
+                _cimg_mp_check_type(arg2,2,1,0);
+                arg3 = ref[1]; // Vector slot
+                arg4 = ref[2]; // Index
+                if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+                CImg<ulongT>::vector((ulongT)mp_vector_set_off,arg2,arg3,(ulongT)_cimg_mp_vector_size(arg3),arg4,arg2).
+                  move_to(code);
+                _cimg_mp_return(arg2);
+              }
+
+              if (*ref==2) { // Image value (scalar): i/j[_#ind,off] = scalar
+                _cimg_mp_check_type(arg2,2,1,0);
+                is_parallelizable = false;
+  
