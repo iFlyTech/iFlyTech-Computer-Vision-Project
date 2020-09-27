@@ -14969,4 +14969,125 @@ namespace cimg_library_suffixed {
           }
 
         for (s = se3, ns = se2; s>ss; --s, --ns)
-          if (*s=='!' && *ns=='=' && level[s - expr._data]==clevel) 
+          if (*s=='!' && *ns=='=' && level[s - expr._data]==clevel) { // Not equal to ('!=')
+            _cimg_mp_op("Operator '!='");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_neq,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_neq,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_neq,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]!=mem[arg2]);
+            _cimg_mp_scalar2(mp_neq,arg1,arg2);
+          }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='=' && *ns=='=' && level[s - expr._data]==clevel) { // Equal to ('==')
+            _cimg_mp_op("Operator '=='");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_eq,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_eq,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_eq,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]==mem[arg2]);
+            _cimg_mp_scalar2(mp_eq,arg1,arg2);
+          }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='<' && *ns=='=' && level[s - expr._data]==clevel) { // Less or equal than ('<=')
+            _cimg_mp_op("Operator '<='");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_lte,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_lte,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_lte,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]<=mem[arg2]);
+            _cimg_mp_scalar2(mp_lte,arg1,arg2);
+          }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='>' && *ns=='=' && level[s - expr._data]==clevel) { // Greater or equal than ('>=')
+            _cimg_mp_op("Operator '>='");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_gte,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_gte,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_gte,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]>=mem[arg2]);
+            _cimg_mp_scalar2(mp_gte,arg1,arg2);
+          }
+
+        for (s = se2, ns = se1, ps = se3; s>ss; --s, --ns, --ps)
+          if (*s=='<' && *ns!='<' && *ps!='<' && level[s - expr._data]==clevel) { // Less than ('<')
+            _cimg_mp_op("Operator '<'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_lt,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_lt,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_lt,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]<mem[arg2]);
+            _cimg_mp_scalar2(mp_lt,arg1,arg2);
+          }
+
+        for (s = se2, ns = se1, ps = se3; s>ss; --s, --ns, --ps)
+          if (*s=='>' && *ns!='>' && *ps!='>' && level[s - expr._data]==clevel) { // Greather than ('>')
+            _cimg_mp_op("Operator '>'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_gt,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_gt,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_gt,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]>mem[arg2]);
+            _cimg_mp_scalar2(mp_gt,arg1,arg2);
+          }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='<' && *ns=='<' && level[s - expr._data]==clevel) { // Left bit shift ('<<')
+            _cimg_mp_op("Operator '<<'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2))
+              _cimg_mp_vector2_vv(mp_bitwise_left_shift,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2))
+              _cimg_mp_vector2_vs(mp_bitwise_left_shift,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2))
+              _cimg_mp_vector2_sv(mp_bitwise_left_shift,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+              _cimg_mp_constant((longT)mem[arg1]<<(unsigned int)mem[arg2]);
+            _cimg_mp_scalar2(mp_bitwise_left_shift,arg1,arg2);
+          }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='>' && *ns=='>' && level[s - expr._data]==clevel) { // Right bit shift ('>>')
+            _cimg_mp_op("Operator '>>'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2))
+              _cimg_mp_vector2_vv(mp_bitwise_right_shift,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2))
+              _cimg_mp_vector2_vs(mp_bitwise_right_shift,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2))
+              _cimg_mp_vector2_sv(mp_bitwise_right_shift,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+              _cimg_mp_constant((longT)mem[arg1]>>(unsigned int)mem[arg2]);
+            _cimg_mp_scalar2(mp_bitwise_right_shift,arg1,arg2);
+          }
+
+        for (ns = se1, s = se2, ps = pexpr._data + (se3 - expr._data); s>ss; --ns, --s, --ps)
+          if (*s=='+' && (*ns!='+' || ns!=se1) && *ps!='-' && *ps!='+' && *ps!='*' && *ps!='/' && *ps!='%' &&
+              *ps!='&' && *ps!='|' && *ps!='^' && *ps!='!' && *ps!='~' && *ps!='#' &&
+              (*ps!='e' || !(ps - pexpr._data>ss - expr._data && (*(ps - 1)=='.' || (*(ps - 1)>='0' &&
+                                                                                     *(ps - 1)<='9')))) &&
+              level[s - expr._data]==clevel) { // Addition ('+')
+            _cimg_mp_op("Operator '+'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_add,arg1,a
