@@ -16151,4 +16151,154 @@ namespace cimg_library_suffixed {
                     is_sth = p1!=~0U;
                     s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
                     arg3 = compile(++s0,s1,depth1,0);
-                    _cimg_mp_check_type(arg
+                    _cimg_mp_check_type(arg3,is_sth?4:3,1,0);
+                    if (s1<se1) {
+                      s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                      arg4 = compile(++s1,s0,depth1,0);
+                      _cimg_mp_check_type(arg4,is_sth?5:4,1,0);
+                      if (s0<se1) {
+                        s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                        arg5 = compile(++s0,s1,depth1,0);
+                        _cimg_mp_check_type(arg5,is_sth?6:5,1,0);
+                        s0 = ++s1;
+                      }
+                    }
+                  }
+                  is_sth = false;
+                }
+              }
+
+              CImg<ulongT>::vector((ulongT)mp_draw,arg1,p1,arg2,arg3,arg4,arg5,0,0,0,0,1,(ulongT)-1,0,1).
+                move_to(opcode);
+
+              arg2 = arg3 = arg4 = arg5 = ~0U;
+              p2 = p1!=~0U?0:1;
+              if (s0<se1) {
+                s1 = s0; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                arg2 = compile(s0,s1,depth1,0);
+                _cimg_mp_check_constant(arg2,p2 + (is_sth?3:6),true);
+                arg2 = (unsigned int)mem[arg2];
+                if (s1<se1) {
+                  s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  arg3 = compile(++s1,s0,depth1,0);
+                  _cimg_mp_check_constant(arg3,p2 + (is_sth?4:7),true);
+                  arg3 = (unsigned int)mem[arg3];
+                  if (s0<se1) {
+                    s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                    arg4 = compile(++s0,s1,depth1,0);
+                    _cimg_mp_check_constant(arg4,p2 + (is_sth?5:8),true);
+                    arg4 = (unsigned int)mem[arg4];
+                    if (s1<se1) {
+                      s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                      arg5 = compile(++s1,s0,depth1,0);
+                      _cimg_mp_check_constant(arg5,p2 + (is_sth?6:9),true);
+                      arg5 = (unsigned int)mem[arg5];
+                    }
+                  }
+                }
+              }
+              if (s0<s1) s0 = s1;
+              if (arg2==~0U || arg3==~0U || arg4==~0U || arg5==~0U) {
+                if (p1!=~0U) {
+                  _cimg_mp_check_constant(p1,1,false);
+                  p1 = (unsigned int)cimg::mod((int)mem[p1],listout.width());
+                }
+                const CImg<T> &img = p1!=~0U?listout[p1]:imgout;
+                if (arg2==~0U) arg2 = img._width;
+                if (arg3==~0U) arg3 = img._height;
+                if (arg4==~0U) arg4 = img._depth;
+                if (arg5==~0U) arg5 = img._spectrum;
+              }
+              if (arg2*arg3*arg4*arg5!=_cimg_mp_vector_size(arg1)) {
+                *se = saved_char; cimg::strellipsize(expr,64);
+                throw CImgArgumentException("[_cimg_math_parser] "
+                                            "CImg<%s>::%s: %s: Type of %s argument ('%s') and specified size "
+                                            "(%u,%u,%u,%u) do not match, in expression '%s%s%s'.",
+                                            pixel_type(),_cimg_mp_calling_function,s_op,
+                                            p1==~0U?"first":"second",s_type(arg1)._data,
+                                            arg2,arg3,arg4,arg5,
+                                            (ss - 4)>expr._data?"...":"",
+                                            (ss - 4)>expr._data?ss - 4:expr._data,
+                                            se<&expr.back()?"...":"");
+              }
+              opcode[7] = (ulongT)arg2;
+              opcode[8] = (ulongT)arg3;
+              opcode[9] = (ulongT)arg4;
+              opcode[10] = (ulongT)arg5;
+
+              if (s0<se1) {
+                s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                arg6 = compile(++s0,s1,depth1,0);
+                _cimg_mp_check_type(arg6,0,1,0);
+                opcode[11] = arg6;
+                if (s1<se1) {
+                  s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  p2 = compile(++s1,s0,depth1,0);
+                  _cimg_mp_check_type(p2,0,2,0);
+                  if (arg2*arg3*arg4%_cimg_mp_vector_size(p2)) {
+                    *se = saved_char; cimg::strellipsize(expr,64);
+                    throw CImgArgumentException("[_cimg_math_parser] "
+                                                "CImg<%s>::%s: %s: Type of opacity mask ('%s') and specified size "
+                                                "(%u,%u,%u,%u) do not match, in expression '%s%s%s'.",
+                                                pixel_type(),_cimg_mp_calling_function,s_op,
+                                                s_type(p2)._data,
+                                                arg2,arg3,arg4,arg5,
+                                                (ss - 4)>expr._data?"...":"",
+                                                (ss - 4)>expr._data?ss - 4:expr._data,
+                                                se<&expr.back()?"...":"");
+                  }
+                  opcode[12] = p2;
+                  opcode[13] = _cimg_mp_vector_size(p2)/(arg2*arg3*arg4);
+                  p3 = s0<se1?compile(++s0,se1,depth1,0):1;
+                  _cimg_mp_check_type(p3,0,1,0);
+                  opcode[14] = p3;
+                }
+              }
+              opcode.move_to(code);
+              _cimg_mp_return(arg1);
+            }
+            break;
+
+          case 'e' :
+            if (!std::strncmp(ss,"eig(",4)) { // Matrix eigenvalues/eigenvector
+              _cimg_mp_op("Function 'eig()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              _cimg_mp_check_matrix_square(arg1,1);
+              p1 = (unsigned int)std::sqrt((float)_cimg_mp_vector_size(arg1));
+              pos = vector((p1 + 1)*p1);
+              CImg<ulongT>::vector((ulongT)mp_eig,pos,arg1,p1).move_to(code);
+              _cimg_mp_return(pos);
+            }
+
+            if (!std::strncmp(ss,"exp(",4)) { // Exponential
+              _cimg_mp_op("Function 'exp()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_exp,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(std::exp(mem[arg1]));
+              _cimg_mp_scalar1(mp_exp,arg1);
+            }
+
+            if (!std::strncmp(ss,"eye(",4)) { // Identity matrix
+              _cimg_mp_op("Function 'eye()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              _cimg_mp_check_constant(arg1,1,true);
+              p1 = (unsigned int)mem[arg1];
+              pos = vector(p1*p1);
+              CImg<ulongT>::vector((ulongT)mp_eye,pos,p1).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'f' :
+            if (*ss1=='o' && *ss2=='r' && (*ss3=='(' || (*ss3 && *ss3<=' ' && *ss4=='('))) { // For loop
+              _cimg_mp_op("Function 'for()'");
+              if (*ss3<=' ') cimg::swap(*ss3,*ss4); // Allow space before opening brace
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              s2 = s1 + 1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+              s3 = s2 + 1; while (s3<se1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+              compile(ss4,s1,depth1,0);
+              p1 = code._width;
+              arg1 = compile(++s1,s2,depth1,0);
+              p2 = code._width;
+              if (s3<se1) { pos = compile(s3 + 1,se1,depth1,0); compile(++s2,s3,depth1,0); } // Body + proc
+              else pos = compile(++s2,se1,depth1,
