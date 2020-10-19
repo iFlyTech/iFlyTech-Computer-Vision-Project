@@ -16301,4 +16301,159 @@ namespace cimg_library_suffixed {
               arg1 = compile(++s1,s2,depth1,0);
               p2 = code._width;
               if (s3<se1) { pos = compile(s3 + 1,se1,depth1,0); compile(++s2,s3,depth1,0); } // Body + proc
-              else pos = compile(++s2,se1,depth1,
+              else pos = compile(++s2,se1,depth1,0); // Proc only
+              _cimg_mp_check_type(arg1,2,1,0);
+              arg2 = _cimg_mp_is_vector(pos)?_cimg_mp_vector_size(pos):0; // Output vector size (or 0 if scalar)
+              CImg<ulongT>::vector((ulongT)mp_whiledo,pos,arg1,p2 - p1,code._width - p2,arg2).move_to(code,p1);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'g' :
+            if (!std::strncmp(ss,"gauss(",6)) { // Gaussian function
+              _cimg_mp_op("Function 'gauss()'");
+              s1 = ss6; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss6,s1,depth1,0);
+              arg2 = s1<se1?compile(++s1,se1,depth1,0):1;
+              _cimg_mp_check_type(arg2,2,1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector2_vs(mp_gauss,arg1,arg2);
+              if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) {
+                val1 = mem[arg1];
+                val2 = mem[arg2];
+                _cimg_mp_constant(std::exp(-val1*val1/(2*val2*val2))/std::sqrt(2*val2*val2*cimg::PI));
+              }
+              _cimg_mp_scalar2(mp_gauss,arg1,arg2);
+            }
+            break;
+
+          case 'h' :
+            if (!std::strncmp(ss,"hypot(",6)) { // Hypothenuse
+              _cimg_mp_op("Function 'hypot()'");
+              s1 = ss6; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss6,s1,depth1,0);
+              arg2 = compile(++s1,se1,depth1,0);
+              _cimg_mp_check_type(arg1,1,1,0);
+              _cimg_mp_check_type(arg2,2,1,0);
+              if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) {
+                val1 = cimg::abs(mem[arg1]);
+                val2 = cimg::abs(mem[arg2]);
+                if (val1<val2) { val = val1; val1 = val2; } else val = val2;
+                if (val1>0) { val/=val1; _cimg_mp_constant(val1*std::sqrt(1+val*val)); }
+                _cimg_mp_constant(0);
+              }
+              _cimg_mp_scalar2(mp_hypot,arg1,arg2);
+            }
+            break;
+
+          case 'i' :
+            if (*ss1=='f' && (*ss2=='(' || (*ss2 && *ss2<=' ' && *ss3=='('))) { // If..then[..else.]
+              _cimg_mp_op("Function 'if()'");
+              if (*ss2<=' ') cimg::swap(*ss2,*ss3); // Allow space before opening brace
+              s1 = ss3; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              s2 = s1 + 1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+              arg1 = compile(ss3,s1,depth1,0);
+              _cimg_mp_check_type(arg1,1,1,0);
+              if (_cimg_mp_is_constant(arg1)) {
+                if ((bool)mem[arg1]) return compile(++s1,s2,depth1,0);
+                else return s2<se1?compile(++s2,se1,depth1,0):0;
+              }
+              p2 = code._width;
+              arg2 = compile(++s1,s2,depth1,0);
+              p3 = code._width;
+              arg3 = s2<se1?compile(++s2,se1,depth1,0):_cimg_mp_is_vector(arg2)?vector(_cimg_mp_vector_size(arg2),0):0;
+              _cimg_mp_check_type(arg3,3,_cimg_mp_is_vector(arg2)?2:1,_cimg_mp_vector_size(arg2));
+              arg4 = _cimg_mp_is_vector(arg2)?_cimg_mp_vector_size(arg2):0; // Output vector size (or 0 if scalar)
+              if (arg4) pos = vector(arg4); else pos = scalar();
+              CImg<ulongT>::vector((ulongT)mp_if,pos,arg1,arg2,arg3,
+                                  p3 - p2,code._width - p3,arg4).move_to(code,p2);
+              _cimg_mp_return(pos);
+            }
+
+            if (!std::strncmp(ss,"init(",5)) { // Init
+              _cimg_mp_op("Function 'init()'");
+              if (ss0!=expr._data || code.width()) { // (only allowed as the first instruction)
+                *se = saved_char; cimg::strellipsize(expr,64);
+                throw CImgArgumentException("[_cimg_math_parser] "
+                                            "CImg<%s>::%s: %s: Init invokation not done at the "
+                                            "beginning of expression '%s%s%s'.",
+                                            pixel_type(),_cimg_mp_calling_function,s_op,
+                                            (ss - 4)>expr._data?"...":"",
+                                            (ss - 4)>expr._data?ss - 4:expr._data,
+                                            se<&expr.back()?"...":"");
+              }
+              arg1 = compile(ss5,se1,depth1,p_ref);
+              init_size = code.width();
+              _cimg_mp_return(arg1);
+            }
+
+            if (!std::strncmp(ss,"int(",4)) { // Integer cast
+              _cimg_mp_op("Function 'int()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_int,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant((longT)mem[arg1]);
+              _cimg_mp_scalar1(mp_int,arg1);
+            }
+
+            if (!std::strncmp(ss,"inv(",4)) { // Matrix/scalar inversion
+              _cimg_mp_op("Function 'inv()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              _cimg_mp_check_matrix_square(arg1,1);
+              p1 = (unsigned int)std::sqrt((float)_cimg_mp_vector_size(arg1));
+              pos = vector(p1*p1);
+              CImg<ulongT>::vector((ulongT)mp_inv,pos,arg1,p1).move_to(code);
+              _cimg_mp_return(pos);
+            }
+
+            if (*ss1=='s') { // Family of 'is_?()' functions
+
+              if (!std::strncmp(ss,"isbool(",7)) { // Is boolean?
+                _cimg_mp_op("Function 'isbool()'");
+                if (ss7==se1) _cimg_mp_return(0);
+                arg1 = compile(ss7,se1,depth1,0);
+                if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_isbool,arg1);
+                if (_cimg_mp_is_constant(arg1)) _cimg_mp_return(mem[arg1]==0.0 || mem[arg1]==1.0);
+                _cimg_mp_scalar1(mp_isbool,arg1);
+              }
+
+              if (!std::strncmp(ss,"isdir(",6)) { // Is directory?
+                _cimg_mp_op("Function 'isdir()'");
+                *se1 = 0;
+                is_sth = cimg::is_directory(ss6);
+                *se1 = ')';
+                _cimg_mp_return(is_sth?1U:0U);
+              }
+
+              if (!std::strncmp(ss,"isfile(",7)) { // Is file?
+                _cimg_mp_op("Function 'isfile()'");
+                *se1 = 0;
+                is_sth = cimg::is_file(ss7);
+                *se1 = ')';
+                _cimg_mp_return(is_sth?1U:0U);
+              }
+
+              if (!std::strncmp(ss,"isin(",5)) { // Is in sequence/vector?
+                if (ss5>=se1) _cimg_mp_return(0);
+                _cimg_mp_op("Function 'isin()'");
+                pos = scalar();
+                CImg<ulongT>::vector((ulongT)mp_isin,pos).move_to(_opcode);
+                for (s = ss5; s<se; ++s) {
+                  ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                                 (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                  arg1 = compile(s,ns,depth1,0);
+                  if (_cimg_mp_is_vector(arg1))
+                    CImg<ulongT>::sequence((ulongT)_cimg_mp_vector_size(arg1),arg1 + 1,
+                                          arg1 + (ulongT)_cimg_mp_vector_size(arg1)).
+                      move_to(_opcode);
+                  else CImg<ulongT>::vector(arg1).move_to(_opcode);
+                  s = ns;
+                }
+                (_opcode>'y').move_to(code);
+                _cimg_mp_return(pos);
+              }
+
+              if (!std::strncmp(ss,"isinf(",6)) { // Is infinite?
+                _cimg_mp_op("Function 'isinf()'");
+                if (ss6==se1) _cimg_mp_return(0);
+                arg1 = compile(ss6,se1,depth1,0);
+                if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_isinf,arg1);
+                if (_cimg_mp_is_constant(
