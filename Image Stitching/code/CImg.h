@@ -16456,4 +16456,160 @@ namespace cimg_library_suffixed {
                 if (ss6==se1) _cimg_mp_return(0);
                 arg1 = compile(ss6,se1,depth1,0);
                 if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_isinf,arg1);
-                if (_cimg_mp_is_constant(
+                if (_cimg_mp_is_constant(arg1)) _cimg_mp_return((unsigned int)cimg::type<double>::is_inf(mem[arg1]));
+                _cimg_mp_scalar1(mp_isinf,arg1);
+              }
+
+              if (!std::strncmp(ss,"isint(",6)) { // Is integer?
+                _cimg_mp_op("Function 'isint()'");
+                if (ss6==se1) _cimg_mp_return(0);
+                arg1 = compile(ss6,se1,depth1,0);
+                if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_isint,arg1);
+                if (_cimg_mp_is_constant(arg1)) _cimg_mp_return((unsigned int)(cimg::mod(mem[arg1],1.0)==0));
+                _cimg_mp_scalar1(mp_isint,arg1);
+              }
+
+              if (!std::strncmp(ss,"isnan(",6)) { // Is NaN?
+                _cimg_mp_op("Function 'isnan()'");
+                if (ss6==se1) _cimg_mp_return(0);
+                arg1 = compile(ss6,se1,depth1,0);
+                if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_isnan,arg1);
+                if (_cimg_mp_is_constant(arg1)) _cimg_mp_return((unsigned int)cimg::type<double>::is_nan(mem[arg1]));
+                _cimg_mp_scalar1(mp_isnan,arg1);
+              }
+
+              if (!std::strncmp(ss,"isval(",6)) { // Is value?
+                _cimg_mp_op("Function 'isval()'");
+                val = 0;
+                if (cimg_sscanf(ss6,"%lf%c%c",&val,&sep,&end)==2 && sep==')') _cimg_mp_return(1);
+                _cimg_mp_return(0);
+              }
+
+            }
+            break;
+
+          case 'l' :
+            if (!std::strncmp(ss,"log(",4)) { // Natural logarithm
+              _cimg_mp_op("Function 'log()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_log,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(std::log(mem[arg1]));
+              _cimg_mp_scalar1(mp_log,arg1);
+            }
+
+            if (!std::strncmp(ss,"log2(",5)) { // Base-2 logarithm
+              _cimg_mp_op("Function 'log2()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_log2,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(cimg::log2(mem[arg1]));
+              _cimg_mp_scalar1(mp_log2,arg1);
+            }
+
+            if (!std::strncmp(ss,"log10(",6)) { // Base-10 logarithm
+              _cimg_mp_op("Function 'log10()'");
+              arg1 = compile(ss6,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_log10,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(std::log10(mem[arg1]));
+              _cimg_mp_scalar1(mp_log10,arg1);
+            }
+            break;
+
+          case 'm' :
+            if (!std::strncmp(ss,"mul(",4)) { // Matrix multiplication
+              _cimg_mp_op("Function 'mul()'");
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss4,s1,depth1,0);
+              s2 = s1 + 1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+              arg2 = compile(++s1,s2,depth1,0);
+              arg3 = s2<se1?compile(++s2,se1,depth1,0):1;
+              _cimg_mp_check_type(arg1,1,2,0);
+              _cimg_mp_check_type(arg2,2,2,0);
+              _cimg_mp_check_constant(arg3,3,true);
+              p1 = _cimg_mp_vector_size(arg1);
+              p2 = _cimg_mp_vector_size(arg2);
+              p3 = (unsigned int)mem[arg3];
+              arg5 = p2/p3;
+              arg4 = p1/arg5;
+              if (arg4*arg5!=p1 || arg5*p3!=p2) {
+                *se = saved_char; cimg::strellipsize(expr,64);
+                throw CImgArgumentException("[_cimg_math_parser] "
+                                            "CImg<%s>::%s: %s: Types of first and second arguments ('%s' and '%s') "
+                                            "do not match for third argument 'nb_colsB=%u', "
+                                            "in expression '%s%s%s'.",
+                                            pixel_type(),_cimg_mp_calling_function,s_op,
+                                            s_type(arg1)._data,s_type(arg2)._data,p3,
+                                            (ss - 4)>expr._data?"...":"",
+                                            (ss - 4)>expr._data?ss - 4:expr._data,
+                                            se<&expr.back()?"...":"");
+              }
+              pos = vector(arg4*p3);
+              CImg<ulongT>::vector((ulongT)mp_matrix_mul,pos,arg1,arg2,arg4,arg5,p3).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'n' :
+            if (!std::strncmp(ss,"narg(",5)) { // Number of arguments
+              _cimg_mp_op("Function 'narg()'");
+              if (ss5>=se1) _cimg_mp_return(0);
+              arg1 = 0;
+              for (s = ss5; s<se; ++s) {
+                ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                               (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                ++arg1; s = ns;
+              }
+              _cimg_mp_constant(arg1);
+            }
+
+            if ((cimg_sscanf(ss,"norm%u%c",&(arg1=~0U),&sep)==2 && sep=='(') ||
+                !std::strncmp(ss,"norminf(",8)) { // Lp norm
+              _cimg_mp_op("Function 'normP()'");
+              pos = scalar();
+              switch (arg1) {
+              case 0 : CImg<ulongT>::vector((ulongT)mp_norm0,pos).move_to(_opcode); break;
+              case 1 : CImg<ulongT>::vector((ulongT)mp_norm1,pos).move_to(_opcode); break;
+              case 2 : CImg<ulongT>::vector((ulongT)mp_norm2,pos).move_to(_opcode); break;
+              case ~0U : CImg<ulongT>::vector((ulongT)mp_norminf,pos).move_to(_opcode); break;
+              default :
+                CImg<ulongT>::vector((ulongT)mp_normp,pos,(ulongT)(arg1==~0U?-1:(int)arg1)).
+                  move_to(_opcode);
+              }
+              for (s = std::strchr(ss5,'(') + 1; s<se; ++s) {
+                ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                               (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                arg2 = compile(s,ns,depth1,0);
+                if (_cimg_mp_is_vector(arg2))
+                  CImg<ulongT>::sequence((ulongT)_cimg_mp_vector_size(arg2),arg2 + 1,
+                                        arg2 + (ulongT)_cimg_mp_vector_size(arg2)).
+                    move_to(_opcode);
+                else CImg<ulongT>::vector(arg2).move_to(_opcode);
+                s = ns;
+              }
+              (_opcode>'y').move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'p' :
+            if (!std::strncmp(ss,"print(",6)) { // Print expression
+              _cimg_mp_op("Function 'print()'");
+              pos = compile(ss6,se1,depth1,p_ref);
+              *se1 = 0;
+              if (_cimg_mp_is_vector(pos)) // Vector
+                ((CImg<ulongT>::vector((ulongT)mp_vector_print,pos,(ulongT)_cimg_mp_vector_size(pos)),
+                  CImg<ulongT>::string(ss6).unroll('y'))>'y').move_to(code);
+              else // Scalar
+                ((CImg<ulongT>::vector((ulongT)mp_print,pos),
+                  CImg<ulongT>::string(ss6).unroll('y'))>'y').move_to(code);
+              *se1 = ')';
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'r' :
+            if (!std::strncmp(ss,"rol(",4) || !std::strncmp(ss,"ror(",4)) { // Bitwise rotation
+              _cimg_mp_op(ss[2]=='l'?"Function 'rol()'":"Function 'ror()'");
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1-expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss4,s1,depth1,0);
+              arg2 = s1<se1?compile(++s1,se1,depth1,0):1;
+              _cimg_mp_check_type(arg2,2,1,0
