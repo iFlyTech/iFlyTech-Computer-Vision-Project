@@ -17065,4 +17065,154 @@ namespace cimg_library_suffixed {
             _cimg_mp_scalar1(mp_list_depth,arg1);
           case 'r' : // r#ind
             if (!listin) _cimg_mp_return(0);
-            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._is_shar
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._is_shared);
+            _cimg_mp_scalar1(mp_list_is_shared,arg1);
+          case 's' : // s#ind
+            if (!listin) _cimg_mp_return(0);
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._spectrum);
+            _cimg_mp_scalar1(mp_list_spectrum,arg1);
+          case 'i' : // i#ind
+            if (!listin) _cimg_mp_return(0);
+            _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,_cimg_mp_c,
+                             reserved_label[29],reserved_label[30]);
+          case 'R' : // R#ind
+            if (!listin) _cimg_mp_return(0);
+            _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,0,
+                             reserved_label[29],reserved_label[30]);
+          case 'G' : // G#ind
+            if (!listin) _cimg_mp_return(0);
+            _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,1,
+                             reserved_label[29],reserved_label[30]);
+          case 'B' : // B#ind
+            if (!listin) _cimg_mp_return(0);
+            _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,2,
+                             reserved_label[29],reserved_label[30]);
+          case 'A' : // A#ind
+            if (!listin) _cimg_mp_return(0);
+            _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,3,
+                             reserved_label[29],reserved_label[30]);
+          }
+        }
+
+        if (*ss1 && *ss2=='#' && ss3<se) {
+          arg1 = compile(ss3,se,depth1,0);
+          p1 = (unsigned int)(listin._width && _cimg_mp_is_constant(arg1)?cimg::mod((int)mem[arg1],listin.width()):0);
+          if (*ss=='w' && *ss1=='h') { // wh#ind
+            if (!listin) _cimg_mp_return(0);
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._width*listin[p1]._height);
+            _cimg_mp_scalar1(mp_list_wh,arg1);
+          }
+          arg2 = ~0U;
+
+          if (*ss=='i') {
+            if (*ss1=='c') { // ic#ind
+              if (!listin) _cimg_mp_return(0);
+              if (_cimg_mp_is_constant(arg1)) {
+                if (!list_median) list_median.assign(listin._width);
+                if (!list_median[p1]) CImg<doubleT>::vector(listin[p1].median()).move_to(list_median[p1]);
+                _cimg_mp_constant(*list_median[p1]);
+              }
+              _cimg_mp_scalar1(mp_list_median,arg1);
+            }
+            if (*ss1>='0' && *ss1<='9') { // i0#ind...i9#ind
+              if (!listin) _cimg_mp_return(0);
+              _cimg_mp_scalar7(mp_list_ixyzc,arg1,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,*ss1 - '0',
+                               reserved_label[29],reserved_label[30]);
+            }
+            switch (*ss1) {
+            case 'm' : arg2 = 0; break; // im#ind
+            case 'M' : arg2 = 1; break; // iM#ind
+            case 'a' : arg2 = 2; break; // ia#ind
+            case 'v' : arg2 = 3; break; // iv#ind
+            case 's' : arg2 = 12; break; // is#ind
+            case 'p' : arg2 = 13; break; // ip#ind
+            }
+          } else if (*ss1=='m') switch (*ss) {
+            case 'x' : arg2 = 4; break; // xm#ind
+            case 'y' : arg2 = 5; break; // ym#ind
+            case 'z' : arg2 = 6; break; // zm#ind
+            case 'c' : arg2 = 7; break; // cm#ind
+            } else if (*ss1=='M') switch (*ss) {
+            case 'x' : arg2 = 8; break; // xM#ind
+            case 'y' : arg2 = 9; break; // yM#ind
+            case 'z' : arg2 = 10; break; // zM#ind
+            case 'c' : arg2 = 11; break; // cM#ind
+            }
+          if (arg2!=~0U) {
+            if (!listin) _cimg_mp_return(0);
+            if (_cimg_mp_is_constant(arg1)) {
+              if (!list_stats) list_stats.assign(listin._width);
+              if (!list_stats[p1]) list_stats[p1].assign(1,14,1,1,0).fill(listin[p1].get_stats(),false);
+              _cimg_mp_constant(list_stats(p1,arg2));
+            }
+            _cimg_mp_scalar2(mp_list_stats,arg1,arg2);
+          }
+        }
+
+        if (*ss=='w' && *ss1=='h' && *ss2=='d' && *ss3=='#' && ss4<se) { // whd#ind
+          arg1 = compile(ss4,se,depth1,0);
+          if (!listin) _cimg_mp_return(0);
+          p1 = (unsigned int)(_cimg_mp_is_constant(arg1)?cimg::mod((int)mem[arg1],listin.width()):0);
+          if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._width*listin[p1]._height*listin[p1]._depth);
+          _cimg_mp_scalar1(mp_list_whd,arg1);
+        }
+        if (*ss=='w' && *ss1=='h' && *ss2=='d' && *ss3=='s' && *ss4=='#' && ss5<se) { // whds#ind
+          arg1 = compile(ss5,se,depth1,0);
+          if (!listin) _cimg_mp_return(0);
+          p1 = (unsigned int)(_cimg_mp_is_constant(arg1)?cimg::mod((int)mem[arg1],listin.width()):0);
+          if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(listin[p1]._width*listin[p1]._height*listin[p1]._depth*
+                                                            listin[p1]._spectrum);
+          _cimg_mp_scalar1(mp_list_whds,arg1);
+        }
+
+        if (!std::strcmp(ss,"interpolation")) _cimg_mp_return(reserved_label[29]); // interpolation
+        if (!std::strcmp(ss,"boundary")) _cimg_mp_return(reserved_label[30]); // boundary
+
+        // No known item found, assuming this is an already initialized variable.
+        variable_name.assign(ss,(unsigned int)(se + 1 - ss)).back() = 0;
+        if (variable_name[1]) { // Multi-char variable
+          cimglist_for(variable_def,i) if (!std::strcmp(variable_name,variable_def[i]))
+            _cimg_mp_return(variable_pos[i]);
+        } else if (reserved_label[*variable_name]!=~0U) // Single-char variable
+          _cimg_mp_return(reserved_label[*variable_name]);
+
+        // Reached an unknown item -> error.
+        is_sth = true; // is_valid_variable_name
+        if (*variable_name>='0' && *variable_name<='9') is_sth = false;
+        else for (ns = variable_name._data; *ns; ++ns)
+               if (!is_varchar(*ns)) { is_sth = false; break; }
+
+        *se = saved_char; cimg::strellipsize(variable_name,64); cimg::strellipsize(expr,64);
+        if (is_sth)
+          throw CImgArgumentException("[_cimg_math_parser] "
+                                      "CImg<%s>::%s: Undefined variable '%s' in expression '%s%s%s'.",
+                                      pixel_type(),_cimg_mp_calling_function,
+                                      variable_name._data,
+                                      (ss - 4)>expr._data?"...":"",
+                                      (ss - 4)>expr._data?ss - 4:expr._data,
+                                      se<&expr.back()?"...":"");
+        s0 = std::strchr(ss,'(');
+        if (s0 && *se1==')') s_op = "function call"; else s_op = "item";
+        throw CImgArgumentException("[_cimg_math_parser] "
+                                    "CImg<%s>::%s: Unrecognized %s '%s' in expression '%s%s%s'.",
+                                    pixel_type(),_cimg_mp_calling_function,
+                                    s_op,variable_name._data,
+                                    (ss - 4)>expr._data?"...":"",
+                                    (ss - 4)>expr._data?ss - 4:expr._data,
+                                    se<&expr.back()?"...":"");
+      }
+
+      // Evaluation procedure.
+      double operator()(const double x, const double y, const double z, const double c) {
+        mem[_cimg_mp_x] = x; mem[_cimg_mp_y] = y; mem[_cimg_mp_z] = z; mem[_cimg_mp_c] = c;
+        for (p_code = p_code_begin; p_code<p_code_end; ++p_code) {
+          const CImg<ulongT> &op = *p_code;
+          opcode._data = op._data; opcode._height = op._height;
+          const ulongT target = opcode[1];
+          mem[target] = _cimg_mp_defunc(*this);
+        }
+        return *result;
+      }
+
+      // Evaluation procedure (return output values in vector 'output').
+      template<type
