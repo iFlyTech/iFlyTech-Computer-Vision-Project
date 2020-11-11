@@ -17733,4 +17733,195 @@ namespace cimg_library_suffixed {
       static double mp_complex_mul(_cimg_math_parser& mp) {
         const double
           *ptr1 = &_mp_arg(2) + 1, *ptr2 = &_mp_arg(3) + 1,
-      
+          r1 = *(ptr1++), i1 = *ptr1,
+          r2 = *(ptr2++), i2 = *ptr2;
+        double *ptrd = &_mp_arg(1) + 1;
+        *(ptrd++) = r1*r2 - i1*i2;
+        *(ptrd++) = r1*i2 + r2*i1;
+        return cimg::type<double>::nan();
+      }
+
+      static void _mp_complex_pow(const double r1, const double i1,
+                                  const double r2, const double i2,
+                                  double *ptrd) {
+        double ro, io;
+        if (cimg::abs(i2)<1e-15) { // Exponent is real
+          if (cimg::abs(r1)<1e-15 && cimg::abs(i1)<1e-15) {
+            if (cimg::abs(r2)<1e-15) { ro = 1; io = 0; }
+            else ro = io = 0;
+          } else {
+            const double
+              mod1_2 = r1*r1 + i1*i1,
+              phi1 = std::atan2(i1,r1),
+              modo = std::pow(mod1_2,0.5*r2),
+              phio = r2*phi1;
+            ro = modo*std::cos(phio);
+            io = modo*std::sin(phio);
+          }
+        } else { // Exponent is complex
+          if (cimg::abs(r1)<1e-15 && cimg::abs(i1)<1e-15) ro = io = 0;
+          const double
+            mod1_2 = r1*r1 + i1*i1,
+            phi1 = std::atan2(i1,r1),
+            modo = std::pow(mod1_2,0.5*r2)*std::exp(-i2*phi1),
+            phio = r2*phi1 + 0.5*i2*std::log(mod1_2);
+          ro = modo*std::cos(phio);
+          io = modo*std::sin(phio);
+        }
+        *(ptrd++) = ro;
+        *ptrd = io;
+      }
+
+      static double mp_complex_pow_sv(_cimg_math_parser& mp) {
+        const double val1 = _mp_arg(2), *ptr2 = &_mp_arg(3) + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(val1,0,ptr2[0],ptr2[1],ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_pow_vs(_cimg_math_parser& mp) {
+        const double *ptr1 = &_mp_arg(2) + 1, val2 = _mp_arg(3);
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(ptr1[0],ptr1[1],val2,0,ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_pow_vv(_cimg_math_parser& mp) {
+        const double *ptr1 = &_mp_arg(2) + 1, *ptr2 = &_mp_arg(3) + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(ptr1[0],ptr1[1],ptr2[0],ptr2[1],ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cos(_cimg_math_parser& mp) {
+        return std::cos(_mp_arg(2));
+      }
+
+      static double mp_cosh(_cimg_math_parser& mp) {
+        return std::cosh(_mp_arg(2));
+      }
+
+      static double mp_crop(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const int x = (int)_mp_arg(3), y = (int)_mp_arg(4), z = (int)_mp_arg(5), c = (int)_mp_arg(6);
+        const unsigned int
+          dx = (unsigned int)mp.opcode[7],
+          dy = (unsigned int)mp.opcode[8],
+          dz = (unsigned int)mp.opcode[9],
+          dc = (unsigned int)mp.opcode[10];
+        const bool boundary_conditions = (bool)_mp_arg(11);
+        unsigned int ind = (unsigned int)mp.opcode[2];
+        if (ind!=~0U) ind = (unsigned int)cimg::mod((int)_mp_arg(2),mp.listin.width());
+        const CImg<T> &img = ind==~0U?mp.imgin:mp.listin[ind];
+        if (!img) std::memset(ptrd,0,dx*dy*dz*dc*sizeof(double));
+        else CImg<double>(ptrd,dx,dy,dz,dc,true) = img.get_crop(x,y,z,c,
+                                                                x + dx - 1,y + dy - 1,
+                                                                z + dz - 1,c + dc - 1,
+                                                                boundary_conditions);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cross(_cimg_math_parser& mp) {
+        CImg<doubleT>
+          vout(&_mp_arg(1) + 1,1,3,1,1,true),
+          v1(&_mp_arg(2) + 1,1,3,1,1,true),
+          v2(&_mp_arg(3) + 1,1,3,1,1,true);
+        (vout = v1).cross(v2);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cut(_cimg_math_parser& mp) {
+        double val = _mp_arg(2), cmin = _mp_arg(3), cmax = _mp_arg(4);
+        return val<cmin?cmin:val>cmax?cmax:val;
+      }
+
+      static double mp_debug(_cimg_math_parser& mp) {
+        CImg<charT> expr(mp.opcode._height - 3);
+        const ulongT *ptrs = mp.opcode._data + 3;
+        cimg_for(expr,ptrd,char) *ptrd = (char)*(ptrs++);
+        cimg::strellipsize(expr);
+        const ulongT g_target = mp.opcode[1];
+
+#ifndef cimg_use_openmp
+        const unsigned int n_thread = 0;
+#else
+        const unsigned int n_thread = omp_get_thread_num();
+#pragma omp critical
+#endif
+        {
+          std::fprintf(cimg::output(),
+                       "\n[_cimg_math_parser] %p[thread #%u]:%*c"
+                       "Start debugging expression '%s', code length %u -> mem[%u] (memsize: %u)",
+                       (void*)&mp,n_thread,mp.debug_indent,' ',
+                       expr._data,(unsigned int)mp.opcode[2],(unsigned int)g_target,mp.mem._width);
+          std::fflush(cimg::output());
+          const CImg<ulongT> *const p_end = (++mp.p_code) + mp.opcode[2];
+          CImg<ulongT> _op;
+          mp.debug_indent+=3;
+          for ( ; mp.p_code<p_end; ++mp.p_code) {
+            const CImg<ulongT> &op = *mp.p_code;
+            mp.opcode._data = op._data; mp.opcode._height = op._height;
+
+            _op.assign(1,op._height - 1);
+            const ulongT *ptrs = op._data + 1;
+            for (ulongT *ptrd = _op._data, *const ptrde = _op._data + _op._height; ptrd<ptrde; ++ptrd)
+              *ptrd = *(ptrs++);
+
+            const ulongT target = mp.opcode[1];
+            mp.mem[target] = _cimg_mp_defunc(mp);
+            std::fprintf(cimg::output(),
+                         "\n[_cimg_math_parser] %p[thread #%u]:%*c"
+                         "Opcode %p = [ %p,%s ] -> mem[%u] = %g",
+                         (void*)&mp,n_thread,mp.debug_indent,' ',
+                         (void*)mp.opcode._data,(void*)*mp.opcode,_op.value_string().data(),
+                         (unsigned int)target,mp.mem[target]);
+            std::fflush(cimg::output());
+          }
+          mp.debug_indent-=3;
+          std::fprintf(cimg::output(),
+                       "\n[_cimg_math_parser] %p[thread #%u]:%*c"
+                       "End debugging expression '%s' -> mem[%u] = %g (memsize: %u)",
+                       (void*)&mp,n_thread,mp.debug_indent,' ',
+                       expr._data,(unsigned int)g_target,mp.mem[g_target],mp.mem._width);
+          std::fflush(cimg::output());
+          --mp.p_code;
+        }
+        return mp.mem[g_target];
+      }
+
+      static double mp_decrement(_cimg_math_parser& mp) {
+        return _mp_arg(2) - 1;
+      }
+
+      static double mp_det(_cimg_math_parser& mp) {
+        const double *ptrs = &_mp_arg(2) + 1;
+        const unsigned int k = (unsigned int)mp.opcode(3);
+        return CImg<double>(ptrs,k,k,1,1,true).det();
+      }
+
+      static double mp_diag(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const double *ptrs = &_mp_arg(2) + 1;
+        const unsigned int k = (unsigned int)mp.opcode(3);
+        CImg<double>(ptrd,k,k,1,1,true) = CImg<double>(ptrs,1,k,1,1,true).get_diagonal();
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_div(_cimg_math_parser& mp) {
+        return _mp_arg(2)/_mp_arg(3);
+      }
+
+      static double mp_dot(_cimg_math_parser& mp) {
+        const unsigned int siz = (unsigned int)mp.opcode[4];
+        return CImg<doubleT>(&_mp_arg(2) + 1,1,siz,1,1,true).
+          dot(CImg<doubleT>(&_mp_arg(3) + 1,1,siz,1,1,true));
+      }
+
+      static double mp_dowhile(_cimg_math_parser& mp) {
+        const ulongT
+          mem_proc = mp.opcode[1],
+          mem_cond = mp.opcode[2];
+        const CImg<ulongT>
+          *const p_proc = ++mp.p_code,
+          *const p_end = p_proc + mp.opcode[3];
+       
