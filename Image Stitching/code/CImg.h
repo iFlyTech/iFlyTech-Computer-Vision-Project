@@ -17924,4 +17924,204 @@ namespace cimg_library_suffixed {
         const CImg<ulongT>
           *const p_proc = ++mp.p_code,
           *const p_end = p_proc + mp.opcode[3];
-       
+        do {
+          for (mp.p_code = p_proc; mp.p_code<p_end; ++mp.p_code) { // Evaluate loop iteration + condition
+            const CImg<ulongT> &op = *mp.p_code;
+            mp.opcode._data = op._data; mp.opcode._height = op._height;
+            const ulongT target = mp.opcode[1];
+            mp.mem[target] = _cimg_mp_defunc(mp);
+          }
+        } while (mp.mem[mem_cond]);
+        --mp.p_code;
+        return mp.mem[mem_proc];
+      }
+
+      static double mp_draw(_cimg_math_parser& mp) {
+        const int x = (int)_mp_arg(3), y = (int)_mp_arg(4), z = (int)_mp_arg(5), c = (int)_mp_arg(6);
+        const unsigned int
+          dx = (unsigned int)mp.opcode[7],
+          dy = (unsigned int)mp.opcode[8],
+          dz = (unsigned int)mp.opcode[9],
+          dc = (unsigned int)mp.opcode[10];
+        const CImg<double> S(&_mp_arg(1) + 1,dx,dy,dz,dc,true);
+        const float opacity = (float)_mp_arg(11);
+        unsigned int ind = (unsigned int)mp.opcode[2];
+        if (ind!=~0U) ind = (unsigned int)cimg::mod((int)_mp_arg(2),mp.listin.width());
+        CImg<T> &img = ind==~0U?mp.imgout:mp.listout[ind];
+        if (img) {
+          if (mp.opcode[12]!=(ulongT)-1) {
+            const CImg<double> M(&_mp_arg(12) + 1,dx,dy,dz,(unsigned int)mp.opcode[13],true);
+            img.draw_image(x,y,z,c,S,M,opacity,(float)_mp_arg(14));
+          } else img.draw_image(x,y,z,c,S,opacity);
+        }
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_eig(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const double *ptr1 = &_mp_arg(2) + 1;
+        const unsigned int k = (unsigned int)mp.opcode(3);
+        CImg<double> val, vec;
+        CImg<double>(ptr1,k,k,1,1,true).symmetric_eigen(val,vec);
+        CImg<double>(ptrd,k,1,1,1,true) = val.unroll('x');
+        CImg<double>(ptrd + k,k,k,1,1,true) = vec.get_transpose();
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_eq(_cimg_math_parser& mp) {
+        return (double)(_mp_arg(2)==_mp_arg(3));
+      }
+
+      static double mp_exp(_cimg_math_parser& mp) {
+        return std::exp(_mp_arg(2));
+      }
+
+      static double mp_eye(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const unsigned int k = (unsigned int)mp.opcode(2);
+        CImg<double>(ptrd,k,k,1,1,true).identity_matrix();
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_g(_cimg_math_parser& mp) {
+        cimg::unused(mp);
+        return cimg::grand();
+      }
+
+      static double mp_gauss(_cimg_math_parser& mp) {
+        const double x = _mp_arg(2), s = _mp_arg(3);
+        return std::exp(-x*x/(2*s*s))/std::sqrt(2*s*s*cimg::PI);
+      }
+
+      static double mp_gt(_cimg_math_parser& mp) {
+        return (double)(_mp_arg(2)>_mp_arg(3));
+      }
+
+      static double mp_gte(_cimg_math_parser& mp) {
+        return (double)(_mp_arg(2)>=_mp_arg(3));
+      }
+
+      static double mp_hypot(_cimg_math_parser& mp) {
+        return cimg::hypot(_mp_arg(2),_mp_arg(3));
+      }
+
+      static double mp_i(_cimg_math_parser& mp) {
+        return (double)mp.imgin.atXYZC((int)mp.mem[_cimg_mp_x],(int)mp.mem[_cimg_mp_y],
+                                       (int)mp.mem[_cimg_mp_z],(int)mp.mem[_cimg_mp_c],0);
+      }
+
+      static double mp_if(_cimg_math_parser& mp) {
+        const bool is_cond = (bool)_mp_arg(2);
+        const ulongT
+          mem_left = mp.opcode[3],
+          mem_right = mp.opcode[4];
+        const CImg<ulongT>
+          *const p_right = ++mp.p_code + mp.opcode[5],
+          *const p_end = p_right + mp.opcode[6];
+        const unsigned int vtarget = mp.opcode[1], vsiz = mp.opcode[7];
+        if (is_cond) {
+          for ( ; mp.p_code<p_right; ++mp.p_code) {
+            const CImg<ulongT> &op = *mp.p_code;
+            mp.opcode._data = op._data; mp.opcode._height = op._height;
+            const ulongT target = mp.opcode[1];
+            mp.mem[target] = _cimg_mp_defunc(mp);
+          }
+          mp.p_code = p_end - 1;
+          if (vsiz) std::memcpy(&mp.mem[vtarget] + 1,&mp.mem[mem_left] + 1,sizeof(double)*vsiz);
+          return mp.mem[mem_left];
+        }
+        for (mp.p_code = p_right; mp.p_code<p_end; ++mp.p_code) {
+          const CImg<ulongT> &op = *mp.p_code;
+          mp.opcode._data = op._data; mp.opcode._height = op._height;
+          const ulongT target = mp.opcode[1];
+          mp.mem[target] = _cimg_mp_defunc(mp);
+        }
+        --mp.p_code;
+        if (vsiz) std::memcpy(&mp.mem[vtarget] + 1,&mp.mem[mem_right] + 1,sizeof(double)*vsiz);
+        return mp.mem[mem_right];
+      }
+
+      static double mp_increment(_cimg_math_parser& mp) {
+        return _mp_arg(2) + 1;
+      }
+
+      static double mp_int(_cimg_math_parser& mp) {
+        return (double)(longT)_mp_arg(2);
+      }
+
+      static double mp_inv(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const double *ptr1 = &_mp_arg(2) + 1;
+        const unsigned int k = (unsigned int)mp.opcode(3);
+        CImg<double>(ptrd,k,k,1,1,true) = CImg<double>(ptr1,k,k,1,1,true).get_invert();
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_ioff(_cimg_math_parser& mp) {
+        const unsigned int
+          boundary_conditions = (unsigned int)_mp_arg(3);
+        const CImg<T> &img = mp.imgin;
+        const longT
+          off = (longT)_mp_arg(2),
+          whds = (longT)img.size();
+        if (off<0 || off>=whds)
+          switch (boundary_conditions) {
+          case 2 : // Periodic boundary
+            if (img) return (double)img[cimg::mod(off,whds)];
+            return 0;
+          case 1 : // Neumann boundary
+            if (img) return (double)(off<0?*img:img.back());
+            return 0;
+          default : // Dirichet boundary
+            return 0;
+          }
+        return (double)img[off];
+      }
+
+      static double mp_isbool(_cimg_math_parser& mp) {
+        const double val = _mp_arg(2);
+        return (double)(val==0.0 || val==1.0);
+      }
+
+      static double mp_isin(_cimg_math_parser& mp) {
+        const double val = _mp_arg(2);
+        for (unsigned int i = 3; i<mp.opcode._height; ++i)
+          if (val==_mp_arg(i)) return 1.0;
+        return 0.0;
+      }
+
+      static double mp_isinf(_cimg_math_parser& mp) {
+        return (double)cimg::type<double>::is_inf(_mp_arg(2));
+      }
+
+      static double mp_isint(_cimg_math_parser& mp) {
+        return (double)(cimg::mod(_mp_arg(2),1.0)==0);
+      }
+
+      static double mp_isnan(_cimg_math_parser& mp) {
+        return (double)cimg::type<double>::is_nan(_mp_arg(2));
+      }
+
+      static double mp_ixyzc(_cimg_math_parser& mp) {
+        const unsigned int
+          interpolation = (unsigned int)_mp_arg(6),
+          boundary_conditions = (unsigned int)_mp_arg(7);
+        const CImg<T> &img = mp.imgin;
+        const double
+          x = _mp_arg(2), y = _mp_arg(3),
+          z = _mp_arg(4), c = _mp_arg(5);
+        if (interpolation==0) { // Nearest neighbor interpolation
+          if (boundary_conditions==2)
+            return (double)img.atXYZC(cimg::mod((int)x,img.width()),
+                                      cimg::mod((int)y,img.height()),
+                                      cimg::mod((int)z,img.depth()),
+                                      cimg::mod((int)c,img.spectrum()));
+          if (boundary_conditions==1)
+            return (double)img.atXYZC((int)x,(int)y,(int)z,(int)c);
+          return (double)img.atXYZC((int)x,(int)y,(int)z,(int)c,0);
+        } else { // Linear interpolation
+          if (boundary_conditions==2)
+            return (double)img.linear_atXYZC(cimg::mod((float)x,(float)img.width()),
+                                             cimg::mod((float)y,(float)img.height()),
+                                             cimg::mod((float)z,(float)img.depth()),
+                                          
