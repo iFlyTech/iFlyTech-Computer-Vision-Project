@@ -19631,4 +19631,202 @@ namespace cimg_library_suffixed {
 
       static double mp_Jxyz(_cimg_math_parser& mp) {
         double *ptrd = &_mp_arg(1) + 1;
-        const u
+        const unsigned int
+          interpolation = (unsigned int)_mp_arg(5),
+          boundary_conditions = (unsigned int)_mp_arg(6);
+        const CImg<T> &img = mp.imgin;
+        const double
+          ox = mp.mem[_cimg_mp_x], oy = mp.mem[_cimg_mp_y], oz = mp.mem[_cimg_mp_z],
+          x = ox + _mp_arg(2), y = oy + _mp_arg(3), z = oz + _mp_arg(4);
+        if (interpolation==0) { // Nearest neighbor interpolation
+          if (boundary_conditions==2)
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.atXYZ(cimg::mod((int)x,img.width()),
+                                            cimg::mod((int)y,img.height()),
+                                            cimg::mod((int)z,img.depth()),
+                                            c);
+          else if (boundary_conditions==1)
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.atXYZ((int)x,(int)y,(int)z,c);
+          else
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.atXYZ((int)x,(int)y,(int)z,c,0);
+        } else { // Linear interpolation
+          if (boundary_conditions==2)
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.linear_atXYZ(cimg::mod((float)x,(float)img.width()),
+                                                   cimg::mod((float)y,(float)img.height()),
+                                                   cimg::mod((float)z,(float)img.depth()),c);
+          else if (boundary_conditions==1)
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.linear_atXYZ((float)x,(float)y,(float)z,c);
+          else
+            cimg_forC(img,c)
+              *(ptrd++) = (double)img.linear_atXYZ((float)x,(float)y,(float)z,c,0);
+        }
+        return cimg::type<double>::nan();
+      }
+
+#undef _mp_arg
+
+    }; // struct _cimg_math_parser {}
+
+    //! Compute the square value of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its square value \f$I_{(x,y,z,c)}^2\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       (img,img.get_sqr().normalize(0,255)).display();
+       \endcode
+       \image html ref_sqr.jpg
+    **/
+    CImg<T>& sqr() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) { const T val = *ptrd; *ptrd = (T)(val*val); };
+      return *this;
+    }
+
+    //! Compute the square value of each pixel value \newinstance.
+    CImg<Tfloat> get_sqr() const {
+      return CImg<Tfloat>(*this,false).sqr();
+    }
+
+    //! Compute the square root of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its square root \f$\sqrt{I_{(x,y,z,c)}}\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       (img,img.get_sqrt().normalize(0,255)).display();
+       \endcode
+       \image html ref_sqrt.jpg
+    **/
+    CImg<T>& sqrt() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::sqrt((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the square root of each pixel value \newinstance.
+    CImg<Tfloat> get_sqrt() const {
+      return CImg<Tfloat>(*this,false).sqrt();
+    }
+
+    //! Compute the exponential of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its exponential \f$e^{I_{(x,y,z,c)}}\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& exp() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::exp((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the exponential of each pixel value \newinstance.
+    CImg<Tfloat> get_exp() const {
+      return CImg<Tfloat>(*this,false).exp();
+    }
+
+    //! Compute the logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its logarithm
+       \f$\mathrm{log}_{e}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=262144)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::log((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log() const {
+      return CImg<Tfloat>(*this,false).log();
+    }
+
+    //! Compute the base-2 logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its base-2 logarithm
+       \f$\mathrm{log}_{2}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log2() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::log2((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the base-10 logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log2() const {
+      return CImg<Tfloat>(*this,false).log2();
+    }
+
+    //! Compute the base-10 logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its base-10 logarithm
+       \f$\mathrm{log}_{10}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log10() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::log10((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the base-10 logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log10() const {
+      return CImg<Tfloat>(*this,false).log10();
+    }
+
+    //! Compute the absolute value of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its absolute value \f$|I_{(x,y,z,c)}|\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& abs() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::abs(*ptrd);
+      return *this;
+    }
+
+    //! Compute the absolute value of each pixel value \newinstance.
+    CImg<Tfloat> get_abs() co
