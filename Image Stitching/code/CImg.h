@@ -19829,4 +19829,216 @@ namespace cimg_library_suffixed {
     }
 
     //! Compute the absolute value of each pixel value \newinstance.
-    CImg<Tfloat> get_abs() co
+    CImg<Tfloat> get_abs() const {
+      return CImg<Tfloat>(*this,false).abs();
+    }
+
+    //! Compute the sign of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sign
+       \f$\mathrm{sign}(I_{(x,y,z,c)})\f$.
+       \note
+       - The sign is set to:
+         - \c 1 if pixel value is strictly positive.
+         - \c -1 if pixel value is strictly negative.
+         - \c 0 if pixel value is equal to \c 0.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sign() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::sign(*ptrd);
+      return *this;
+    }
+
+    //! Compute the sign of each pixel value \newinstance.
+    CImg<Tfloat> get_sign() const {
+      return CImg<Tfloat>(*this,false).sign();
+    }
+
+    //! Compute the cosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its cosine \f$\cos(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being in \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& cos() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::cos((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the cosine of each pixel value \newinstance.
+    CImg<Tfloat> get_cos() const {
+      return CImg<Tfloat>(*this,false).cos();
+    }
+
+    //! Compute the sine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sine \f$\sin(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being in \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sin() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::sin((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the sine of each pixel value \newinstance.
+    CImg<Tfloat> get_sin() const {
+      return CImg<Tfloat>(*this,false).sin();
+    }
+
+    //! Compute the sinc of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sinc
+       \f$\mathrm{sinc}(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being exin \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sinc() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::sinc((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the sinc of each pixel value \newinstance.
+    CImg<Tfloat> get_sinc() const {
+      return CImg<Tfloat>(*this,false).sinc();
+    }
+
+    //! Compute the tangent of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its tangent \f$\tan(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being exin \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& tan() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::tan((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the tangent of each pixel value \newinstance.
+    CImg<Tfloat> get_tan() const {
+      return CImg<Tfloat>(*this,false).tan();
+    }
+
+    //! Compute the hyperbolic cosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic cosine
+       \f$\mathrm{cosh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& cosh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::cosh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic cosine of each pixel value \newinstance.
+    CImg<Tfloat> get_cosh() const {
+      return CImg<Tfloat>(*this,false).cosh();
+    }
+
+    //! Compute the hyperbolic sine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic sine
+       \f$\mathrm{sinh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sinh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::sinh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic sine of each pixel value \newinstance.
+    CImg<Tfloat> get_sinh() const {
+      return CImg<Tfloat>(*this,false).sinh();
+    }
+
+    //! Compute the hyperbolic tangent of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic tangent
+       \f$\mathrm{tanh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& tanh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::tanh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic tangent of each pixel value \newinstance.
+    CImg<Tfloat> get_tanh() const {
+      return CImg<Tfloat>(*this,false).tanh();
+    }
+
+    //! Compute the arccosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arccosine
+       \f$\mathrm{acos}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& acos() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::acos((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the arccosine of each pixel value \newinstance.
+    CImg<Tfloat> get_acos() const {
+      return CImg<Tfloat>(*this,false).acos();
+    }
+
+    //! Compute the arcsine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arcsine
+       \f$\mathrm{asin}(I_{(x,y,z,c)})\f$.
+       \note
+      
