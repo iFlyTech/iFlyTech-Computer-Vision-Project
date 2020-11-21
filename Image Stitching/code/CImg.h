@@ -20438,4 +20438,214 @@ namespace cimg_library_suffixed {
     CImg<T>& min(const CImg<t>& img) {
       const ulongT siz = size(), isiz = img.size();
       if (siz && isiz) {
-        if (is_overlapped(img)) re
+        if (is_overlapped(img)) return min(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = cimg::min((T)*(ptrs++),*ptrd);
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = cimg::min((T)*(ptrs++),*ptrd);
+      }
+      return *this;
+    }
+
+    //! Pointwise min operator between two images \newinstance.
+    template<typename t>
+    CImg<_cimg_Tt> get_min(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this,false).min(img);
+    }
+
+    //! Pointwise min operator between an image and an expression.
+    /**
+       \param expression Math formula as a C-string.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{min}(I_{(x,y,z,c)},\mathrm{expr}_{(x,y,z,c)})\f$.
+    **/
+    CImg<T>& min(const char *const expression) {
+      return min((+*this)._fill(expression,true,true,0,0,"min",this));
+    }
+
+    //! Pointwise min operator between an image and an expression \newinstance.
+    CImg<Tfloat> get_min(const char *const expression) const {
+      return CImg<Tfloat>(*this,false).min(expression);
+    }
+
+    //! Pointwise max operator between instance image and a value.
+    /**
+       \param val Value used as the reference argument of the max operator.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{max}(I_{(x,y,z,c)},\mathrm{val})\f$.
+     **/
+    CImg<T>& max(const T& val) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::max(*ptrd,val);
+      return *this;
+    }
+
+    //! Pointwise max operator between instance image and a value \newinstance.
+    CImg<T> get_max(const T& val) const {
+      return (+*this).max(val);
+    }
+
+    //! Pointwise max operator between two images.
+    /**
+       \param img Image used as the reference argument of the max operator.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{max}(I_{(x,y,z,c)},\mathrm{img}_{(x,y,z,c)})\f$.
+     **/
+    template<typename t>
+    CImg<T>& max(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return max(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = cimg::max((T)*(ptrs++),*ptrd);
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = cimg::max((T)*(ptrs++),*ptrd);
+      }
+      return *this;
+    }
+
+    //! Pointwise max operator between two images \newinstance.
+    template<typename t>
+    CImg<_cimg_Tt> get_max(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this,false).max(img);
+    }
+
+    //! Pointwise max operator between an image and an expression.
+    /**
+       \param expression Math formula as a C-string.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{max}(I_{(x,y,z,c)},\mathrm{expr}_{(x,y,z,c)})\f$.
+    **/
+    CImg<T>& max(const char *const expression) {
+      return max((+*this)._fill(expression,true,true,0,0,"max",this));
+    }
+
+    //! Pointwise max operator between an image and an expression \newinstance.
+    CImg<Tfloat> get_max(const char *const expression) const {
+      return CImg<Tfloat>(*this,false).max(expression);
+    }
+
+    //! Return a reference to the minimum pixel value.
+    /**
+     **/
+    T& min() {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_min = _data;
+      T min_value = *ptr_min;
+      cimg_for(*this,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value \const.
+    const T& min() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_min = _data;
+      T min_value = *ptr_min;
+      cimg_for(*this,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value.
+    /**
+     **/
+    T& max() {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_max = _data;
+      T max_value = *ptr_max;
+      cimg_for(*this,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value \const.
+    const T& max() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_max = _data;
+      T max_value = *ptr_max;
+      cimg_for(*this,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      return *ptr_max;
+    }
+
+    //! Return a reference to the minimum pixel value as well as the maximum pixel value.
+    /**
+       \param[out] max_val Maximum pixel value.
+    **/
+    template<typename t>
+    T& min_max(t& max_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min_max(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_min = _data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val<min_value) { min_value = val; ptr_min = ptrs; }
+        if (val>max_value) max_value = val;
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value as well as the maximum pixel value \const.
+    template<typename t>
+    const T& min_max(t& max_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min_max(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_min = _data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val<min_value) { min_value = val; ptr_min = ptrs; }
+        if (val>max_value) max_value = val;
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value as well as the minimum pixel value.
+    /**
+       \param[out] min_val Minimum pixel value.
+    **/
+    template<typename t>
+    T& max_min(t& min_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max_min(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_max = _data;
+      T max_value = *ptr_max, min_value = max_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val>max_value) { max_value = val; ptr_max = ptrs; }
+        if (val<min_value) min_value = val;
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value as well as the minimum pixel value \const.
+    template<typename t>
+    const T& max_min(t& min_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max_min(): Empty instance.",
+                    
