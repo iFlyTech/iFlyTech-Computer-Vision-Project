@@ -20237,4 +20237,205 @@ namespace cimg_library_suffixed {
       if (p==2) return sqr();
       if (p==3) {
 #ifdef cimg_use_openmp
-#pragma omp parallel for cimg_o
+#pragma omp parallel for cimg_openmp_if(size()>=262144)
+#endif
+        cimg_rof(*this,ptrd,T) { const T val = *ptrd; *ptrd = val*val*val; }
+        return *this;
+      }
+      if (p==4) {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=131072)
+#endif
+        cimg_rof(*this,ptrd,T) { const T val = *ptrd; *ptrd = val*val*val*val; }
+        return *this;
+      }
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=1024)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::pow((double)*ptrd,p);
+      return *this;
+    }
+
+    //! Raise each pixel value to a specified power \newinstance.
+    CImg<Tfloat> get_pow(const double p) const {
+      return CImg<Tfloat>(*this,false).pow(p);
+    }
+
+    //! Raise each pixel value to a power, specified from an expression.
+    /**
+       Similar to operator+=(const char*), except it performs a pointwise exponentiation instead of an addition.
+    **/
+    CImg<T>& pow(const char *const expression) {
+      return pow((+*this)._fill(expression,true,true,0,0,"pow",this));
+    }
+
+    //! Raise each pixel value to a power, specified from an expression \newinstance.
+    CImg<Tfloat> get_pow(const char *const expression) const {
+      return CImg<Tfloat>(*this,false).pow(expression);
+    }
+
+    //! Raise each pixel value to a power, pointwisely specified from another image.
+    /**
+       Similar to operator+=(const CImg<t>& img), except that it performs an exponentiation instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& pow(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return pow(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)std::pow((double)*ptrd,(double)(*(ptrs++)));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)std::pow((double)*ptrd,(double)(*(ptrs++)));
+      }
+      return *this;
+    }
+
+    //! Raise each pixel value to a power, pointwisely specified from another image \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_pow(const CImg<t>& img) const {
+      return CImg<Tfloat>(*this,false).pow(img);
+    }
+
+    //! Compute the bitwise left rotation of each pixel value.
+    /**
+       Similar to operator<<=(unsigned int), except that it performs a left rotation instead of a left shift.
+    **/
+    CImg<T>& rol(const unsigned int n=1) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::rol(*ptrd,n);
+      return *this;
+    }
+
+    //! Compute the bitwise left rotation of each pixel value \newinstance.
+    CImg<T> get_rol(const unsigned int n=1) const {
+      return (+*this).rol(n);
+    }
+
+    //! Compute the bitwise left rotation of each pixel value.
+    /**
+       Similar to operator<<=(const char*), except that it performs a left rotation instead of a left shift.
+    **/
+    CImg<T>& rol(const char *const expression) {
+      return rol((+*this)._fill(expression,true,true,0,0,"rol",this));
+    }
+
+    //! Compute the bitwise left rotation of each pixel value \newinstance.
+    CImg<T> get_rol(const char *const expression) const {
+      return (+*this).rol(expression);
+    }
+
+    //! Compute the bitwise left rotation of each pixel value.
+    /**
+       Similar to operator<<=(const CImg<t>&), except that it performs a left rotation instead of a left shift.
+    **/
+    template<typename t>
+    CImg<T>& rol(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return rol(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)cimg::rol(*ptrd,(unsigned int)(*(ptrs++)));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)cimg::rol(*ptrd,(unsigned int)(*(ptrs++)));
+      }
+      return *this;
+    }
+
+    //! Compute the bitwise left rotation of each pixel value \newinstance.
+    template<typename t>
+    CImg<T> get_rol(const CImg<t>& img) const {
+      return (+*this).rol(img);
+    }
+
+    //! Compute the bitwise right rotation of each pixel value.
+    /**
+       Similar to operator>>=(unsigned int), except that it performs a right rotation instead of a right shift.
+    **/
+    CImg<T>& ror(const unsigned int n=1) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::ror(*ptrd,n);
+      return *this;
+    }
+
+    //! Compute the bitwise right rotation of each pixel value \newinstance.
+    CImg<T> get_ror(const unsigned int n=1) const {
+      return (+*this).ror(n);
+    }
+
+    //! Compute the bitwise right rotation of each pixel value.
+    /**
+       Similar to operator>>=(const char*), except that it performs a right rotation instead of a right shift.
+    **/
+    CImg<T>& ror(const char *const expression) {
+      return ror((+*this)._fill(expression,true,true,0,0,"ror",this));
+    }
+
+    //! Compute the bitwise right rotation of each pixel value \newinstance.
+    CImg<T> get_ror(const char *const expression) const {
+      return (+*this).ror(expression);
+    }
+
+    //! Compute the bitwise right rotation of each pixel value.
+    /**
+       Similar to operator>>=(const CImg<t>&), except that it performs a right rotation instead of a right shift.
+    **/
+    template<typename t>
+    CImg<T>& ror(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return ror(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)cimg::ror(*ptrd,(unsigned int)(*(ptrs++)));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)cimg::ror(*ptrd,(unsigned int)(*(ptrs++)));
+      }
+      return *this;
+    }
+
+    //! Compute the bitwise right rotation of each pixel value \newinstance.
+    template<typename t>
+    CImg<T> get_ror(const CImg<t>& img) const {
+      return (+*this).ror(img);
+    }
+
+    //! Pointwise min operator between instance image and a value.
+    /**
+       \param val Value used as the reference argument of the min operator.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{min}(I_{(x,y,z,c)},\mathrm{val})\f$.
+     **/
+    CImg<T>& min(const T& val) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::min(*ptrd,val);
+      return *this;
+    }
+
+    //! Pointwise min operator between instance image and a value \newinstance.
+    CImg<T> get_min(const T& val) const {
+      return (+*this).min(val);
+    }
+
+    //! Pointwise min operator between two images.
+    /**
+       \param img Image used as the reference argument of the min operator.
+       \note Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by
+       \f$\mathrm{min}(I_{(x,y,z,c)},\mathrm{img}_{(x,y,z,c)})\f$.
+     **/
+    template<typename t>
+    CImg<T>& min(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) re
