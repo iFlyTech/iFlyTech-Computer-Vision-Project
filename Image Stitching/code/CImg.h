@@ -20648,4 +20648,215 @@ namespace cimg_library_suffixed {
       if (is_empty())
         throw CImgInstanceException(_cimg_instance
                                     "max_min(): Empty instance.",
-                    
+                                    cimg_instance);
+      const T *ptr_max = _data;
+      T max_value = *ptr_max, min_value = max_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val>max_value) { max_value = val; ptr_max = ptrs; }
+        if (val<min_value) min_value = val;
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //! Return the kth smallest pixel value.
+    /**
+       \param k Rank of the search smallest element.
+    **/
+    T kth_smallest(const unsigned int k) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "kth_smallest(): Empty instance.",
+                                    cimg_instance);
+      CImg<T> arr(*this);
+      unsigned int l = 0, ir = size() - 1;
+      for ( ; ; ) {
+        if (ir<=l + 1) {
+          if (ir==l + 1 && arr[ir]<arr[l]) cimg::swap(arr[l],arr[ir]);
+          return arr[k];
+        } else {
+          const unsigned int mid = (l + ir)>>1;
+          cimg::swap(arr[mid],arr[l + 1]);
+          if (arr[l]>arr[ir]) cimg::swap(arr[l],arr[ir]);
+          if (arr[l + 1]>arr[ir]) cimg::swap(arr[l + 1],arr[ir]);
+          if (arr[l]>arr[l + 1]) cimg::swap(arr[l],arr[l + 1]);
+          unsigned int i = l + 1, j = ir;
+          const T pivot = arr[l + 1];
+          for ( ; ; ) {
+            do ++i; while (arr[i]<pivot);
+            do --j; while (arr[j]>pivot);
+            if (j<i) break;
+            cimg::swap(arr[i],arr[j]);
+          }
+          arr[l + 1] = arr[j];
+          arr[j] = pivot;
+          if (j>=k) ir = j - 1;
+          if (j<=k) l = i;
+        }
+      }
+    }
+
+    //! Return the median pixel value.
+    /**
+     **/
+    T median() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "median(): Empty instance.",
+                                    cimg_instance);
+      const unsigned int s = size();
+      const T res = kth_smallest(s>>1);
+      return (s%2)?res:((res + kth_smallest((s>>1) - 1))/2);
+    }
+
+    //! Return the product of all the pixel values.
+    /**
+     **/
+    double product() const {
+      if (is_empty()) return 0;
+      double res = 1;
+      cimg_for(*this,ptrs,T) res*=(double)*ptrs;
+      return res;
+    }
+
+    //! Return the sum of all the pixel values.
+    /**
+     **/
+    double sum() const {
+      double res = 0;
+      cimg_for(*this,ptrs,T) res+=(double)*ptrs;
+      return res;
+    }
+
+    //! Return the average pixel value.
+    /**
+     **/
+    double mean() const {
+      double res = 0;
+      cimg_for(*this,ptrs,T) res+=(double)*ptrs;
+      return res/size();
+    }
+
+    //! Return the variance of the pixel values.
+    /**
+       \param variance_method Method used to estimate the variance. Can be:
+       - \c 0: Second moment, computed as
+       \f$1/N \sum\limits_{k=1}^{N} (x_k - \bar x)^2 =
+       1/N \left( \sum\limits_{k=1}^N x_k^2 - \left( \sum\limits_{k=1}^N x_k \right)^2 / N \right)\f$
+       with \f$ \bar x = 1/N \sum\limits_{k=1}^N x_k \f$.
+       - \c 1: Best unbiased estimator, computed as \f$\frac{1}{N - 1} \sum\limits_{k=1}^{N} (x_k - \bar x)^2 \f$.
+       - \c 2: Least median of squares.
+       - \c 3: Least trimmed of squares.
+    **/
+    double variance(const unsigned int variance_method=1) const {
+      double foo;
+      return variance_mean(variance_method,foo);
+    }
+
+    //! Return the variance as well as the average of the pixel values.
+    /**
+       \param variance_method Method used to estimate the variance (see variance(const unsigned int) const).
+       \param[out] mean Average pixel value.
+    **/
+    template<typename t>
+    double variance_mean(const unsigned int variance_method, t& mean) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "variance_mean(): Empty instance.",
+                                    cimg_instance);
+
+      double variance = 0, average = 0;
+      const ulongT siz = size();
+      switch (variance_method) {
+      case 0 : { // Least mean square (standard definition)
+        double S = 0, S2 = 0;
+        cimg_for(*this,ptrs,T) { const double val = (double)*ptrs; S+=val; S2+=val*val; }
+        variance = (S2 - S*S/siz)/siz;
+        average = S;
+      } break;
+      case 1 : { // Least mean square (robust definition)
+        double S = 0, S2 = 0;
+        cimg_for(*this,ptrs,T) { const double val = (double)*ptrs; S+=val; S2+=val*val; }
+        variance = siz>1?(S2 - S*S/siz)/(siz - 1):0;
+        average = S;
+      } break;
+      case 2 : { // Least Median of Squares (MAD)
+        CImg<Tfloat> buf(*this,false);
+        buf.sort();
+        const ulongT siz2 = siz>>1;
+        const double med_i = (double)buf[siz2];
+        cimg_for(buf,ptrs,Tfloat) {
+          const double val = (double)*ptrs; *ptrs = (Tfloat)cimg::abs(val - med_i); average+=val;
+        }
+        buf.sort();
+        const double sig = (double)(1.4828*buf[siz2]);
+        variance = sig*sig;
+      } break;
+      default : { // Least trimmed of Squares
+        CImg<Tfloat> buf(*this,false);
+        const ulongT siz2 = siz>>1;
+        cimg_for(buf,ptrs,Tfloat) {
+          const double val = (double)*ptrs; (*ptrs)=(Tfloat)((*ptrs)*val); average+=val;
+        }
+        buf.sort();
+        double a = 0;
+        const Tfloat *ptrs = buf._data;
+        for (ulongT j = 0; j<siz2; ++j) a+=(double)*(ptrs++);
+        const double sig = (double)(2.6477*std::sqrt(a/siz2));
+        variance = sig*sig;
+      }
+      }
+      mean = (t)(average/siz);
+      return variance>0?variance:0;
+    }
+
+    //! Return estimated variance of the noise.
+    /**
+       \param variance_method Method used to compute the variance (see variance(const unsigned int) const).
+       \note Because of structures such as edges in images it is
+       recommanded to use a robust variance estimation. The variance of the
+       noise is estimated by computing the variance of the Laplacian \f$(\Delta
+       I)^2 \f$ scaled by a factor \f$c\f$ insuring \f$ c E[(\Delta I)^2]=
+       \sigma^2\f$ where \f$\sigma\f$ is the noise variance.
+    **/
+    double variance_noise(const unsigned int variance_method=2) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "variance_noise(): Empty instance.",
+                                    cimg_instance);
+
+      const ulongT siz = size();
+      if (!siz || !_data) return 0;
+      if (variance_method>1) { // Compute a scaled version of the Laplacian.
+        CImg<Tdouble> tmp(*this);
+        if (_depth==1) {
+          const double cste = 1.0/std::sqrt(20.0); // Depends on how the Laplacian is computed.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height>=262144 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            CImg_3x3(I,T);
+            cimg_for3x3(*this,x,y,0,c,I,T) {
+              tmp(x,y,c) = cste*((double)Inc + (double)Ipc + (double)Icn +
+                                 (double)Icp - 4*(double)Icc);
+            }
+          }
+        } else {
+          const double cste = 1.0/std::sqrt(42.0); // Depends on how the Laplacian is computed.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=262144 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            CImg_3x3x3(I,T);
+            cimg_for3x3x3(*this,x,y,z,c,I,T) {
+              tmp(x,y,z,c) = cste*(
+                                   (double)Incc + (double)Ipcc + (double)Icnc + (double)Icpc +
+                                   (double)Iccn + (double)Iccp - 6*(double)Iccc);
+            }
+          }
+        }
+        return tmp.variance(variance_method);
+      }
+
+      // Version tha
