@@ -21024,4 +21024,214 @@ namespace cimg_library_suffixed {
 
     template<typename t>
     CImg<doubleT> _eval(CImg<T> *const output, const char *const expression, const CImg<t>& xyzc,
-                        c
+                        const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      CImg<doubleT> res(1,xyzc.size()/4);
+      if (!expression) return res.fill(0);
+      _cimg_math_parser mp(expression,"eval",*this,output,list_inputs,list_outputs);
+#ifdef cimg_use_openmp
+#pragma omp parallel if (res._height>=512 && std::strlen(expression)>=6)
+      {
+        _cimg_math_parser _mp = omp_get_thread_num()?mp:_cimg_math_parser(), &lmp = omp_get_thread_num()?_mp:mp;
+#pragma omp for
+        for (unsigned int i = 0; i<res._height; ++i) {
+          const unsigned int i4 = 4*i;
+          const double
+            x = (double)xyzc[i4], y = (double)xyzc[i4 + 1],
+            z = (double)xyzc[i4 + 2], c = (double)xyzc[i4 + 3];
+          res[i] = lmp(x,y,z,c);
+        }
+      }
+#else
+      const t *ps = xyzc._data;
+      cimg_for(res,pd,double) {
+        const double x = (double)*(ps++), y = (double)*(ps++), z = (double)*(ps++), c = (double)*(ps++);
+        *pd = mp(x,y,z,c);
+      }
+#endif
+      return res;
+    }
+
+    //! Compute statistics vector from the pixel values.
+    /*
+       \param variance_method Method used to compute the variance (see variance(const unsigned int) const).
+       \return Statistics vector as
+         <tt>[min; max; mean; variance; xmin; ymin; zmin; cmin; xmax; ymax; zmax; cmax; sum; product]</tt>.
+    **/
+    CImg<Tdouble> get_stats(const unsigned int variance_method=1) const {
+      if (is_empty()) return CImg<doubleT>();
+      const ulongT siz = size();
+      const T *const odata = _data;
+      const T *pm = odata, *pM = odata;
+      double S = 0, S2 = 0, P = _data?1:0;
+      T m = *pm, M = m;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        const double _val = (double)val;
+        if (val<m) { m = val; pm = ptrs; }
+        if (val>M) { M = val; pM = ptrs; }
+        S+=_val;
+        S2+=_val*_val;
+        P*=_val;
+      }
+      const double
+        mean_value = S/siz,
+        _variance_value = variance_method==0?(S2 - S*S/siz)/siz:
+        (variance_method==1?(siz>1?(S2 - S*S/siz)/(siz - 1):0):
+         variance(variance_method)),
+        variance_value = _variance_value>0?_variance_value:0;
+      int
+        xm = 0, ym = 0, zm = 0, cm = 0,
+        xM = 0, yM = 0, zM = 0, cM = 0;
+      contains(*pm,xm,ym,zm,cm);
+      contains(*pM,xM,yM,zM,cM);
+      return CImg<Tdouble>(1,14).fill((double)m,(double)M,mean_value,variance_value,
+                                      (double)xm,(double)ym,(double)zm,(double)cm,
+                                      (double)xM,(double)yM,(double)zM,(double)cM,
+                                      S,P);
+    }
+
+    //! Compute statistics vector from the pixel values \inplace.
+    CImg<T>& stats(const unsigned int variance_method=1) {
+      return get_stats(variance_method).move_to(*this);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Vector / Matrix Operations
+    //@{
+    //-------------------------------------
+
+    //! Compute norm of the image, viewed as a matrix.
+    /**
+       \param magnitude_type Norm type. Can be:
+       - \c -1: Linf-norm
+       - \c 0: L2-norm
+       - \c 1: L1-norm
+    **/
+    double magnitude(const int magnitude_type=2) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "magnitude(): Empty instance.",
+                                    cimg_instance);
+      double res = 0;
+      switch (magnitude_type) {
+      case -1 : {
+        cimg_for(*this,ptrs,T) { const double val = (double)cimg::abs(*ptrs); if (val>res) res = val; }
+      } break;
+      case 1 : {
+        cimg_for(*this,ptrs,T) res+=(double)cimg::abs(*ptrs);
+      } break;
+      default : {
+        cimg_for(*this,ptrs,T) res+=(double)cimg::sqr(*ptrs);
+        res = (double)std::sqrt(res);
+      }
+      }
+      return res;
+    }
+
+    //! Compute the trace of the image, viewed as a matrix.
+    /**
+     **/
+    double trace() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "trace(): Empty instance.",
+                                    cimg_instance);
+      double res = 0;
+      cimg_forX(*this,k) res+=(double)(*this)(k,k);
+      return res;
+    }
+
+    //! Compute the determinant of the image, viewed as a matrix.
+    /**
+     **/
+    double det() const {
+      if (is_empty() || _width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "det(): Instance is not a square matrix.",
+                                    cimg_instance);
+
+      switch (_width) {
+      case 1 : return (double)((*this)(0,0));
+      case 2 : return (double)((*this)(0,0))*(double)((*this)(1,1)) - (double)((*this)(0,1))*(double)((*this)(1,0));
+      case 3 : {
+        const double
+          a = (double)_data[0], d = (double)_data[1], g = (double)_data[2],
+          b = (double)_data[3], e = (double)_data[4], h = (double)_data[5],
+          c = (double)_data[6], f = (double)_data[7], i = (double)_data[8];
+        return i*a*e - a*h*f - i*b*d + b*g*f + c*d*h - c*g*e;
+      }
+      default : {
+        CImg<Tfloat> lu(*this);
+        CImg<uintT> indx;
+        bool d;
+        lu._LU(indx,d);
+        double res = d?(double)1:(double)-1;
+        cimg_forX(lu,i) res*=lu(i,i);
+        return res;
+      }
+      }
+    }
+
+    //! Compute the dot product between instance and argument, viewed as matrices.
+    /**
+       \param img Image used as a second argument of the dot product.
+    **/
+    template<typename t>
+    double dot(const CImg<t>& img) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "dot(): Empty instance.",
+                                    cimg_instance);
+      if (!img)
+        throw CImgArgumentException(_cimg_instance
+                                    "dot(): Empty specified image.",
+                                    cimg_instance);
+
+      const ulongT nb = cimg::min(size(),img.size());
+      double res = 0;
+      for (ulongT off = 0; off<nb; ++off) res+=(double)_data[off]*(double)img[off];
+      return res;
+    }
+
+    //! Get vector-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    CImg<T> get_vector_at(const unsigned int x, const unsigned int y=0, const unsigned int z=0) const {
+      CImg<T> res;
+      if (res._height!=_spectrum) res.assign(1,_spectrum);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const T *ptrs = data(x,y,z);
+      T *ptrd = res._data;
+      cimg_forC(*this,c) { *(ptrd++) = *ptrs; ptrs+=whd; }
+      return res;
+    }
+
+    //! Get (square) matrix-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \note - The spectrum() of the image must be a square.
+     **/
+    CImg<T> get_matrix_at(const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) const {
+      const int n = (int)std::sqrt((double)_spectrum);
+      const T *ptrs = data(x,y,z,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      CImg<T> res(n,n);
+      T *ptrd = res._data;
+      cimg_forC(*this,c) { *(ptrd++) = *ptrs; ptrs+=whd; }
+      return res;
+    }
+
+    //! Get tensor-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    CImg<T> get_tensor_at(const unsigned in
