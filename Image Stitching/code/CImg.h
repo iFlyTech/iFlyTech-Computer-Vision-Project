@@ -20859,4 +20859,169 @@ namespace cimg_library_suffixed {
         return tmp.variance(variance_method);
       }
 
-      // Version tha
+      // Version that doesn't need intermediate images.
+      double variance = 0, S = 0, S2 = 0;
+      if (_depth==1) {
+        const double cste = 1.0/std::sqrt(20.0);
+        CImg_3x3(I,T);
+        cimg_forC(*this,c) cimg_for3x3(*this,x,y,0,c,I,T) {
+          const double val = cste*((double)Inc + (double)Ipc +
+                                   (double)Icn + (double)Icp - 4*(double)Icc);
+          S+=val; S2+=val*val;
+        }
+      } else {
+        const double cste = 1.0/std::sqrt(42.0);
+        CImg_3x3x3(I,T);
+        cimg_forC(*this,c) cimg_for3x3x3(*this,x,y,z,c,I,T) {
+          const double val = cste *
+            ((double)Incc + (double)Ipcc + (double)Icnc +
+             (double)Icpc +
+             (double)Iccn + (double)Iccp - 6*(double)Iccc);
+          S+=val; S2+=val*val;
+        }
+      }
+      if (variance_method) variance = siz>1?(S2 - S*S/siz)/(siz - 1):0;
+      else variance = (S2 - S*S/siz)/siz;
+      return variance>0?variance:0;
+    }
+
+    //! Compute the MSE (Mean-Squared Error) between two images.
+    /**
+       \param img Image used as the second argument of the MSE operator.
+    **/
+    template<typename t>
+    double MSE(const CImg<t>& img) const {
+      if (img.size()!=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "MSE(): Instance and specified image (%u,%u,%u,%u,%p) have different dimensions.",
+                                    cimg_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data);
+      double vMSE = 0;
+      const t* ptr2 = img._data;
+      cimg_for(*this,ptr1,T) {
+        const double diff = (double)*ptr1 - (double)*(ptr2++);
+        vMSE+=diff*diff;
+      }
+      const ulongT siz = img.size();
+      if (siz) vMSE/=siz;
+      return vMSE;
+    }
+
+    //! Compute the PSNR (Peak Signal-to-Noise Ratio) between two images.
+    /**
+       \param img Image used as the second argument of the PSNR operator.
+       \param max_value Maximum theoretical value of the signal.
+     **/
+    template<typename t>
+    double PSNR(const CImg<t>& img, const double max_value=255) const {
+      const double vMSE = (double)std::sqrt(MSE(img));
+      return (vMSE!=0)?(double)(20*std::log10(max_value/vMSE)):(double)(cimg::type<double>::max());
+    }
+
+    //! Evaluate math formula.
+    /**
+       \param expression Math formula, as a C-string.
+       \param x Value of the pre-defined variable \c x.
+       \param y Value of the pre-defined variable \c y.
+       \param z Value of the pre-defined variable \c z.
+       \param c Value of the pre-defined variable \c c.
+       \param list_inputs A list of input images attached to the specified math formula.
+       \param list_outputs A pointer to a list of output images attached to the specified math formula.
+    **/
+    double eval(const char *const expression,
+                const double x=0, const double y=0, const double z=0, const double c=0,
+                const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      return _eval(this,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    //! Evaluate math formula \const.
+    double eval(const char *const expression,
+                const double x=0, const double y=0, const double z=0, const double c=0,
+                const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      return _eval(0,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    double _eval(CImg<T> *const img_output, const char *const expression,
+                 const double x, const double y, const double z, const double c,
+                 const CImgList<T> *const list_inputs, CImgList<T> *const list_outputs) const {
+      if (!expression) return 0;
+      if (!expression[1]) switch (*expression) { // Single-char optimization.
+        case 'w' : return (double)_width;
+        case 'h' : return (double)_height;
+        case 'd' : return (double)_depth;
+        case 's' : return (double)_spectrum;
+        case 'r' : return (double)_is_shared;
+        }
+      _cimg_math_parser mp(expression + (*expression=='>' || *expression=='<' ||
+                                         *expression=='*' || *expression==':'?1:0),"eval",
+                           *this,img_output,list_inputs,list_outputs);
+      return mp(x,y,z,c);
+    }
+
+    //! Evaluate math formula.
+    /**
+       \param[out] output Contains values of output vector returned by the evaluated expression
+         (or is empty if the returned type is scalar).
+       \param expression Math formula, as a C-string.
+       \param x Value of the pre-defined variable \c x.
+       \param y Value of the pre-defined variable \c y.
+       \param z Value of the pre-defined variable \c z.
+       \param c Value of the pre-defined variable \c c.
+       \param list_inputs A list of input images attached to the specified math formula.
+       \param list_outputs A pointer to a list of output images attached to the specified math formula.
+    **/
+    template<typename t>
+    void eval(CImg<t> &output, const char *const expression,
+              const double x=0, const double y=0, const double z=0, const double c=0,
+              const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      _eval(output,this,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    //! Evaluate math formula \const.
+    template<typename t>
+    void eval(CImg<t>& output, const char *const expression,
+              const double x=0, const double y=0, const double z=0, const double c=0,
+              const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      _eval(output,0,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    template<typename t>
+    void _eval(CImg<t>& output, CImg<T> *const img_output, const char *const expression,
+               const double x, const double y, const double z, const double c,
+               const CImgList<T> *const list_inputs, CImgList<T> *const list_outputs) const {
+      if (!expression) { output.assign(1); *output = 0; }
+      if (!expression[1]) switch (*expression) { // Single-char optimization.
+        case 'w' : output.assign(1); *output = (t)_width;
+        case 'h' : output.assign(1); *output = (t)_height;
+        case 'd' : output.assign(1); *output = (t)_depth;
+        case 's' : output.assign(1); *output = (t)_spectrum;
+        case 'r' : output.assign(1); *output = (t)_is_shared;
+        }
+      _cimg_math_parser mp(expression + (*expression=='>' || *expression=='<' ||
+                                         *expression=='*' || *expression==':'?1:0),"eval",
+                           *this,img_output,list_inputs,list_outputs);
+      output.assign(1,cimg::max(1U,mp.result_dim));
+      mp(x,y,z,c,output._data);
+    }
+
+    //! Evaluate math formula on a set of variables.
+    /**
+       \param expression Math formula, as a C-string.
+       \param xyzc Set of values (x,y,z,c) used for the evaluation.
+    **/
+    template<typename t>
+    CImg<doubleT> eval(const char *const expression, const CImg<t>& xyzc,
+                       const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      return _eval(this,expression,xyzc,list_inputs,list_outputs);
+    }
+
+    //! Evaluate math formula on a set of variables \const.
+    template<typename t>
+    CImg<doubleT> eval(const char *const expression, const CImg<t>& xyzc,
+                       const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      return _eval(0,expression,xyzc,list_inputs,list_outputs);
+    }
+
+    template<typename t>
+    CImg<doubleT> _eval(CImg<T> *const output, const char *const expression, const CImg<t>& xyzc,
+                        c
