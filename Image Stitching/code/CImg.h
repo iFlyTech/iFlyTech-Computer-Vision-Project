@@ -21234,4 +21234,233 @@ namespace cimg_library_suffixed {
        \param y Y-coordinate of the pixel value.
        \param z Z-coordinate of the pixel value.
     **/
-    CImg<T> get_tensor_at(const unsigned in
+    CImg<T> get_tensor_at(const unsigned int x, const unsigned int y=0, const unsigned int z=0) const {
+      const T *ptrs = data(x,y,z,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (_spectrum==6)
+        return tensor(*ptrs,*(ptrs + whd),*(ptrs + 2*whd),*(ptrs + 3*whd),*(ptrs + 4*whd),*(ptrs + 5*whd));
+      if (_spectrum==3)
+        return tensor(*ptrs,*(ptrs + whd),*(ptrs + 2*whd));
+      return tensor(*ptrs);
+    }
+
+    //! Set vector-valued pixel at specified position.
+    /**
+       \param vec Vector to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_vector_at(const CImg<t>& vec, const unsigned int x, const unsigned int y=0, const unsigned int z=0) {
+      if (x<_width && y<_height && z<_depth) {
+        const t *ptrs = vec._data;
+        const ulongT whd = (ulongT)_width*_height*_depth;
+        T *ptrd = data(x,y,z);
+        for (unsigned int k = cimg::min((unsigned int)vec.size(),_spectrum); k; --k) {
+          *ptrd = (T)*(ptrs++); ptrd+=whd;
+        }
+      }
+      return *this;
+    }
+
+    //! Set (square) matrix-valued pixel at specified position.
+    /**
+       \param mat Matrix to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_matrix_at(const CImg<t>& mat, const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) {
+      return set_vector_at(mat,x,y,z);
+    }
+
+    //! Set tensor-valued pixel at specified position.
+    /**
+       \param ten Tensor to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_tensor_at(const CImg<t>& ten, const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) {
+      T *ptrd = data(x,y,z,0);
+      const ulongT siz = (ulongT)_width*_height*_depth;
+      if (ten._height==2) {
+        *ptrd = (T)ten[0]; ptrd+=siz;
+        *ptrd = (T)ten[1]; ptrd+=siz;
+        *ptrd = (T)ten[3];
+      }
+      else {
+        *ptrd = (T)ten[0]; ptrd+=siz;
+        *ptrd = (T)ten[1]; ptrd+=siz;
+        *ptrd = (T)ten[2]; ptrd+=siz;
+        *ptrd = (T)ten[4]; ptrd+=siz;
+        *ptrd = (T)ten[5]; ptrd+=siz;
+        *ptrd = (T)ten[8];
+      }
+      return *this;
+    }
+
+    //! Unroll pixel values along axis \c y.
+    /**
+       \note Equivalent to \code unroll('y'); \endcode.
+    **/
+    CImg<T>& vector() {
+      return unroll('y');
+    }
+
+    //! Unroll pixel values along axis \c y \newinstance.
+    CImg<T> get_vector() const {
+      return get_unroll('y');
+    }
+
+    //! Resize image to become a scalar square matrix.
+    /**
+     **/
+    CImg<T>& matrix() {
+      const ulongT siz = size();
+      switch (siz) {
+      case 1 : break;
+      case 4 : _width = _height = 2; break;
+      case 9 : _width = _height = 3; break;
+      case 16 : _width = _height = 4; break;
+      case 25 : _width = _height = 5; break;
+      case 36 : _width = _height = 6; break;
+      case 49 : _width = _height = 7; break;
+      case 64 : _width = _height = 8; break;
+      case 81 : _width = _height = 9; break;
+      case 100 : _width = _height = 10; break;
+      default : {
+        ulongT i = 11, i2 = i*i;
+        while (i2<siz) { i2+=2*i + 1; ++i; }
+        if (i2==siz) _width = _height = i;
+        else throw CImgInstanceException(_cimg_instance
+                                         "matrix(): Invalid instance size %u (should be a square integer).",
+                                         cimg_instance,
+                                         siz);
+      }
+      }
+      return *this;
+    }
+
+    //! Resize image to become a scalar square matrix \newinstance.
+    CImg<T> get_matrix() const {
+      return (+*this).matrix();
+    }
+
+    //! Resize image to become a symmetric tensor.
+    /**
+     **/
+    CImg<T>& tensor() {
+      return get_tensor().move_to(*this);
+    }
+
+    //! Resize image to become a symmetric tensor \newinstance.
+    CImg<T> get_tensor() const {
+      CImg<T> res;
+      const ulongT siz = size();
+      switch (siz) {
+      case 1 : break;
+      case 3 :
+        res.assign(2,2);
+        res(0,0) = (*this)(0);
+        res(1,0) = res(0,1) = (*this)(1);
+        res(1,1) = (*this)(2);
+        break;
+      case 6 :
+        res.assign(3,3);
+        res(0,0) = (*this)(0);
+        res(1,0) = res(0,1) = (*this)(1);
+        res(2,0) = res(0,2) = (*this)(2);
+        res(1,1) = (*this)(3);
+        res(2,1) = res(1,2) = (*this)(4);
+        res(2,2) = (*this)(5);
+        break;
+      default :
+        throw CImgInstanceException(_cimg_instance
+                                    "tensor(): Invalid instance size (does not define a 1x1, 2x2 or 3x3 tensor).",
+                                    cimg_instance);
+      }
+      return res;
+    }
+
+    //! Resize image to become a diagonal matrix.
+    /**
+       \note Transform the image as a diagonal matrix so that each of its initial value becomes a diagonal coefficient.
+    **/
+    CImg<T>& diagonal() {
+      return get_diagonal().move_to(*this);
+    }
+
+    //! Resize image to become a diagonal matrix \newinstance.
+    CImg<T> get_diagonal() const {
+      if (is_empty()) return *this;
+      CImg<T> res(size(),size(),1,1,0);
+      cimg_foroff(*this,off) res(off,off) = (*this)(off);
+      return res;
+    }
+
+    //! Replace the image by an identity matrix.
+    /**
+       \note If the instance image is not square, it is resized to a square matrix using its maximum
+       dimension as a reference.
+    **/
+    CImg<T>& identity_matrix() {
+      return identity_matrix(cimg::max(_width,_height)).move_to(*this);
+    }
+
+    //! Replace the image by an identity matrix \newinstance.
+    CImg<T> get_identity_matrix() const {
+      return identity_matrix(cimg::max(_width,_height));
+    }
+
+    //! Fill image with a linear sequence of values.
+    /**
+       \param a0 Starting value of the sequence.
+       \param a1 Ending value of the sequence.
+    **/
+    CImg<T>& sequence(const T& a0, const T& a1) {
+      if (is_empty()) return *this;
+      const unsigned int siz = size() - 1;
+      T* ptr = _data;
+      if (siz) {
+        const double delta = (double)a1 - (double)a0;
+        cimg_foroff(*this,l) *(ptr++) = (T)(a0 + delta*l/siz);
+      } else *ptr = a0;
+      return *this;
+    }
+
+    //! Fill image with a linear sequence of values \newinstance.
+    CImg<T> get_sequence(const T& a0, const T& a1) const {
+      return (+*this).sequence(a0,a1);
+    }
+
+    //! Transpose the image, viewed as a matrix.
+    /**
+       \note Equivalent to \code permute_axes("yxzc"); \endcode
+    **/
+    CImg<T>& transpose() {
+      if (_width==1) { _width = _height; _height = 1; return *this; }
+      if (_height==1) { _height = _width; _width = 1; return *this; }
+      if (_width==_height) {
+        cimg_forYZC(*this,y,z,c) for (int x = y; x<width(); ++x) cimg::swap((*this)(x,y,z,c),(*this)(y,x,z,c));
+        return *this;
+      }
+      return get_transpose().move_to(*this);
+    }
+
+    //! Transpose the image, viewed as a matrix \newinstance.
+    CImg<T> get_transpose() const {
+      return get_permute_axes("yxzc");
+    }
+
+    //! Compute the cross product between two \c 1x3 images, viewed as 3d vectors.
+    /**
+       \param img Image used as the second argument of the cross product.
+       \note The first argument of the cross product is \c *this.
+     **/
+    template<typename t>
+    CImg<T>& cross(const CImg<t>& img) {
+      if (_width!=1 || _height<3 || img._width!=1 || img._height<
