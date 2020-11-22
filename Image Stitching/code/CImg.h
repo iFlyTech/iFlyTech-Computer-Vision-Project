@@ -21463,4 +21463,197 @@ namespace cimg_library_suffixed {
      **/
     template<typename t>
     CImg<T>& cross(const CImg<t>& img) {
-      if (_width!=1 || _height<3 || img._width!=1 || img._height<
+      if (_width!=1 || _height<3 || img._width!=1 || img._height<3)
+        throw CImgInstanceException(_cimg_instance
+                                    "cross(): Instance and/or specified image (%u,%u,%u,%u,%p) are not 3d vectors.",
+                                    cimg_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data);
+
+      const T x = (*this)[0], y = (*this)[1], z = (*this)[2];
+      (*this)[0] = (T)(y*img[2] - z*img[1]);
+      (*this)[1] = (T)(z*img[0] - x*img[2]);
+      (*this)[2] = (T)(x*img[1] - y*img[0]);
+      return *this;
+    }
+
+    //! Compute the cross product between two \c 1x3 images, viewed as 3d vectors \newinstance.
+    template<typename t>
+    CImg<_cimg_Tt> get_cross(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this).cross(img);
+    }
+
+    //! Invert the instance image, viewed as a matrix.
+    /**
+       \param use_LU Choose the inverting algorithm. Can be:
+       - \c true: LU-based matrix inversion.
+       - \c false: SVD-based matrix inversion.
+    **/
+    CImg<T>& invert(const bool use_LU=true) {
+      if (_width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "invert(): Instance is not a square matrix.",
+                                    cimg_instance);
+#ifdef cimg_use_lapack
+      int INFO = (int)use_LU, N = _width, LWORK = 4*N, *const IPIV = new int[N];
+      Tfloat
+        *const lapA = new Tfloat[N*N],
+        *const WORK = new Tfloat[LWORK];
+      cimg_forXY(*this,k,l) lapA[k*N + l] = (Tfloat)((*this)(k,l));
+      cimg::getrf(N,lapA,IPIV,INFO);
+      if (INFO)
+        cimg::warn(_cimg_instance
+                   "invert(): LAPACK function dgetrf_() returned error code %d.",
+                   cimg_instance,
+                   INFO);
+      else {
+        cimg::getri(N,lapA,IPIV,WORK,LWORK,INFO);
+        if (INFO)
+          cimg::warn(_cimg_instance
+                     "invert(): LAPACK function dgetri_() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+      }
+      if (!INFO) cimg_forXY(*this,k,l) (*this)(k,l) = (T)(lapA[k*N + l]); else fill(0);
+      delete[] IPIV; delete[] lapA; delete[] WORK;
+#else
+      const double dete = _width>3?-1.0:det();
+      if (dete!=0.0 && _width==2) {
+        const double
+          a = _data[0], c = _data[1],
+          b = _data[2], d = _data[3];
+        _data[0] = (T)(d/dete); _data[1] = (T)(-c/dete);
+        _data[2] = (T)(-b/dete); _data[3] = (T)(a/dete);
+      } else if (dete!=0.0 && _width==3) {
+        const double
+          a = _data[0], d = _data[1], g = _data[2],
+          b = _data[3], e = _data[4], h = _data[5],
+          c = _data[6], f = _data[7], i = _data[8];
+        _data[0] = (T)((i*e-f*h)/dete), _data[1] = (T)((g*f-i*d)/dete), _data[2] = (T)((d*h-g*e)/dete);
+        _data[3] = (T)((h*c-i*b)/dete), _data[4] = (T)((i*a-c*g)/dete), _data[5] = (T)((g*b-a*h)/dete);
+        _data[6] = (T)((b*f-e*c)/dete), _data[7] = (T)((d*c-a*f)/dete), _data[8] = (T)((a*e-d*b)/dete);
+      } else {
+        if (use_LU) { // LU-based inverse computation
+          CImg<Tfloat> A(*this), indx, col(1,_width);
+          bool d;
+          A._LU(indx,d);
+          cimg_forX(*this,j) {
+            col.fill(0);
+            col(j) = 1;
+            col._solve(A,indx);
+            cimg_forX(*this,i) (*this)(j,i) = (T)col(i);
+          }
+        } else { // SVD-based inverse computation
+          CImg<Tfloat> U(_width,_width), S(1,_width), V(_width,_width);
+          SVD(U,S,V,false);
+          U.transpose();
+          cimg_forY(S,k) if (S[k]!=0) S[k]=1/S[k];
+          S.diagonal();
+          *this = V*S*U;
+        }
+      }
+#endif
+      return *this;
+    }
+
+    //! Invert the instance image, viewed as a matrix \newinstance.
+    CImg<Tfloat> get_invert(const bool use_LU=true) const {
+      return CImg<Tfloat>(*this,false).invert(use_LU);
+    }
+
+    //! Compute the Moore-Penrose pseudo-inverse of the instance image, viewed as a matrix.
+    /**
+    **/
+    CImg<T>& pseudoinvert() {
+      return get_pseudoinvert().move_to(*this);
+    }
+
+    //! Compute the Moore-Penrose pseudo-inverse of the instance image, viewed as a matrix \newinstance.
+    CImg<Tfloat> get_pseudoinvert() const {
+      CImg<Tfloat> U, S, V;
+      SVD(U,S,V);
+      const Tfloat tolerance = (sizeof(Tfloat)<=4?5.96e-8f:1.11e-16f)*cimg::max(_width,_height)*S.max();
+      cimg_forX(V,x) {
+        const Tfloat s = S(x), invs = s>tolerance?1/s:(Tfloat)0;
+        cimg_forY(V,y) V(x,y)*=invs;
+      }
+      return V*U.transpose();
+    }
+
+    //! Solve a system of linear equations.
+    /**
+       \param A Matrix of the linear system.
+       \note Solve \c AX=B where \c B=*this.
+    **/
+    template<typename t>
+    CImg<T>& solve(const CImg<t>& A) {
+      if (_depth!=1 || _spectrum!=1 || _height!=A._height || A._depth!=1 || A._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "solve(): Instance and specified matrix (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    A._width,A._height,A._depth,A._spectrum,A._data);
+      typedef _cimg_Ttfloat Ttfloat;
+      if (A._width==A._height) { // Classical linear system
+        if (_width!=1) {
+          CImg<T> res(_width,A._width);
+          cimg_forX(*this,i) res.draw_image(i,get_column(i).solve(A));
+          return res.move_to(*this);
+        }
+#ifdef cimg_use_lapack
+        char TRANS = 'N';
+        int INFO, N = _height, LWORK = 4*N, *const IPIV = new int[N];
+        Ttfloat
+          *const lapA = new Ttfloat[N*N],
+          *const lapB = new Ttfloat[N],
+          *const WORK = new Ttfloat[LWORK];
+        cimg_forXY(A,k,l) lapA[k*N + l] = (Ttfloat)(A(k,l));
+        cimg_forY(*this,i) lapB[i] = (Ttfloat)((*this)(i));
+        cimg::getrf(N,lapA,IPIV,INFO);
+        if (INFO)
+          cimg::warn(_cimg_instance
+                     "solve(): LAPACK library function dgetrf_() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+
+        if (!INFO) {
+          cimg::getrs(TRANS,N,lapA,IPIV,lapB,INFO);
+          if (INFO)
+            cimg::warn(_cimg_instance
+                       "solve(): LAPACK library function dgetrs_() returned error code %d.",
+                       cimg_instance,
+                       INFO);
+        }
+        if (!INFO) cimg_forY(*this,i) (*this)(i) = (T)(lapB[i]); else fill(0);
+        delete[] IPIV; delete[] lapA; delete[] lapB; delete[] WORK;
+#else
+        CImg<Ttfloat> lu(A,false);
+        CImg<Ttfloat> indx;
+        bool d;
+        lu._LU(indx,d);
+        _solve(lu,indx);
+#endif
+      } else { // Least-square solution for non-square systems.
+#ifdef cimg_use_lapack
+        if (_width!=1) {
+          CImg<T> res(_width,A._width);
+          cimg_forX(*this,i) res.draw_image(i,get_column(i).solve(A));
+          return res.move_to(*this);
+        }
+        char TRANS = 'N';
+        int INFO, N = A._width, M = A._height, LWORK = -1, LDA = M, LDB = M, NRHS = _width;
+        Ttfloat WORK_QUERY;
+        Ttfloat
+          * const lapA = new Ttfloat[M*N],
+          * const lapB = new Ttfloat[M*NRHS];
+        cimg::sgels(TRANS, M, N, NRHS, lapA, LDA, lapB, LDB, &WORK_QUERY, LWORK, INFO);
+        LWORK = (int) WORK_QUERY;
+        Ttfloat *const WORK = new Ttfloat[LWORK];
+        cimg_forXY(A,k,l) lapA[k*M + l] = (Ttfloat)(A(k,l));
+        cimg_forXY(*this,k,l) lapB[k*M + l] = (Ttfloat)((*this)(k,l));
+        cimg::sgels(TRANS, M, N, NRHS, lapA, LDA, lapB, LDB, WORK, LWORK, INFO);
+        if (INFO != 0)
+          cimg::warn(_cimg_instance
+                     "solve(): LAPACK library function sgels() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+        
