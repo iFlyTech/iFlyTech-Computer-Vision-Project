@@ -21852,4 +21852,187 @@ namespace cimg_library_suffixed {
           val-=eig;
         }
         CImg<intT> permutations;  // sort eigenvalues in decreasing order
-        CImg<t>
+        CImg<t> tmp(_width);
+        val.sort(permutations,false);
+        cimg_forY(vec,k) {
+          cimg_forY(permutations,y) tmp(y) = vec(permutations(y),k);
+          std::memcpy(vec.data(0,k),tmp._data,sizeof(t)*_width);
+        }
+#endif
+      }
+      return *this;
+    }
+
+    //! Compute eigenvalues and eigenvectors of the instance image, viewed as a symmetric matrix.
+    /**
+       \return A list of two images <tt>[val; vec]</tt>, whose meaning are similar as in
+         symmetric_eigen(CImg<t>&,CImg<t>&) const.
+    **/
+    CImgList<Tfloat> get_symmetric_eigen() const {
+      CImgList<Tfloat> res(2);
+      symmetric_eigen(res[0],res[1]);
+      return res;
+    }
+
+    //! Sort pixel values and get sorting permutations.
+    /**
+       \param[out] permutations Permutation map used for the sorting.
+       \param is_increasing Tells if pixel values are sorted in an increasing (\c true) or decreasing (\c false) way.
+    **/
+    template<typename t>
+    CImg<T>& sort(CImg<t>& permutations, const bool is_increasing=true) {
+      permutations.assign(_width,_height,_depth,_spectrum);
+      if (is_empty()) return *this;
+      cimg_foroff(permutations,off) permutations[off] = (t)off;
+      return _quicksort(0,size() - 1,permutations,is_increasing,true);
+    }
+
+    //! Sort pixel values and get sorting permutations \newinstance.
+    template<typename t>
+    CImg<T> get_sort(CImg<t>& permutations, const bool is_increasing=true) const {
+      return (+*this).sort(permutations,is_increasing);
+    }
+
+    //! Sort pixel values.
+    /**
+       \param is_increasing Tells if pixel values are sorted in an increasing (\c true) or decreasing (\c false) way.
+       \param axis Tells if the value sorting must be done along a specific axis. Can be:
+       - \c 0: All pixel values are sorted, independently on their initial position.
+       - \c 'x': Image columns are sorted, according to the first value in each column.
+       - \c 'y': Image rows are sorted, according to the first value in each row.
+       - \c 'z': Image slices are sorted, according to the first value in each slice.
+       - \c 'c': Image channels are sorted, according to the first value in each channel.
+    **/
+    CImg<T>& sort(const bool is_increasing=true, const char axis=0) {
+      if (is_empty()) return *this;
+      CImg<uintT> perm;
+      switch (cimg::uncase(axis)) {
+      case 0 :
+        _quicksort(0,size() - 1,perm,is_increasing,false);
+        break;
+      case 'x' : {
+        perm.assign(_width);
+        get_crop(0,0,0,0,_width - 1,0,0,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(perm[x],y,z,c);
+      } break;
+      case 'y' : {
+        perm.assign(_height);
+        get_crop(0,0,0,0,0,_height - 1,0,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,perm[y],z,c);
+      } break;
+      case 'z' : {
+        perm.assign(_depth);
+        get_crop(0,0,0,0,0,0,_depth - 1,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,y,perm[z],c);
+      } break;
+      case 'c' : {
+        perm.assign(_spectrum);
+        get_crop(0,0,0,0,0,0,0,_spectrum - 1).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,y,z,perm[c]);
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "sort(): Invalid specified axis '%c' "
+                                    "(should be { x | y | z | c }).",
+                                    cimg_instance,axis);
+      }
+      return *this;
+    }
+
+    //! Sort pixel values \newinstance.
+    CImg<T> get_sort(const bool is_increasing=true, const char axis=0) const {
+      return (+*this).sort(is_increasing,axis);
+    }
+
+    template<typename t>
+    CImg<T>& _quicksort(const int indm, const int indM, CImg<t>& permutations,
+                        const bool is_increasing, const bool is_permutations) {
+      if (indm<indM) {
+        const int mid = (indm + indM)/2;
+        if (is_increasing) {
+          if ((*this)[indm]>(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+          if ((*this)[mid]>(*this)[indM]) {
+            cimg::swap((*this)[indM],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indM],permutations[mid]);
+          }
+          if ((*this)[indm]>(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+        } else {
+          if ((*this)[indm]<(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+          if ((*this)[mid]<(*this)[indM]) {
+            cimg::swap((*this)[indM],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indM],permutations[mid]);
+          }
+          if ((*this)[indm]<(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+        }
+        if (indM - indm>=3) {
+          const T pivot = (*this)[mid];
+          int i = indm, j = indM;
+          if (is_increasing) {
+            do {
+              while ((*this)[i]<pivot) ++i;
+              while ((*this)[j]>pivot) --j;
+              if (i<=j) {
+                if (is_permutations) cimg::swap(permutations[i],permutations[j]);
+                cimg::swap((*this)[i++],(*this)[j--]);
+              }
+            } while (i<=j);
+          } else {
+            do {
+              while ((*this)[i]>pivot) ++i;
+              while ((*this)[j]<pivot) --j;
+              if (i<=j) {
+                if (is_permutations) cimg::swap(permutations[i],permutations[j]);
+                cimg::swap((*this)[i++],(*this)[j--]);
+              }
+            } while (i<=j);
+          }
+          if (indm<j) _quicksort(indm,j,permutations,is_increasing,is_permutations);
+          if (i<indM) _quicksort(i,indM,permutations,is_increasing,is_permutations);
+        }
+      }
+      return *this;
+    }
+
+    //! Compute the SVD of the instance image, viewed as a general matrix.
+    /**
+       Compute the SVD decomposition \c *this=U*S*V' where \c U and \c V are orthogonal matrices
+       and \c S is a diagonal matrix. \c V' denotes the matrix transpose of \c V.
+       \param[out] U First matrix of the SVD product.
+       \param[out] S Coefficients of the second (diagonal) matrix of the SVD product.
+         These coefficients are stored as a vector.
+       \param[out] V Third matrix of the SVD product.
+       \param sorting Tells if the diagonal coefficients are sorted (in decreasing order).
+       \param max_iteration Maximum number of iterations considered for the algorithm convergence.
+       \param lambda Epsilon used for the algorithm convergence.
+       \note The instance matrix can be computed from \c U,\c S and \c V by
+       \code
+       const CImg<> A;  // Input matrix (assumed to contain some values).
+       CImg<> U,S,V;
+       A.SVD(U,S,V)
+       \endcode
+    **/
+    template<typename t>
+    const CImg<T>& SVD(CImg<t>& U, CImg<t>& S, CImg<t>& V, const bool sorting=true,
+                       const unsigned int max_iteration=40, const float lambda=0) const {
+      if (is_empty()) { U.assign(); S.assign(); V.assign(); }
+      else {
+        U = *this;
+        if (lambda!=0) {
+          const unsigned int delta = cimg::min(U._width,U._height);
+          for (unsigned int i =
