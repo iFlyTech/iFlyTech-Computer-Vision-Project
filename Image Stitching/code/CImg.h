@@ -22234,4 +22234,192 @@ namespace cimg_library_suffixed {
          between two nodes (i,j).
        \param nb_nodes Number of graph nodes.
        \param starting_node Indice of the starting node.
-       
+       \param ending_node Indice of the ending node (set to ~0U to ignore ending node).
+       \param previous_node Array that gives the previous node indice in the path to the starting node
+         (optional parameter).
+       \return Array of distances of each node to the starting node.
+    **/
+    template<typename tf, typename t>
+    static CImg<T> dijkstra(const tf& distance, const unsigned int nb_nodes,
+                            const unsigned int starting_node, const unsigned int ending_node,
+                            CImg<t>& previous_node) {
+      if (starting_node>=nb_nodes)
+        throw CImgArgumentException("CImg<%s>::dijkstra(): Specified indice of starting node %u is higher "
+                                    "than number of nodes %u.",
+                                    pixel_type(),starting_node,nb_nodes);
+      CImg<T> dist(1,nb_nodes,1,1,cimg::type<T>::max());
+      dist(starting_node) = 0;
+      previous_node.assign(1,nb_nodes,1,1,(t)-1);
+      previous_node(starting_node) = (t)starting_node;
+      CImg<uintT> Q(nb_nodes);
+      cimg_forX(Q,u) Q(u) = (unsigned int)u;
+      cimg::swap(Q(starting_node),Q(0));
+      unsigned int sizeQ = nb_nodes;
+      while (sizeQ) {
+        // Update neighbors from minimal vertex
+        const unsigned int umin = Q(0);
+        if (umin==ending_node) sizeQ = 0;
+        else {
+          const T dmin = dist(umin);
+          const T infty = cimg::type<T>::max();
+          for (unsigned int q = 1; q<sizeQ; ++q) {
+            const unsigned int v = Q(q);
+            const T d = (T)distance(v,umin);
+            if (d<infty) {
+              const T alt = dmin + d;
+              if (alt<dist(v)) {
+                dist(v) = alt;
+                previous_node(v) = (t)umin;
+                const T distpos = dist(Q(q));
+                for (unsigned int pos = q, par = 0; pos && distpos<dist(Q(par=(pos + 1)/2 - 1)); pos=par)
+                  cimg::swap(Q(pos),Q(par));
+              }
+            }
+          }
+          // Remove minimal vertex from queue
+          Q(0) = Q(--sizeQ);
+          const T distpos = dist(Q(0));
+          for (unsigned int pos = 0, left = 0, right = 0;
+               ((right=2*(pos + 1),(left=right - 1))<sizeQ && distpos>dist(Q(left))) ||
+                 (right<sizeQ && distpos>dist(Q(right)));) {
+            if (right<sizeQ) {
+              if (dist(Q(left))<dist(Q(right))) { cimg::swap(Q(pos),Q(left)); pos = left; }
+              else { cimg::swap(Q(pos),Q(right)); pos = right; }
+            } else { cimg::swap(Q(pos),Q(left)); pos = left; }
+          }
+        }
+      }
+      return dist;
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    template<typename tf, typename t>
+    static CImg<T> dijkstra(const tf& distance, const unsigned int nb_nodes,
+                            const unsigned int starting_node, const unsigned int ending_node=~0U) {
+      CImg<uintT> foo;
+      return dijkstra(distance,nb_nodes,starting_node,ending_node,foo);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    /**
+       \param starting_node Indice of the starting node.
+       \param ending_node Indice of the ending node.
+       \param previous_node Array that gives the previous node indice in the path to the starting node
+         (optional parameter).
+       \return Array of distances of each node to the starting node.
+       \note image instance corresponds to the adjacency matrix of the graph.
+    **/
+    template<typename t>
+    CImg<T>& dijkstra(const unsigned int starting_node, const unsigned int ending_node,
+                      CImg<t>& previous_node) {
+      return get_dijkstra(starting_node,ending_node,previous_node).move_to(*this);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm \newinstance.
+    template<typename t>
+    CImg<T> get_dijkstra(const unsigned int starting_node, const unsigned int ending_node,
+                         CImg<t>& previous_node) const {
+      if (_width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "dijkstra(): Instance is not a graph adjacency matrix.",
+                                    cimg_instance);
+
+      return dijkstra(*this,_width,starting_node,ending_node,previous_node);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    CImg<T>& dijkstra(const unsigned int starting_node, const unsigned int ending_node=~0U) {
+      return get_dijkstra(starting_node,ending_node).move_to(*this);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm \newinstance.
+    CImg<Tfloat> get_dijkstra(const unsigned int starting_node, const unsigned int ending_node=~0U) const {
+      CImg<uintT> foo;
+      return get_dijkstra(starting_node,ending_node,foo);
+    }
+
+    //! Return an image containing the ascii codes of the specified  string.
+    /**
+       \param str input C-string to encode as an image.
+       \param is_last_zero Tells if the ending \c '0' character appear in the resulting image.
+    **/
+    static CImg<T> string(const char *const str, const bool is_last_zero=true, const bool is_shared=false) {
+      if (!str) return CImg<T>();
+      return CImg<T>(str,(unsigned int)std::strlen(str) + (is_last_zero?1:0),1,1,1,is_shared);
+    }
+
+    //! Return a \c 1x1 image containing specified value.
+    /**
+       \param a0 First vector value.
+    **/
+    static CImg<T> vector(const T& a0) {
+      CImg<T> r(1,1);
+      r[0] = a0;
+      return r;
+    }
+
+    //! Return a \c 1x2 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1) {
+      CImg<T> r(1,2); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1;
+      return r;
+    }
+
+    //! Return a \c 1x3 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+       \param a2 Third vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2) {
+      CImg<T> r(1,3); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2;
+      return r;
+    }
+
+    //! Return a \c 1x4 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+       \param a2 Third vector value.
+       \param a3 Fourth vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3) {
+      CImg<T> r(1,4); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      return r;
+    }
+
+    //! Return a \c 1x5 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4) {
+      CImg<T> r(1,5); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4;
+      return r;
+    }
+
+    //! Return a \c 1x6 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4, const T& a5) {
+      CImg<T> r(1,6); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4; *(ptr++) = a5;
+      return r;
+    }
+
+    //! Return a \c 1x7 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6) {
+      CImg<T> r(1,7); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6;
+      return r;
+    }
+
+    //! Return a \c 1x8 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7) {
+      CImg<T> r(1,8); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr
