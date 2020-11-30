@@ -22589,4 +22589,207 @@ namespace cimg_library_suffixed {
                           const T& a20, const T& a21, const T& a22, const T& a23, const T& a24) {
       CImg<T> r(5,5); T *ptr = r._data;
       *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4;
-      *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7; *(ptr++) = a8; *(ptr++)
+      *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7; *(ptr++) = a8; *(ptr++) = a9;
+      *(ptr++) = a10; *(ptr++) = a11; *(ptr++) = a12; *(ptr++) = a13; *(ptr++) = a14;
+      *(ptr++) = a15; *(ptr++) = a16; *(ptr++) = a17; *(ptr++) = a18; *(ptr++) = a19;
+      *(ptr++) = a20; *(ptr++) = a21; *(ptr++) = a22; *(ptr++) = a23; *(ptr++) = a24;
+      return r;
+    }
+
+    //! Return a 1x1 symmetric matrix containing specified coefficients.
+    /**
+       \param a0 First matrix value.
+       \note Equivalent to vector(const T&).
+    **/
+    static CImg<T> tensor(const T& a0) {
+      return matrix(a0);
+    }
+
+    //! Return a 2x2 symmetric matrix tensor containing specified coefficients.
+    static CImg<T> tensor(const T& a0, const T& a1, const T& a2) {
+      return matrix(a0,a1,a1,a2);
+    }
+
+    //! Return a 3x3 symmetric matrix containing specified coefficients.
+    static CImg<T> tensor(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4, const T& a5) {
+      return matrix(a0,a1,a2,a1,a3,a4,a2,a4,a5);
+    }
+
+    //! Return a 1x1 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0) {
+      return matrix(a0);
+    }
+
+    //! Return a 2x2 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1) {
+      return matrix(a0,0,0,a1);
+    }
+
+    //! Return a 3x3 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2) {
+      return matrix(a0,0,0,0,a1,0,0,0,a2);
+    }
+
+    //! Return a 4x4 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2, const T& a3) {
+      return matrix(a0,0,0,0,0,a1,0,0,0,0,a2,0,0,0,0,a3);
+    }
+
+    //! Return a 5x5 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4) {
+      return matrix(a0,0,0,0,0,0,a1,0,0,0,0,0,a2,0,0,0,0,0,a3,0,0,0,0,0,a4);
+    }
+
+    //! Return a NxN identity matrix.
+    /**
+       \param N Dimension of the matrix.
+    **/
+    static CImg<T> identity_matrix(const unsigned int N) {
+      CImg<T> res(N,N,1,1,0);
+      cimg_forX(res,x) res(x,x) = 1;
+      return res;
+    }
+
+    //! Return a N-numbered sequence vector from \p a0 to \p a1.
+    /**
+       \param N Size of the resulting vector.
+       \param a0 Starting value of the sequence.
+       \param a1 Ending value of the sequence.
+     **/
+    static CImg<T> sequence(const unsigned int N, const T& a0, const T& a1) {
+      if (N) return CImg<T>(1,N).sequence(a0,a1);
+      return CImg<T>();
+    }
+
+    //! Return a 3x3 rotation matrix along the (x,y,z)-axis with an angle w.
+    /**
+       \param x X-coordinate of the rotation axis, or first quaternion coordinate.
+       \param y Y-coordinate of the rotation axis, or second quaternion coordinate.
+       \param z Z-coordinate of the rotation axis, or third quaternion coordinate.
+       \param w Angle of the rotation axis, or fourth quaternion coordinate.
+       \param is_quaternion Tell is the four arguments denotes a set { axis + angle } or a quaternion.
+     **/
+    static CImg<T> rotation_matrix(const float x, const float y, const float z, const float w,
+                                   const bool is_quaternion=false) {
+      float X,Y,Z,W;
+      if (!is_quaternion) {
+        const float norm = (float)std::sqrt(x*x + y*y + z*z),
+          nx = norm>0?x/norm:0,
+          ny = norm>0?y/norm:0,
+          nz = norm>0?z/norm:1,
+          nw = norm>0?w:0,
+          sina = (float)std::sin(nw/2),
+          cosa = (float)std::cos(nw/2);
+        X = nx*sina;
+        Y = ny*sina;
+        Z = nz*sina;
+        W = cosa;
+      } else {
+        const float norm = (float)std::sqrt(x*x + y*y + z*z + w*w);
+        if (norm>0) { X = x/norm; Y = y/norm; Z = z/norm; W = w/norm; }
+        else { X = Y = Z = 0; W = 1; }
+      }
+      const float xx = X*X, xy = X*Y, xz = X*Z, xw = X*W, yy = Y*Y, yz = Y*Z, yw = Y*W, zz = Z*Z, zw = Z*W;
+      return CImg<T>::matrix((T)(1 - 2*(yy + zz)), (T)(2*(xy + zw)),   (T)(2*(xz - yw)),
+                             (T)(2*(xy - zw)),   (T)(1 - 2*(xx + zz)), (T)(2*(yz + xw)),
+                             (T)(2*(xz + yw)),   (T)(2*(yz - xw)),   (T)(1 - 2*(xx + yy)));
+    }
+
+    //@}
+    //-----------------------------------
+    //
+    //! \name Value Manipulation
+    //@{
+    //-----------------------------------
+
+    //! Fill all pixel values with specified value.
+    /**
+       \param val Fill value.
+    **/
+    CImg<T>& fill(const T& val) {
+      if (is_empty()) return *this;
+      if (val && sizeof(T)!=1) cimg_for(*this,ptrd,T) *ptrd = val;
+      else std::memset(_data,(int)val,sizeof(T)*size());
+      return *this;
+    }
+
+    //! Fill all pixel values with specified value \newinstance.
+    CImg<T> get_fill(const T& val) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val);
+    }
+
+    //! Fill sequentially all pixel values with specified values.
+    /**
+       \param val0 First fill value.
+       \param val1 Second fill value.
+    **/
+    CImg<T>& fill(const T& val0, const T& val1) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 1;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; }
+      if (ptrd!=ptre + 1) *(ptrd++) = val0;
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 2;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; }
+      ptre+=2;
+      switch (ptre - ptrd) {
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 3;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; }
+      ptre+=3;
+      switch (ptre - ptrd) {
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 4;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4;
+      }
+      ptre+=4;
+      switch (ptre - ptrd) {
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4);
