@@ -23290,4 +23290,181 @@ namespace cimg_library_suffixed {
        \param repeat_values In case there are less values than necessary in \c values, tells if these values must be
          repeated for the filling.
     **/
-    template
+    template<typename t>
+    CImg<T>& fill(const CImg<t>& values, const bool repeat_values=true) {
+      if (is_empty() || !values) return *this;
+      T *ptrd = _data, *ptre = ptrd + size();
+      for (t *ptrs = values._data, *ptrs_end = ptrs + values.size(); ptrs<ptrs_end && ptrd<ptre; ++ptrs)
+        *(ptrd++) = (T)*ptrs;
+      if (repeat_values && ptrd<ptre) for (T *ptrs = _data; ptrd<ptre; ++ptrs) *(ptrd++) = *ptrs;
+      return *this;
+    }
+
+    //! Fill sequentially pixel values according to the values found in another image \newinstance.
+    template<typename t>
+    CImg<T> get_fill(const CImg<t>& values, const bool repeat_values=true) const {
+      return repeat_values?CImg<T>(_width,_height,_depth,_spectrum).fill(values,repeat_values):
+        (+*this).fill(values,repeat_values);
+    }
+
+    //! Fill pixel values along the X-axis at a specified pixel position.
+    /**
+       \param y Y-coordinate of the filled column.
+       \param z Z-coordinate of the filled column.
+       \param c C-coordinate of the filled column.
+       \param a0 First fill value.
+    **/
+    CImg<T>& fillX(const unsigned int y, const unsigned int z, const unsigned int c, const int a0, ...) {
+#define _cimg_fill1(x,y,z,c,off,siz,t) { \
+    va_list ap; va_start(ap,a0); T *ptrd = data(x,y,z,c); *ptrd = (T)a0; \
+    for (unsigned int k = 1; k<siz; ++k) { ptrd+=off; *ptrd = (T)va_arg(ap,t); } \
+    va_end(ap); }
+      if (y<_height && z<_depth && c<_spectrum) _cimg_fill1(0,y,z,c,1,_width,int);
+      return *this;
+    }
+
+    //! Fill pixel values along the X-axis at a specified pixel position \overloading.
+    CImg<T>& fillX(const unsigned int y, const unsigned int z, const unsigned int c, const double a0, ...) {
+      if (y<_height && z<_depth && c<_spectrum) _cimg_fill1(0,y,z,c,1,_width,double);
+      return *this;
+    }
+
+    //! Fill pixel values along the Y-axis at a specified pixel position.
+    /**
+       \param x X-coordinate of the filled row.
+       \param z Z-coordinate of the filled row.
+       \param c C-coordinate of the filled row.
+       \param a0 First fill value.
+    **/
+    CImg<T>& fillY(const unsigned int x, const unsigned int z, const unsigned int c, const int a0, ...) {
+      if (x<_width && z<_depth && c<_spectrum) _cimg_fill1(x,0,z,c,_width,_height,int);
+      return *this;
+    }
+
+    //! Fill pixel values along the Y-axis at a specified pixel position \overloading.
+    CImg<T>& fillY(const unsigned int x, const unsigned int z, const unsigned int c, const double a0, ...) {
+      if (x<_width && z<_depth && c<_spectrum) _cimg_fill1(x,0,z,c,_width,_height,double);
+      return *this;
+    }
+
+    //! Fill pixel values along the Z-axis at a specified pixel position.
+    /**
+       \param x X-coordinate of the filled slice.
+       \param y Y-coordinate of the filled slice.
+       \param c C-coordinate of the filled slice.
+       \param a0 First fill value.
+    **/
+    CImg<T>& fillZ(const unsigned int x, const unsigned int y, const unsigned int c, const int a0, ...) {
+      const ulongT wh = (ulongT)_width*_height;
+      if (x<_width && y<_height && c<_spectrum) _cimg_fill1(x,y,0,c,wh,_depth,int);
+      return *this;
+    }
+
+    //! Fill pixel values along the Z-axis at a specified pixel position \overloading.
+    CImg<T>& fillZ(const unsigned int x, const unsigned int y, const unsigned int c, const double a0, ...) {
+      const ulongT wh = (ulongT)_width*_height;
+      if (x<_width && y<_height && c<_spectrum) _cimg_fill1(x,y,0,c,wh,_depth,double);
+      return *this;
+    }
+
+    //! Fill pixel values along the C-axis at a specified pixel position.
+    /**
+       \param x X-coordinate of the filled channel.
+       \param y Y-coordinate of the filled channel.
+       \param z Z-coordinate of the filled channel.
+       \param a0 First filling value.
+    **/
+    CImg<T>& fillC(const unsigned int x, const unsigned int y, const unsigned int z, const int a0, ...) {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (x<_width && y<_height && z<_depth) _cimg_fill1(x,y,z,0,whd,_spectrum,int);
+      return *this;
+    }
+
+    //! Fill pixel values along the C-axis at a specified pixel position \overloading.
+    CImg<T>& fillC(const unsigned int x, const unsigned int y, const unsigned int z, const double a0, ...) {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (x<_width && y<_height && z<_depth) _cimg_fill1(x,y,z,0,whd,_spectrum,double);
+      return *this;
+    }
+
+    //! Discard specified sequence of values in the image buffer, along a specific axis.
+    /**
+       \param values Sequence of values to discard.
+       \param axis Axis along which the values are discarded. If set to \c 0 (default value)
+         the method does it for all the buffer values and returns a one-column vector.
+       \note Discarded values will change the image geometry, so the resulting image
+       is returned as a one-column vector.
+    **/
+    template<typename t>
+    CImg<T>& discard(const CImg<t>& values, const char axis=0) {
+      if (is_empty() || !values) return *this;
+      return get_discard(values,axis).move_to(*this);
+    }
+
+    template<typename t>
+    CImg<T> get_discard(const CImg<t>& values, const char axis=0) const {
+      CImg<T> res;
+      if (!values) return +*this;
+      if (is_empty()) return res;
+      const ulongT vsiz = values.size();
+      const char _axis = cimg::uncase(axis);
+      ulongT j = 0;
+      unsigned int k = 0;
+      int i0 = 0;
+      res.assign(width(),height(),depth(),spectrum());
+      switch (_axis) {
+      case 'x' : {
+        cimg_forX(*this,i) {
+          if ((*this)(i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(k,get_columns(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<width()) { res.draw_image(k,get_columns(i0,width() - 1)); k+=width() - i0; }
+        res.resize(k,-100,-100,-100,0);
+      } break;
+      case 'y' : {
+        cimg_forY(*this,i) {
+          if ((*this)(0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,k,get_rows(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<height()) { res.draw_image(0,k,get_rows(i0,height() - 1)); k+=height() - i0; }
+        res.resize(-100,k,-100,-100,0);
+      } break;
+      case 'z' : {
+        cimg_forZ(*this,i) {
+          if ((*this)(0,0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,0,k,get_slices(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<depth()) { res.draw_image(0,0,k,get_slices(i0,height() - 1)); k+=depth() - i0; }
+        res.resize(-100,-100,k,-100,0);
+      } break;
+      case 'c' : {
+        cimg_forC(*this,i) {
+          if ((*this)(0,0,0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,0,0,k,get_channels(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<spectrum()) { res.draw_image(0,0,k,get_channels(i0,height() - 1)); k+=spectrum() - i0; }
+        res.resize(-100,-100,-100,k,0);
+      } break;
+      default : {
+        res.unroll('y');
+        cimg_foroff(*this,i) {
+          if ((*this)[i]!=(T)values[j]) {
+            if (j) --i;
+            std::memcpy(res._data + k,_data + i0,(i - i0 + 1)*sizeof(T));
+            k+=i - i0 + 1; i0 = (int)i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = (int)i + 1; }}
+        }
+        const ulongT siz = size();
+        if ((ulongT)i0<siz) { std::
