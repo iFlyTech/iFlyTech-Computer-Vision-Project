@@ -23467,4 +23467,207 @@ namespace cimg_library_suffixed {
           } else { ++j; if (j>=vsiz) { j = 0; i0 = (int)i + 1; }}
         }
         const ulongT siz = size();
-        if ((ulongT)i0<siz) { std::
+        if ((ulongT)i0<siz) { std::memcpy(res._data + k,_data + i0,(siz - i0)*sizeof(T)); k+=siz - i0; }
+        res.resize(1,k,1,1,0);
+      }
+      }
+      return res;
+    }
+
+    //! Discard neighboring duplicates in the image buffer, along the specified axis.
+    CImg<T>& discard(const char axis=0) {
+      return get_discard(axis).move_to(*this);
+    }
+
+    //! Discard neighboring duplicates in the image buffer, along the specified axis \newinstance.
+    CImg<T> get_discard(const char axis=0) const {
+      CImg<T> res;
+      if (is_empty()) return res;
+      const char _axis = cimg::uncase(axis);
+      T current = *_data?0:(T)1;
+      int j = 0;
+      res.assign(width(),height(),depth(),spectrum());
+      switch (_axis) {
+      case 'x' : {
+        cimg_forX(*this,i)
+          if ((*this)(i)!=current) { res.draw_image(j++,get_column(i)); current = (*this)(i); }
+        res.resize(j,-100,-100,-100,0);
+      } break;
+      case 'y' : {
+        cimg_forY(*this,i)
+          if ((*this)(0,i)!=current) { res.draw_image(0,j++,get_row(i)); current = (*this)(0,i); }
+        res.resize(-100,j,-100,-100,0);
+      } break;
+      case 'z' : {
+        cimg_forZ(*this,i)
+          if ((*this)(0,0,i)!=current) { res.draw_image(0,0,j++,get_slice(i)); current = (*this)(0,0,i); }
+        res.resize(-100,-100,j,-100,0);
+      } break;
+      case 'c' : {
+        cimg_forC(*this,i)
+          if ((*this)(0,0,0,i)!=current) { res.draw_image(0,0,0,j++,get_channel(i)); current = (*this)(0,0,0,i); }
+        res.resize(-100,-100,-100,j,0);
+      } break;
+      default : {
+        res.unroll('y');
+        cimg_foroff(*this,i)
+          if ((*this)[i]!=current) res[j++] = current = (*this)[i];
+        res.resize(-100,j,-100,-100,0);
+      }
+      }
+      return res;
+    }
+
+    //! Invert endianness of all pixel values.
+    /**
+     **/
+    CImg<T>& invert_endianness() {
+      cimg::invert_endianness(_data,size());
+      return *this;
+    }
+
+    //! Invert endianness of all pixel values \newinstance.
+    CImg<T> get_invert_endianness() const {
+      return (+*this).invert_endianness();
+    }
+
+    //! Fill image with random values in specified range.
+    /**
+       \param val_min Minimal authorized random value.
+       \param val_max Maximal authorized random value.
+       \note Random variables are uniformely distributed in [val_min,val_max].
+     **/
+    CImg<T>& rand(const T& val_min, const T& val_max) {
+      const float delta = (float)val_max - (float)val_min + (cimg::type<T>::is_float()?0:1);
+      if (cimg::type<T>::is_float()) cimg_for(*this,ptrd,T) *ptrd = (T)(val_min + cimg::rand()*delta);
+      else cimg_for(*this,ptrd,T) *ptrd = cimg::min(val_max,(T)(val_min + cimg::rand()*delta));
+      return *this;
+    }
+
+    //! Fill image with random values in specified range \newinstance.
+    CImg<T> get_rand(const T& val_min, const T& val_max) const {
+      return (+*this).rand(val_min,val_max);
+    }
+
+    //! Round pixel values.
+    /**
+       \param y Rounding precision.
+       \param rounding_type Rounding type. Can be:
+       - \c -1: Backward.
+       - \c 0: Nearest.
+       - \c 1: Forward.
+    **/
+    CImg<T>& round(const double y=1, const int rounding_type=0) {
+      if (y>0)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+        cimg_rof(*this,ptrd,T) *ptrd = cimg::round(*ptrd,y,rounding_type);
+      return *this;
+    }
+
+    //! Round pixel values \newinstance.
+    CImg<T> get_round(const double y=1, const unsigned int rounding_type=0) const {
+      return (+*this).round(y,rounding_type);
+    }
+
+    //! Add random noise to pixel values.
+    /**
+       \param sigma Amplitude of the random additive noise. If \p sigma<0, it stands for a percentage of the
+         global value range.
+       \param noise_type Type of additive noise (can be \p 0=gaussian, \p 1=uniform, \p 2=Salt and Pepper,
+         \p 3=Poisson or \p 4=Rician).
+       \return A reference to the modified image instance.
+       \note
+       - For Poisson noise (\p noise_type=3), parameter \p sigma is ignored, as Poisson noise only depends on
+         the image value itself.
+       - Function \p CImg<T>::get_noise() is also defined. It returns a non-shared modified copy of the image instance.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_noise(40);
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_noise.jpg
+    **/
+    CImg<T>& noise(const double sigma, const unsigned int noise_type=0) {
+      if (is_empty()) return *this;
+      const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+      Tfloat nsigma = (Tfloat)sigma, m = 0, M = 0;
+      if (nsigma==0 && noise_type!=3) return *this;
+      if (nsigma<0 || noise_type==2) m = (Tfloat)min_max(M);
+      if (nsigma<0) nsigma = (Tfloat)(-nsigma*(M-m)/100.0);
+      switch (noise_type) {
+      case 0 : { // Gaussian noise
+        cimg_rof(*this,ptrd,T) {
+          Tfloat val = (Tfloat)(*ptrd + nsigma*cimg::grand());
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      case 1 : { // Uniform noise
+        cimg_rof(*this,ptrd,T) {
+          Tfloat val = (Tfloat)(*ptrd + nsigma*cimg::rand(-1,1));
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      case 2 : { // Salt & Pepper noise
+        if (nsigma<0) nsigma = -nsigma;
+        if (M==m) { m = 0; M = (Tfloat)(cimg::type<T>::is_float()?1:cimg::type<T>::max()); }
+        cimg_rof(*this,ptrd,T) if (cimg::rand(100)<nsigma) *ptrd = (T)(cimg::rand()<0.5?M:m);
+      } break;
+      case 3 : { // Poisson Noise
+        cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::prand(*ptrd);
+      } break;
+      case 4 : { // Rice noise
+        const Tfloat sqrt2 = (Tfloat)std::sqrt(2.0);
+        cimg_rof(*this,ptrd,T) {
+          const Tfloat
+            val0 = (Tfloat)*ptrd/sqrt2,
+            re = (Tfloat)(val0 + nsigma*cimg::grand()),
+            im = (Tfloat)(val0 + nsigma*cimg::grand());
+          Tfloat val = (Tfloat)std::sqrt(re*re + im*im);
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "noise(): Invalid specified noise type %d "
+                                    "(should be { 0=gaussian | 1=uniform | 2=salt&Pepper | 3=poisson }).",
+                                    cimg_instance,
+                                    noise_type);
+      }
+      return *this;
+    }
+
+    //! Add random noise to pixel values \newinstance.
+    CImg<T> get_noise(const double sigma, const unsigned int noise_type=0) const {
+      return (+*this).noise(sigma,noise_type);
+    }
+
+    //! Linearly normalize pixel values.
+    /**
+       \param min_value Minimum desired value of the resulting image.
+       \param max_value Maximum desired value of the resulting image.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_normalize(160,220);
+       (img,res).display();
+       \endcode
+       \image html ref_normalize2.jpg
+    **/
+    CImg<T>& normalize(const T& min_value, const T& max_value) {
+      if (is_empty()) return *this;
+      const T a = min_value<max_value?min_value:max_value, b = min_value<max_value?max_value:min_value;
+      T m, M = max_min(m);
+      const Tfloat fm = (Tfloat)m, fM = (Tfloat)M;
+      if (m==M) return fill(min_value);
+      if (m!=a || M!=b)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+        cimg_rof
