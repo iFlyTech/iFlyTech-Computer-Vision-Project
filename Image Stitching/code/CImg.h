@@ -23670,4 +23670,219 @@ namespace cimg_library_suffixed {
 #ifdef cimg_use_openmp
 #pragma omp parallel for cimg_openmp_if(size()>=65536)
 #endif
-        cimg_rof
+        cimg_rof(*this,ptrd,T) *ptrd = (T)((*ptrd - fm)/(fM - fm)*(b - a) + a);
+      return *this;
+    }
+
+    //! Linearly normalize pixel values \newinstance.
+    CImg<Tfloat> get_normalize(const T& min_value, const T& max_value) const {
+      return CImg<Tfloat>(*this,false).normalize((Tfloat)min_value,(Tfloat)max_value);
+    }
+
+    //! Normalize multi-valued pixels of the image instance, with respect to their L2-norm.
+    /**
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_normalize();
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_normalize.jpg
+    **/
+    CImg<T>& normalize() {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+      cimg_forYZ(*this,y,z) {
+        T *ptrd = data(0,y,z,0);
+        cimg_forX(*this,x) {
+          const T *ptrs = ptrd;
+          float n = 0;
+          cimg_forC(*this,c) { n+=cimg::sqr((float)*ptrs); ptrs+=whd; }
+          n = (float)std::sqrt(n);
+          T *_ptrd = ptrd++;
+          if (n>0) cimg_forC(*this,c) { *_ptrd = (T)(*_ptrd/n); _ptrd+=whd; }
+          else cimg_forC(*this,c) { *_ptrd = (T)0; _ptrd+=whd; }
+        }
+      }
+      return *this;
+    }
+
+    //! Normalize multi-valued pixels of the image instance, with respect to their L2-norm \newinstance.
+    CImg<Tfloat> get_normalize() const {
+      return CImg<Tfloat>(*this,false).normalize();
+    }
+
+    //! Compute Lp-norm of each multi-valued pixel of the image instance.
+    /**
+       \param norm_type Type of computed vector norm (can be \p -1=Linf, or \p>=0).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_norm();
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_norm.jpg
+    **/
+    CImg<T>& norm(const int norm_type=2) {
+      if (_spectrum==1 && norm_type) return abs();
+      return get_norm(norm_type).move_to(*this);
+    }
+
+    //! Compute L2-norm of each multi-valued pixel of the image instance \newinstance.
+    CImg<Tfloat> get_norm(const int norm_type=2) const {
+      if (is_empty()) return *this;
+      if (_spectrum==1 && norm_type) return get_abs();
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      CImg<Tfloat> res(_width,_height,_depth);
+      switch (norm_type) {
+      case -1 : { // Linf-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { const Tfloat val = (Tfloat)cimg::abs(*_ptrs); if (val>n) n = val; _ptrs+=whd; }
+            *(ptrd++) = n;
+          }
+        }
+      } break;
+      case 0 : { // L0-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            unsigned int n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=*_ptrs==0?0:1; _ptrs+=whd; }
+            *(ptrd++) = (Tfloat)n;
+          }
+        }
+      } break;
+      case 1 : { // L1-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=cimg::abs(*_ptrs); _ptrs+=whd; }
+            *(ptrd++) = n;
+          }
+        }
+      } break;
+      case 2 : { // L2-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=cimg::sqr((Tfloat)*_ptrs); _ptrs+=whd; }
+            *(ptrd++) = (Tfloat)std::sqrt((Tfloat)n);
+          }
+        }
+      } break;
+      default : { // Linf-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=std::pow(cimg::abs((Tfloat)*_ptrs),(Tfloat)norm_type); _ptrs+=whd; }
+            *(ptrd++) = (Tfloat)std::pow((Tfloat)n,1/(Tfloat)norm_type);
+          }
+        }
+      }
+      }
+      return res;
+    }
+
+    //! Cut pixel values in specified range.
+    /**
+       \param min_value Minimum desired value of the resulting image.
+       \param max_value Maximum desired value of the resulting image.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_cut(160,220);
+       (img,res).display();
+       \endcode
+       \image html ref_cut.jpg
+    **/
+    CImg<T>& cut(const T& min_value, const T& max_value) {
+      if (is_empty()) return *this;
+      const T a = min_value<max_value?min_value:max_value, b = min_value<max_value?max_value:min_value;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (*ptrd<a)?a:((*ptrd>b)?b:*ptrd);
+      return *this;
+    }
+
+    //! Cut pixel values in specified range \newinstance.
+    CImg<T> get_cut(const T& min_value, const T& max_value) const {
+      return (+*this).cut(min_value,max_value);
+    }
+
+    //! Uniformly quantize pixel values.
+    /**
+       \param nb_levels Number of quantization levels.
+       \param keep_range Tells if resulting values keep the same range as the original ones.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_quantize(4);
+       (img,res).display();
+       \endcode
+       \image html ref_quantize.jpg
+    **/
+    CImg<T>& quantize(const unsigned int nb_levels, const bool keep_range=true) {
+      if (!nb_levels)
+        throw CImgArgumentException(_cimg_instance
+                                    "quantize(): Invalid quantization request with 0 values.",
+                                    cimg_instance);
+
+      if (is_empty()) return *this;
+      Tfloat m, M = (Tfloat)max_min(m), range = M - m;
+      if (range>0) {
+        if (keep_range)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+          cimg_rof(*this,ptrd,T) {
+            const unsigned int val = (unsigned int)((*ptrd-m)*nb_levels/range);
+            *ptrd = (T)(m + cimg::min(val,nb_levels - 1)*range/nb_levels);
+          } else
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+          cimg_rof(*this,ptrd,T) {
+            const unsigned int val = (unsigned int)((*ptrd-m)*nb_levels/range);
+            *ptrd = (T)cimg::min(val,nb_levels - 1);
+          }
+      }
+      return *this;
+    }
+
+    //! Uniformly quantize pixel values \newinstance.
+    CImg<T> get_quantize(const unsigned int n, const
