@@ -23885,4 +23885,186 @@ namespace cimg_library_suffixed {
     }
 
     //! Uniformly quantize pixel values \newinstance.
-    CImg<T> get_quantize(const unsigned int n, const
+    CImg<T> get_quantize(const unsigned int n, const bool keep_range=true) const {
+      return (+*this).quantize(n,keep_range);
+    }
+
+    //! Threshold pixel values.
+    /**
+       \param value Threshold value
+       \param soft_threshold Tells if soft thresholding must be applied (instead of hard one).
+       \param strict_threshold Tells if threshold value is strict.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_threshold(128);
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_threshold.jpg
+    **/
+    CImg<T>& threshold(const T& value, const bool soft_threshold=false, const bool strict_threshold=false) {
+      if (is_empty()) return *this;
+      if (strict_threshold) {
+        if (soft_threshold)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+          cimg_rof(*this,ptrd,T) {
+            const T v = *ptrd;
+            *ptrd = v>value?(T)(v-value):v<-(float)value?(T)(v + value):(T)0;
+          }
+        else
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+          cimg_rof(*this,ptrd,T) *ptrd = *ptrd>value?(T)1:(T)0;
+      } else {
+        if (soft_threshold)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+          cimg_rof(*this,ptrd,T) {
+            const T v = *ptrd;
+            *ptrd = v>=value?(T)(v-value):v<=-(float)value?(T)(v + value):(T)0;
+          }
+        else
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+          cimg_rof(*this,ptrd,T) *ptrd = *ptrd>=value?(T)1:(T)0;
+      }
+      return *this;
+    }
+
+    //! Threshold pixel values \newinstance.
+    CImg<T> get_threshold(const T& value, const bool soft_threshold=false, const bool strict_threshold=false) const {
+      return (+*this).threshold(value,soft_threshold,strict_threshold);
+    }
+
+    //! Compute the histogram of pixel values.
+    /**
+       \param nb_levels Number of desired histogram levels.
+       \param min_value Minimum pixel value considered for the histogram computation.
+         All pixel values lower than \p min_value will not be counted.
+       \param max_value Maximum pixel value considered for the histogram computation.
+         All pixel values higher than \p max_value will not be counted.
+       \note
+       - The histogram H of an image I is the 1d function where H(x) counts the number of occurences of the value x
+         in the image I.
+       - The resulting histogram is always defined in 1d. Histograms of multi-valued images are not multi-dimensional.
+       \par Example
+       \code
+       const CImg<float> img = CImg<float>("reference.jpg").histogram(256);
+       img.display_graph(0,3);
+       \endcode
+       \image html ref_histogram.jpg
+    **/
+    CImg<T>& histogram(const unsigned int nb_levels, const T& min_value, const T& max_value) {
+      return get_histogram(nb_levels,min_value,max_value).move_to(*this);
+    }
+
+    //! Compute the histogram of pixel values \overloading.
+    CImg<T>& histogram(const unsigned int nb_levels) {
+      return get_histogram(nb_levels).move_to(*this);
+    }
+
+    //! Compute the histogram of pixel values \newinstance.
+    CImg<ulongT> get_histogram(const unsigned int nb_levels, const T& min_value, const T& max_value) const {
+      if (!nb_levels || is_empty()) return CImg<ulongT>();
+      const double
+        vmin = (double)(min_value<max_value?min_value:max_value),
+        vmax = (double)(min_value<max_value?max_value:min_value);
+      CImg<ulongT> res(nb_levels,1,1,1,0);
+      cimg_rof(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val>=vmin && val<=vmax) ++res[val==vmax?nb_levels - 1:(unsigned int)((val - vmin)*nb_levels/(vmax - vmin))];
+      }
+      return res;
+    }
+
+    //! Compute the histogram of pixel values \newinstance.
+    CImg<ulongT> get_histogram(const unsigned int nb_levels) const {
+      if (!nb_levels || is_empty()) return CImg<ulongT>();
+      T vmax = 0, vmin = min_max(vmax);
+      return get_histogram(nb_levels,vmin,vmax);
+    }
+
+    //! Equalize histogram of pixel values.
+    /**
+       \param nb_levels Number of histogram levels used for the equalization.
+       \param min_value Minimum pixel value considered for the histogram computation.
+         All pixel values lower than \p min_value will not be counted.
+       \param max_value Maximum pixel value considered for the histogram computation.
+         All pixel values higher than \p max_value will not be counted.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_equalize(256);
+       (img,res).display();
+       \endcode
+       \image html ref_equalize.jpg
+    **/
+    CImg<T>& equalize(const unsigned int nb_levels, const T& min_value, const T& max_value) {
+      if (!nb_levels || is_empty()) return *this;
+      const T
+        vmin = min_value<max_value?min_value:max_value,
+        vmax = min_value<max_value?max_value:min_value;
+      CImg<ulongT> hist = get_histogram(nb_levels,vmin,vmax);
+      ulongT cumul = 0;
+      cimg_forX(hist,pos) { cumul+=hist[pos]; hist[pos] = cumul; }
+      if (!cumul) cumul = 1;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=1048576)
+#endif
+      cimg_rof(*this,ptrd,T) {
+        const int pos = (int)((*ptrd-vmin)*(nb_levels - 1.)/(vmax-vmin));
+        if (pos>=0 && pos<(int)nb_levels) *ptrd = (T)(vmin + (vmax-vmin)*hist[pos]/cumul);
+      }
+      return *this;
+    }
+
+    //! Equalize histogram of pixel values \overloading.
+    CImg<T>& equalize(const unsigned int nb_levels) {
+      if (!nb_levels || is_empty()) return *this;
+      T vmax = 0, vmin = min_max(vmax);
+      return equalize(nb_levels,vmin,vmax);
+    }
+
+    //! Equalize histogram of pixel values \newinstance.
+    CImg<T> get_equalize(const unsigned int nblevels, const T& val_min, const T& val_max) const {
+      return (+*this).equalize(nblevels,val_min,val_max);
+    }
+
+    //! Equalize histogram of pixel values \newinstance.
+    CImg<T> get_equalize(const unsigned int nblevels) const {
+      return (+*this).equalize(nblevels);
+    }
+
+    //! Index multi-valued pixels regarding to a specified colormap.
+    /**
+       \param colormap Multi-valued colormap used as the basis for multi-valued pixel indexing.
+       \param dithering Level of dithering (0=disable, 1=standard level).
+       \param map_indexes Tell if the values of the resulting image are the colormap indices or the colormap vectors.
+       \note
+       - \p img.index(colormap,dithering,1) is equivalent to <tt>img.index(colormap,dithering,0).map(colormap)</tt>.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), colormap(3,1,1,3, 0,128,255, 0,128,255, 0,128,255);
+       const CImg<float> res = img.get_index(colormap,1,true);
+       (img,res).display();
+       \endcode
+       \image html ref_index.jpg
+    **/
+    template<typename t>
+    CImg<T>& index(const CImg<t>& colormap, const float dithering=1, const bool map_indexes=false) {
+      return get_index(colormap,dithering,map_indexes).move_to(*this);
+    }
+
+    //! Index multi-valued pixels regarding to a specified colormap \newinstance.
+    template<typename t>
+    CImg<typename CImg<t>::Tuint>
+    get_index(const CImg<t>& colormap, const float dithering=1, const bool map_indexes=true) const {
+      if (colormap._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "index(): Instance and specified colormap (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap
