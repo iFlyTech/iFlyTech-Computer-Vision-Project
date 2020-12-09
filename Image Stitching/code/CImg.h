@@ -24211,4 +24211,166 @@ namespace cimg_library_suffixed {
               const t *_ptrmin = ptrmin; Tfloat *_ptrs = ptrs++, *_ptrsn = (ptrsn++) - 1;
               cimg_forC(*this,c) {
                 const Tfloat err = (*(_ptrs++) - (Tfloat)*_ptrmin)*ndithering;
-                *_ptrs+=7*
+                *_ptrs+=7*err; *(_ptrsn++)+=3*err; *(_ptrsn++)+=5*err; *_ptrsn+=err;
+                _ptrmin+=pwhd; _ptrs+=cwhd - 1; _ptrsn+=cwhd - 2;
+              }
+              if (map_indexes) {
+                tuint *_ptrd = ptrd++;
+                cimg_forC(*this,c) { *_ptrd = (tuint)*ptrmin; _ptrd+=whd; ptrmin+=pwhd; }
+              }
+              else *(ptrd++) = (tuint)(ptrmin - colormap._data);
+            }
+            cimg::swap(cache_current,cache_next);
+          }
+        }
+      } else { // Non-dithered versions
+        switch (_spectrum) {
+        case 1 : { // Optimized for scalars.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=64 && _height*_depth>=16 && pwhd>=16)
+#endif
+          cimg_forYZ(*this,y,z) {
+            tuint *ptrd = res.data(0,y,z);
+            for (const T *ptrs0 = data(0,y,z), *ptrs_end = ptrs0 + _width; ptrs0<ptrs_end; ) {
+              const Tfloat val0 = (Tfloat)*(ptrs0++);
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin0 = colormap._data;
+              for (const t *ptrp0 = colormap._data, *ptrp_end = ptrp0 + pwhd; ptrp0<ptrp_end; ) {
+                const Tfloat pval0 = (Tfloat)*(ptrp0++) - val0, dist = pval0*pval0;
+                if (dist<distmin) { ptrmin0 = ptrp0 - 1; distmin = dist; }
+              }
+              if (map_indexes) *(ptrd++) = (tuint)*ptrmin0; else *(ptrd++) = (tuint)(ptrmin0 - colormap._data);
+            }
+          }
+        } break;
+        case 2 : { // Optimized for 2d vectors.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=64 && _height*_depth>=16 && pwhd>=16)
+#endif
+          cimg_forYZ(*this,y,z) {
+            tuint *ptrd = res.data(0,y,z), *ptrd1 = ptrd + whd;
+            for (const T *ptrs0 = data(0,y,z), *ptrs1 = ptrs0 + whd, *ptrs_end = ptrs0 + _width; ptrs0<ptrs_end; ) {
+              const Tfloat val0 = (Tfloat)*(ptrs0++), val1 = (Tfloat)*(ptrs1++);
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin0 = colormap._data;
+              for (const t *ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp_end = ptrp1; ptrp0<ptrp_end; ) {
+                const Tfloat
+                  pval0 = (Tfloat)*(ptrp0++) - val0, pval1 = (Tfloat)*(ptrp1++) - val1,
+                  dist = pval0*pval0 + pval1*pval1;
+                if (dist<distmin) { ptrmin0 = ptrp0 - 1; distmin = dist; }
+              }
+              if (map_indexes) { *(ptrd++) = (tuint)*ptrmin0; *(ptrd1++) = (tuint)*(ptrmin0 + pwhd); }
+              else *(ptrd++) = (tuint)(ptrmin0 - colormap._data);
+            }
+          }
+        } break;
+        case 3 : { // Optimized for 3d vectors (colors).
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=64 && _height*_depth>=16 && pwhd>=16)
+#endif
+          cimg_forYZ(*this,y,z) {
+            tuint *ptrd = res.data(0,y,z), *ptrd1 = ptrd + whd, *ptrd2 = ptrd1 + whd;
+            for (const T *ptrs0 = data(0,y,z), *ptrs1 = ptrs0 + whd, *ptrs2 = ptrs1 + whd,
+                   *ptrs_end = ptrs0 + _width; ptrs0<ptrs_end; ) {
+              const Tfloat val0 = (Tfloat)*(ptrs0++), val1 = (Tfloat)*(ptrs1++), val2 = (Tfloat)*(ptrs2++);
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin0 = colormap._data;
+              for (const t *ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd,
+                     *ptrp_end = ptrp1; ptrp0<ptrp_end; ) {
+                const Tfloat
+                  pval0 = (Tfloat)*(ptrp0++) - val0,
+                  pval1 = (Tfloat)*(ptrp1++) - val1,
+                  pval2 = (Tfloat)*(ptrp2++) - val2,
+                  dist = pval0*pval0 + pval1*pval1 + pval2*pval2;
+                if (dist<distmin) { ptrmin0 = ptrp0 - 1; distmin = dist; }
+              }
+              if (map_indexes) {
+                *(ptrd++) = (tuint)*ptrmin0;
+                *(ptrd1++) = (tuint)*(ptrmin0 + pwhd);
+                *(ptrd2++) = (tuint)*(ptrmin0 + 2*pwhd);
+              } else *(ptrd++) = (tuint)(ptrmin0 - colormap._data);
+            }
+          }
+        } break;
+        default : // Generic version.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=64 && _height*_depth>=16 && pwhd>=16)
+#endif
+          cimg_forYZ(*this,y,z) {
+            tuint *ptrd = res.data(0,y,z);
+            for (const T *ptrs = data(0,y,z), *ptrs_end = ptrs + _width; ptrs<ptrs_end; ++ptrs) {
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin = colormap._data;
+              for (const t *ptrp = colormap._data, *ptrp_end = ptrp + pwhd; ptrp<ptrp_end; ++ptrp) {
+                Tfloat dist = 0; const T *_ptrs = ptrs; const t *_ptrp = ptrp;
+                cimg_forC(*this,c) { dist+=cimg::sqr((Tfloat)*_ptrs - (Tfloat)*_ptrp); _ptrs+=whd; _ptrp+=pwhd; }
+                if (dist<distmin) { ptrmin = ptrp; distmin = dist; }
+              }
+              if (map_indexes) {
+                tuint *_ptrd = ptrd++;
+                cimg_forC(*this,c) { *_ptrd = (tuint)*ptrmin; _ptrd+=whd; ptrmin+=pwhd; }
+              }
+              else *(ptrd++) = (tuint)(ptrmin - colormap._data);
+            }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Map predefined colormap on the scalar (indexed) image instance.
+    /**
+       \param colormap Multi-valued colormap used for mapping the indexes.
+       \param boundary_conditions The border condition type { 0=zero |  1=dirichlet | 2=periodic }.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"),
+                         colormap1(3,1,1,3, 0,128,255, 0,128,255, 0,128,255),
+                         colormap2(3,1,1,3, 255,0,0, 0,255,0, 0,0,255),
+                         res = img.get_index(colormap1,0).map(colormap2);
+       (img,res).display();
+       \endcode
+       \image html ref_map.jpg
+    **/
+    template<typename t>
+    CImg<T>& map(const CImg<t>& colormap, const unsigned int boundary_conditions=0) {
+      return get_map(colormap,boundary_conditions).move_to(*this);
+    }
+
+    //! Map predefined colormap on the scalar (indexed) image instance \newinstance.
+    template<typename t>
+    CImg<t> get_map(const CImg<t>& colormap, const unsigned int boundary_conditions=0) const {
+      if (_spectrum!=1 && colormap._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "map(): Instance and specified colormap (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        pwhd = (ulongT)colormap._width*colormap._height*colormap._depth;
+      CImg<t> res(_width,_height,_depth,colormap._spectrum==1?_spectrum:colormap._spectrum);
+      switch (colormap._spectrum) {
+
+      case 1 : { // Optimized for scalars.
+        const T *ptrs = _data;
+        switch (boundary_conditions) {
+        case 2 : // Periodic boundaries.
+          cimg_for(res,ptrd,t) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            *ptrd = colormap[ind%pwhd];
+          } break;
+        case 1 : // Neumann boundaries.
+          cimg_for(res,ptrd,t) {
+            const longT ind = (longT)*(ptrs++);
+            *ptrd = colormap[ind<0?0:ind>=(longT)pwhd?pwhd - 1:ind];
+          } break;
+        default : // Dirichlet boundaries.
+          cimg_for(res,ptrd,t) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            *ptrd = ind<pwhd?colormap[ind]:(t)0;
+          }
+        }
+      } break;
+
+      case 2 : { // Optimized for 2d vectors.
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          const t *const ptrp0 = colormap._data
