@@ -24373,4 +24373,177 @@ namespace cimg_library_suffixed {
       case 2 : { // Optimized for 2d vectors.
         switch (boundary_conditions) {
         case 2 : { // Periodic boundaries.
-          const t *const ptrp0 = colormap._data
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind];
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind];
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            *(ptrd0++) = is_in?ptrp0[ind]:(t)0; *(ptrd1++) = is_in?ptrp1[ind]:(t)0;
+          }
+        }
+        }
+      } break;
+
+      case 3 : { // Optimized for 3d vectors (colors).
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind]; *(ptrd2++) = ptrp2[ind];
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind]; *(ptrd2++) = ptrp2[ind];
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            *(ptrd0++) = is_in?ptrp0[ind]:(t)0; *(ptrd1++) = is_in?ptrp1[ind]:(t)0; *(ptrd2++) = is_in?ptrp2[ind]:(t)0;
+          }
+        }
+        }
+      } break;
+
+      default : { // Generic version.
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            const t *ptrp = colormap._data + ind;
+            t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            const t *ptrp = colormap._data + ind;
+            t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            if (is_in) {
+              const t *ptrp = colormap._data + ind;
+              t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+            } else {
+              t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = (t)0; _ptrd+=whd; }
+            }
+          }
+        }
+        }
+      }
+      }
+      return res;
+    }
+
+    //! Label connected components.
+    /**
+       \param is_high_connectivity Boolean that choose between 4(false)- or 8(true)-connectivity
+       in 2d case, and between 6(false)- or 26(true)-connectivity in 3d case.
+       \param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
+       \note The algorithm of connected components computation has been primarily done
+       by A. Meijster, according to the publication:
+       'W.H. Hesselink, A. Meijster, C. Bron, "Concurrent Determination of Connected Components.",
+       In: Science of Computer Programming 41 (2001), pp. 173--194'.
+       The submitted code has then been modified to fit CImg coding style and constraints.
+    **/
+    CImg<T>& label(const bool is_high_connectivity=false, const Tfloat tolerance=0) {
+      return get_label(is_high_connectivity,tolerance).move_to(*this);
+    }
+
+    //! Label connected components \newinstance.
+    CImg<ulongT> get_label(const bool is_high_connectivity=false,
+                           const Tfloat tolerance=0) const {
+      if (is_empty()) return CImg<ulongT>();
+
+      // Create neighborhood tables.
+      int dx[13], dy[13], dz[13], nb = 0;
+      dx[nb] = 1; dy[nb] = 0; dz[nb++] = 0;
+      dx[nb] = 0; dy[nb] = 1; dz[nb++] = 0;
+      if (is_high_connectivity) {
+        dx[nb] = 1; dy[nb] = 1; dz[nb++] = 0;
+        dx[nb] = 1; dy[nb] = -1; dz[nb++] = 0;
+      }
+      if (_depth>1) { // 3d version.
+        dx[nb] = 0; dy[nb] = 0; dz[nb++]=1;
+        if (is_high_connectivity) {
+          dx[nb] = 1; dy[nb] = 1; dz[nb++] = -1;
+          dx[nb] = 1; dy[nb] = 0; dz[nb++] = -1;
+          dx[nb] = 1; dy[nb] = -1; dz[nb++] = -1;
+          dx[nb] = 0; dy[nb] = 1; dz[nb++] = -1;
+
+          dx[nb] = 0; dy[nb] = 1; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = -1; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = 0; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = 1; dz[nb++] = 1;
+        }
+      }
+      return _get_label(nb,dx,dy,dz,tolerance);
+    }
+
+    //! Label connected components \overloading.
+    /**
+       \param connectivity_mask Mask of the neighboring pixels.
+       \param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
+    **/
+    template<typename t>
+    CImg<T>& label(const CImg<t>& connectivity_mask, const Tfloat tolerance=0) {
+      return get_label(connectivity_mask,tolerance).move_to(*this);
+    }
+
+    //! Label connected components \newinstance.
+    template<typename t>
+    CImg<ulongT> get_label(const CImg<t>& connectivity_mask,
+                           const Tfloat tolerance=0) const {
+      int nb = 0;
+      cimg_for(connectivity_mask,ptr,t) if (*ptr) ++nb;
+      CImg<intT> dx(nb,1,1,1,0), dy(nb,1,1,1,0), dz(nb,1,1,1,0);
+      nb = 0;
+      cimg_forXYZ(connectivity_mask,x,y,z) if ((x || y || z) &&
+                                               connectivity_mask(x,y,z)) {
+        dx[nb] = x; dy[nb] = y; dz[nb++] = z;
+      }
+      return _get_label(nb,dx,dy,dz,tolerance);
+    }
+
+    CImg<ulongT> _get_label(const unsigned int nb, const int
+                            *const dx, const int *const dy, const int *const dz,
+                            const Tfloat tolerance) const {
+      CImg<ulongT> res(_width,_height,_depth,_spectrum);
+      cimg_forC(*this,c) {
+        CImg<ulongT> _res = res.get_shared_channel(c);
+
+        // Init label numbers.
+        ulongT *ptr = _res.data();
+        cimg_foroff(_res,p) *(ptr++
