@@ -24711,4 +24711,238 @@ namespace cimg_library_suffixed {
         colormap.resize(1,256,1,3,3);
       }
       cimg::mutex(8,0);
-      return
+      return colormap;
+    }
+
+    //! Return colormap \e "cool", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_cool.jpg
+    **/
+    static const CImg<Tuchar>& cool_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) colormap.assign(1,2,1,3).fill(0,255,255,0,255,255).resize(1,256,1,3,3);
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "jet", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_jet.jpg
+    **/
+    static const CImg<Tuchar>& jet_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,4,1,3,0);
+        colormap[2] = colormap[3] = colormap[5] = colormap[6] = colormap[8] = colormap[9] = 255;
+        colormap.resize(1,256,1,3,3);
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "flag", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_flag.jpg
+    **/
+    static const CImg<Tuchar>& flag_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,4,1,3,0);
+        colormap[0] = colormap[1] = colormap[5] = colormap[9] = colormap[10] = 255;
+        colormap.resize(1,256,1,3,0,2);
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "cube", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_cube.jpg
+    **/
+    static const CImg<Tuchar>& cube_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,8,1,3,0);
+        colormap[1] = colormap[3] = colormap[5] = colormap[7] =
+          colormap[10] = colormap[11] = colormap[12] = colormap[13] =
+          colormap[20] = colormap[21] = colormap[22] = colormap[23] = 255;
+        colormap.resize(1,256,1,3,3);
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Convert pixel values from sRGB to RGB color spaces.
+    CImg<T>& sRGBtoRGB() {
+      cimg_for(*this,ptr,T) {
+        const Tfloat
+          sval = (Tfloat)*ptr,
+          nsval = (sval<0?0:sval>255?255:sval)/255,
+          val = (Tfloat)(nsval<=0.04045f?nsval/12.92f:std::pow((nsval + 0.055f)/(1.055f),2.4f));
+        *ptr = (T)(val*255);
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from sRGB to RGB color spaces \newinstance.
+    CImg<Tfloat> get_sRGBtoRGB() const {
+      return CImg<Tfloat>(*this,false).sRGBtoRGB();
+    }
+
+    //! Convert pixel values from RGB to sRGB color spaces.
+    CImg<T>& RGBtosRGB() {
+      cimg_for(*this,ptr,T) {
+        const Tfloat
+          val = (Tfloat)*ptr,
+          nval = (val<0?0:val>255?255:val)/255,
+          sval = (Tfloat)(nval<=0.0031308f?nval*12.92f:1.055f*std::pow(nval,0.416667f)-0.055f);
+        *ptr = (T)(sval*255);
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to sRGB color spaces \newinstance.
+    CImg<Tfloat> get_RGBtosRGB() const {
+      return CImg<Tfloat>(*this,false).RGBtosRGB();
+    }
+
+    //! Convert pixel values from RGB to HSV color spaces.
+    CImg<T>& RGBtoHSV() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoHSV(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1,
+          G = (Tfloat)*p2,
+          B = (Tfloat)*p3,
+          nR = (R<0?0:(R>255?255:R))/255,
+          nG = (G<0?0:(G>255?255:G))/255,
+          nB = (B<0?0:(B>255?255:B))/255,
+          m = cimg::min(nR,nG,nB),
+          M = cimg::max(nR,nG,nB);
+        Tfloat H = 0, S = 0;
+        if (M!=m) {
+          const Tfloat
+            f = (nR==m)?(nG-nB):((nG==m)?(nB-nR):(nR-nG)),
+            i = (Tfloat)((nR==m)?3:((nG==m)?5:1));
+          H = (i-f/(M-m));
+          if (H>=6) H-=6;
+          H*=60;
+          S = (M-m)/M;
+        }
+        *(p1++) = (T)H;
+        *(p2++) = (T)S;
+        *(p3++) = (T)M;
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to HSV color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoHSV() const {
+      return CImg<Tfloat>(*this,false).RGBtoHSV();
+    }
+
+    //! Convert pixel values from HSV to RGB color spaces.
+    CImg<T>& HSVtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "HSVtoRGB(): Instance is not a HSV image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        Tfloat
+          H = cimg::mod((Tfloat)*p1,(Tfloat)360),
+          S = (Tfloat)*p2,
+          V = (Tfloat)*p3,
+          R = 0, G = 0, B = 0;
+        if (H==0 && S==0) R = G = B = V;
+        else {
+          H/=60;
+          const int i = (int)std::floor(H);
+          const Tfloat
+            f = (i&1)?(H - i):(1 - H + i),
+            m = V*(1 - S),
+            n = V*(1 - S*f);
+          switch (i) {
+          case 6 :
+          case 0 : R = V; G = n; B = m; break;
+          case 1 : R = n; G = V; B = m; break;
+          case 2 : R = m; G = V; B = n; break;
+          case 3 : R = m; G = n; B = V; break;
+          case 4 : R = n; G = m; B = V; break;
+          case 5 : R = V; G = m; B = n; break;
+          }
+        }
+        R*=255; G*=255; B*=255;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from HSV to RGB color spaces \newinstance.
+    CImg<Tuchar> get_HSVtoRGB() const {
+      return CImg<Tuchar>(*this,false).HSVtoRGB();
+    }
+
+    //! Convert pixel values from RGB to HSL color spaces.
+    CImg<T>& RGBtoHSL() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoHSL(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1,
+          G = (Tfloat)*p2,
+          B = (Tfloat)*p3,
+          nR = (R<0?0:(R>255?255:R))/255,
+          nG = (G<0?0:(G>255?255:G))/255,
+          nB = (B<0?0:(B>255?255:B))/255,
+          m = cimg::min(nR,nG,nB),
+          M = cimg::max(nR,nG,nB),
+          L = (m + M)/2;
+        Tfloat H = 0, S = 0;
+        if (M==m) H = S = 0;
+        else {
+          const Tfloat
+            f = (nR==m)?(nG-nB):((nG==m)?(nB-nR):(nR-nG)),
+            i = (nR==m)?3.0f:((nG==m)?5.0f:1.0f);
+          H = (i-f/(M-m));
+          if (H>=6) H-=6;
+          H*=60;
+          S = (2*L<=1)?((M - m)/(M + m)):((M - m)/(2 - M - m));
+        }
+        *(p1++) = (T)H;
+        *(p2++) = (T)S;
+        *(p3++) = (T)L;
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to HSL color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoHSL() const {
+      return CImg< Tfloat>(*this,false).RGBtoHSL();
+    }
+
+    //! Convert pixel values from HSL to RGB color spaces.
+    CImg<T>& HSLtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "HSLtoRGB(): Instance is no
