@@ -24945,4 +24945,218 @@ namespace cimg_library_suffixed {
     CImg<T>& HSLtoRGB() {
       if (_spectrum!=3)
         throw CImgInstanceException(_cimg_instance
-                                    "HSLtoRGB(): Instance is no
+                                    "HSLtoRGB(): Instance is not a HSL image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          H = cimg::mod((Tfloat)*p1,(Tfloat)360),
+          S = (Tfloat)*p2,
+          L = (Tfloat)*p3,
+          q = 2*L<1?L*(1 + S):(L + S - L*S),
+          p = 2*L - q,
+          h = H/360,
+          tr = h + 1.0f/3,
+          tg = h,
+          tb = h - 1.0f/3,
+          ntr = tr<0?tr + 1:(tr>1?tr - 1:tr),
+          ntg = tg<0?tg + 1:(tg>1?tg - 1:tg),
+          ntb = tb<0?tb + 1:(tb>1?tb - 1:tb),
+          R = 255*(6*ntr<1?p + (q - p)*6*ntr:(2*ntr<1?q:(3*ntr<2?p + (q - p)*6*(2.0f/3 - ntr):p))),
+          G = 255*(6*ntg<1?p + (q - p)*6*ntg:(2*ntg<1?q:(3*ntg<2?p + (q - p)*6*(2.0f/3 - ntg):p))),
+          B = 255*(6*ntb<1?p + (q - p)*6*ntb:(2*ntb<1?q:(3*ntb<2?p + (q - p)*6*(2.0f/3 - ntb):p)));
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from HSL to RGB color spaces \newinstance.
+    CImg<Tuchar> get_HSLtoRGB() const {
+      return CImg<Tuchar>(*this,false).HSLtoRGB();
+    }
+
+    //! Convert pixel values from RGB to HSI color spaces.
+    CImg<T>& RGBtoHSI() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoHSI(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1,
+          G = (Tfloat)*p2,
+          B = (Tfloat)*p3,
+          nR = (R<0?0:(R>255?255:R))/255,
+          nG = (G<0?0:(G>255?255:G))/255,
+          nB = (B<0?0:(B>255?255:B))/255,
+          m = cimg::min(nR,nG,nB),
+          theta = (Tfloat)(std::acos(0.5f*((nR - nG) + (nR - nB))/
+                                     std::sqrt(std::pow(nR - nG,2) + (nR - nB)*(nG - nB)))*180/cimg::PI),
+          sum = nR + nG + nB;
+        Tfloat H = 0, S = 0, I = 0;
+        if (theta>0) H = (nB<=nG)?theta:360 - theta;
+        if (sum>0) S = 1 - 3/sum*m;
+        I = sum/3;
+        *(p1++) = (T)H;
+        *(p2++) = (T)S;
+        *(p3++) = (T)I;
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to HSI color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoHSI() const {
+      return CImg<Tfloat>(*this,false).RGBtoHSI();
+    }
+
+    //! Convert pixel values from HSI to RGB color spaces.
+    CImg<T>& HSItoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "HSItoRGB(): Instance is not a HSI image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        Tfloat
+          H = cimg::mod((Tfloat)*p1,(Tfloat)360),
+          S = (Tfloat)*p2,
+          I = (Tfloat)*p3,
+          a = I*(1-S),
+          R = 0, G = 0, B = 0;
+        if (H<120) {
+          B = a;
+          R = (Tfloat)(I*(1 + S*std::cos(H*cimg::PI/180)/std::cos((60 - H)*cimg::PI/180)));
+          G = 3*I - (R + B);
+        } else if (H<240) {
+          H-=120;
+          R = a;
+          G = (Tfloat)(I*(1 + S*std::cos(H*cimg::PI/180)/std::cos((60 - H)*cimg::PI/180)));
+          B = 3*I - (R + G);
+        } else {
+          H-=240;
+          G = a;
+          B = (Tfloat)(I*(1 + S*std::cos(H*cimg::PI/180)/std::cos((60 - H)*cimg::PI/180)));
+          R = 3*I - (G + B);
+        }
+        R*=255; G*=255; B*=255;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from HSI to RGB color spaces \newinstance.
+    CImg<Tfloat> get_HSItoRGB() const {
+      return CImg< Tuchar>(*this,false).HSItoRGB();
+    }
+
+    //! Convert pixel values from RGB to YCbCr color spaces.
+    CImg<T>& RGBtoYCbCr() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoYCbCr(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1,
+          G = (Tfloat)*p2,
+          B = (Tfloat)*p3,
+          Y = (66*R + 129*G + 25*B + 128)/256 + 16,
+          Cb = (-38*R - 74*G + 112*B + 128)/256 + 128,
+          Cr = (112*R - 94*G - 18*B + 128)/256 + 128;
+        *(p1++) = (T)(Y<0?0:(Y>255?255:Y));
+        *(p2++) = (T)(Cb<0?0:(Cb>255?255:Cb));
+        *(p3++) = (T)(Cr<0?0:(Cr>255?255:Cr));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to YCbCr color spaces \newinstance.
+    CImg<Tuchar> get_RGBtoYCbCr() const {
+      return CImg<Tuchar>(*this,false).RGBtoYCbCr();
+    }
+
+    //! Convert pixel values from RGB to YCbCr color spaces.
+    CImg<T>& YCbCrtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "YCbCrtoRGB(): Instance is not a YCbCr image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          Y = (Tfloat)*p1 - 16,
+          Cb = (Tfloat)*p2 - 128,
+          Cr = (Tfloat)*p3 - 128,
+          R = (298*Y + 409*Cr + 128)/256,
+          G = (298*Y - 100*Cb - 208*Cr + 128)/256,
+          B = (298*Y + 516*Cb + 128)/256;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to YCbCr color spaces \newinstance.
+    CImg<Tuchar> get_YCbCrtoRGB() const {
+      return CImg<Tuchar>(*this,false).YCbCrtoRGB();
+    }
+
+    //! Convert pixel values from RGB to YUV color spaces.
+    CImg<T>& RGBtoYUV() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoYUV(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1/255,
+          G = (Tfloat)*p2/255,
+          B = (Tfloat)*p3/255,
+          Y = 0.299f*R + 0.587f*G + 0.114f*B;
+        *(p1++) = (T)Y;
+        *(p2++) = (T)(0.492f*(B-Y));
+        *(p3++) = (T)(0.877*(R-Y));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to YUV color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoYUV() const {
+      return CImg<Tfloat>(*this,false).RGBtoYUV();
+    }
+
+    //! Convert pixel values from YUV to RGB color spaces.
+    CImg<T>& YUVtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "YUVtoRGB(): Instance is not a YUV image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          Y = (Tfloat)*p1,
+          U = (Tfloat)*p2,
+          V = (Tfloat)*p3,
+          R = (Y + 1.140f*V)*255,
+          G = (Y - 0.395f*U - 0.581f*V)*255,
+          B = (Y + 2.032f*U)*255;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return
