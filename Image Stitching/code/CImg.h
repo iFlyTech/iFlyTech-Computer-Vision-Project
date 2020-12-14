@@ -24546,4 +24546,169 @@ namespace cimg_library_suffixed {
 
         // Init label numbers.
         ulongT *ptr = _res.data();
-        cimg_foroff(_res,p) *(ptr++
+        cimg_foroff(_res,p) *(ptr++) = p;
+
+        // For each neighbour-direction, label.
+        for (unsigned int n = 0; n<nb; ++n) {
+          const int _dx = dx[n], _dy = dy[n], _dz = dz[n];
+          if (_dx || _dy || _dz) {
+            const int
+              x0 = _dx<0?-_dx:0,
+              x1 = _dx<0?width():width() - _dx,
+              y0 = _dy<0?-_dy:0,
+              y1 = _dy<0?height():height() - _dy,
+              z0 = _dz<0?-_dz:0,
+              z1 = _dz<0?depth():depth() - _dz;
+            const longT
+              wh = (longT)width()*height(),
+              whd = (longT)width()*height()*depth(),
+              offset = _dz*wh + _dy*width() + _dx;
+            for (longT z = z0, nz = z0 + _dz, pz = z0*wh; z<z1; ++z, ++nz, pz+=wh) {
+              for (longT y = y0, ny = y0 + _dy, py = y0*width() + pz; y<y1; ++y, ++ny, py+=width()) {
+                for (longT x = x0, nx = x0 + _dx, p = x0 + py; x<x1; ++x, ++nx, ++p) {
+                  if ((Tfloat)cimg::abs((*this)(x,y,z,c,wh,whd) - (*this)(nx,ny,nz,c,wh,whd))<=tolerance) {
+                    const longT q = p + offset;
+                    ulongT x, y;
+                    for (x = (ulongT)(p<q?q:p), y = (ulongT)(p<q?p:q); x!=y && _res[x]!=x; ) {
+                      x = _res[x]; if (x<y) cimg::swap(x,y);
+                    }
+                    if (x!=y) _res[x] = (ulongT)y;
+                    for (ulongT _p = (ulongT)p; _p!=y; ) {
+                      const ulongT h = _res[_p];
+                      _res[_p] = (ulongT)y;
+                      _p = h;
+                    }
+                    for (ulongT _q = (ulongT)q; _q!=y; ) {
+                      const ulongT h = _res[_q];
+                      _res[_q] = (ulongT)y;
+                      _q = h;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Resolve equivalences.
+        ulongT counter = 0;
+        ptr = _res.data();
+        cimg_foroff(_res,p) { *ptr = *ptr==p?counter++:_res[*ptr]; ++ptr; }
+      }
+      return res;
+    }
+
+    // [internal] Replace possibly malicious characters for commands to be called by system() by their escaped version.
+    CImg<T>& _system_strescape() {
+#define cimg_system_strescape(c,s) case c : if (p!=ptrs) CImg<T>(ptrs,(unsigned int)(p-ptrs),1,1,1,false).\
+      move_to(list); \
+      CImg<T>(s,(unsigned int)std::strlen(s),1,1,1,false).move_to(list); ptrs = p + 1; break
+      CImgList<T> list;
+      const T *ptrs = _data;
+      cimg_for(*this,p,T) switch ((int)*p) {
+        cimg_system_strescape('\\',"\\\\");
+        cimg_system_strescape('\"',"\\\"");
+        cimg_system_strescape('!',"\"\\!\"");
+        cimg_system_strescape('`',"\\`");
+        cimg_system_strescape('$',"\\$");
+      }
+      if (ptrs<end()) CImg<T>(ptrs,(unsigned int)(end()-ptrs),1,1,1,false).move_to(list);
+      return (list>'x').move_to(*this);
+    }
+
+    //@}
+    //---------------------------------
+    //
+    //! \name Color Base Management
+    //@{
+    //---------------------------------
+
+    //! Return colormap \e "default", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_default.jpg
+    **/
+    static const CImg<Tuchar>& default_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,256,1,3);
+        for (unsigned int index = 0, r = 16; r<256; r+=32)
+          for (unsigned int g = 16; g<256; g+=32)
+            for (unsigned int b = 32; b<256; b+=64) {
+              colormap(0,index,0) = (Tuchar)r;
+              colormap(0,index,1) = (Tuchar)g;
+              colormap(0,index++,2) = (Tuchar)b;
+            }
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "HSV", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_hsv.jpg
+    **/
+    static const CImg<Tuchar>& HSV_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        CImg<Tint> tmp(1,256,1,3,1);
+        tmp.get_shared_channel(0).sequence(0,359);
+        colormap = tmp.HSVtoRGB();
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "lines", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_lines.jpg
+    **/
+    static const CImg<Tuchar>& lines_LUT256() {
+      static const unsigned char pal[] = {
+        217,62,88,75,1,237,240,12,56,160,165,116,1,1,204,2,15,248,148,185,133,141,46,246,222,116,16,5,207,226,
+        17,114,247,1,214,53,238,0,95,55,233,235,109,0,17,54,33,0,90,30,3,0,94,27,19,0,68,212,166,130,0,15,7,119,
+        238,2,246,198,0,3,16,10,13,2,25,28,12,6,2,99,18,141,30,4,3,140,12,4,30,233,7,10,0,136,35,160,168,184,20,
+        233,0,1,242,83,90,56,180,44,41,0,6,19,207,5,31,214,4,35,153,180,75,21,76,16,202,218,22,17,2,136,71,74,
+        81,251,244,148,222,17,0,234,24,0,200,16,239,15,225,102,230,186,58,230,110,12,0,7,129,249,22,241,37,219,
+        1,3,254,210,3,212,113,131,197,162,123,252,90,96,209,60,0,17,0,180,249,12,112,165,43,27,229,77,40,195,12,
+        87,1,210,148,47,80,5,9,1,137,2,40,57,205,244,40,8,252,98,0,40,43,206,31,187,0,180,1,69,70,227,131,108,0,
+        223,94,228,35,248,243,4,16,0,34,24,2,9,35,73,91,12,199,51,1,249,12,103,131,20,224,2,70,32,
+        233,1,165,3,8,154,246,233,196,5,0,6,183,227,247,195,208,36,0,0,226,160,210,198,69,153,210,1,23,8,192,2,4,
+        137,1,0,52,2,249,241,129,0,0,234,7,238,71,7,32,15,157,157,252,158,2,250,6,13,30,11,162,0,199,21,11,27,224,
+        4,157,20,181,111,187,218,3,0,11,158,230,196,34,223,22,248,135,254,210,157,219,0,117,239,3,255,4,227,5,247,
+        11,4,3,188,111,11,105,195,2,0,14,1,21,219,192,0,183,191,113,241,1,12,17,248,0,48,7,19,1,254,212,0,239,246,
+        0,23,0,250,165,194,194,17,3,253,0,24,6,0,141,167,221,24,212,2,235,243,0,0,205,1,251,133,204,28,4,6,1,10,
+        141,21,74,12,236,254,228,19,1,0,214,1,186,13,13,6,13,16,27,209,6,216,11,207,251,59,32,9,155,23,19,235,143,
+        116,6,213,6,75,159,23,6,0,228,4,10,245,249,1,7,44,234,4,102,174,0,19,239,103,16,15,18,8,214,22,4,47,244,
+        255,8,0,251,173,1,212,252,250,251,252,6,0,29,29,222,233,246,5,149,0,182,180,13,151,0,203,183,0,35,149,0,
+        235,246,254,78,9,17,203,73,11,195,0,3,5,44,0,0,237,5,106,6,130,16,214,20,168,247,168,4,207,11,5,1,232,251,
+        129,210,116,231,217,223,214,27,45,38,4,177,186,249,7,215,172,16,214,27,249,230,236,2,34,216,217,0,175,30,
+        243,225,244,182,20,212,2,226,21,255,20,0,2,13,62,13,191,14,76,64,20,121,4,118,0,216,1,147,0,2,210,1,215,
+        95,210,236,225,184,46,0,248,24,11,1,9,141,250,243,9,221,233,160,11,147,2,55,8,23,12,253,9,0,54,0,231,6,3,
+        141,8,2,246,9,180,5,11,8,227,8,43,110,242,1,130,5,97,36,10,6,219,86,133,11,108,6,1,5,244,67,19,28,0,174,
+        154,16,127,149,252,188,196,196,228,244,9,249,0,0,0,37,170,32,250,0,73,255,23,3,224,234,38,195,198,0,255,87,
+        33,221,174,31,3,0,189,228,6,153,14,144,14,108,197,0,9,206,245,254,3,16,253,178,248,0,95,125,8,0,3,168,21,
+        23,168,19,50,240,244,185,0,1,144,10,168,31,82,1,13 };
+      static const CImg<Tuchar> colormap(pal,1,256,1,3,false);
+      return colormap;
+    }
+
+    //! Return colormap \e "hot", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_hot.jpg
+    **/
+    static const CImg<Tuchar>& hot_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,4,1,3,0);
+        colormap[1] = colormap[2] = colormap[3] = colormap[6] = colormap[7] = colormap[11] = 255;
+        colormap.resize(1,256,1,3,3);
+      }
+      cimg::mutex(8,0);
+      return
