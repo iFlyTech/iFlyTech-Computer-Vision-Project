@@ -25159,4 +25159,215 @@ namespace cimg_library_suffixed {
         *(p2++) = (T)(G<0?0:(G>255?255:G));
         *(p3++) = (T)(B<0?0:(B>255?255:B));
       }
-      return
+      return *this;
+    }
+
+    //! Convert pixel values from YUV to RGB color spaces \newinstance.
+    CImg<Tuchar> get_YUVtoRGB() const {
+      return CImg< Tuchar>(*this,false).YUVtoRGB();
+    }
+
+    //! Convert pixel values from RGB to CMY color spaces.
+    CImg<T>& RGBtoCMY() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoCMY(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1,
+          G = (Tfloat)*p2,
+          B = (Tfloat)*p3,
+          C = 255 - R,
+          M = 255 - G,
+          Y = 255 - B;
+        *(p1++) = (T)(C<0?0:(C>255?255:C));
+        *(p2++) = (T)(M<0?0:(M>255?255:M));
+        *(p3++) = (T)(Y<0?0:(Y>255?255:Y));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to CMY color spaces \newinstance.
+    CImg<Tuchar> get_RGBtoCMY() const {
+      return CImg<Tfloat>(*this,false).RGBtoCMY();
+    }
+
+    //! Convert pixel values from CMY to RGB color spaces.
+    CImg<T>& CMYtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "CMYtoRGB(): Instance is not a CMY image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          C = (Tfloat)*p1,
+          M = (Tfloat)*p2,
+          Y = (Tfloat)*p3,
+          R = 255 - C,
+          G = 255 - M,
+          B = 255 - Y;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from CMY to RGB color spaces \newinstance.
+    CImg<Tuchar> get_CMYtoRGB() const {
+      return CImg<Tuchar>(*this,false).CMYtoRGB();
+    }
+
+    //! Convert pixel values from CMY to CMYK color spaces.
+    CImg<T>& CMYtoCMYK() {
+      return get_CMYtoCMYK().move_to(*this);
+    }
+
+    //! Convert pixel values from CMY to CMYK color spaces \newinstance.
+    CImg<Tuchar> get_CMYtoCMYK() const {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "CMYtoCMYK(): Instance is not a CMY image.",
+                                    cimg_instance);
+
+      CImg<Tfloat> res(_width,_height,_depth,4);
+      const T *ps1 = data(0,0,0,0), *ps2 = data(0,0,0,1), *ps3 = data(0,0,0,2);
+      Tfloat *pd1 = res.data(0,0,0,0), *pd2 = res.data(0,0,0,1), *pd3 = res.data(0,0,0,2), *pd4 = res.data(0,0,0,3);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        Tfloat
+          C = (Tfloat)*(ps1++),
+          M = (Tfloat)*(ps2++),
+          Y = (Tfloat)*(ps3++),
+          K = cimg::min(C,M,Y);
+        if (K>=255) C = M = Y = 0;
+        else { const Tfloat K1 = 255 - K; C = 255*(C - K)/K1; M = 255*(M - K)/K1; Y = 255*(Y - K)/K1; }
+        *(pd1++) = (Tfloat)(C<0?0:(C>255?255:C));
+        *(pd2++) = (Tfloat)(M<0?0:(M>255?255:M));
+        *(pd3++) = (Tfloat)(Y<0?0:(Y>255?255:Y));
+        *(pd4++) = (Tfloat)(K<0?0:(K>255?255:K));
+      }
+      return res;
+    }
+
+    //! Convert pixel values from CMYK to CMY color spaces.
+    CImg<T>& CMYKtoCMY() {
+      return get_CMYKtoCMY().move_to(*this);
+    }
+
+    //! Convert pixel values from CMYK to CMY color spaces \newinstance.
+    CImg<Tfloat> get_CMYKtoCMY() const {
+      if (_spectrum!=4)
+        throw CImgInstanceException(_cimg_instance
+                                    "CMYKtoCMY(): Instance is not a CMYK image.",
+                                    cimg_instance);
+
+      CImg<Tfloat> res(_width,_height,_depth,3);
+      const T *ps1 = data(0,0,0,0), *ps2 = data(0,0,0,1), *ps3 = data(0,0,0,2), *ps4 = data(0,0,0,3);
+      Tfloat *pd1 = res.data(0,0,0,0), *pd2 = res.data(0,0,0,1), *pd3 = res.data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          C = (Tfloat)*(ps1++),
+          M = (Tfloat)*(ps2++),
+          Y = (Tfloat)*(ps3++),
+          K = (Tfloat)*(ps4++),
+          K1 = 1 - K/255,
+          nC = C*K1 + K,
+          nM = M*K1 + K,
+          nY = Y*K1 + K;
+        *(pd1++) = (Tfloat)(nC<0?0:(nC>255?255:nC));
+        *(pd2++) = (Tfloat)(nM<0?0:(nM>255?255:nM));
+        *(pd3++) = (Tfloat)(nY<0?0:(nY>255?255:nY));
+      }
+      return res;
+    }
+
+    //! Convert pixel values from RGB to XYZ_709 color spaces.
+    /**
+       \note Uses the standard D65 white point.
+    **/
+    CImg<T>& RGBtoXYZ() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "RGBtoXYZ(): Instance is not a RGB image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          R = (Tfloat)*p1/255,
+          G = (Tfloat)*p2/255,
+          B = (Tfloat)*p3/255;
+        *(p1++) = (T)(0.412453f*R + 0.357580f*G + 0.180423f*B);
+        *(p2++) = (T)(0.212671f*R + 0.715160f*G + 0.072169f*B);
+        *(p3++) = (T)(0.019334f*R + 0.119193f*G + 0.950227f*B);
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from RGB to XYZ_709 color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoXYZ() const {
+      return CImg<Tfloat>(*this,false).RGBtoXYZ();
+    }
+
+    //! Convert pixel values from XYZ_709 to RGB color spaces.
+    CImg<T>& XYZtoRGB() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "XYZtoRGB(): Instance is not a XYZ image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          X = (Tfloat)*p1*255,
+          Y = (Tfloat)*p2*255,
+          Z = (Tfloat)*p3*255,
+          R = 3.240479f*X  - 1.537150f*Y - 0.498535f*Z,
+          G = -0.969256f*X + 1.875992f*Y + 0.041556f*Z,
+          B = 0.055648f*X  - 0.204043f*Y + 1.057311f*Z;
+        *(p1++) = (T)(R<0?0:(R>255?255:R));
+        *(p2++) = (T)(G<0?0:(G>255?255:G));
+        *(p3++) = (T)(B<0?0:(B>255?255:B));
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from XYZ_709 to RGB color spaces \newinstance.
+    CImg<Tuchar> get_XYZtoRGB() const {
+      return CImg<Tuchar>(*this,false).XYZtoRGB();
+    }
+
+    //! Convert pixel values from XYZ_709 to Lab color spaces.
+    CImg<T>& XYZtoLab() {
+#define _cimg_Labf(x) ((x)>=0.008856f?(std::pow(x,(Tfloat)1/3)):(7.787f*(x) + 16.0f/116))
+
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "XYZtoLab(): Instance is not a XYZ image.",
+                                    cimg_instance);
+
+      const Tfloat
+        Xn = (Tfloat)(0.412453f + 0.357580f + 0.180423f),
+        Yn = (Tfloat)(0.212671f + 0.715160f + 0.072169f),
+        Zn = (Tfloat)(0.019334f + 0.119193f + 0.950227f);
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          X = (Tfloat)*p1,
+          Y = (Tfloat)*p2,
+          Z = (Tfloat)*p3,
+          XXn = X/Xn, YYn = Y/Yn, ZZn = Z/Zn,
+          fX = (Tfloat)_cimg_Labf(XXn),
+          fY = (Tfloat)_cimg_Labf(YYn),
+          fZ = (Tfloat)_cimg_Labf(ZZn);
+        *(p1++) = (T)cimg::max(0.0f,116*fY - 16);
+        *(p2++) = (T)(500*(fX - fY));
+        *(p3++) = (T)(200*(fY - fZ));
+      }
+      return *this;
+ 
