@@ -25370,4 +25370,210 @@ namespace cimg_library_suffixed {
         *(p3++) = (T)(200*(fY - fZ));
       }
       return *this;
- 
+    }
+
+    //! Convert pixel values from XYZ_709 to Lab color spaces \newinstance.
+    CImg<Tfloat> get_XYZtoLab() const {
+      return CImg<Tfloat>(*this,false).XYZtoLab();
+    }
+
+    //! Convert pixel values from Lab to XYZ_709 color spaces.
+    CImg<T>& LabtoXYZ() {
+#define _cimg_Labfi(x) ((x)>=0.206893f?((x)*(x)*(x)):(((x)-16.0f/116)/7.787f))
+
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "LabtoXYZ(): Instance is not a Lab image.",
+                                    cimg_instance);
+
+      const Tfloat
+        Xn = (Tfloat)(0.412453f + 0.357580f + 0.180423f),
+        Yn = (Tfloat)(0.212671f + 0.715160f + 0.072169f),
+        Zn = (Tfloat)(0.019334f + 0.119193f + 0.950227f);
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          L = (Tfloat)*p1,
+          a = (Tfloat)*p2,
+          b = (Tfloat)*p3,
+          cY = (L + 16)/116,
+          Y = (Tfloat)(Yn*_cimg_Labfi(cY)),
+          cX = a/500 + cY,
+          X = (Tfloat)(Xn*_cimg_Labfi(cX)),
+          cZ = cY - b/200,
+          Z = (Tfloat)(Zn*_cimg_Labfi(cZ));
+        *(p1++) = (T)(X);
+        *(p2++) = (T)(Y);
+        *(p3++) = (T)(Z);
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from Lab to XYZ_709 color spaces \newinstance.
+    CImg<Tfloat> get_LabtoXYZ() const {
+      return CImg<Tfloat>(*this,false).LabtoXYZ();
+    }
+
+    //! Convert pixel values from XYZ_709 to xyY color spaces.
+    CImg<T>& XYZtoxyY() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "XYZtoxyY(): Instance is not a XYZ image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+          X = (Tfloat)*p1,
+          Y = (Tfloat)*p2,
+          Z = (Tfloat)*p3,
+          sum = X + Y + Z,
+          nsum = sum>0?sum:1;
+        *(p1++) = (T)(X/nsum);
+        *(p2++) = (T)(Y/nsum);
+        *(p3++) = (T)Y;
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from XYZ_709 to xyY color spaces \newinstance.
+    CImg<Tfloat> get_XYZtoxyY() const {
+      return CImg<Tfloat>(*this,false).XYZtoxyY();
+    }
+
+    //! Convert pixel values from xyY pixels to XYZ_709 color spaces.
+    CImg<T>& xyYtoXYZ() {
+      if (_spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "xyYtoXYZ(): Instance is not a xyY image.",
+                                    cimg_instance);
+
+      T *p1 = data(0,0,0,0), *p2 = data(0,0,0,1), *p3 = data(0,0,0,2);
+      for (ulongT N = (ulongT)_width*_height*_depth; N; --N) {
+        const Tfloat
+         px = (Tfloat)*p1,
+         py = (Tfloat)*p2,
+         Y = (Tfloat)*p3,
+         ny = py>0?py:1;
+        *(p1++) = (T)(px*Y/ny);
+        *(p2++) = (T)Y;
+        *(p3++) = (T)((1 - px - py)*Y/ny);
+      }
+      return *this;
+    }
+
+    //! Convert pixel values from xyY pixels to XYZ_709 color spaces \newinstance.
+    CImg<Tfloat> get_xyYtoXYZ() const {
+      return CImg<Tfloat>(*this,false).xyYtoXYZ();
+    }
+
+    //! Convert pixel values from RGB to Lab color spaces.
+    CImg<T>& RGBtoLab() {
+      return RGBtoXYZ().XYZtoLab();
+    }
+
+    //! Convert pixel values from RGB to Lab color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoLab() const {
+      return CImg<Tfloat>(*this,false).RGBtoLab();
+    }
+
+    //! Convert pixel values from Lab to RGB color spaces.
+    CImg<T>& LabtoRGB() {
+      return LabtoXYZ().XYZtoRGB();
+    }
+
+    //! Convert pixel values from Lab to RGB color spaces \newinstance.
+    CImg<Tuchar> get_LabtoRGB() const {
+      return CImg<Tuchar>(*this,false).LabtoRGB();
+    }
+
+    //! Convert pixel values from RGB to xyY color spaces.
+    CImg<T>& RGBtoxyY() {
+      return RGBtoXYZ().XYZtoxyY();
+    }
+
+    //! Convert pixel values from RGB to xyY color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoxyY() const {
+      return CImg<Tfloat>(*this,false).RGBtoxyY();
+    }
+
+    //! Convert pixel values from xyY to RGB color spaces.
+    CImg<T>& xyYtoRGB() {
+      return xyYtoXYZ().XYZtoRGB();
+    }
+
+    //! Convert pixel values from xyY to RGB color spaces \newinstance.
+    CImg<Tuchar> get_xyYtoRGB() const {
+      return CImg<Tuchar>(*this,false).xyYtoRGB();
+    }
+
+    //! Convert pixel values from RGB to CMYK color spaces.
+    CImg<T>& RGBtoCMYK() {
+      return RGBtoCMY().CMYtoCMYK();
+    }
+
+    //! Convert pixel values from RGB to CMYK color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoCMYK() const {
+      return CImg<Tfloat>(*this,false).RGBtoCMYK();
+    }
+
+    //! Convert pixel values from CMYK to RGB color spaces.
+    CImg<T>& CMYKtoRGB() {
+      return CMYKtoCMY().CMYtoRGB();
+    }
+
+    //! Convert pixel values from CMYK to RGB color spaces \newinstance.
+    CImg<Tuchar> get_CMYKtoRGB() const {
+      return CImg<Tuchar>(*this,false).CMYKtoRGB();
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Geometric / Spatial Manipulation
+    //@{
+    //------------------------------------------
+
+    static float _cimg_lanczos(const float x) {
+      if (x<=-2 || x>=2) return 0;
+      const float a = (float)cimg::PI*x, b = 0.5f*a;
+      return (float)(x?std::sin(a)*std::sin(b)/(a*b):1);
+    }
+
+    //! Resize image to new dimensions.
+    /**
+       \param size_x Number of columns (new size along the X-axis).
+       \param size_y Number of rows (new size along the Y-axis).
+       \param size_z Number of slices (new size along the Z-axis).
+       \param size_c Number of vector-channels (new size along the C-axis).
+       \param interpolation_type Method of interpolation:
+       - -1 = no interpolation: raw memory resizing.
+       - 0 = no interpolation: additional space is filled according to \p boundary_conditions.
+       - 1 = nearest-neighbor interpolation.
+       - 2 = moving average interpolation.
+       - 3 = linear interpolation.
+       - 4 = grid interpolation.
+       - 5 = cubic interpolation.
+       - 6 = lanczos interpolation.
+       \param boundary_conditions Border condition type.
+       \param centering_x Set centering type (only if \p interpolation_type=0).
+       \param centering_y Set centering type (only if \p interpolation_type=0).
+       \param centering_z Set centering type (only if \p interpolation_type=0).
+       \param centering_c Set centering type (only if \p interpolation_type=0).
+       \note If pd[x,y,z,v]<0, it corresponds to a percentage of the original size (the default value is -100).
+    **/
+    CImg<T>& resize(const int size_x, const int size_y=-100,
+                    const int size_z=-100, const int size_c=-100,
+                    const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                    const float centering_x = 0, const float centering_y = 0,
+                    const float centering_z = 0, const float centering_c = 0) {
+      if (!size_x || !size_y || !size_z || !size_c) return assign();
+      const unsigned int
+        _sx = (unsigned int)(size_x<0?-size_x*width()/100:size_x),
+        _sy = (unsigned int)(size_y<0?-size_y*height()/100:size_y),
+        _sz = (unsigned int)(size_z<0?-size_z*depth()/100:size_z),
+        _sc = (unsigned int)(size_c<0?-size_c*spectrum()/100:size_c),
+        sx = _sx?_sx:1, sy = _sy?_sy:1, sz = _sz?_sz:1, sc = _sc?_sc:1;
+      if (sx==_width && sy==_height && sz==_depth && sc==_spectrum) return *this;
+      if (is_empty()) return assign(sx,sy,sz,sc,(T)0);
+      if (interpolat
