@@ -25576,4 +25576,178 @@ namespace cimg_library_suffixed {
         sx = _sx?_sx:1, sy = _sy?_sy:1, sz = _sz?_sz:1, sc = _sc?_sc:1;
       if (sx==_width && sy==_height && sz==_depth && sc==_spectrum) return *this;
       if (is_empty()) return assign(sx,sy,sz,sc,(T)0);
-      if (interpolat
+      if (interpolation_type==-1 && sx*sy*sz*sc==size()) {
+        _width = sx; _height = sy; _depth = sz; _spectrum = sc;
+        return *this;
+      }
+      return get_resize(sx,sy,sz,sc,interpolation_type,boundary_conditions,
+                        centering_x,centering_y,centering_z,centering_c).move_to(*this);
+    }
+
+    //! Resize image to new dimensions \newinstance.
+    CImg<T> get_resize(const int size_x, const int size_y = -100,
+                       const int size_z = -100, const int size_c = -100,
+                       const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                       const float centering_x = 0, const float centering_y = 0,
+                       const float centering_z = 0, const float centering_c = 0) const {
+      if (centering_x<0 || centering_x>1 || centering_y<0 || centering_y>1 ||
+          centering_z<0 || centering_z>1 || centering_c<0 || centering_c>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "resize(): Specified centering arguments (%g,%g,%g,%g) are outside range [0,1].",
+                                    cimg_instance,
+                                    centering_x,centering_y,centering_z,centering_c);
+
+      if (!size_x || !size_y || !size_z || !size_c) return CImg<T>();
+      const unsigned int
+        _sx = (unsigned int)(size_x<0?-size_x*width()/100:size_x),
+        _sy = (unsigned int)(size_y<0?-size_y*height()/100:size_y),
+        _sz = (unsigned int)(size_z<0?-size_z*depth()/100:size_z),
+        _sc = (unsigned int)(size_c<0?-size_c*spectrum()/100:size_c),
+        sx = _sx?_sx:1, sy = _sy?_sy:1, sz = _sz?_sz:1, sc = _sc?_sc:1;
+      if (sx==_width && sy==_height && sz==_depth && sc==_spectrum) return +*this;
+      if (is_empty()) return CImg<T>(sx,sy,sz,sc,0);
+      CImg<T> res;
+      switch (interpolation_type) {
+
+        // Raw resizing.
+        //
+      case -1 :
+        std::memcpy(res.assign(sx,sy,sz,sc,0)._data,_data,sizeof(T)*cimg::min(size(),sx*sy*sz*sc));
+        break;
+
+        // No interpolation.
+        //
+      case 0 : {
+        const int
+          xc = (int)(centering_x*((int)sx - width())),
+          yc = (int)(centering_y*((int)sy - height())),
+          zc = (int)(centering_z*((int)sz - depth())),
+          cc = (int)(centering_c*((int)sc - spectrum()));
+
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundary.
+          res.assign(sx,sy,sz,sc);
+          const int
+            x0 = ((int)xc%width()) - width(),
+            y0 = ((int)yc%height()) - height(),
+            z0 = ((int)zc%depth()) - depth(),
+            c0 = ((int)cc%spectrum()) - spectrum();
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=65536)
+#endif
+          for (int c = c0; c<(int)sc; c+=spectrum())
+            for (int z = z0; z<(int)sz; z+=depth())
+              for (int y = y0; y<(int)sy; y+=height())
+                for (int x = x0; x<(int)sx; x+=width())
+                  res.draw_image(x,y,z,c,*this);
+        } break;
+        case 1 : { // Neumann boundary.
+          res.assign(sx,sy,sz,sc).draw_image(xc,yc,zc,cc,*this);
+          CImg<T> sprite;
+          if (xc>0) {  // X-backward
+            res.get_crop(xc,yc,zc,cc,xc,yc + height() - 1,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int x = xc - 1; x>=0; --x) res.draw_image(x,yc,zc,cc,sprite);
+          }
+          if (xc + width()<(int)sx) { // X-forward
+            res.get_crop(xc + width() - 1,yc,zc,cc,xc + width() - 1,yc + height() - 1,
+                         zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int x = xc + width(); x<(int)sx; ++x) res.draw_image(x,yc,zc,cc,sprite);
+          }
+          if (yc>0) {  // Y-backward
+            res.get_crop(0,yc,zc,cc,sx - 1,yc,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int y = yc - 1; y>=0; --y) res.draw_image(0,y,zc,cc,sprite);
+          }
+          if (yc + height()<(int)sy) { // Y-forward
+            res.get_crop(0,yc + height() - 1,zc,cc,sx - 1,yc + height() - 1,
+                         zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int y = yc + height(); y<(int)sy; ++y) res.draw_image(0,y,zc,cc,sprite);
+          }
+          if (zc>0) {  // Z-backward
+            res.get_crop(0,0,zc,cc,sx - 1,sy - 1,zc,cc + spectrum() - 1).move_to(sprite);
+            for (int z = zc - 1; z>=0; --z) res.draw_image(0,0,z,cc,sprite);
+          }
+          if (zc + depth()<(int)sz) { // Z-forward
+            res.get_crop(0,0,zc  +depth() - 1,cc,sx - 1,sy - 1,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int z = zc + depth(); z<(int)sz; ++z) res.draw_image(0,0,z,cc,sprite);
+          }
+          if (cc>0) {  // C-backward
+            res.get_crop(0,0,0,cc,sx - 1,sy - 1,sz - 1,cc).move_to(sprite);
+            for (int c = cc - 1; c>=0; --c) res.draw_image(0,0,0,c,sprite);
+          }
+          if (cc + spectrum()<(int)sc) { // C-forward
+            res.get_crop(0,0,0,cc + spectrum() - 1,sx - 1,sy - 1,sz - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int c = cc + spectrum(); c<(int)sc; ++c) res.draw_image(0,0,0,c,sprite);
+          }
+        } break;
+        default : // Dirichlet boundary.
+          res.assign(sx,sy,sz,sc,0).draw_image(xc,yc,zc,cc,*this);
+        }
+        break;
+      } break;
+
+        // Nearest neighbor interpolation.
+        //
+      case 1 : {
+        res.assign(sx,sy,sz,sc);
+        CImg<ulongT> off_x(sx), off_y(sy + 1), off_z(sz + 1), off_c(sc + 1);
+        const ulongT
+          wh = (ulongT)_width*_height,
+          whd = (ulongT)_width*_height*_depth,
+          sxy = (ulongT)sx*sy,
+          sxyz = (ulongT)sx*sy*sz;
+        if (sx==_width) off_x.fill(1);
+        else {
+          ulongT *poff_x = off_x._data, curr = 0;
+          cimg_forX(res,x) {
+            const ulongT old = curr;
+            curr = (ulongT)((x + 1.0)*_width/sx);
+            *(poff_x++) = curr - old;
+          }
+        }
+        if (sy==_height) off_y.fill(_width);
+        else {
+          ulongT *poff_y = off_y._data, curr = 0;
+          cimg_forY(res,y) {
+            const ulongT old = curr;
+            curr = (ulongT)((y + 1.0)*_height/sy);
+            *(poff_y++) = _width*(curr - old);
+          }
+          *poff_y = 0;
+        }
+        if (sz==_depth) off_z.fill(wh);
+        else {
+          ulongT *poff_z = off_z._data, curr = 0;
+          cimg_forZ(res,z) {
+            const ulongT old = curr;
+            curr = (ulongT)((z + 1.0)*_depth/sz);
+            *(poff_z++) = wh*(curr - old);
+          }
+          *poff_z = 0;
+        }
+        if (sc==_spectrum) off_c.fill(whd);
+        else {
+          ulongT *poff_c = off_c._data, curr = 0;
+          cimg_forC(res,c) {
+            const ulongT old = curr;
+            curr = (ulongT)((c + 1.0)*_spectrum/sc);
+            *(poff_c++) = whd*(curr - old);
+          }
+          *poff_c = 0;
+        }
+
+        T *ptrd = res._data;
+        const T* ptrc = _data;
+        const ulongT *poff_c = off_c._data;
+        for (unsigned int c = 0; c<sc; ) {
+          const T *ptrz = ptrc;
+          const ulongT *poff_z = off_z._data;
+          for (unsigned int z = 0; z<sz; ) {
+            const T *ptry = ptrz;
+            const ulongT *poff_y = off_y._data;
+            for (unsigned int y = 0; y<sy; ) {
+              const T *ptrx = ptry;
+              const ulongT *poff_x = off_x._data;
+              cimg_forX(res,x) { *(ptrd++) = *ptrx; ptrx+=*(poff_x++); }
+              ++y;
+              ulongT dy = *(poff_y++);
+              for ( ; !dy && y<dy; std::memcpy(ptrd,ptrd - sx,sizeof(T)*sx), ++y, ptrd+=sx, dy
