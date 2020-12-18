@@ -25750,4 +25750,202 @@ namespace cimg_library_suffixed {
               cimg_forX(res,x) { *(ptrd++) = *ptrx; ptrx+=*(poff_x++); }
               ++y;
               ulongT dy = *(poff_y++);
-              for ( ; !dy && y<dy; std::memcpy(ptrd,ptrd - sx,sizeof(T)*sx), ++y, ptrd+=sx, dy
+              for ( ; !dy && y<dy; std::memcpy(ptrd,ptrd - sx,sizeof(T)*sx), ++y, ptrd+=sx, dy = *(poff_y++)) {}
+              ptry+=dy;
+            }
+            ++z;
+            ulongT dz = *(poff_z++);
+            for ( ; !dz && z<dz; std::memcpy(ptrd,ptrd-sxy,sizeof(T)*sxy), ++z, ptrd+=sxy, dz = *(poff_z++)) {}
+            ptrz+=dz;
+          }
+          ++c;
+          ulongT dc = *(poff_c++);
+          for ( ; !dc && c<dc; std::memcpy(ptrd,ptrd-sxyz,sizeof(T)*sxyz), ++c, ptrd+=sxyz, dc = *(poff_c++)) {}
+          ptrc+=dc;
+        }
+      } break;
+
+        // Moving average.
+        //
+      case 2 : {
+        bool instance_first = true;
+        if (sx!=_width) {
+          CImg<Tfloat> tmp(sx,_height,_depth,_spectrum,0);
+          for (unsigned int a = _width*sx, b = _width, c = sx, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            cimg_forYZC(tmp,y,z,v) tmp(t,y,z,v)+=(Tfloat)(*this)(s,y,z,v)*d;
+            if (!b) {
+              cimg_forYZC(tmp,y,z,v) tmp(t,y,z,v)/=_width;
+              ++t;
+              b = _width;
+            }
+            if (!c) { ++s; c = sx; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sy!=_height) {
+          CImg<Tfloat> tmp(sx,sy,_depth,_spectrum,0);
+          for (unsigned int a = _height*sy, b = _height, c = sy, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)+=(Tfloat)(*this)(x,s,z,v)*d;
+            else
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)+=(Tfloat)res(x,s,z,v)*d;
+            if (!b) {
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)/=_height;
+              ++t;
+              b = _height;
+            }
+            if (!c) { ++s; c = sy; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sz!=_depth) {
+          CImg<Tfloat> tmp(sx,sy,sz,_spectrum,0);
+          for (unsigned int a = _depth*sz, b = _depth, c = sz, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)+=(Tfloat)(*this)(x,y,s,v)*d;
+            else
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)+=(Tfloat)res(x,y,s,v)*d;
+            if (!b) {
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)/=_depth;
+              ++t;
+              b = _depth;
+            }
+            if (!c) { ++s; c = sz; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sc!=_spectrum) {
+          CImg<Tfloat> tmp(sx,sy,sz,sc,0);
+          for (unsigned int a = _spectrum*sc, b = _spectrum, c = sc, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)+=(Tfloat)(*this)(x,y,z,s)*d;
+            else
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)+=(Tfloat)res(x,y,z,s)*d;
+            if (!b) {
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)/=_spectrum;
+              ++t;
+              b = _spectrum;
+            }
+            if (!c) { ++s; c = sc; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+      } break;
+
+        // Linear interpolation.
+        //
+      case 3 : {
+        CImg<uintT> off(cimg::max(sx,sy,sz,sc));
+        CImg<floatT> foff(off._width);
+        CImg<T> resx, resy, resz, resc;
+
+        if (sx!=_width) {
+          if (_width==1) get_resize(sx,_height,_depth,_spectrum,1).move_to(resx);
+          else {
+            if (_width>sx) get_resize(sx,_height,_depth,_spectrum,2).move_to(resx);
+            else {
+              const float fx = (!boundary_conditions && sx>_width)?(sx>1?(_width - 1.0f)/(sx - 1):0):(float)_width/sx;
+              resx.assign(sx,_height,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forX(resx,x) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fx;
+                *(poff++) = (unsigned int)curr - (unsigned int)old;
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resx.size()>=65536)
+#endif
+              cimg_forYZC(resx,y,z,c) {
+                const T *ptrs = data(0,y,z,c), *const ptrsmax = ptrs + _width - 1;
+                T *ptrd = resx.data(0,y,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forX(resx,x) {
+                  const float alpha = *(pfoff++);
+                  const T val1 = *ptrs, val2 = ptrs<ptrsmax?*(ptrs + 1):val1;
+                  *(ptrd++) = (T)((1 - alpha)*val1 + alpha*val2);
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+        } else resx.assign(*this,true);
+
+        if (sy!=_height) {
+          if (_height==1) resx.get_resize(sx,sy,_depth,_spectrum,1).move_to(resy);
+          else {
+            if (_height>sy) resx.get_resize(sx,sy,_depth,_spectrum,2).move_to(resy);
+            else {
+              const float fy = (!boundary_conditions && sy>_height)?(sy>1?(_height - 1.0f)/(sy - 1):0):
+                (float)_height/sy;
+              resy.assign(sx,sy,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forY(resy,y) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fy;
+                *(poff++) = sx*((unsigned int)curr-(unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resy.size()>=65536)
+#endif
+              cimg_forXZC(resy,x,z,c) {
+                const T *ptrs = resx.data(x,0,z,c), *const ptrsmax = ptrs + (_height - 1)*sx;
+                T *ptrd = resy.data(x,0,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forY(resy,y) {
+                  const float alpha = *(pfoff++);
+                  const T val1 = *ptrs, val2 = ptrs<ptrsmax?*(ptrs + sx):val1;
+                  *ptrd = (T)((1 - alpha)*val1 + alpha*val2);
+                  ptrd+=sx;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resx.assign();
+        } else resy.assign(resx,true);
+
+        if (sz!=_depth) {
+          if (_depth==1) resy.get_resize(sx,sy,sz,_spectrum,1).move_to(resz);
+          else {
+            if (_depth>sz) resy.get_resize(sx,sy,sz,_spectrum,2).move_to(resz);
+            else {
+              const float fz = (!boundary_conditions && sz>_depth)?(sz>1?(_depth - 1.0f)/(sz - 1):0):(float)_depth/sz;
+              const unsigned int sxy = sx*sy;
+              resz.assign(sx,sy,sz,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forZ(resz,z) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fz;
+                *(poff++) = sxy*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resz.size()>=65536)
+#endif
+              cimg_forXYC(resz,x,y,c) {
+                const T *ptrs = resy.data(x,y,0,c), *const ptrsmax = ptrs + (_depth - 1)*sxy;
+                T *ptrd = resz.data(x,y,0,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = 
