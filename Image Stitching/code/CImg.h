@@ -25948,4 +25948,195 @@ namespace cimg_library_suffixed {
                 const T *ptrs = resy.data(x,y,0,c), *const ptrsmax = ptrs + (_depth - 1)*sxy;
                 T *ptrd = resz.data(x,y,0,c);
                 const unsigned int *poff = off._data;
-                const float *pfoff = 
+                const float *pfoff = foff._data;
+                cimg_forZ(resz,z) {
+                  const float alpha = *(pfoff++);
+                  const T val1 = *ptrs, val2 = ptrs<ptrsmax?*(ptrs + sxy):val1;
+                  *ptrd = (T)((1 - alpha)*val1 + alpha*val2);
+                  ptrd+=sxy;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resy.assign();
+        } else resz.assign(resy,true);
+
+        if (sc!=_spectrum) {
+          if (_spectrum==1) resz.get_resize(sx,sy,sz,sc,1).move_to(resc);
+          else {
+            if (_spectrum>sc) resz.get_resize(sx,sy,sz,sc,2).move_to(resc);
+            else {
+              const float fc = (!boundary_conditions && sc>_spectrum)?(sc>1?(_spectrum - 1.0f)/(sc - 1):0):
+                (float)_spectrum/sc;
+              const unsigned int sxyz = sx*sy*sz;
+              resc.assign(sx,sy,sz,sc);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forC(resc,c) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fc;
+                *(poff++) = sxyz*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resc.size()>=65536)
+#endif
+              cimg_forXYZ(resc,x,y,z) {
+                const T *ptrs = resz.data(x,y,z,0), *const ptrsmax = ptrs + (_spectrum - 1)*sxyz;
+                T *ptrd = resc.data(x,y,z,0);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forC(resc,c) {
+                  const float alpha = *(pfoff++);
+                  const T val1 = *ptrs, val2 = ptrs<ptrsmax?*(ptrs + sxyz):val1;
+                  *ptrd = (T)((1 - alpha)*val1 + alpha*val2);
+                  ptrd+=sxyz;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resz.assign();
+        } else resc.assign(resz,true);
+        return resc._is_shared?(resz._is_shared?(resy._is_shared?(resx._is_shared?(+(*this)):resx):resy):resz):resc;
+      } break;
+
+        // Grid interpolation.
+        //
+      case 4 : {
+        CImg<T> resx, resy, resz, resc;
+        if (sx!=_width) {
+          if (sx<_width) get_resize(sx,_height,_depth,_spectrum,1).move_to(resx);
+          else {
+            resx.assign(sx,_height,_depth,_spectrum,0);
+            const int dx = (int)(2*sx), dy = 2*width();
+            int err = (int)(dy + centering_x*(sx*dy/width() - dy)), xs = 0;
+            cimg_forX(resx,x) if ((err-=dy)<=0) {
+              cimg_forYZC(resx,y,z,c) resx(x,y,z,c) = (*this)(xs,y,z,c);
+              ++xs;
+              err+=dx;
+            }
+          }
+        } else resx.assign(*this,true);
+
+        if (sy!=_height) {
+          if (sy<_height) resx.get_resize(sx,sy,_depth,_spectrum,1).move_to(resy);
+          else {
+            resy.assign(sx,sy,_depth,_spectrum,0);
+            const int dx = (int)(2*sy), dy = 2*height();
+            int err = (int)(dy + centering_y*(sy*dy/height() - dy)), ys = 0;
+            cimg_forY(resy,y) if ((err-=dy)<=0) {
+              cimg_forXZC(resy,x,z,c) resy(x,y,z,c) = resx(x,ys,z,c);
+              ++ys;
+              err+=dx;
+            }
+          }
+          resx.assign();
+        } else resy.assign(resx,true);
+
+        if (sz!=_depth) {
+          if (sz<_depth) resy.get_resize(sx,sy,sz,_spectrum,1).move_to(resz);
+          else {
+            resz.assign(sx,sy,sz,_spectrum,0);
+            const int dx = (int)(2*sz), dy = 2*depth();
+            int err = (int)(dy + centering_z*(sz*dy/depth() - dy)), zs = 0;
+            cimg_forZ(resz,z) if ((err-=dy)<=0) {
+              cimg_forXYC(resz,x,y,c) resz(x,y,z,c) = resy(x,y,zs,c);
+              ++zs;
+              err+=dx;
+            }
+          }
+          resy.assign();
+        } else resz.assign(resy,true);
+
+        if (sc!=_spectrum) {
+          if (sc<_spectrum) resz.get_resize(sx,sy,sz,sc,1).move_to(resc);
+          else {
+            resc.assign(sx,sy,sz,sc,0);
+            const int dx = (int)(2*sc), dy = 2*spectrum();
+            int err = (int)(dy + centering_c*(sc*dy/spectrum() - dy)), cs = 0;
+            cimg_forC(resc,c) if ((err-=dy)<=0) {
+              cimg_forXYZ(resc,x,y,z) resc(x,y,z,c) = resz(x,y,z,cs);
+              ++cs;
+              err+=dx;
+            }
+          }
+          resz.assign();
+        } else resc.assign(resz,true);
+
+        return resc._is_shared?(resz._is_shared?(resy._is_shared?(resx._is_shared?(+(*this)):resx):resy):resz):resc;
+      } break;
+
+        // Cubic interpolation.
+        //
+      case 5 : {
+        const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+        CImg<uintT> off(cimg::max(sx,sy,sz,sc));
+        CImg<floatT> foff(off._width);
+        CImg<T> resx, resy, resz, resc;
+
+        if (sx!=_width) {
+          if (_width==1) get_resize(sx,_height,_depth,_spectrum,1).move_to(resx);
+          else {
+            if (_width>sx) get_resize(sx,_height,_depth,_spectrum,2).move_to(resx);
+            else {
+              const float fx = (!boundary_conditions && sx>_width)?(sx>1?(_width - 1.0f)/(sx - 1):0):(float)_width/sx;
+              resx.assign(sx,_height,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forX(resx,x) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fx;
+                *(poff++) = (unsigned int)curr - (unsigned int)old;
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resx.size()>=65536)
+#endif
+              cimg_forYZC(resx,y,z,c) {
+                const T *const ptrs0 = data(0,y,z,c), *ptrs = ptrs0, *const ptrsmax = ptrs + (_width - 2);
+                T *ptrd = resx.data(0,y,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forX(resx,x) {
+                  const float t = *(pfoff++);
+                  const Tfloat
+                    val1 = (Tfloat)*ptrs,
+                    val0 = ptrs>ptrs0?(Tfloat)*(ptrs - 1):val1,
+                    val2 = ptrs<=ptrsmax?(Tfloat)*(ptrs + 1):val1,
+                    val3 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2):val2,
+                    val = val1 + 0.5f*(t*(-val0 + val2) + t*t*(2*val0 - 5*val1 + 4*val2 - val3) +
+                                       t*t*t*(-val0 + 3*val1 - 3*val2 + val3));
+                  *(ptrd++) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+        } else resx.assign(*this,true);
+
+        if (sy!=_height) {
+          if (_height==1) resx.get_resize(sx,sy,_depth,_spectrum,1).move_to(resy);
+          else {
+            if (_height>sy) resx.get_resize(sx,sy,_depth,_spectrum,2).move_to(resy);
+            else {
+              const float fy = (!boundary_conditions && sy>_height)?(sy>1?(_height - 1.0f)/(sy - 1):0):
+                (float)_height/sy;
+              resy.assign(sx,sy,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forY(resy,y) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fy;
+                *(poff++) = sx*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resy.size()>=65536)
+#endif
+              cimg_forXZC(resy,x,z,c) {
+                const T *const ptrs0 = resx.data(x,0,z,
