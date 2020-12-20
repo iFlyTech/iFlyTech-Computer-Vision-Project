@@ -26315,4 +26315,181 @@ namespace cimg_library_suffixed {
           else {
             if (_height>sy) resx.get_resize(sx,sy,_depth,_spectrum,2).move_to(resy);
             else {
-         
+              const float fy = (!boundary_conditions && sy>_height)?(sy>1?(_height - 1.0f)/(sy - 1):0):
+                (float)_height/sy;
+              resy.assign(sx,sy,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forY(resy,y) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fy;
+                *(poff++) = sx*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resy.size()>=65536)
+#endif
+              cimg_forXZC(resy,x,z,c) {
+                const T *const ptrs0 = resx.data(x,0,z,c), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sx,
+                  *const ptrsmax = ptrs0 + (_height - 2)*sx;
+                T *ptrd = resy.data(x,0,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forY(resy,y) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sx):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sx):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sx):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sx):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sx;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resx.assign();
+        } else resy.assign(resx,true);
+
+        if (sz!=_depth) {
+          if (_depth==1) resy.get_resize(sx,sy,sz,_spectrum,1).move_to(resz);
+          else {
+            if (_depth>sz) resy.get_resize(sx,sy,sz,_spectrum,2).move_to(resz);
+            else {
+              const float fz = (!boundary_conditions && sz>_depth)?(sz>1?(_depth - 1.0f)/(sz - 1):0):(float)_depth/sz;
+              const unsigned int sxy = sx*sy;
+              resz.assign(sx,sy,sz,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forZ(resz,z) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fz;
+                *(poff++) = sxy*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resz.size()>=65536)
+#endif
+              cimg_forXYC(resz,x,y,c) {
+                const T *const ptrs0 = resy.data(x,y,0,c), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sxy,
+                  *const ptrsmax = ptrs0 + (_depth - 2)*sxy;
+                T *ptrd = resz.data(x,y,0,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forZ(resz,z) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sxy):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sxy):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sxy):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sxy):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sxy;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resy.assign();
+        } else resz.assign(resy,true);
+
+        if (sc!=_spectrum) {
+          if (_spectrum==1) resz.get_resize(sx,sy,sz,sc,1).move_to(resc);
+          else {
+            if (_spectrum>sc) resz.get_resize(sx,sy,sz,sc,2).move_to(resc);
+            else {
+              const float fc = (!boundary_conditions && sc>_spectrum)?(sc>1?(_spectrum - 1.0f)/(sc - 1):0):
+                (float)_spectrum/sc;
+              const unsigned int sxyz = sx*sy*sz;
+              resc.assign(sx,sy,sz,sc);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forC(resc,c) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fc;
+                *(poff++) = sxyz*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resc.size()>=65536)
+#endif
+              cimg_forXYZ(resc,x,y,z) {
+                const T *const ptrs0 = resz.data(x,y,z,0), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sxyz,
+                  *const ptrsmax = ptrs + (_spectrum - 2)*sxyz;
+                T *ptrd = resc.data(x,y,z,0);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forC(resc,c) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sxyz):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sxyz):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sxyz):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sxyz):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sxyz;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resz.assign();
+        } else resc.assign(resz,true);
+
+        return resc._is_shared?(resz._is_shared?(resy._is_shared?(resx._is_shared?(+(*this)):resx):resy):resz):resc;
+      } break;
+
+        // Unknow interpolation.
+        //
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "resize(): Invalid specified interpolation %d "
+                                    "(should be { -1=raw | 0=none | 1=nearest | 2=average | 3=linear | 4=grid | "
+                                    "5=cubic | 6=lanczos }).",
+                                    cimg_instance,
+                                    interpolation_type);
+      }
+      return res;
+    }
+
+    //! Resize image to dimensions of another image.
+    /**
+       \param src Reference image used for dimensions.
+       \param interpolation_type Interpolation method.
+       \param boundary_conditions Boundary conditions.
+       \param centering_x Set centering type (only if \p interpolation_type=0).
+       \param centering_y Set centering type (only if \p interpolation_type=0).
+       \param centering_z Set centering type (only if \p interpolation_type=0).
+       \param centering_c Set centering type (only if \p interpolation_type=0).
+     **/
+    template<typename t>
+    CImg<T>& resize(const CImg<t>& src,
+ 
