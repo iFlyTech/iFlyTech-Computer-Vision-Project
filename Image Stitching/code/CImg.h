@@ -26663,4 +26663,192 @@ namespace cimg_library_suffixed {
             *(ptrd2++) = Icc;
             *(ptrd2++) = (Icp==Inc && Icc!=Inn) || (Icn==Inc && Icc!=Inp)?Inc:Icc;
             *(ptrd3++) = Ipc==Icn?Ipc:Icc;
-            *(ptrd3++) = (Ipc==Icn && Icc!=Inn) 
+            *(ptrd3++) = (Ipc==Icn && Icc!=Inn) || (Icn==Inc && Icc!=Ipn)?Icn:Icc;
+            *(ptrd3++) = Icn==Inc?Inc:Icc;
+          } else {
+            *(ptrd1++) = Icc; *(ptrd1++) = Icc; *(ptrd1++) = Icc;
+            *(ptrd2++) = Icc; *(ptrd2++) = Icc; *(ptrd2++) = Icc;
+            *(ptrd3++) = Icc; *(ptrd3++) = Icc; *(ptrd3++) = Icc;
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Mirror image content along specified axis.
+    /**
+       \param axis Mirror axis
+    **/
+    CImg<T>& mirror(const char axis) {
+      if (is_empty()) return *this;
+      T *pf, *pb, *buf = 0;
+      switch (cimg::uncase(axis)) {
+      case 'x' : {
+        pf = _data; pb = data(_width - 1);
+        const unsigned int width2 = _width/2;
+        for (unsigned int yzv = 0; yzv<_height*_depth*_spectrum; ++yzv) {
+          for (unsigned int x = 0; x<width2; ++x) { const T val = *pf; *(pf++) = *pb; *(pb--) = val; }
+          pf+=_width - width2;
+          pb+=_width + width2;
+        }
+      } break;
+      case 'y' : {
+        buf = new T[_width];
+        pf = _data; pb = data(0,_height - 1);
+        const unsigned int height2 = _height/2;
+        for (unsigned int zv = 0; zv<_depth*_spectrum; ++zv) {
+          for (unsigned int y = 0; y<height2; ++y) {
+            std::memcpy(buf,pf,_width*sizeof(T));
+            std::memcpy(pf,pb,_width*sizeof(T));
+            std::memcpy(pb,buf,_width*sizeof(T));
+            pf+=_width;
+            pb-=_width;
+          }
+          pf+=(ulongT)_width*(_height - height2);
+          pb+=(ulongT)_width*(_height + height2);
+        }
+      } break;
+      case 'z' : {
+        buf = new T[(ulongT)_width*_height];
+        pf = _data; pb = data(0,0,_depth - 1);
+        const unsigned int depth2 = _depth/2;
+        cimg_forC(*this,c) {
+          for (unsigned int z = 0; z<depth2; ++z) {
+            std::memcpy(buf,pf,_width*_height*sizeof(T));
+            std::memcpy(pf,pb,_width*_height*sizeof(T));
+            std::memcpy(pb,buf,_width*_height*sizeof(T));
+            pf+=(ulongT)_width*_height;
+            pb-=(ulongT)_width*_height;
+          }
+          pf+=(ulongT)_width*_height*(_depth - depth2);
+          pb+=(ulongT)_width*_height*(_depth + depth2);
+        }
+      } break;
+      case 'c' : {
+        buf = new T[(ulongT)_width*_height*_depth];
+        pf = _data; pb = data(0,0,0,_spectrum - 1);
+        const unsigned int _spectrum2 = _spectrum/2;
+        for (unsigned int v = 0; v<_spectrum2; ++v) {
+          std::memcpy(buf,pf,_width*_height*_depth*sizeof(T));
+          std::memcpy(pf,pb,_width*_height*_depth*sizeof(T));
+          std::memcpy(pb,buf,_width*_height*_depth*sizeof(T));
+          pf+=(ulongT)_width*_height*_depth;
+          pb-=(ulongT)_width*_height*_depth;
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "mirror(): Invalid specified axis '%c'.",
+                                    cimg_instance,
+                                    axis);
+      }
+      delete[] buf;
+      return *this;
+    }
+
+    //! Mirror image content along specified axis \newinstance.
+    CImg<T> get_mirror(const char axis) const {
+      return (+*this).mirror(axis);
+    }
+
+    //! Mirror image content along specified axes.
+    /**
+       \param axes Mirror axes, as a C-string.
+       \note \c axes may contains multiple characters, e.g. \c "xyz"
+    **/
+    CImg<T>& mirror(const char *const axes) {
+      for (const char *s = axes; *s; ++s) mirror(*s);
+      return *this;
+    }
+
+    //! Mirror image content along specified axes \newinstance.
+    CImg<T> get_mirror(const char *const axes) const {
+      return (+*this).mirror(axes);
+    }
+
+    //! Shift image content.
+    /**
+       \param delta_x Amount of displacement along the X-axis.
+       \param delta_y Amount of displacement along the Y-axis.
+       \param delta_z Amount of displacement along the Z-axis.
+       \param delta_c Amount of displacement along the C-axis.
+       \param boundary_conditions Border condition.
+
+       - \c boundary_conditions can be:
+          - 0: Zero border condition (Dirichlet).
+          - 1: Nearest neighbors (Neumann).
+          - 2: Repeat Pattern (Fourier style).
+    **/
+    CImg<T>& shift(const int delta_x, const int delta_y=0, const int delta_z=0, const int delta_c=0,
+                   const int boundary_conditions=0) {
+      if (is_empty()) return *this;
+      if (delta_x) // Shift along X-axis
+        switch (boundary_conditions) {
+        case 0 :
+          if (cimg::abs(delta_x)>=width()) return fill(0);
+          if (delta_x<0) cimg_forYZC(*this,y,z,c) {
+            std::memmove(data(0,y,z,c),data(-delta_x,y,z,c),(_width + delta_x)*sizeof(T));
+            std::memset(data(_width + delta_x,y,z,c),0,-delta_x*sizeof(T));
+          } else cimg_forYZC(*this,y,z,c) {
+            std::memmove(data(delta_x,y,z,c),data(0,y,z,c),(_width-delta_x)*sizeof(T));
+            std::memset(data(0,y,z,c),0,delta_x*sizeof(T));
+          }
+          break;
+        case 1 :
+          if (delta_x<0) {
+            const int ndelta_x = (-delta_x>=width())?width() - 1:-delta_x;
+            if (!ndelta_x) return *this;
+            cimg_forYZC(*this,y,z,c) {
+              std::memmove(data(0,y,z,c),data(ndelta_x,y,z,c),(_width-ndelta_x)*sizeof(T));
+              T *ptrd = data(_width - 1,y,z,c);
+              const T val = *ptrd;
+              for (int l = 0; l<ndelta_x - 1; ++l) *(--ptrd) = val;
+            }
+          } else {
+            const int ndelta_x = (delta_x>=width())?width() - 1:delta_x;
+            if (!ndelta_x) return *this;
+            cimg_forYZC(*this,y,z,c) {
+              std::memmove(data(ndelta_x,y,z,c),data(0,y,z,c),(_width-ndelta_x)*sizeof(T));
+              T *ptrd = data(0,y,z,c);
+              const T val = *ptrd;
+              for (int l = 0; l<ndelta_x - 1; ++l) *(++ptrd) = val;
+            }
+          }
+          break;
+        default : {
+          const int ml = cimg::mod(-delta_x,width()), ndelta_x = (ml<=width()/2)?ml:(ml-width());
+          if (!ndelta_x) return *this;
+          T *const buf = new T[(unsigned int)cimg::abs(ndelta_x)];
+          if (ndelta_x>0) cimg_forYZC(*this,y,z,c) {
+            std::memcpy(buf,data(0,y,z,c),ndelta_x*sizeof(T));
+            std::memmove(data(0,y,z,c),data(ndelta_x,y,z,c),(_width-ndelta_x)*sizeof(T));
+            std::memcpy(data(_width-ndelta_x,y,z,c),buf,ndelta_x*sizeof(T));
+          } else cimg_forYZC(*this,y,z,c) {
+            std::memcpy(buf,data(_width + ndelta_x,y,z,c),-ndelta_x*sizeof(T));
+            std::memmove(data(-ndelta_x,y,z,c),data(0,y,z,c),(_width + ndelta_x)*sizeof(T));
+            std::memcpy(data(0,y,z,c),buf,-ndelta_x*sizeof(T));
+          }
+          delete[] buf;
+        }
+        }
+
+      if (delta_y) // Shift along Y-axis
+        switch (boundary_conditions) {
+        case 0 :
+          if (cimg::abs(delta_y)>=height()) return fill(0);
+          if (delta_y<0) cimg_forZC(*this,z,c) {
+            std::memmove(data(0,0,z,c),data(0,-delta_y,z,c),_width*(_height + delta_y)*sizeof(T));
+            std::memset(data(0,_height + delta_y,z,c),0,-delta_y*_width*sizeof(T));
+          } else cimg_forZC(*this,z,c) {
+            std::memmove(data(0,delta_y,z,c),data(0,0,z,c),_width*(_height-delta_y)*sizeof(T));
+            std::memset(data(0,0,z,c),0,delta_y*_width*sizeof(T));
+          }
+          break;
+        case 1 :
+          if (delta_y<0) {
+            const int ndelta_y = (-delta_y>=height())?height() - 1:-delta_y;
+            if (!ndelta_y) return *this;
+            cimg_forZC(*this,z,c) {
+              std::memmove(data(0,0,z,c),data(0,ndelta_y,z,c),_width*(_height-ndelta_y)*sizeof(T));
+              T *ptrd = data(0,_height-ndelta_y,z,c), *ptrs = data(0,_height - 1,z,c);
+              for (int l = 0; 
