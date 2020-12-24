@@ -27008,4 +27008,156 @@ namespace cimg_library_suffixed {
       if (is_empty() || !permut) return CImg<t>(*this,false);
       CImg<t> res;
       const T* ptrs = _data;
- 
+      if (!cimg::strncasecmp(permut,"xyzc",4)) return +*this;
+      if (!cimg::strncasecmp(permut,"xycz",4)) {
+        res.assign(_width,_height,_spectrum,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,y,c,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xzyc",4)) {
+        res.assign(_width,_depth,_height,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,z,y,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xzcy",4)) {
+        res.assign(_width,_depth,_spectrum,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,z,c,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xcyz",4)) {
+        res.assign(_width,_spectrum,_height,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,c,y,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xczy",4)) {
+        res.assign(_width,_spectrum,_depth,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,c,z,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yxzc",4)) {
+        res.assign(_height,_width,_depth,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,x,z,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yxcz",4)) {
+        res.assign(_height,_width,_spectrum,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,x,c,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yzxc",4)) {
+        res.assign(_height,_depth,_width,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,z,x,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yzcx",4)) {
+        res.assign(_height,_depth,_spectrum,_width);
+        switch (_width) {
+        case 1 : {
+          t *ptr_r = res.data(0,0,0,0);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++);
+          }
+        } break;
+        case 2 : {
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++);
+          }
+        } break;
+        case 3 : { // Optimization for the classical conversion from interleaved RGB to planar RGB
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1), *ptr_b = res.data(0,0,0,2);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++); *(ptr_b++) = (t)*(ptrs++);
+          }
+        } break;
+        case 4 : { // Optimization for the classical conversion from interleaved RGBA to planar RGBA
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1), *ptr_b = res.data(0,0,0,2), *ptr_a = res.data(0,0,0,3);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++); *(ptr_b++) = (t)*(ptrs++); *(ptr_a++) = (t)*(ptrs++);
+          }
+        } break;
+        default : {
+          const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+          cimg_forXYZC(*this,x,y,z,c) res(y,z,c,x,wh,whd) = *(ptrs++);
+          return res;
+        }
+        }
+      }
+      if (!cimg::strncasecmp(permut,"ycxz",4)) {
+        res.assign(_height,_spectrum,_width,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,c,x,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yczx",4)) {
+        res.assign(_height,_spectrum,_depth,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,c,z,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zxyc",4)) {
+        res.assign(_depth,_width,_height,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,x,y,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zxcy",4)) {
+        res.assign(_depth,_width,_spectrum,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,x,c,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zyxc",4)) {
+        res.assign(_depth,_height,_width,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,y,x,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zycx",4)) {
+        res.assign(_depth,_height,_spectrum,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,y,c,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zcxy",4)) {
+        res.assign(_depth,_spectrum,_width,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,c,x,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zcyx",4)) {
+        res.assign(_depth,_spectrum,_height,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(z,c,y,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"cxyz",4)) {
+        res.assign(_spectrum,_width,_height,_depth);
+        switch (_spectrum) {
+        case 1 : {
+          const T *ptr_r = data(0,0,0,0);
+          t *ptrd = res._data;
+          for (ulongT siz = (ulongT)_width*_height*_depth; siz; --siz) *(ptrd++) = (t)*(ptr_r++);
+        } break;
+        case 2 : {
+          const T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1);
+          t *ptrd = res._data;
+          for (ulongT siz = (ulongT)_width*_height*_depth; siz; --siz) {
+            *(ptrd++) = (t)*(ptr_r++); *(ptrd++) = (t)*(ptr_g++);
+          }
+        } break;
+        case 3 : { // Optimization for the classical conversion from planar RGB to interleaved RGB
+          const T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+          t *ptrd = res._data;
+          for (ulongT siz = (ulongT)_width*_height*_depth; siz; --siz) {
+            *(ptrd++) = (t)*(ptr_r++); *(ptrd++) = (t)*(ptr_g++); *(ptrd++) = (t)*(ptr_b++);
+          }
+        } break;
+        case 4 : { // Optimization for the classical conversion from planar RGBA to interleaved RGBA
+          const T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3);
+          t *ptrd = res._data;
+          for (ulongT siz = (ulongT)_width*_height*_depth; siz; --siz) {
+            *(ptrd++) = (t)*(ptr_r++); *(ptrd++) = (t)*(ptr_g++); *(ptrd++) = (t)*(ptr_b++); *(ptrd++) = (t)*(ptr_a++);
+          }
+        } break;
+        default : {
+          const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+          cimg_forXYZC(*this,x,y,z,c) res(c,x,y,z,wh,whd) = (t)*(ptrs++);
+        }
+        }
+      }
+      if (!cimg::strncasecmp(permut,"cxzy",4)) {
+        res.assign(_spectrum,_width,_depth,_height);
+        const
