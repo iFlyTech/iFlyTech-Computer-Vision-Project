@@ -27160,4 +27160,180 @@ namespace cimg_library_suffixed {
       }
       if (!cimg::strncasecmp(permut,"cxzy",4)) {
         res.assign(_spectrum,_width,_depth,_height);
-        const
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(c,x,z,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"cyxz",4)) {
+        res.assign(_spectrum,_height,_width,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(c,y,x,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"cyzx",4)) {
+        res.assign(_spectrum,_height,_depth,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(c,y,z,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"czxy",4)) {
+        res.assign(_spectrum,_depth,_width,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(c,z,x,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"czyx",4)) {
+        res.assign(_spectrum,_depth,_height,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(c,z,y,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!res)
+        throw CImgArgumentException(_cimg_instance
+                                    "permute_axes(): Invalid specified permutation '%s'.",
+                                    cimg_instance,
+                                    permut);
+      return res;
+    }
+
+    //! Unroll pixel values along specified axis.
+    /**
+       \param axis Unroll axis (can be \c 'x', \c 'y', \c 'z' or c 'c').
+    **/
+    CImg<T>& unroll(const char axis) {
+      const unsigned int siz = (unsigned int)size();
+      if (siz) switch (cimg::uncase(axis)) {
+      case 'x' : _width = siz; _height = _depth = _spectrum = 1; break;
+      case 'y' : _height = siz; _width = _depth = _spectrum = 1; break;
+      case 'z' : _depth = siz; _width = _height = _spectrum = 1; break;
+      default : _spectrum = siz; _width = _height = _depth = 1;
+      }
+      return *this;
+    }
+
+    //! Unroll pixel values along specified axis \newinstance.
+    CImg<T> get_unroll(const char axis) const {
+      return (+*this).unroll(axis);
+    }
+
+    //! Rotate image with arbitrary angle.
+    /**
+       \param angle Rotation angle, in degrees.
+       \param interpolation Type of interpolation. Can be <tt>{ 0=nearest | 1=linear | 2=cubic }</tt>.
+       \param boundary Boundary conditions. Can be <tt>{  0=dirichlet | 1=neumann | 2=periodic }</tt>.
+       \note Most of the time, size of the image is modified.
+    **/
+    CImg<T>& rotate(const float angle, const unsigned int interpolation=1,
+                    const unsigned int boundary_conditions=0) {
+      const float nangle = cimg::mod(angle,360.0f);
+      if (nangle==0.0f) return *this;
+      return get_rotate(angle,interpolation,boundary_conditions).move_to(*this);
+    }
+
+    //! Rotate image with arbitrary angle \newinstance.
+    CImg<T> get_rotate(const float angle, const unsigned int interpolation=1,
+                       const unsigned int boundary_conditions=0) const {
+      if (is_empty()) return *this;
+      CImg<T> res;
+      const float nangle = cimg::mod(angle,360.0f);
+      if (boundary_conditions!=1 && cimg::mod(nangle,90.0f)==0) { // Optimized version for orthogonal angles.
+        const int wm1 = width() - 1, hm1 = height() - 1;
+        const int iangle = (int)nangle/90;
+        switch (iangle) {
+        case 1 : { // 90 deg.
+          res.assign(_height,_width,_depth,_spectrum);
+          T *ptrd = res._data;
+          cimg_forXYZC(res,x,y,z,c) *(ptrd++) = (*this)(y,hm1-x,z,c);
+        } break;
+        case 2 : { // 180 deg.
+          res.assign(_width,_height,_depth,_spectrum);
+          T *ptrd = res._data;
+          cimg_forXYZC(res,x,y,z,c) *(ptrd++) = (*this)(wm1-x,hm1-y,z,c);
+        } break;
+        case 3 : { // 270 deg.
+          res.assign(_height,_width,_depth,_spectrum);
+          T *ptrd = res._data;
+          cimg_forXYZC(res,x,y,z,c) *(ptrd++) = (*this)(wm1-y,x,z,c);
+        } break;
+        default : // 0 deg.
+          return *this;
+        }
+      } else { // Generic angle.
+        const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+        const float
+          rad = (float)(nangle*cimg::PI/180.0),
+          ca = (float)std::cos(rad),
+          sa = (float)std::sin(rad),
+          ux = cimg::abs(_width*ca), uy = cimg::abs(_width*sa),
+          vx = cimg::abs(_height*sa), vy = cimg::abs(_height*ca),
+          w2 = 0.5f*_width, h2 = 0.5f*_height,
+          dw2 = 0.5f*(ux + vx), dh2 = 0.5f*(uy + vy);
+        res.assign((int)(ux + vx),(int)(uy + vy),_depth,_spectrum);
+        switch (boundary_conditions) {
+        case 0 : { // Dirichlet boundaries.
+          switch (interpolation) {
+          case 2 : { // Cubic interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c) {
+              const Tfloat val = cubic_atXY(w2 + (x-dw2)*ca + (y-dh2)*sa,h2 - (x-dw2)*sa + (y-dh2)*ca,z,c,0);
+              res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+            }
+          } break;
+          case 1 : { // Linear interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+              res(x,y,z,c) = (T)linear_atXY(w2 + (x-dw2)*ca + (y-dh2)*sa,h2 - (x-dw2)*sa + (y-dh2)*ca,z,c,0);
+          } break;
+          default : { // Nearest-neighbor interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+              res(x,y,z,c) = atXY((int)(w2 + (x-dw2)*ca + (y-dh2)*sa),(int)(h2 - (x-dw2)*sa + (y-dh2)*ca),z,c,0);
+          }
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          switch (interpolation) {
+          case 2 : { // Cubic interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c) {
+              const Tfloat val = _cubic_atXY(w2 + (x-dw2)*ca + (y-dh2)*sa,h2 - (x-dw2)*sa + (y-dh2)*ca,z,c);
+              res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+            }
+          } break;
+          case 1 : { // Linear interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+              res(x,y,z,c) = (T)_linear_atXY(w2 + (x-dw2)*ca + (y-dh2)*sa,h2 - (x-dw2)*sa + (y-dh2)*ca,z,c);
+          } break;
+          default : { // Nearest-neighbor interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+              res(x,y,z,c) = _atXY((int)(w2 + (x-dw2)*ca + (y-dh2)*sa),(int)(h2 - (x-dw2)*sa + (y-dh2)*ca),z,c);
+          }
+          }
+        } break;
+        case 2 : { // Periodic boundaries.
+          switch (interpolation) {
+          case 2 : { // Cubic interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c) {
+              const Tfloat val = _cubic_atXY(cimg::mod(w2 + (x-dw2)*ca + (y-dh2)*sa,(float)width()),
+                                             cimg::mod(h2 - (x-dw2)*sa + (y-dh2)*ca,(float)height()),z,c);
+              res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+            }
+          } break;
+          case 1 : { // Linear interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+   
