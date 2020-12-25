@@ -27336,4 +27336,184 @@ namespace cimg_library_suffixed {
 #pragma omp parallel for collapse(3) if (res.size()>=2048)
 #endif
             cimg_forXYZC(res,x,y,z,c)
-   
+              res(x,y,z,c) = (T)_linear_atXY(cimg::mod(w2 + (x-dw2)*ca + (y-dh2)*sa,(float)width()),
+                                             cimg::mod(h2 - (x-dw2)*sa + (y-dh2)*ca,(float)height()),z,c);
+          } break;
+          default : { // Nearest-neighbor interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+            cimg_forXYZC(res,x,y,z,c)
+              res(x,y,z,c) = (*this)(cimg::mod((int)(w2 + (x-dw2)*ca + (y-dh2)*sa),width()),
+                                     cimg::mod((int)(h2 - (x-dw2)*sa + (y-dh2)*ca),height()),z,c);
+          }
+          }
+        } break;
+        default :
+          throw CImgArgumentException(_cimg_instance
+                                      "rotate(): Invalid specified border conditions %d "
+                                      "(should be { 0=dirichlet | 1=neumann | 2=periodic }).",
+                                      cimg_instance,
+                                      boundary_conditions);
+        }
+      }
+      return res;
+    }
+
+    //! Rotate image with arbitrary angle, around a center point.
+    /**
+       \param angle Rotation angle, in degrees.
+       \param cx X-coordinate of the rotation center.
+       \param cy Y-coordinate of the rotation center.
+       \param zoom Zoom factor.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann | 2=periodic }</tt>.
+       \param interpolation_type Type of interpolation. Can be <tt>{ 0=nearest | 1=linear | 2=cubic }</tt>.
+    **/
+    CImg<T>& rotate(const float angle, const float cx, const float cy, const float zoom,
+                    const unsigned int interpolation=1, const unsigned int boundary_conditions=0) {
+      return get_rotate(angle,cx,cy,zoom,interpolation,boundary_conditions).move_to(*this);
+    }
+
+    //! Rotate image with arbitrary angle, around a center point \newinstance.
+    CImg<T> get_rotate(const float angle, const float cx, const float cy, const float zoom,
+                       const unsigned int interpolation=1, const unsigned int boundary_conditions=0) const {
+      if (interpolation>2)
+        throw CImgArgumentException(_cimg_instance
+                                    "rotate(): Invalid specified interpolation type %d "
+                                    "(should be { 0=none | 1=linear | 2=cubic }).",
+                                    cimg_instance,
+                                    interpolation);
+      if (is_empty()) return *this;
+      CImg<T> res(_width,_height,_depth,_spectrum);
+      const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+      const float
+        rad = (float)((angle*cimg::PI)/180.0),
+        ca = (float)std::cos(rad)/zoom,
+        sa = (float)std::sin(rad)/zoom;
+      switch (boundary_conditions) {
+      case 0 : {
+        switch (interpolation) {
+        case 2 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c) {
+            const Tfloat val = cubic_atXY(cx + (x-cx)*ca + (y-cy)*sa,cy - (x-cx)*sa + (y-cy)*ca,z,c,0);
+            res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+          }
+        } break;
+        case 1 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (T)linear_atXY(cx + (x-cx)*ca + (y-cy)*sa,cy - (x-cx)*sa + (y-cy)*ca,z,c,0);
+        } break;
+        default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = atXY((int)(cx + (x-cx)*ca + (y-cy)*sa),(int)(cy - (x-cx)*sa + (y-cy)*ca),z,c,0);
+        }
+        }
+      } break;
+      case 1 : {
+        switch (interpolation) {
+        case 2 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c) {
+            const Tfloat val = _cubic_atXY(cx + (x-cx)*ca + (y-cy)*sa,cy - (x-cx)*sa + (y-cy)*ca,z,c);
+            res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+          }
+        } break;
+        case 1 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (T)_linear_atXY(cx + (x-cx)*ca + (y-cy)*sa,cy - (x-cx)*sa + (y-cy)*ca,z,c);
+        } break;
+        default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = _atXY((int)(cx + (x-cx)*ca + (y-cy)*sa),(int)(cy - (x-cx)*sa + (y-cy)*ca),z,c);
+        }
+        }
+      } break;
+      case 2 : {
+        switch (interpolation) {
+        case 2 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c) {
+            const Tfloat val = _cubic_atXY(cimg::mod(cx + (x-cx)*ca + (y-cy)*sa,(float)width()),
+                                           cimg::mod(cy - (x-cx)*sa + (y-cy)*ca,(float)height()),z,c);
+            res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+          }
+        } break;
+        case 1 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (T)_linear_atXY(cimg::mod(cx + (x-cx)*ca + (y-cy)*sa,(float)width()),
+                                           cimg::mod(cy - (x-cx)*sa + (y-cy)*ca,(float)height()),z,c);
+        } break;
+        default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (*this)(cimg::mod((int)(cx + (x-cx)*ca + (y-cy)*sa),width()),
+                                    cimg::mod((int)(cy - (x-cx)*sa + (y-cy)*ca),height()),z,c);
+        }
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "rotate(): Invalid specified border conditions %d "
+                                    "(should be { 0=dirichlet | 1=neumann | 2=periodic }).",
+                                    cimg_instance,
+                                    boundary_conditions);
+      }
+      return res;
+    }
+
+    //! Warp image content by a warping field.
+    /**
+       \param warp Warping field.
+       \param mode Can be { 0=backward-absolute | 1=backward-relative | 2=forward-absolute | 3=foward-relative }
+       \param is_relative Tells if warping field gives absolute or relative warping coordinates.
+       \param interpolation Can be <tt>{ 0=nearest | 1=linear | 2=cubic }</tt>.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann | 2=periodic }</tt>.
+    **/
+    template<typename t>
+    CImg<T>& warp(const CImg<t>& warp, const unsigned int mode=0,
+                  const unsigned int interpolation=1, const unsigned int boundary_conditions=0) {
+      return get_warp(warp,mode,interpolation,boundary_conditions).move_to(*this);
+    }
+
+    //! Warp image content by a warping field \newinstance
+    template<typename t>
+    CImg<T> get_warp(const CImg<t>& warp, const unsigned int mode=0,
+                     const unsigned int interpolation=1, const unsigned int boundary_conditions=0) const {
+      if (is_empty() || !warp) return *this;
+      if (mode && !is_sameXYZ(warp))
+        throw CImgArgumentException(_cimg_instance
+                                    "warp(): Instance and specified relative warping field (%u,%u,%u,%u,%p) "
+                                    "have different XYZ dimensions.",
+                                    cimg_instance,
+                                    warp._width,warp._height,warp._depth,warp._spectrum,warp._data);
+
+      CImg<T> res(warp._width,warp._height,warp._depth,_spectrum);
+
+      if (warp._spectrum==1) { // 1d warping.
+        if (mode>=3) { // Forward-relative warp.
+          res.fill(0);
+          if (inte
