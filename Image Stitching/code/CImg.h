@@ -28269,4 +28269,216 @@ namespace cimg_library_suffixed {
             const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'z');
             const int nz0 = coords[0], nz1 = coords[1];
             if (nz0>=0 && nz1>=0) { z0 = cimg::min(z0,nz0); z1 = cimg::max(z1,nz1); }
-        
+          }
+          if (z0==depth() && z1==-1) return assign(); else crop(0,0,z0,_width - 1,_height - 1,z1);
+        }
+        }
+      }
+      return *this;
+    }
+
+    //! Autocrop image region, regarding the specified background color \newinstance.
+    CImg<T> get_autocrop(const T *const color=0, const char *const axes="zyx") const {
+      return (+*this).autocrop(color,axes);
+    }
+
+    //! Autocrop image region, regarding the specified background color \overloading.
+    template<typename t> CImg<T>& autocrop(const CImg<t>& color, const char *const axes="zyx") {
+      return get_autocrop(color,axes).move_to(*this);
+    }
+
+    //! Autocrop image region, regarding the specified background color \newinstance.
+    template<typename t> CImg<T> get_autocrop(const CImg<t>& color, const char *const axes="zyx") const {
+      return get_autocrop(color._data,axes);
+    }
+
+    CImg<intT> _autocrop(const T& value, const char axis) const {
+      CImg<intT> res;
+      switch (cimg::uncase(axis)) {
+      case 'x' : {
+        int x0 = -1, x1 = -1;
+        cimg_forX(*this,x) cimg_forYZC(*this,y,z,c)
+          if ((*this)(x,y,z,c)!=value) { x0 = x; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (x0>=0) {
+          for (int x = width() - 1; x>=0; --x) cimg_forYZC(*this,y,z,c)
+            if ((*this)(x,y,z,c)!=value) { x1 = x; x = 0; y = height(); z = depth(); c = spectrum(); }
+        }
+        res = CImg<intT>::vector(x0,x1);
+      } break;
+      case 'y' : {
+        int y0 = -1, y1 = -1;
+        cimg_forY(*this,y) cimg_forXZC(*this,x,z,c)
+          if ((*this)(x,y,z,c)!=value) { y0 = y; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (y0>=0) {
+          for (int y = height() - 1; y>=0; --y) cimg_forXZC(*this,x,z,c)
+            if ((*this)(x,y,z,c)!=value) { y1 = y; x = width(); y = 0; z = depth(); c = spectrum(); }
+        }
+        res = CImg<intT>::vector(y0,y1);
+      } break;
+      case 'z' : {
+        int z0 = -1, z1 = -1;
+        cimg_forZ(*this,z) cimg_forXYC(*this,x,y,c)
+          if ((*this)(x,y,z,c)!=value) { z0 = z; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (z0>=0) {
+          for (int z = depth() - 1; z>=0; --z) cimg_forXYC(*this,x,y,c)
+            if ((*this)(x,y,z,c)!=value) { z1 = z; x = width(); y = height(); z = 0; c = spectrum(); }
+        }
+        res = CImg<intT>::vector(z0,z1);
+      } break;
+      default : {
+        int c0 = -1, c1 = -1;
+        cimg_forC(*this,c) cimg_forXYZ(*this,x,y,z)
+          if ((*this)(x,y,z,c)!=value) { c0 = c; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (c0>=0) {
+          for (int c = spectrum() - 1; c>=0; --c) cimg_forXYZ(*this,x,y,z)
+            if ((*this)(x,y,z,c)!=value) { c1 = c; x = width(); y = height(); z = depth(); c = 0; }
+        }
+        res = CImg<intT>::vector(c0,c1);
+      }
+      }
+      return res;
+    }
+
+    //! Return specified image column.
+    /**
+       \param x0 Image column.
+    **/
+    CImg<T> get_column(const int x0) const {
+      return get_columns(x0,x0);
+    }
+
+    //! Return specified image column \inplace.
+    CImg<T>& column(const int x0) {
+      return columns(x0,x0);
+    }
+
+    //! Return specified range of image columns.
+    /**
+       \param x0 Starting image column.
+       \param x1 Ending image column.
+    **/
+    CImg<T>& columns(const int x0, const int x1) {
+      return get_columns(x0,x1).move_to(*this);
+    }
+
+    //! Return specified range of image columns \inplace.
+    CImg<T> get_columns(const int x0, const int x1) const {
+      return get_crop(x0,0,0,0,x1,height() - 1,depth() - 1,spectrum() - 1);
+    }
+
+    //! Return specified image row.
+    CImg<T> get_row(const int y0) const {
+      return get_rows(y0,y0);
+    }
+
+    //! Return specified image row \inplace.
+    /**
+       \param y0 Image row.
+    **/
+    CImg<T>& row(const int y0) {
+      return rows(y0,y0);
+    }
+
+    //! Return specified range of image rows.
+    /**
+       \param y0 Starting image row.
+       \param y1 Ending image row.
+    **/
+    CImg<T> get_rows(const int y0, const int y1) const {
+      return get_crop(0,y0,0,0,width() - 1,y1,depth() - 1,spectrum() - 1);
+    }
+
+    //! Return specified range of image rows \inplace.
+    CImg<T>& rows(const int y0, const int y1) {
+      return get_rows(y0,y1).move_to(*this);
+    }
+
+    //! Return specified image slice.
+    /**
+       \param z0 Image slice.
+    **/
+    CImg<T> get_slice(const int z0) const {
+      return get_slices(z0,z0);
+    }
+
+    //! Return specified image slice \inplace.
+    CImg<T>& slice(const int z0) {
+      return slices(z0,z0);
+    }
+
+    //! Return specified range of image slices.
+    /**
+       \param z0 Starting image slice.
+       \param z1 Ending image slice.
+    **/
+    CImg<T> get_slices(const int z0, const int z1) const {
+      return get_crop(0,0,z0,0,width() - 1,height() - 1,z1,spectrum() - 1);
+    }
+
+    //! Return specified range of image slices \inplace.
+    CImg<T>& slices(const int z0, const int z1) {
+      return get_slices(z0,z1).move_to(*this);
+    }
+
+    //! Return specified image channel.
+    /**
+       \param c0 Image channel.
+    **/
+    CImg<T> get_channel(const int c0) const {
+      return get_channels(c0,c0);
+    }
+
+    //! Return specified image channel \inplace.
+    CImg<T>& channel(const int c0) {
+      return channels(c0,c0);
+    }
+
+    //! Return specified range of image channels.
+    /**
+       \param c0 Starting image channel.
+       \param c1 Ending image channel.
+    **/
+    CImg<T> get_channels(const int c0, const int c1) const {
+      return get_crop(0,0,0,c0,width() - 1,height() - 1,depth() - 1,c1);
+    }
+
+    //! Return specified range of image channels \inplace.
+    CImg<T>& channels(const int c0, const int c1) {
+      return get_channels(c0,c1).move_to(*this);
+    }
+
+    //! Return stream line of a 2d or 3d vector field.
+    CImg<floatT> get_streamline(const float x, const float y, const float z,
+                                const float L=256, const float dl=0.1f,
+                                const unsigned int interpolation_type=2, const bool is_backward_tracking=false,
+                                const bool is_oriented_only=false) const {
+      if (_spectrum!=2 && _spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "streamline(): Instance is not a 2d or 3d vector field.",
+                                    cimg_instance);
+      if (_spectrum==2) {
+        if (is_oriented_only) {
+          typename CImg<T>::_functor4d_streamline2d_oriented func(*this);
+          return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,true,
+                            0,0,0,_width - 1.0f,_height - 1.0f,0.0f);
+        } else {
+          typename CImg<T>::_functor4d_streamline2d_directed func(*this);
+          return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,false,
+                            0,0,0,_width - 1.0f,_height - 1.0f,0.0f);
+        }
+      }
+      if (is_oriented_only) {
+        typename CImg<T>::_functor4d_streamline3d_oriented func(*this);
+        return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,true,
+                          0,0,0,_width - 1.0f,_height - 1.0f,_depth - 1.0f);
+      }
+      typename CImg<T>::_functor4d_streamline3d_directed func(*this);
+      return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,false,
+                        0,0,0,_width - 1.0f,_height - 1.0f,_depth - 1.0f);
+    }
+
+    //! Return stream line of a 3d vector field.
+    /**
+       \param func Vector field function.
+       \param x X-coordinate of the starting point of the streamline.
+       \param y Y-coordinate of the starting point of the 
