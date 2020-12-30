@@ -28101,4 +28101,172 @@ namespace cimg_library_suffixed {
       const CImg<T>
         img_xy = get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1),
         img_zy = get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).permute_axes("xzyc").
-        resize(_dept
+        resize(_depth,_height,1,-100,-1),
+        img_xz = get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1).resize(_width,_depth,1,-100,-1);
+      return CImg<T>(_width + _depth,_height + _depth,1,_spectrum,cimg::min(img_xy.min(),img_zy.min(),img_xz.min())).
+        draw_image(0,0,img_xy).draw_image(img_xy._width,0,img_zy).
+        draw_image(0,img_xy._height,img_xz);
+    }
+
+    //! Construct a 2d representation of a 3d image, with XY,XZ and YZ views \inplace.
+    CImg<T>& projections2d(const unsigned int x0, const unsigned int y0, const unsigned int z0) {
+      if (_depth<2) return *this;
+      return get_projections2d(x0,y0,z0).move_to(*this);
+    }
+
+    //! Crop image region.
+    /**
+       \param x0 = X-coordinate of the upper-left crop rectangle corner.
+       \param y0 = Y-coordinate of the upper-left crop rectangle corner.
+       \param z0 = Z-coordinate of the upper-left crop rectangle corner.
+       \param c0 = C-coordinate of the upper-left crop rectangle corner.
+       \param x1 = X-coordinate of the lower-right crop rectangle corner.
+       \param y1 = Y-coordinate of the lower-right crop rectangle corner.
+       \param z1 = Z-coordinate of the lower-right crop rectangle corner.
+       \param c1 = C-coordinate of the lower-right crop rectangle corner.
+       \param boundary_conditions = Dirichlet (false) or Neumann border conditions.
+    **/
+    CImg<T>& crop(const int x0, const int y0, const int z0, const int c0,
+                  const int x1, const int y1, const int z1, const int c1,
+                  const bool boundary_conditions=false) {
+      return get_crop(x0,y0,z0,c0,x1,y1,z1,c1,boundary_conditions).move_to(*this);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0, const int z0, const int c0,
+                     const int x1, const int y1, const int z1, const int c1,
+                     const bool boundary_conditions=false) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "crop(): Empty instance.",
+                                    cimg_instance);
+      const int
+        nx0 = x0<x1?x0:x1, nx1 = x0^x1^nx0,
+        ny0 = y0<y1?y0:y1, ny1 = y0^y1^ny0,
+        nz0 = z0<z1?z0:z1, nz1 = z0^z1^nz0,
+        nc0 = c0<c1?c0:c1, nc1 = c0^c1^nc0;
+      CImg<T> res(1U + nx1 - nx0,1U + ny1 - ny0,1U + nz1 - nz0,1U + nc1 - nc0);
+      if (nx0<0 || nx1>=width() || ny0<0 || ny1>=height() || nz0<0 || nz1>=depth() || nc0<0 || nc1>=spectrum()) {
+        if (boundary_conditions) cimg_forXYZC(res,x,y,z,c) res(x,y,z,c) = _atXYZC(nx0 + x,ny0 + y,nz0 + z,nc0 + c);
+        else res.fill(0).draw_image(-nx0,-ny0,-nz0,-nc0,*this);
+      } else res.draw_image(-nx0,-ny0,-nz0,-nc0,*this);
+      return res;
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int y0, const int z0,
+                  const int x1, const int y1, const int z1,
+                  const bool boundary_conditions=false) {
+      return crop(x0,y0,z0,0,x1,y1,z1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0, const int z0,
+                     const int x1, const int y1, const int z1,
+                     const bool boundary_conditions=false) const {
+      return get_crop(x0,y0,z0,0,x1,y1,z1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int y0,
+                  const int x1, const int y1,
+                  const bool boundary_conditions=false) {
+      return crop(x0,y0,0,0,x1,y1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0,
+                     const int x1, const int y1,
+                     const bool boundary_conditions=false) const {
+      return get_crop(x0,y0,0,0,x1,y1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int x1, const bool boundary_conditions=false) {
+      return crop(x0,0,0,0,x1,_height - 1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int x1, const bool boundary_conditions=false) const {
+      return get_crop(x0,0,0,0,x1,_height - 1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Autocrop image region, regarding the specified background value.
+    CImg<T>& autocrop(const T& value, const char *const axes="czyx") {
+      if (is_empty()) return *this;
+      for (const char *s = axes; *s; ++s) {
+        const char axis = cimg::uncase(*s);
+        const CImg<intT> coords = _autocrop(value,axis);
+        if (coords[0]==-1 && coords[1]==-1) return assign(); // Image has only 'value' pixels.
+        else switch (axis) {
+        case 'x' : {
+          const int x0 = coords[0], x1 = coords[1];
+          if (x0>=0 && x1>=0) crop(x0,x1);
+        } break;
+        case 'y' : {
+          const int y0 = coords[0], y1 = coords[1];
+          if (y0>=0 && y1>=0) crop(0,y0,_width - 1,y1);
+        } break;
+        case 'z' : {
+          const int z0 = coords[0], z1 = coords[1];
+          if (z0>=0 && z1>=0) crop(0,0,z0,_width - 1,_height - 1,z1);
+        } break;
+        default : {
+          const int c0 = coords[0], c1 = coords[1];
+          if (c0>=0 && c1>=0) crop(0,0,0,c0,_width - 1,_height - 1,_depth - 1,c1);
+        }
+        }
+      }
+      return *this;
+    }
+
+    //! Autocrop image region, regarding the specified background value \newinstance.
+    CImg<T> get_autocrop(const T& value, const char *const axes="czyx") const {
+      return (+*this).autocrop(value,axes);
+    }
+
+    //! Autocrop image region, regarding the specified background color.
+    /**
+       \param color Color used for the crop. If \c 0, color is guessed.
+       \param axes Axes used for the crop.
+    **/
+    CImg<T>& autocrop(const T *const color=0, const char *const axes="zyx") {
+      if (is_empty()) return *this;
+      if (!color) { // Guess color.
+        const CImg<T> col1 = get_vector_at(0,0,0);
+        const unsigned int w = _width, h = _height, d = _depth, s = _spectrum;
+        autocrop(col1,axes);
+        if (_width==w && _height==h && _depth==d && _spectrum==s) {
+          const CImg<T> col2 = get_vector_at(w - 1,h - 1,d - 1);
+          autocrop(col2,axes);
+        }
+        return *this;
+      }
+      for (const char *s = axes; *s; ++s) {
+        const char axis = cimg::uncase(*s);
+        switch (axis) {
+        case 'x' : {
+          int x0 = width(), x1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'x');
+            const int nx0 = coords[0], nx1 = coords[1];
+            if (nx0>=0 && nx1>=0) { x0 = cimg::min(x0,nx0); x1 = cimg::max(x1,nx1); }
+          }
+          if (x0==width() && x1==-1) return assign(); else crop(x0,x1);
+        } break;
+        case 'y' : {
+          int y0 = height(), y1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'y');
+            const int ny0 = coords[0], ny1 = coords[1];
+            if (ny0>=0 && ny1>=0) { y0 = cimg::min(y0,ny0); y1 = cimg::max(y1,ny1); }
+          }
+          if (y0==height() && y1==-1) return assign(); else crop(0,y0,_width - 1,y1);
+        } break;
+        default : {
+          int z0 = depth(), z1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'z');
+            const int nz0 = coords[0], nz1 = coords[1];
+            if (nz0>=0 && nz1>=0) { z0 = cimg::min(z0,nz0); z1 = cimg::max(z1,nz1); }
+        
