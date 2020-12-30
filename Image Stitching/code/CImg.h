@@ -27961,4 +27961,144 @@ namespace cimg_library_suffixed {
 #pragma omp parallel for collapse(3) if (res.size()>=1048576)
 #endif
               cimg_forYZC(res,y,z,c) {
-                const t *pt
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x)
+                  *(ptrd++) = (T)_linear_atXYZ(x - (float)*(ptrs0++),y - (float)*(ptrs1++),z - (float)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x)
+                  *(ptrd++) = (T)linear_atXYZ(x - (float)*(ptrs0++),y - (float)*(ptrs1++),z - (float)*(ptrs2++),c,0);
+              }
+          } else { // Nearest neighbor interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (*this)(cimg::mod(x - (int)*(ptrs0++),(int)_width),
+                                                     cimg::mod(y - (int)*(ptrs1++),(int)_height),
+                                                     cimg::mod(z - (int)*(ptrs2++),(int)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = _atXYZ(x - (int)*(ptrs0++),y - (int)*(ptrs1++),z - (int)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = atXYZ(x - (int)*(ptrs0++),y - (int)*(ptrs1++),z - (int)*(ptrs2++),c,0);
+              }
+          }
+        } else { // Backward-absolute warp.
+          if (interpolation==2) { // Cubic interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_cubic_atXYZ(cimg::mod((float)*(ptrs0++),(float)_width),
+                                                             cimg::mod((float)*(ptrs1++),(float)_height),
+                                                             cimg::mod((float)*(ptrs2++),(float)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_cubic_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)cubic_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c,0);
+              }
+          } else if (interpolation==1) { // Linear interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atXYZ(cimg::mod((float)*(ptrs0++),(float)_width),
+                                                              cimg::mod((float)*(ptrs1++),(float)_height),
+                                                              cimg::mod((float)*(ptrs2++),(float)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)linear_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c,0);
+              }
+          } else { // Nearest-neighbor interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (*this)(cimg::mod((int)*(ptrs0++),(int)_width),
+                                                     cimg::mod((int)*(ptrs1++),(int)_height),
+                                                     cimg::mod((int)*(ptrs2++),(int)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = _atXYZ((int)*(ptrs0++),(int)*(ptrs1++),(int)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = atXYZ((int)*(ptrs0++),(int)*(ptrs1++),(int)*(ptrs2++),c,0);
+              }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Generate a 2d representation of a 3d image, with XY,XZ and YZ views.
+    /**
+       \param x0 X-coordinate of the projection point.
+       \param y0 Y-coordinate of the projection point.
+       \param z0 Z-coordinate of the projection point.
+    **/
+    CImg<T> get_projections2d(const unsigned int x0, const unsigned int y0, const unsigned int z0) const {
+      if (is_empty() || _depth<2) return +*this;
+      const unsigned int
+        _x0 = (x0>=_width)?_width - 1:x0,
+        _y0 = (y0>=_height)?_height - 1:y0,
+        _z0 = (z0>=_depth)?_depth - 1:z0;
+      const CImg<T>
+        img_xy = get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1),
+        img_zy = get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).permute_axes("xzyc").
+        resize(_dept
