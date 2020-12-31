@@ -28629,4 +28629,158 @@ namespace cimg_library_suffixed {
     struct _functor4d_streamline3d_directed {
       const CImg<T>& ref;
       _functor4d_streamline3d_directed(const CImg<T>& pref):ref(pref) {}
-      float operator()(const fl
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)ref._linear_atXYZ(x,y,z,c);
+      }
+    };
+
+    struct _functor4d_streamline2d_oriented {
+      const CImg<T>& ref;
+      CImg<floatT> *pI;
+      _functor4d_streamline2d_oriented(const CImg<T>& pref):ref(pref),pI(0) { pI = new CImg<floatT>(2,2,1,2); }
+      ~_functor4d_streamline2d_oriented() { delete pI; }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+#define _cimg_vecalign2d(i,j) \
+        if (I(i,j,0)*I(0,0,0) + I(i,j,1)*I(0,0,1)<0) { I(i,j,0) = -I(i,j,0); I(i,j,1) = -I(i,j,1); }
+        int
+          xi = (int)x - (x>=0?0:1), nxi = xi + 1,
+          yi = (int)y - (y>=0?0:1), nyi = yi + 1,
+          zi = (int)z;
+        const float
+          dx = x - xi,
+          dy = y - yi;
+        if (c==0) {
+          CImg<floatT>& I = *pI;
+          if (xi<0) xi = 0; if (nxi<0) nxi = 0;
+          if (xi>=ref.width()) xi = ref.width() - 1; if (nxi>=ref.width()) nxi = ref.width() - 1;
+          if (yi<0) yi = 0; if (nyi<0) nyi = 0;
+          if (yi>=ref.height()) yi = ref.height() - 1; if (nyi>=ref.height()) nyi = ref.height() - 1;
+          I(0,0,0) = (float)ref(xi,yi,zi,0);   I(0,0,1) = (float)ref(xi,yi,zi,1);
+          I(1,0,0) = (float)ref(nxi,yi,zi,0);  I(1,0,1) = (float)ref(nxi,yi,zi,1);
+          I(1,1,0) = (float)ref(nxi,nyi,zi,0); I(1,1,1) = (float)ref(nxi,nyi,zi,1);
+          I(0,1,0) = (float)ref(xi,nyi,zi,0);  I(0,1,1) = (float)ref(xi,nyi,zi,1);
+          _cimg_vecalign2d(1,0); _cimg_vecalign2d(1,1); _cimg_vecalign2d(0,1);
+        }
+        return c<2?(float)pI->_linear_atXY(dx,dy,0,c):0;
+      }
+    };
+
+    struct _functor4d_streamline3d_oriented {
+      const CImg<T>& ref;
+      CImg<floatT> *pI;
+      _functor4d_streamline3d_oriented(const CImg<T>& pref):ref(pref),pI(0) { pI = new CImg<floatT>(2,2,2,3); }
+      ~_functor4d_streamline3d_oriented() { delete pI; }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+#define _cimg_vecalign3d(i,j,k) if (I(i,j,k,0)*I(0,0,0,0) + I(i,j,k,1)*I(0,0,0,1) + I(i,j,k,2)*I(0,0,0,2)<0) { \
+  I(i,j,k,0) = -I(i,j,k,0); I(i,j,k,1) = -I(i,j,k,1); I(i,j,k,2) = -I(i,j,k,2); }
+        int
+          xi = (int)x - (x>=0?0:1), nxi = xi + 1,
+          yi = (int)y - (y>=0?0:1), nyi = yi + 1,
+          zi = (int)z - (z>=0?0:1), nzi = zi + 1;
+        const float
+          dx = x - xi,
+          dy = y - yi,
+          dz = z - zi;
+        if (c==0) {
+          CImg<floatT>& I = *pI;
+          if (xi<0) xi = 0; if (nxi<0) nxi = 0;
+          if (xi>=ref.width()) xi = ref.width() - 1; if (nxi>=ref.width()) nxi = ref.width() - 1;
+          if (yi<0) yi = 0; if (nyi<0) nyi = 0;
+          if (yi>=ref.height()) yi = ref.height() - 1; if (nyi>=ref.height()) nyi = ref.height() - 1;
+          if (zi<0) zi = 0; if (nzi<0) nzi = 0;
+          if (zi>=ref.depth()) zi = ref.depth() - 1; if (nzi>=ref.depth()) nzi = ref.depth() - 1;
+          I(0,0,0,0) = (float)ref(xi,yi,zi,0); I(0,0,0,1) = (float)ref(xi,yi,zi,1);
+          I(0,0,0,2) = (float)ref(xi,yi,zi,2); I(1,0,0,0) = (float)ref(nxi,yi,zi,0);
+          I(1,0,0,1) = (float)ref(nxi,yi,zi,1); I(1,0,0,2) = (float)ref(nxi,yi,zi,2);
+          I(1,1,0,0) = (float)ref(nxi,nyi,zi,0); I(1,1,0,1) = (float)ref(nxi,nyi,zi,1);
+          I(1,1,0,2) = (float)ref(nxi,nyi,zi,2); I(0,1,0,0) = (float)ref(xi,nyi,zi,0);
+          I(0,1,0,1) = (float)ref(xi,nyi,zi,1); I(0,1,0,2) = (float)ref(xi,nyi,zi,2);
+          I(0,0,1,0) = (float)ref(xi,yi,nzi,0); I(0,0,1,1) = (float)ref(xi,yi,nzi,1);
+          I(0,0,1,2) = (float)ref(xi,yi,nzi,2); I(1,0,1,0) = (float)ref(nxi,yi,nzi,0);
+          I(1,0,1,1) = (float)ref(nxi,yi,nzi,1);  I(1,0,1,2) = (float)ref(nxi,yi,nzi,2);
+          I(1,1,1,0) = (float)ref(nxi,nyi,nzi,0); I(1,1,1,1) = (float)ref(nxi,nyi,nzi,1);
+          I(1,1,1,2) = (float)ref(nxi,nyi,nzi,2); I(0,1,1,0) = (float)ref(xi,nyi,nzi,0);
+          I(0,1,1,1) = (float)ref(xi,nyi,nzi,1);  I(0,1,1,2) = (float)ref(xi,nyi,nzi,2);
+          _cimg_vecalign3d(1,0,0); _cimg_vecalign3d(1,1,0); _cimg_vecalign3d(0,1,0);
+          _cimg_vecalign3d(0,0,1); _cimg_vecalign3d(1,0,1); _cimg_vecalign3d(1,1,1); _cimg_vecalign3d(0,1,1);
+        }
+        return (float)pI->_linear_atXYZ(dx,dy,dz,c);
+      }
+    };
+
+    struct _functor4d_streamline_expr {
+      _cimg_math_parser *mp;
+      ~_functor4d_streamline_expr() { delete mp; }
+      _functor4d_streamline_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,"streamline",CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)(*mp)(x,y,z,c);
+      }
+    };
+
+    //! Return a shared-memory image referencing a range of pixels of the image instance.
+    /**
+       \param x0 X-coordinate of the starting pixel.
+       \param x1 X-coordinate of the ending pixel.
+       \param y0 Y-coordinate.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+     **/
+    CImg<T> get_shared_points(const unsigned int x0, const unsigned int x1,
+                              const unsigned int y0=0, const unsigned int z0=0, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(x0,y0,z0,c0),
+        end = (unsigned int)offset(x1,y0,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_points(): Invalid request of a shared-memory subset (%u->%u,%u,%u,%u).",
+                                    cimg_instance,
+                                    x0,x1,y0,z0,c0);
+
+      return CImg<T>(_data + beg,x1 - x0 + 1,1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of pixels of the image instance \const.
+    const CImg<T> get_shared_points(const unsigned int x0, const unsigned int x1,
+                                    const unsigned int y0=0, const unsigned int z0=0, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(x0,y0,z0,c0),
+        end = (unsigned int)offset(x1,y0,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_points(): Invalid request of a shared-memory subset (%u->%u,%u,%u,%u).",
+                                    cimg_instance,
+                                    x0,x1,y0,z0,c0);
+
+      return CImg<T>(_data + beg,x1 - x0 + 1,1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of rows of the image instance.
+    /**
+       \param y0 Y-coordinate of the starting row.
+       \param y1 Y-coordinate of the ending row.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_rows(const unsigned int y0, const unsigned int y1,
+                             const unsigned int z0=0, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(0,y0,z0,c0),
+        end = (unsigned int)offset(0,y1,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_rows(): Invalid request of a shared-memory subset "
+                                    "(0->%u,%u->%u,%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,y0,y1,z0,c0);
+
+      return CImg<T>(_data + beg,_width,y1 - y0 + 1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of rows of the image instance \const.
+    const CImg<T> get_shared_rows(const unsigned int y0, const unsigned int y1,
+                                   const unsigned int z0=0, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,y0,z0,c0),
+     
