@@ -28783,4 +28783,174 @@ namespace cimg_library_suffixed {
                                    const unsigned int z0=0, const unsigned int c0=0) const {
       const unsigned int
         beg = (unsigned int)offset(0,y0,z0,c0),
-     
+        end = (unsigned int)offset(0,y1,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_rows(): Invalid request of a shared-memory subset "
+                                    "(0->%u,%u->%u,%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,y0,y1,z0,c0);
+
+      return CImg<T>(_data + beg,_width,y1 - y0 + 1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing one row of the image instance.
+    /**
+       \param y0 Y-coordinate.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_row(const unsigned int y0, const unsigned int z0=0, const unsigned int c0=0) {
+      return get_shared_rows(y0,y0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing one row of the image instance \const.
+    const CImg<T> get_shared_row(const unsigned int y0, const unsigned int z0=0, const unsigned int c0=0) const {
+      return get_shared_rows(y0,y0,z0,c0);
+    }
+
+    //! Return a shared memory image referencing a range of slices of the image instance.
+    /**
+       \param z0 Z-coordinate of the starting slice.
+       \param z1 Z-coordinate of the ending slice.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_slices(const unsigned int z0, const unsigned int z1, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,z0,c0),
+        end = (unsigned int)offset(0,0,z1,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_slices(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,%u->%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,z0,z1,c0);
+
+      return CImg<T>(_data + beg,_width,_height,z1 - z0 + 1,1,true);
+    }
+
+    //! Return a shared memory image referencing a range of slices of the image instance \const.
+    const CImg<T> get_shared_slices(const unsigned int z0, const unsigned int z1, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,z0,c0),
+        end = (unsigned int)offset(0,0,z1,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_slices(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,%u->%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,z0,z1,c0);
+
+      return CImg<T>(_data + beg,_width,_height,z1 - z0 + 1,1,true);
+    }
+
+    //! Return a shared-memory image referencing one slice of the image instance.
+    /**
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_slice(const unsigned int z0, const unsigned int c0=0) {
+      return get_shared_slices(z0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing one slice of the image instance \const.
+    const CImg<T> get_shared_slice(const unsigned int z0, const unsigned int c0=0) const {
+      return get_shared_slices(z0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing a range of channels of the image instance.
+    /**
+       \param c0 C-coordinate of the starting channel.
+       \param c1 C-coordinate of the ending channel.
+    **/
+    CImg<T> get_shared_channels(const unsigned int c0, const unsigned int c1) {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,0,c0),
+        end = (unsigned int)offset(0,0,0,c1);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_channels(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,0->%u,%u->%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,_depth - 1,c0,c1);
+
+      return CImg<T>(_data + beg,_width,_height,_depth,c1 - c0 + 1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of channels of the image instance \const.
+    const CImg<T> get_shared_channels(const unsigned int c0, const unsigned int c1) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,0,c0),
+        end = (unsigned int)offset(0,0,0,c1);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_channels(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,0->%u,%u->%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,_depth - 1,c0,c1);
+
+      return CImg<T>(_data + beg,_width,_height,_depth,c1 - c0 + 1,true);
+    }
+
+    //! Return a shared-memory image referencing one channel of the image instance.
+    /**
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_channel(const unsigned int c0) {
+      return get_shared_channels(c0,c0);
+    }
+
+    //! Return a shared-memory image referencing one channel of the image instance \const.
+    const CImg<T> get_shared_channel(const unsigned int c0) const {
+      return get_shared_channels(c0,c0);
+    }
+
+    //! Return a shared-memory version of the image instance.
+    CImg<T> get_shared() {
+      return CImg<T>(_data,_width,_height,_depth,_spectrum,true);
+    }
+
+    //! Return a shared-memory version of the image instance \const.
+    const CImg<T> get_shared() const {
+      return CImg<T>(_data,_width,_height,_depth,_spectrum,true);
+    }
+
+    //! Split image into a list along specified axis.
+    /**
+       \param axis Splitting axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param nb Number of splitted parts.
+       \note
+       - If \c nb==0, instance image is splitted into blocs of egal values along the specified axis.
+       - If \c nb<=0, instance image is splitted into blocs of -\c nb pixel wide.
+       - If \c nb>0, instance image is splitted into \c nb blocs.
+    **/
+    CImgList<T> get_split(const char axis, const int nb=-1) const {
+      CImgList<T> res;
+      if (is_empty()) return res;
+      const char _axis = cimg::uncase(axis);
+
+      if (nb<0) { // Split by bloc size.
+        const unsigned int dp = (unsigned int)(nb?-nb:1);
+        switch (_axis) {
+        case 'x': {
+          if (_width>dp) {
+            res.assign(_width/dp + (_width%dp?1:0),1,1);
+            const unsigned int pe = _width - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _height*_depth*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(p,0,0,0,p + dp - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop((res._width - 1)*dp,0,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'y': {
+          if (_height>dp) {
+            res.assign(_height/dp + (_height%dp?1:0),1,1);
+            const unsigned int pe = _height - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_depth*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,p,0,0,_width - 1,p + dp - 1,_depth - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop(0,(res._width - 1)*dp,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1)
