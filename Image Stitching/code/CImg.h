@@ -29141,4 +29141,174 @@ namespace cimg_library_suffixed {
               } else ++i;
             } else ++i;
           } while (i<_width);
-          if (i0<_width) get_columns(i0,width() 
+          if (i0<_width) get_columns(i0,width() - 1).move_to(res);
+        } break;
+        case 'y' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_height && (*this)(0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_rows(i0,i1 - 1).move_to(res);
+                if (keep_values) get_rows(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_height);
+          if (i0<_height) get_rows(i0,height() - 1).move_to(res);
+        } break;
+        case 'z' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_depth && (*this)(0,0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_slices(i0,i1 - 1).move_to(res);
+                if (keep_values) get_slices(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_depth);
+          if (i0<_depth) get_slices(i0,depth() - 1).move_to(res);
+        } break;
+        case 'c' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,0,0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_spectrum && (*this)(0,0,0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_channels(i0,i1 - 1).move_to(res);
+                if (keep_values) get_channels(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_spectrum);
+          if (i0<_spectrum) get_channels(i0,spectrum() - 1).move_to(res);
+        } break;
+        default : {
+          ulongT i0 = 0, i1 = 0, i = 0;
+          const ulongT siz = size();
+          do {
+            if ((*this)[i]==*values) {
+              i1 = i; j = 0;
+              while (i<siz && (*this)[i]==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) CImg<T>(_data + i0,1,i1 - i0).move_to(res);
+                if (keep_values) CImg<T>(_data + i1,1,i - i1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<siz);
+          if (i0<siz) CImg<T>(_data + i0,1,siz - i0).move_to(res);
+        } break;
+        }
+      }
+      return res;
+    }
+
+    //! Append two images along specified axis.
+    /**
+       \param img Image to append with instance image.
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Append alignment in \c [0,1].
+    **/
+    template<typename t>
+    CImg<T>& append(const CImg<t>& img, const char axis='x', const float align=0) {
+      if (is_empty()) return assign(img,false);
+      if (!img) return *this;
+      return CImgList<T>(*this,true).insert(img).get_append(axis,align).move_to(*this);
+    }
+
+    //! Append two images along specified axis \specialization.
+    CImg<T>& append(const CImg<T>& img, const char axis='x', const float align=0) {
+      if (is_empty()) return assign(img,false);
+      if (!img) return *this;
+      return CImgList<T>(*this,img,true).get_append(axis,align).move_to(*this);
+    }
+
+    //! Append two images along specified axis \const.
+    template<typename t>
+    CImg<_cimg_Tt> get_append(const CImg<T>& img, const char axis='x', const float align=0) const {
+      if (is_empty()) return +img;
+      if (!img) return +*this;
+      return CImgList<_cimg_Tt>(*this,true).insert(img).get_append(axis,align);
+    }
+
+    //! Append two images along specified axis \specialization.
+    CImg<T> get_append(const CImg<T>& img, const char axis='x', const float align=0) const {
+      if (is_empty()) return +img;
+      if (!img) return +*this;
+      return CImgList<T>(*this,img,true).get_append(axis,align);
+    }
+
+    //@}
+    //---------------------------------------
+    //
+    //! \name Filtering / Transforms
+    //@{
+    //---------------------------------------
+
+    //! Correlate image by a mask.
+    /**
+       \param mask = the correlation kernel.
+       \param boundary_conditions = the border condition type (0=zero, 1=dirichlet)
+       \param is_normalized = enable local normalization.
+       \note
+       - The correlation of the image instance \p *this by the mask \p mask is defined to be:
+       res(x,y,z) = sum_{i,j,k} (*this)(x + i,y + j,z + k)*mask(i,j,k).
+    **/
+    template<typename t>
+    CImg<T>& correlate(const CImg<t>& mask, const unsigned int boundary_conditions=1, const bool is_normalized=false) {
+      if (is_empty() || !mask) return *this;
+      return get_correlate(mask,boundary_conditions,is_normalized).move_to(*this);
+    }
+
+    //! Correlate image by a mask \newinstance.
+    template<typename t>
+    CImg<_cimg_Ttfloat> get_correlate(const CImg<t>& mask, const unsigned int boundary_conditions=1,
+                                      const bool is_normalized=false) const {
+      if (is_empty() || !mask) return *this;
+      typedef _cimg_Ttfloat Ttfloat;
+      CImg<Ttfloat> res(_width,_height,_depth,cimg::max(_spectrum,mask._spectrum));
+      if (boundary_conditions && mask._width==mask._height &&
+          ((mask._depth==1 && mask._width<=5) || (mask._depth==mask._width && mask._width<=3))) {
+        // A special optimization is done for 2x2, 3x3, 4x4, 5x5, 2x2x2 and 3x3x3 mask (with boundary_conditions=1)
+        Ttfloat *ptrd = res._data;
+        CImg<T> I;
+        switch (mask._depth) {
+        case 3 : {
+          I.assign(27);
+          cimg_forC(res,c) {
+            cimg_test_abort();
+            const CImg<T> _img = get_shared_channel(c%_spectrum);
+            const CImg<t> _mask = mask.get_shared_channel(c%mask._spectrum);
+            if (is_normalized) {
+              const Ttfloat _M = (Ttfloat)_mask.magnitude(2), M = _M*_M;
+              cimg_for3x3x3(_img,x,y,z,0,I,T) {
+                const Ttfloat N = M*(I[ 0]*I[ 0] + I[ 1]*I[ 1] + I[ 2]*I[ 2] +
+                                     I[ 3]*I[ 3] + I[ 4]*I[ 4] + I[ 5]*I[ 5] +
+                                     I[ 6]*I[ 6] + I[ 7]*I[ 7] + I[ 8]*I[ 8] +
+                                     I[ 9]*I[ 9] + I[10]*I[10] + I[11]*I[11] +
+                                     I[12]*I[12] + I[13]*I[13] + I[14]*I[14] +
+                                     I[15]*I[15] + I[16]*I[16] + I[17]*I[17] +
+                                     I[18]*I[18] + I[19]*I[19] + I[20]*I[20] +
+                                     I[21]*I[21] + I[22]*I[22] + I[23]*I[23] +
+                                     I[24]*I[24] + I[25]*I[25] + I[26]*I[26]);
+                *(ptrd++) = (Ttfloat)(N?(I[ 0]*_mask[ 0] + I[ 1]*_mask[ 1] + I[ 2]*_mask[ 2] +
+                                         I[ 3]*_mask[ 3] + I[ 4]*_mask[ 4] + I[ 5]*_mask[ 5] +
+                                         I[ 6]*_mask[ 6] + I[ 7]*_mask[ 7] + I[ 8]*_mask[ 8] +
+                                         I[ 9]*_mask[ 9] + I[10]*_mask[10] + I[11]*_mask[11] +
+                                         I[12]*_mask[12] + I[13]*_mask[13] + I[14]*_mask[14] +
+                                         I[15]*_mask[15] + I[16]*_mask[16] + I[17]*_mask[17] +
+                                         I[18]*_mask[18] + I[19]*_mask[19] + I[20]*_mask[20] +
+                                         I[21]*_mask[21] + I[22]*_mask[22] + I[23]*_mask[23] +
+                                         I[24]*_mask[24] + I[25]*_mask[25] + I[26]*_mask[26])/std::sqrt(N):0);
+              }
+            } else cimg_for3x3
