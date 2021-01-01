@@ -28953,4 +28953,192 @@ namespace cimg_library_suffixed {
 #endif
             for (unsigned int p = 0; p<pe; p+=dp)
               get_crop(0,p,0,0,_width - 1,p + dp - 1,_depth - 1,_spectrum - 1).move_to(res[p/dp]);
-            get_crop(0,(res._width - 1)*dp,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1)
+            get_crop(0,(res._width - 1)*dp,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'z': {
+          if (_depth>dp) {
+            res.assign(_depth/dp + (_depth%dp?1:0),1,1);
+            const unsigned int pe = _depth - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_height*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,0,p,0,_width - 1,_height - 1,p + dp - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop(0,0,(res._width - 1)*dp,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'c' : {
+          if (_spectrum>dp) {
+            res.assign(_spectrum/dp + (_spectrum%dp?1:0),1,1);
+            const unsigned int pe = _spectrum - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_height*_depth>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,0,0,p,_width - 1,_height - 1,_depth - 1,p + dp - 1).move_to(res[p/dp]);
+            get_crop(0,0,0,(res._width - 1)*dp,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        }
+        }
+      } else if (nb>0) { // Split by number of (non-homogeneous) blocs.
+        const unsigned int siz = _axis=='x'?_width:_axis=='y'?_height:_axis=='z'?_depth:_axis=='c'?_spectrum:0;
+        if ((unsigned int)nb>siz)
+          throw CImgArgumentException(_cimg_instance
+                                      "get_split(): Instance cannot be split along %c-axis into %u blocs.",
+                                      cimg_instance,
+                                      axis,nb);
+        if (nb==1) res.assign(*this);
+        else {
+          int err = (int)siz;
+          unsigned int _p = 0;
+          switch (_axis) {
+          case 'x' : {
+            cimg_forX(*this,p) if ((err-=nb)<=0) {
+              get_crop(_p,0,0,0,p,_height - 1,_depth - 1,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'y' : {
+            cimg_forY(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,_p,0,0,_width - 1,p,_depth - 1,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'z' : {
+            cimg_forZ(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,0,_p,0,_width - 1,_height - 1,p,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'c' : {
+            cimg_forC(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,0,0,_p,_width - 1,_height - 1,_depth - 1,p).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          }
+          }
+        }
+      } else { // Split by egal values according to specified axis.
+        T current = *_data;
+        switch (_axis) {
+        case 'x' : {
+          int i0 = 0;
+          cimg_forX(*this,i)
+            if ((*this)(i)!=current) { get_columns(i0,i - 1).move_to(res); i0 = i; current = (*this)(i); }
+          get_columns(i0,width() - 1).move_to(res);
+        } break;
+        case 'y' : {
+          int i0 = 0;
+          cimg_forY(*this,i)
+            if ((*this)(0,i)!=current) { get_rows(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,i); }
+          get_rows(i0,height() - 1).move_to(res);
+        } break;
+        case 'z' : {
+          int i0 = 0;
+          cimg_forZ(*this,i)
+            if ((*this)(0,0,i)!=current) { get_slices(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,0,i); }
+          get_slices(i0,depth() - 1).move_to(res);
+        } break;
+        case 'c' : {
+          int i0 = 0;
+          cimg_forC(*this,i)
+            if ((*this)(0,0,0,i)!=current) { get_channels(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,0,0,i); }
+          get_channels(i0,spectrum() - 1).move_to(res);
+        } break;
+        default : {
+          longT i0 = 0;
+          cimg_foroff(*this,i)
+            if ((*this)[i]!=current) { CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = (longT)i; current = (*this)[i]; }
+          CImg<T>(_data + i0,1,size() - i0).move_to(res);
+        }
+        }
+      }
+      return res;
+    }
+
+    //! Split image into a list of sub-images, according to a specified splitting value sequence and optionnally axis.
+    /**
+       \param values Splitting value sequence.
+       \param axis Axis along which the splitting is performed. Can be '0' to ignore axis.
+       \param keep_values Tells if the splitting sequence must be kept in the splitted blocs.
+     **/
+    template<typename t>
+    CImgList<T> get_split(const CImg<t>& values, const char axis=0, const bool keep_values=true) const {
+      CImgList<T> res;
+      if (is_empty()) return res;
+      const ulongT vsiz = values.size();
+      const char _axis = cimg::uncase(axis);
+      if (!vsiz) return CImgList<T>(*this);
+      if (vsiz==1) { // Split according to a single value.
+        const T value = *values;
+        switch (_axis) {
+        case 'x' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_width && (*this)(i)==value) ++i;
+            if (i>i0) { if (keep_values) get_columns(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_width && (*this)(i)!=value) ++i;
+            if (i>i0) { get_columns(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_width);
+        } break;
+        case 'y' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_height && (*this)(0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_rows(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_height && (*this)(0,i)!=value) ++i;
+            if (i>i0) { get_rows(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_height);
+        } break;
+        case 'z' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_depth && (*this)(0,0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_slices(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_depth && (*this)(0,0,i)!=value) ++i;
+            if (i>i0) { get_slices(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_depth);
+        } break;
+        case 'c' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_spectrum && (*this)(0,0,0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_channels(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_spectrum && (*this)(0,0,0,i)!=value) ++i;
+            if (i>i0) { get_channels(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_spectrum);
+        } break;
+        default : {
+          const ulongT siz = size();
+          ulongT i0 = 0, i = 0;
+          do {
+            while (i<siz && (*this)[i]==value) ++i;
+            if (i>i0) { if (keep_values) CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = i; }
+            while (i<siz && (*this)[i]!=value) ++i;
+            if (i>i0) { CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = i; }
+          } while (i<siz);
+        }
+        }
+      } else { // Split according to multiple values.
+        ulongT j = 0;
+        switch (_axis) {
+        case 'x' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(i)==*values) {
+              i1 = i; j = 0;
+              while (i<_width && (*this)(i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_columns(i0,i1 - 1).move_to(res);
+                if (keep_values) get_columns(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_width);
+          if (i0<_width) get_columns(i0,width() 
