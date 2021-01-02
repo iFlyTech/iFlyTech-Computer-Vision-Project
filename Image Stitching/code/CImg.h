@@ -29548,4 +29548,200 @@ namespace cimg_library_suffixed {
                       for (int xm = -mx1; xm<=mx2; ++xm) {
                         const Ttfloat _val = (Ttfloat)_img._atXYZ(x + xm,y + ym,z + zm);
                         val+=_val*_mask(mx1 + xm,my1 + ym,mz1 + zm);
-                        N+=_val*_val
+                        N+=_val*_val;
+                      }
+                  N*=M;
+                  res(x,y,z,c) = (Ttfloat)(N?val/std::sqrt(N):0);
+                }
+              }
+            else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0, N = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm) {
+                        const Ttfloat _val = (Ttfloat)_img.atXYZ(x + xm,y + ym,z + zm,0,0);
+                        val+=_val*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                        N+=_val*_val;
+                      }
+                  N*=M;
+                  res(x,y,z,c) = (Ttfloat)(N?val/std::sqrt(N):0);
+                }
+              }
+          } else { // Classical correlation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=32768)
+#endif
+            for (int z = mz1; z<mze; ++z)
+              for (int y = my1; y<mye; ++y) {
+                cimg_test_abort2();
+                for (int x = mx1; x<mxe; ++x) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img(x + xm,y + ym,z + zm)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+            if (boundary_conditions)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img._atXYZ(x + xm,y + ym,z + zm)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+            else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img.atXYZ(x + xm,y + ym,z + zm,0,0)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Convolve image by a mask.
+    /**
+       \param mask = the correlation kernel.
+       \param boundary_conditions = the border condition type (0=zero, 1=dirichlet)
+       \param is_normalized = enable local normalization.
+       \note
+       - The result \p res of the convolution of an image \p img by a mask \p mask is defined to be:
+       res(x,y,z) = sum_{i,j,k} img(x-i,y-j,z-k)*mask(i,j,k)
+    **/
+    template<typename t>
+    CImg<T>& convolve(const CImg<t>& mask, const unsigned int boundary_conditions=1, const bool is_normalized=false) {
+      if (is_empty() || !mask) return *this;
+      return get_convolve(mask,boundary_conditions,is_normalized).move_to(*this);
+    }
+
+    //! Cumulate image values, optionally along specified axis.
+    /**
+       \param axis Cumulation axis. Set it to 0 to cumulate all values globally without taking axes into account.
+    **/
+    CImg<T>& cumulate(const char axis=0) {
+      switch (cimg::uncase(axis)) {
+      case 'x' :
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=512 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forYZC(*this,y,z,c) {
+          T *ptrd = data(0,y,z,c);
+          Tlong cumul = 0;
+          cimg_forX(*this,x) { cumul+=(Tlong)*ptrd; *(ptrd++) = (T)cumul; }
+        }
+        break;
+      case 'y' : {
+        const ulongT w = (ulongT)_width;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_height>=512 && _width*_depth*_spectrum>=16)
+#endif
+        cimg_forXZC(*this,x,z,c) {
+          T *ptrd = data(x,0,z,c);
+          Tlong cumul = 0;
+          cimg_forY(*this,y) { cumul+=(Tlong)*ptrd; *ptrd = (T)cumul; ptrd+=w; }
+        }
+      } break;
+      case 'z' : {
+        const ulongT wh = (ulongT)_width*_height;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_depth>=512 && _width*_depth*_spectrum>=16)
+#endif
+        cimg_forXYC(*this,x,y,c) {
+          T *ptrd = data(x,y,0,c);
+          Tlong cumul = 0;
+          cimg_forZ(*this,z) { cumul+=(Tlong)*ptrd; *ptrd = (T)cumul; ptrd+=wh; }
+        }
+      } break;
+      case 'c' : {
+        const ulongT whd = (ulongT)_width*_height*_depth;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_spectrum>=512 && _width*_height*_depth>=16)
+#endif
+        cimg_forXYZ(*this,x,y,z) {
+          T *ptrd = data(x,y,z,0);
+          Tlong cumul = 0;
+          cimg_forC(*this,c) { cumul+=(Tlong)*ptrd; *ptrd = (T)cumul; ptrd+=whd; }
+        }
+      } break;
+      default : { // Global cumulation.
+        Tlong cumul = 0;
+        cimg_for(*this,ptrd,T) { cumul+=(Tlong)*ptrd; *ptrd = (T)cumul; }
+      }
+      }
+      return *this;
+    }
+
+    //! Cumulate image values, optionally along specified axis \newinstance.
+    CImg<Tlong> get_cumulate(const char axis=0) const {
+      return CImg<Tlong>(*this,false).cumulate(axis);
+    }
+
+    //! Cumulate image values, along specified axes.
+    /**
+       \param axes Cumulation axes, as a C-string.
+       \note \c axes may contains multiple characters, e.g. \c "xyz"
+    **/
+    CImg<T>& cumulate(const char *const axes) {
+      for (const char *s = axes; *s; ++s) cumulate(*s);
+      return *this;
+    }
+
+    //! Cumulate image values, along specified axes \newintance.
+    CImg<Tlong> get_cumulate(const char *const axes) const {
+      return CImg<Tlong>(*this,false).cumulate(axes);
+    }
+
+    //! Convolve image by a mask \newinstance.
+    template<typename t>
+    CImg<_cimg_Ttfloat> get_convolve(const CImg<t>& mask, const unsigned int boundary_conditions=1,
+                                     const bool is_normalized=false) const {
+      if (is_empty() || !mask) return *this;
+      return get_correlate(CImg<t>(mask._data,mask.size(),1,1,1,true).get_mirror('x').
+                           resize(mask,-1),boundary_conditions,is_normalized);
+    }
+
+    //! Erode image by a structuring element.
+    /**
+       \param mask Structuring element.
+       \param boundary_conditions Boundary conditions.
+       \param is_normalized Tells if the erosion is locally normalized.
+    **/
+    template<typename t>
+    CImg<T>& erode(const CImg<t>& mask, const unsigned int boundary_conditions=1,
+                   const bool is_normalized=false) {
+      if (is_empty() || !mask) return *this;
+      return get_erode(mask,boundary_conditions,is_normalized).move_to(*this);
+    }
+
+    //! Erode image by a structuring element \newinstance.
+    template<typename t>
+  
