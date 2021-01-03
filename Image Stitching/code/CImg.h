@@ -30407,4 +30407,178 @@ namespace cimg_library_suffixed {
             _cimg_watershed_init(is_nx && is_nz,nx,y,nz);
             _cimg_watershed_init(is_py && is_pz,x,py,pz);
             _cimg_watershed_init(is_ny && is_pz,x,ny,pz);
-            _cimg_watershed_init(is_py &
+            _cimg_watershed_init(is_py && is_nz,x,py,nz);
+            _cimg_watershed_init(is_ny && is_nz,x,ny,nz);
+            _cimg_watershed_init(is_px && is_py && is_pz,px,py,pz);
+            _cimg_watershed_init(is_nx && is_py && is_pz,nx,py,pz);
+            _cimg_watershed_init(is_px && is_ny && is_pz,px,ny,pz);
+            _cimg_watershed_init(is_nx && is_ny && is_pz,nx,ny,pz);
+            _cimg_watershed_init(is_px && is_py && is_nz,px,py,nz);
+            _cimg_watershed_init(is_nx && is_py && is_nz,nx,py,nz);
+            _cimg_watershed_init(is_px && is_ny && is_nz,px,ny,nz);
+            _cimg_watershed_init(is_nx && is_ny && is_nz,nx,ny,nz);
+          }
+        }
+        labels(x,y,z) = nb_seeds;
+      }
+
+      // Start watershed computation.
+      while (sizeQ) {
+
+        // Get and remove point with maximal priority from the queue.
+        const int x = (int)Q(0,1), y = (int)Q(0,2), z = (int)Q(0,3);
+        const unsigned int n = labels(x,y,z);
+        px = x - 1; nx = x + 1;
+        py = y - 1; ny = y + 1;
+        pz = z - 1; nz = z + 1;
+        is_px = px>=0; is_nx = nx<width();
+        is_py = py>=0; is_ny = ny<height();
+        is_pz = pz>=0; is_nz = nz<depth();
+
+        // Check labels of the neighbors.
+        Q._priority_queue_remove(sizeQ);
+
+        unsigned int xs, ys, zs, ns, nmin = 0;
+        float d, dmin = cimg::type<float>::inf();
+        T label = 0;
+        _cimg_watershed_propagate(is_px,px,y,z);
+        _cimg_watershed_propagate(is_nx,nx,y,z);
+        _cimg_watershed_propagate(is_py,x,py,z);
+        _cimg_watershed_propagate(is_ny,x,ny,z);
+        if (is_3d) {
+          _cimg_watershed_propagate(is_pz,x,y,pz);
+          _cimg_watershed_propagate(is_nz,x,y,nz);
+        }
+        if (is_high_connectivity) {
+          _cimg_watershed_propagate(is_px && is_py,px,py,z);
+          _cimg_watershed_propagate(is_nx && is_py,nx,py,z);
+          _cimg_watershed_propagate(is_px && is_ny,px,ny,z);
+          _cimg_watershed_propagate(is_nx && is_ny,nx,ny,z);
+          if (is_3d) {
+            _cimg_watershed_propagate(is_px && is_pz,px,y,pz);
+            _cimg_watershed_propagate(is_nx && is_pz,nx,y,pz);
+            _cimg_watershed_propagate(is_px && is_nz,px,y,nz);
+            _cimg_watershed_propagate(is_nx && is_nz,nx,y,nz);
+            _cimg_watershed_propagate(is_py && is_pz,x,py,pz);
+            _cimg_watershed_propagate(is_ny && is_pz,x,ny,pz);
+            _cimg_watershed_propagate(is_py && is_nz,x,py,nz);
+            _cimg_watershed_propagate(is_ny && is_nz,x,ny,nz);
+            _cimg_watershed_propagate(is_px && is_py && is_pz,px,py,pz);
+            _cimg_watershed_propagate(is_nx && is_py && is_pz,nx,py,pz);
+            _cimg_watershed_propagate(is_px && is_ny && is_pz,px,ny,pz);
+            _cimg_watershed_propagate(is_nx && is_ny && is_pz,nx,ny,pz);
+            _cimg_watershed_propagate(is_px && is_py && is_nz,px,py,nz);
+            _cimg_watershed_propagate(is_nx && is_py && is_nz,nx,py,nz);
+            _cimg_watershed_propagate(is_px && is_ny && is_nz,px,ny,nz);
+            _cimg_watershed_propagate(is_nx && is_ny && is_nz,nx,ny,nz);
+          }
+        }
+        (*this)(x,y,z) = label;
+        labels(x,y,z) = ++nmin;
+      }
+      return *this;
+    }
+
+    //! Compute watershed transform \newinstance.
+    template<typename t>
+    CImg<T> get_watershed(const CImg<t>& priority, const bool is_high_connectivity=false) const {
+      return (+*this).watershed(priority,is_high_connectivity);
+    }
+
+    // [internal] Insert/Remove items in priority queue, for watershed/distance transforms.
+    template<typename tq, typename tv>
+    bool _priority_queue_insert(CImg<tq>& is_queued, unsigned int& siz, const tv value,
+                                const unsigned int x, const unsigned int y, const unsigned int z,
+                                const unsigned int n=1) {
+      if (is_queued(x,y,z)) return false;
+      is_queued(x,y,z) = (tq)n;
+      if (++siz>=_width) { if (!is_empty()) resize(_width*2,4,1,1,0); else assign(64,4); }
+      (*this)(siz - 1,0) = (T)value;
+      (*this)(siz - 1,1) = (T)x;
+      (*this)(siz - 1,2) = (T)y;
+      (*this)(siz - 1,3) = (T)z;
+      for (unsigned int pos = siz - 1, par = 0; pos && value>(*this)(par=(pos + 1)/2 - 1,0); pos = par) {
+        cimg::swap((*this)(pos,0),(*this)(par,0));
+        cimg::swap((*this)(pos,1),(*this)(par,1));
+        cimg::swap((*this)(pos,2),(*this)(par,2));
+        cimg::swap((*this)(pos,3),(*this)(par,3));
+      }
+      return true;
+    }
+
+    CImg<T>& _priority_queue_remove(unsigned int& siz) {
+      (*this)(0,0) = (*this)(--siz,0);
+      (*this)(0,1) = (*this)(siz,1);
+      (*this)(0,2) = (*this)(siz,2);
+      (*this)(0,3) = (*this)(siz,3);
+      const float value = (*this)(0,0);
+      for (unsigned int pos = 0, left = 0, right = 0;
+           ((right=2*(pos + 1),(left=right - 1))<siz && value<(*this)(left,0)) ||
+             (right<siz && value<(*this)(right,0));) {
+        if (right<siz) {
+          if ((*this)(left,0)>(*this)(right,0)) {
+            cimg::swap((*this)(pos,0),(*this)(left,0));
+            cimg::swap((*this)(pos,1),(*this)(left,1));
+            cimg::swap((*this)(pos,2),(*this)(left,2));
+            cimg::swap((*this)(pos,3),(*this)(left,3));
+            pos = left;
+          } else {
+            cimg::swap((*this)(pos,0),(*this)(right,0));
+            cimg::swap((*this)(pos,1),(*this)(right,1));
+            cimg::swap((*this)(pos,2),(*this)(right,2));
+            cimg::swap((*this)(pos,3),(*this)(right,3));
+            pos = right;
+          }
+        } else {
+          cimg::swap((*this)(pos,0),(*this)(left,0));
+          cimg::swap((*this)(pos,1),(*this)(left,1));
+          cimg::swap((*this)(pos,2),(*this)(left,2));
+          cimg::swap((*this)(pos,3),(*this)(left,3));
+          pos = left;
+        }
+      }
+      return *this;
+    }
+
+    //! Apply recursive Deriche filter.
+    /**
+       \param sigma Standard deviation of the filter.
+       \param order Order of the filter. Can be <tt>{ 0=smooth-filter | 1=1st-derivative | 2=2nd-derivative }</tt>.
+       \param axis Axis along which the filter is computed. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+    **/
+    CImg<T>& deriche(const float sigma, const unsigned int order=0, const char axis='x',
+                     const bool boundary_conditions=true) {
+#define _cimg_deriche_apply \
+  CImg<Tfloat> Y(N); \
+  Tfloat *ptrY = Y._data, yb = 0, yp = 0; \
+  T xp = (T)0; \
+  if (boundary_conditions) { xp = *ptrX; yb = yp = (Tfloat)(coefp*xp); } \
+  for (int m = 0; m<N; ++m) { \
+    const T xc = *ptrX; ptrX+=off; \
+    const Tfloat yc = *(ptrY++) = (Tfloat)(a0*xc + a1*xp - b1*yp - b2*yb); \
+    xp = xc; yb = yp; yp = yc; \
+  } \
+  T xn = (T)0, xa = (T)0; \
+  Tfloat yn = 0, ya = 0; \
+  if (boundary_conditions) { xn = xa = *(ptrX-off); yn = ya = (Tfloat)coefn*xn; } \
+  for (int n = N - 1; n>=0; --n) { \
+    const T xc = *(ptrX-=off); \
+    const Tfloat yc = (Tfloat)(a2*xn + a3*xa - b1*yn - b2*ya); \
+    xa = xn; xn = xc; ya = yn; yn = yc; \
+    *ptrX = (T)(*(--ptrY)+yc); \
+  }
+      const char naxis = cimg::uncase(axis);
+      const float nsigma = sigma>=0?sigma:-sigma*(naxis=='x'?_width:naxis=='y'?_height:naxis=='z'?_depth:_spectrum)/100;
+      if (is_empty() || (nsigma<0.1f && !order)) return *this;
+      const float
+        nnsigma = nsigma<0.1f?0.1f:nsigma,
+        alpha = 1.695f/nnsigma,
+        ema = (float)std::exp(-alpha),
+        ema2 = (float)std::exp(-2*alpha),
+        b1 = -2*ema,
+        b2 = ema2;
+      float a0 = 0, a1 = 0, a2 = 0, a3 = 0, coefp = 0, coefn = 0;
+      switch (order) {
+      case 0 : {
+        const float k = (1-ema)*(1-ema)/(1 + 2*alph
