@@ -30243,4 +30243,168 @@ namespace cimg_library_suffixed {
           if (ptrs>=ptrse) {
             T *pd = data(x,0,z,c); cur = cimg::max(cur,*ptrse); cimg_forX(buf,x) { *pd = cur; pd+=off; }
           } else {
-            for (int p =
+            for (int p = s1; p>0 && ptrd<=ptrde; --p) {
+              const T val = *ptrs; if (ptrs<ptrse) ptrs+=off; if (val>=cur) { cur = val; is_first = false; }
+              *(ptrd++) = cur;
+            }
+            for (int p = L - s - 1; p>0; --p) {
+              const T val = *ptrs; ptrs+=off;
+              if (is_first) {
+                const T *nptrs = ptrs - off; cur = val;
+                for (int q = s - 2; q>0; --q) { nptrs-=off; const T nval = *nptrs; if (nval>cur) cur = nval; }
+                nptrs-=off; const T nval = *nptrs; if (nval>cur) { cur = nval; is_first = true; } else is_first = false;
+              } else { if (val>=cur) cur = val; else if (cur==*(ptrs-s*off)) is_first = true; }
+              *(ptrd++) = cur;
+            }
+            ptrd = ptrde; ptrs = ptrse; cur = *ptrs; ptrs-=off;
+            for (int p = s1; p>0 && ptrs>=ptrsb; --p) {
+              const T val = *ptrs; ptrs-=off; if (val>cur) cur = val;
+            }
+            *(ptrd--) = cur;
+            for (int p = s2 - 1; p>0 && ptrd>=ptrdb; --p) {
+              const T val = *ptrs; if (ptrs>ptrsb) ptrs-=off; if (val>cur) cur = val; *(ptrd--) = cur;
+            }
+            T *pd = data(x,0,z,c); cimg_for(buf,ps,T) { *pd = *ps; pd+=off; }
+          }
+        }
+      }
+
+      if (sz>1 && _depth>1) { // Along Z-axis.
+        const int L = depth(), off = width()*height(), s = (int)sz, _s2 = s/2 + 1, _s1 = s - _s2, s1 = _s1>L?L:_s1,
+          s2 = _s2>L?L:_s2;
+        CImg<T> buf(L);
+#ifdef cimg_use_opemp
+#pragma omp parallel for collapse(3) firstprivate(buf) if (size()>524288)
+#endif
+        cimg_forXYC(*this,x,y,c) {
+          T *const ptrdb = buf._data, *ptrd = ptrdb, *const ptrde = buf._data + L - 1;
+          const T *const ptrsb = data(x,y,0,c), *ptrs = ptrsb, *const ptrse = ptrs + L*off - off;
+          T cur = *ptrs; ptrs+=off; bool is_first = true;
+          for (int p = s2 - 1; p>0 && ptrs<=ptrse; --p) {
+            const T val = *ptrs; ptrs+=off; if (val>=cur) { cur = val; is_first = false; }
+          }
+          *(ptrd++) = cur;
+          if (ptrs>=ptrse) {
+            T *pd = data(x,y,0,c); cur = cimg::max(cur,*ptrse); cimg_forX(buf,x) { *pd = cur; pd+=off; }
+          } else {
+            for (int p = s1; p>0 && ptrd<=ptrde; --p) {
+              const T val = *ptrs; if (ptrs<ptrse) ptrs+=off; if (val>=cur) { cur = val; is_first = false; }
+              *(ptrd++) = cur;
+            }
+            for (int p = L - s - 1; p>0; --p) {
+              const T val = *ptrs; ptrs+=off;
+              if (is_first) {
+                const T *nptrs = ptrs - off; cur = val;
+                for (int q = s - 2; q>0; --q) { nptrs-=off; const T nval = *nptrs; if (nval>cur) cur = nval; }
+                nptrs-=off; const T nval = *nptrs; if (nval>cur) { cur = nval; is_first = true; } else is_first = false;
+              } else { if (val>=cur) cur = val; else if (cur==*(ptrs-s*off)) is_first = true; }
+              *(ptrd++) = cur;
+            }
+            ptrd = ptrde; ptrs = ptrse; cur = *ptrs; ptrs-=off;
+            for (int p = s1; p>0 && ptrs>=ptrsb; --p) {
+              const T val = *ptrs; ptrs-=off; if (val>cur) cur = val;
+            }
+            *(ptrd--) = cur;
+            for (int p = s2 - 1; p>0 && ptrd>=ptrdb; --p) {
+              const T val = *ptrs; if (ptrs>ptrsb) ptrs-=off; if (val>cur) cur = val; *(ptrd--) = cur;
+            }
+            T *pd = data(x,y,0,c); cimg_for(buf,ps,T) { *pd = *ps; pd+=off; }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Dilate image by a rectangular structuring element of specified size \newinstance.
+    CImg<T> get_dilate(const unsigned int sx, const unsigned int sy, const unsigned int sz=1) const {
+      return (+*this).dilate(sx,sy,sz);
+    }
+
+    //! Dilate image by a square structuring element of specified size.
+    /**
+       \param s Size of the structuring element.
+    **/
+    CImg<T>& dilate(const unsigned int s) {
+      return dilate(s,s,s);
+    }
+
+    //! Dilate image by a square structuring element of specified size \newinstance.
+    CImg<T> get_dilate(const unsigned int s) const {
+      return (+*this).dilate(s);
+    }
+
+    //! Compute watershed transform.
+    /**
+       \param priority Priority map.
+       \param is_high_connectivity Boolean that choose between 4(false)- or 8(true)-connectivity
+       in 2d case, and between 6(false)- or 26(true)-connectivity in 3d case.
+       \note Non-zero values of the instance instance are propagated to zero-valued ones according to
+       specified the priority map.
+    **/
+    template<typename t>
+    CImg<T>& watershed(const CImg<t>& priority, const bool is_high_connectivity=false) {
+#define _cimg_watershed_init(cond,X,Y,Z) \
+      if (cond && !(*this)(X,Y,Z)) Q._priority_queue_insert(labels,sizeQ,priority(X,Y,Z),X,Y,Z,nb_seeds)
+
+#define _cimg_watershed_propagate(cond,X,Y,Z) \
+      if (cond) { \
+        if ((*this)(X,Y,Z)) { \
+          ns = labels(X,Y,Z) - 1; xs = seeds(ns,0); ys = seeds(ns,1); zs = seeds(ns,2); \
+          d = cimg::sqr((float)x - xs) + cimg::sqr((float)y - ys) + cimg::sqr((float)z - zs); \
+          if (d<dmin) { dmin = d; nmin = ns; label = (*this)(xs,ys,zs); } \
+        } else Q._priority_queue_insert(labels,sizeQ,priority(X,Y,Z),X,Y,Z,n); \
+      }
+
+      if (is_empty()) return *this;
+      if (!is_sameXYZ(priority))
+        throw CImgArgumentException(_cimg_instance
+                                    "watershed(): image instance and specified priority (%u,%u,%u,%u,%p) "
+                                    "have different dimensions.",
+                                    cimg_instance,
+                                    priority._width,priority._height,priority._depth,priority._spectrum,priority._data);
+      if (_spectrum!=1) {
+        cimg_forC(*this,c)
+          get_shared_channel(c).watershed(priority.get_shared_channel(c%priority._spectrum));
+        return *this;
+      }
+
+      CImg<uintT> labels(_width,_height,_depth,1,0), seeds(64,3);
+      CImg<typename cimg::superset2<T,t,int>::type> Q;
+      unsigned int sizeQ = 0;
+      int px, nx, py, ny, pz, nz;
+      bool is_px, is_nx, is_py, is_ny, is_pz, is_nz;
+      const bool is_3d = _depth>1;
+
+      // Find seed points and insert them in priority queue.
+      unsigned int nb_seeds = 0;
+      const T *ptrs = _data;
+      cimg_forXYZ(*this,x,y,z) if (*(ptrs++)) { // 3d version
+        if (nb_seeds>=seeds._width) seeds.resize(2*seeds._width,3,1,1,0);
+        seeds(nb_seeds,0) = x; seeds(nb_seeds,1) = y; seeds(nb_seeds++,2) = z;
+        px = x - 1; nx = x + 1;
+        py = y - 1; ny = y + 1;
+        pz = z - 1; nz = z + 1;
+        is_px = px>=0; is_nx = nx<width();
+        is_py = py>=0; is_ny = ny<height();
+        is_pz = pz>=0; is_nz = nz<depth();
+        _cimg_watershed_init(is_px,px,y,z);
+        _cimg_watershed_init(is_nx,nx,y,z);
+        _cimg_watershed_init(is_py,x,py,z);
+        _cimg_watershed_init(is_ny,x,ny,z);
+        if (is_3d) {
+          _cimg_watershed_init(is_pz,x,y,pz);
+          _cimg_watershed_init(is_nz,x,y,nz);
+        }
+        if (is_high_connectivity) {
+          _cimg_watershed_init(is_px && is_py,px,py,z);
+          _cimg_watershed_init(is_nx && is_py,nx,py,z);
+          _cimg_watershed_init(is_px && is_ny,px,ny,z);
+          _cimg_watershed_init(is_nx && is_ny,nx,ny,z);
+          if (is_3d) {
+            _cimg_watershed_init(is_px && is_pz,px,y,pz);
+            _cimg_watershed_init(is_nx && is_pz,nx,y,pz);
+            _cimg_watershed_init(is_px && is_nz,px,y,nz);
+            _cimg_watershed_init(is_nx && is_nz,nx,y,nz);
+            _cimg_watershed_init(is_py && is_pz,x,py,pz);
+            _cimg_watershed_init(is_ny && is_pz,x,ny,pz);
+            _cimg_watershed_init(is_py &
