@@ -30581,4 +30581,186 @@ namespace cimg_library_suffixed {
       float a0 = 0, a1 = 0, a2 = 0, a3 = 0, coefp = 0, coefn = 0;
       switch (order) {
       case 0 : {
-        const float k = (1-ema)*(1-ema)/(1 + 2*alph
+        const float k = (1-ema)*(1-ema)/(1 + 2*alpha*ema-ema2);
+        a0 = k;
+        a1 = k*(alpha - 1)*ema;
+        a2 = k*(alpha + 1)*ema;
+        a3 = -k*ema2;
+      } break;
+      case 1 : {
+        const float k = -(1-ema)*(1-ema)*(1-ema)/(2*(ema + 1)*ema);
+        a0 = a3 = 0;
+        a1 = k*ema;
+        a2 = -a1;
+      } break;
+      case 2 : {
+        const float
+          ea = (float)std::exp(-alpha),
+          k = -(ema2 - 1)/(2*alpha*ema),
+          kn = (-2*(-1 + 3*ea - 3*ea*ea + ea*ea*ea)/(3*ea + 1 + 3*ea*ea + ea*ea*ea));
+        a0 = kn;
+        a1 = -kn*(1 + k*alpha)*ema;
+        a2 = kn*(1 - k*alpha)*ema;
+        a3 = -kn*ema2;
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "deriche(): Invalid specified filter order %u "
+                                    "(should be { 0=smoothing | 1=1st-derivative | 2=2nd-derivative }).",
+                                    cimg_instance,
+                                    order);
+      }
+      coefp = (a0 + a1)/(1 + b1 + b2);
+      coefn = (a2 + a3)/(1 + b1 + b2);
+      switch (naxis) {
+      case 'x' : {
+        const int N = width();
+        const ulongT off = 1U;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forYZC(*this,y,z,c) { T *ptrX = data(0,y,z,c); _cimg_deriche_apply; }
+      } break;
+      case 'y' : {
+        const int N = height();
+        const ulongT off = (ulongT)_width;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXZC(*this,x,z,c) { T *ptrX = data(x,0,z,c); _cimg_deriche_apply; }
+      } break;
+      case 'z' : {
+        const int N = depth();
+        const ulongT off = (ulongT)_width*_height;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYC(*this,x,y,c) { T *ptrX = data(x,y,0,c); _cimg_deriche_apply; }
+      } break;
+      default : {
+        const int N = spectrum();
+        const ulongT off = (ulongT)_width*_height*_depth;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYZ(*this,x,y,z) { T *ptrX = data(x,y,z,0); _cimg_deriche_apply; }
+      }
+      }
+      return *this;
+    }
+
+    //! Apply recursive Deriche filter \newinstance.
+    CImg<Tfloat> get_deriche(const float sigma, const unsigned int order=0, const char axis='x',
+                             const bool boundary_conditions=true) const {
+      return CImg<Tfloat>(*this,false).deriche(sigma,order,axis,boundary_conditions);
+    }
+
+    // [internal] Apply a recursive filter (used by CImg<T>::vanvliet()).
+    /*
+       \param ptr the pointer of the data
+       \param filter the coefficient of the filter in the following order [n,n - 1,n - 2,n - 3].
+       \param N size of the data
+       \param off the offset between two data point
+       \param order the order of the filter 0 (smoothing), 1st derivtive, 2nd derivative, 3rd derivative
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+       \note Boundary condition using B. Triggs method (IEEE trans on Sig Proc 2005).
+    */
+    static void _cimg_recursive_apply(T *data, const double filter[], const int N, const ulongT off,
+                                      const unsigned int order, const bool boundary_conditions) {
+      double val[4] = { 0 };  // res[n,n - 1,n - 2,n - 3,..] or res[n,n + 1,n + 2,n + 3,..]
+      const double
+        sumsq = filter[0], sum = sumsq * sumsq,
+        a1 = filter[1], a2 = filter[2], a3 = filter[3],
+        scaleM = 1.0 / ( (1.0 + a1 - a2 + a3) * (1.0 - a1 - a2 - a3) * (1.0 + a2 + (a1 - a3) * a3) );
+      double M[9]; // Triggs matrix
+      M[0] = scaleM * (-a3 * a1 + 1.0 - a3 * a3 - a2);
+      M[1] = scaleM * (a3 + a1) * (a2 + a3 * a1);
+      M[2] = scaleM * a3 * (a1 + a3 * a2);
+      M[3] = scaleM * (a1 + a3 * a2);
+      M[4] = -scaleM * (a2 - 1.0) * (a2 + a3 * a1);
+      M[5] = -scaleM * a3 * (a3 * a1 + a3 * a3 + a2 - 1.0);
+      M[6] = scaleM * (a3 * a1 + a2 + a1 * a1 - a2 * a2);
+      M[7] = scaleM * (a1 * a2 + a3 * a2 * a2 - a1 * a3 * a3 - a3 * a3 * a3 - a3 * a2 + a3);
+      M[8] = scaleM * a3 * (a1 + a3 * a2);
+      switch (order) {
+      case 0 : {
+        const double iplus = (boundary_conditions?data[(N - 1)*off]:0);
+        for (int pass = 0; pass<2; ++pass) {
+          if (!pass) {
+            for (int k = 1; k<4; ++k) val[k] = (boundary_conditions?*data/sumsq:0);
+          } else {
+            /* apply Triggs border condition */
+            const double
+              uplus = iplus/(1.0 - a1 - a2 - a3), vplus = uplus/(1.0 - a1 - a2 - a3),
+              unp  = val[1] - uplus, unp1 = val[2] - uplus, unp2 = val[3] - uplus;
+            val[0] = (M[0] * unp + M[1] * unp1 + M[2] * unp2 + vplus) * sum;
+            val[1] = (M[3] * unp + M[4] * unp1 + M[5] * unp2 + vplus) * sum;
+            val[2] = (M[6] * unp + M[7] * unp1 + M[8] * unp2 + vplus) * sum;
+            *data = (T)val[0];
+            data -= off;
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          for (int n = pass; n<N; ++n) {
+            val[0] = (*data);
+            if (pass) val[0] *= sum;
+            for (int k = 1; k<4; ++k) val[0] += val[k] * filter[k];
+            *data = (T)val[0];
+            if (!pass) data += off; else data -= off;
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          if (!pass) data -= off;
+        }
+      } break;
+      case 1 : {
+        double x[3]; // [front,center,back]
+        for (int pass = 0; pass<2; ++pass) {
+          if (!pass) {
+            for (int k = 0; k<3; ++k) x[k] = (boundary_conditions?*data:0);
+            for (int k = 0; k<4; ++k) val[k] = 0;
+          } else {
+            /* apply Triggs border condition */
+            const double
+              unp  = val[1], unp1 = val[2], unp2 = val[3];
+            val[0] = (M[0] * unp + M[1] * unp1 + M[2] * unp2) * sum;
+            val[1] = (M[3] * unp + M[4] * unp1 + M[5] * unp2) * sum;
+            val[2] = (M[6] * unp + M[7] * unp1 + M[8] * unp2) * sum;
+            *data = (T)val[0];
+            data -= off;
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          for (int n = pass; n<N - 1; ++n) {
+            if (!pass) {
+              x[0] = *(data + off);
+              val[0] = 0.5f * (x[0] - x[2]);
+            } else val[0] = (*data) * sum;
+            for (int k = 1; k<4; ++k) val[0] += val[k] * filter[k];
+            *data = (T)val[0];
+            if (!pass) {
+              data += off;
+              for (int k = 2; k>0; --k) x[k] = x[k - 1];
+            } else { data-=off;}
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          *data = (T)0;
+        }
+      } break;
+      case 2: {
+        double x[3]; // [front,center,back]
+        for (int pass = 0; pass<2; ++pass) {
+          if (!pass) {
+            for (int k = 0; k<3; ++k) x[k] = (boundary_conditions?*data:0);
+            for (int k = 0; k<4; ++k) val[k] = 0;
+          } else {
+            /* apply Triggs border condition */
+            const double
+              unp  = val[1], unp1 = val[2], unp2 = val[3];
+            val[0] = (M[0] * unp + M[1] * unp1 + M[2] * unp2) * sum;
+            val[1] = (M[3] * unp + M[4] * unp1 + M[5] * unp2) * sum;
+            val[2] = (M[6] * unp + M[7] * unp1 + M[8] * unp2) * sum;
+            *data = (T)val[0];
+            data -= off;
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          for (int n = pass; n<N - 1; ++n) {
+            if (!pass) { x[0] = *(data + off); val[0] = (x[1] - x[2]); }
+            else { x[0] = *(data - off); val[0] = (x[2] 
