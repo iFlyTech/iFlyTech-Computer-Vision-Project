@@ -30763,4 +30763,173 @@ namespace cimg_library_suffixed {
           }
           for (int n = pass; n<N - 1; ++n) {
             if (!pass) { x[0] = *(data + off); val[0] = (x[1] - x[2]); }
-            else { x[0] = *(data - off); val[0] = (x[2] 
+            else { x[0] = *(data - off); val[0] = (x[2] - x[1]) * sum; }
+            for (int k = 1; k<4; ++k) val[0] += val[k]*filter[k];
+            *data = (T)val[0];
+            if (!pass) data += off; else data -= off;
+            for (int k = 2; k>0; --k) x[k] = x[k - 1];
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          *data = (T)0;
+        }
+      } break;
+      case 3: {
+        double x[3]; // [front,center,back]
+        for (int pass = 0; pass<2; ++pass) {
+          if (!pass) {
+            for (int k = 0; k<3; ++k) x[k] = (boundary_conditions?*data:0);
+            for (int k = 0; k<4; ++k) val[k] = 0;
+          } else {
+            /* apply Triggs border condition */
+            const double
+              unp = val[1], unp1 = val[2], unp2 = val[3];
+            val[0] = (M[0] * unp + M[1] * unp1 + M[2] * unp2) * sum;
+            val[1] = (M[3] * unp + M[4] * unp1 + M[5] * unp2) * sum;
+            val[2] = (M[6] * unp + M[7] * unp1 + M[8] * unp2) * sum;
+            *data = (T)val[0];
+            data -= off;
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          for (int n = pass; n<N - 1; ++n) {
+            if (!pass) { x[0] = *(data + off); val[0] = (x[0] - 2*x[1] + x[2]); }
+            else { x[0] = *(data - off); val[0] = 0.5f * (x[2] - x[0]) * sum; }
+            for (int k = 1; k<4; ++k) val[0] += val[k] * filter[k];
+            *data = (T)val[0];
+            if (!pass) data += off; else data -= off;
+            for (int k = 2; k>0; --k) x[k] = x[k - 1];
+            for (int k = 3; k>0; --k) val[k] = val[k - 1];
+          }
+          *data = (T)0;
+        }
+      } break;
+      }
+    }
+
+    //! Van Vliet recursive Gaussian filter.
+    /**
+       \param sigma standard deviation of the Gaussian filter
+       \param order the order of the filter 0,1,2,3
+       \param axis  Axis along which the filter is computed. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+       \note dirichlet boundary condition has a strange behavior
+
+       I.T. Young, L.J. van Vliet, M. van Ginkel, Recursive Gabor filtering.
+       IEEE Trans. Sig. Proc., vol. 50, pp. 2799-2805, 2002.
+
+       (this is an improvement over Young-Van Vliet, Sig. Proc. 44, 1995)
+
+       Boundary conditions (only for order 0) using Triggs matrix, from
+       B. Triggs and M. Sdika. Boundary conditions for Young-van Vliet
+       recursive filtering. IEEE Trans. Signal Processing,
+       vol. 54, pp. 2365-2367, 2006.
+    **/
+    CImg<T>& vanvliet(const float sigma, const unsigned int order, const char axis='x',
+                      const bool boundary_conditions=true) {
+      if (is_empty()) return *this;
+      const char naxis = cimg::uncase(axis);
+      const float nsigma = sigma>=0?sigma:-sigma*(naxis=='x'?_width:naxis=='y'?_height:naxis=='z'?_depth:_spectrum)/100;
+      if (is_empty() || (nsigma<0.5f && !order)) return *this;
+      const double
+        nnsigma = nsigma<0.5f?0.5f:nsigma,
+        m0 = 1.16680, m1 = 1.10783, m2 = 1.40586,
+        m1sq = m1 * m1, m2sq = m2 * m2,
+        q = (nnsigma<3.556?-0.2568 + 0.5784*nnsigma + 0.0561*nnsigma*nnsigma:2.5091 + 0.9804*(nnsigma - 3.556)),
+        qsq = q * q,
+        scale = (m0 + q) * (m1sq + m2sq + 2 * m1 * q + qsq),
+        b1 = -q * (2 * m0 * m1 + m1sq + m2sq + (2 * m0 + 4 * m1) * q + 3 * qsq) / scale,
+        b2 = qsq * (m0 + 2 * m1 + 3 * q) / scale,
+        b3 = -qsq * q / scale,
+        B = ( m0 * (m1sq + m2sq) ) / scale;
+      double filter[4];
+      filter[0] = B; filter[1] = -b1; filter[2] = -b2; filter[3] = -b3;
+      switch (naxis) {
+      case 'x' : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forYZC(*this,y,z,c)
+          _cimg_recursive_apply(data(0,y,z,c),filter,_width,1U,order,boundary_conditions);
+      } break;
+      case 'y' : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXZC(*this,x,z,c)
+          _cimg_recursive_apply(data(x,0,z,c),filter,_height,(ulongT)_width,order,boundary_conditions);
+      } break;
+      case 'z' : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYC(*this,x,y,c)
+          _cimg_recursive_apply(data(x,y,0,c),filter,_depth,(ulongT)_width*_height,
+                                order,boundary_conditions);
+      } break;
+      default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYZ(*this,x,y,z)
+          _cimg_recursive_apply(data(x,y,z,0),filter,_spectrum,(ulongT)_width*_height*_depth,
+                                order,boundary_conditions);
+      }
+      }
+      return *this;
+    }
+
+    //! Blur image using Van Vliet recursive Gaussian filter. \newinstance.
+    CImg<Tfloat> get_vanvliet(const float sigma, const unsigned int order, const char axis='x',
+                              const bool boundary_conditions=true) const {
+      return CImg<Tfloat>(*this,false).vanvliet(sigma,order,axis,boundary_conditions);
+    }
+
+    //! Blur image.
+    /**
+       \param sigma_x Standard deviation of the blur, along the X-axis.
+       \param sigma_y Standard deviation of the blur, along the Y-axis.
+       \param sigma_z Standard deviation of the blur, along the Z-axis.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ false=dirichlet | true=neumann }</tt>.
+       \param is_gaussian Tells if the blur uses a gaussian (\c true) or quasi-gaussian (\c false) kernel.
+       \note
+       - The blur is computed as a 0-order Deriche filter. This is not a gaussian blur.
+       - This is a recursive algorithm, not depending on the values of the standard deviations.
+       \see deriche(), vanvliet().
+    **/
+    CImg<T>& blur(const float sigma_x, const float sigma_y, const float sigma_z,
+                  const bool boundary_conditions=true, const bool is_gaussian=false) {
+      if (is_empty()) return *this;
+      if (is_gaussian) {
+        if (_width>1) vanvliet(sigma_x,0,'x',boundary_conditions);
+        if (_height>1) vanvliet(sigma_y,0,'y',boundary_conditions);
+        if (_depth>1) vanvliet(sigma_z,0,'z',boundary_conditions);
+      } else {
+        if (_width>1) deriche(sigma_x,0,'x',boundary_conditions);
+        if (_height>1) deriche(sigma_y,0,'y',boundary_conditions);
+        if (_depth>1) deriche(sigma_z,0,'z',boundary_conditions);
+      }
+      return *this;
+    }
+
+    //! Blur image \newinstance.
+    CImg<Tfloat> get_blur(const float sigma_x, const float sigma_y, const float sigma_z,
+                          const bool boundary_conditions=true, const bool is_gaussian=false) const {
+      return CImg<Tfloat>(*this,false).blur(sigma_x,sigma_y,sigma_z,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image isotropically.
+    /**
+       \param sigma Standard deviation of the blur.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.a
+       \see deriche(), vanvliet().
+    **/
+    CImg<T>& blur(const float sigma, const bool boundary_conditions=true, const bool is_gaussian=false) {
+      const float nsigma = sigma>=0?sigma:-sigma*cimg::max(_width,_height,_depth)/100;
+      return blur(nsigma,nsigma,nsigma,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image isotropically \newinstance.
+    CImg<Tfloat> get_blur(const float sigma, const bool boundary_conditions=true, const bool is_gaussian=false) const {
+      return CImg<Tfloat>(*this,false).blur(sigma,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image anisotr
