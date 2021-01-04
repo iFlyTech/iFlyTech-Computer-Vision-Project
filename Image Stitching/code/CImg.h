@@ -31088,3 +31088,162 @@ namespace cimg_library_suffixed {
                   default : { // 2nd order Runge Kutta
                     for (float l = 0; l<length && X>=0 && X<=dx1 && Y>=0 && Y<=dy1 && Z>=0 && Z<=dz1; l+=dl) {
                       const float
+                        u0 = (float)(0.5f*W._linear_atXYZ(X,Y,Z,0)),
+                        v0 = (float)(0.5f*W._linear_atXYZ(X,Y,Z,1)),
+                        w0 = (float)(0.5f*W._linear_atXYZ(X,Y,Z,2)),
+                        u = (float)(W._linear_atXYZ(X + u0,Y + v0,Z + w0,0)),
+                        v = (float)(W._linear_atXYZ(X + u0,Y + v0,Z + w0,1)),
+                        w = (float)(W._linear_atXYZ(X + u0,Y + v0,Z + w0,2));
+                      if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)_linear_atXYZ(X,Y,Z,c); ++S; }
+                      else {
+                        const float coef = (float)std::exp(-l*l/fsigma2);
+                        cimg_forC(*this,c) val[c]+=(Tfloat)(coef*_linear_atXYZ(X,Y,Z,c));
+                        S+=coef;
+                      }
+                      X+=u; Y+=v; Z+=w;
+                    }
+                  } break;
+                  }
+                  Tfloat *ptrd = res.data(x,y,z);
+                  if (S>0) cimg_forC(res,c) { *ptrd+=val[c]/S; ptrd+=whd; }
+                  else cimg_forC(res,c) { *ptrd+=(Tfloat)((*this)(x,y,z,c)); ptrd+=whd; }
+                }
+              }
+            }
+          }
+        } else { // 2d LIC algorithm
+          for (float theta = (360%(int)da)/2.0f; theta<360; (theta+=da),++N) {
+            const float thetar = (float)(theta*cimg::PI/180),
+              vx = (float)(std::cos(thetar)), vy = (float)(std::sin(thetar));
+            const t *pa = G.data(0,0,0,0), *pb = G.data(0,0,0,1), *pc = G.data(0,0,0,2);
+            Tfloat *pd0 = W.data(0,0,0,0), *pd1 = W.data(0,0,0,1), *pd2 = W.data(0,0,0,2);
+            cimg_forXY(G,xg,yg) {
+              const t a = *(pa++), b = *(pb++), c = *(pc++);
+              const float
+                u = (float)(a*vx + b*vy),
+                v = (float)(b*vx + c*vy),
+                n = (float)std::sqrt(1e-5 + u*u + v*v),
+                dln = dl/n;
+              *(pd0++) = (Tfloat)(u*dln);
+              *(pd1++) = (Tfloat)(v*dln);
+              *(pd2++) = (Tfloat)n;
+            }
+
+            cimg_test_abort();
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width>=256 && _height>=2) firstprivate(val)
+#endif
+            cimg_forY(*this,y) {
+              cimg_test_abort2();
+              cimg_forX(*this,x) {
+                val.fill(0);
+                const float
+                  n = (float)W(x,y,0,2),
+                  fsigma = (float)(n*sqrt2amplitude),
+                  fsigma2 = 2*fsigma*fsigma,
+                  length = gauss_prec*fsigma;
+                float
+                  S = 0,
+                  X = (float)x,
+                  Y = (float)y;
+                switch (interpolation_type) {
+                case 0 : { // Nearest-neighbor
+                  for (float l = 0; l<length && X>=0 && X<=dx1 && Y>=0 && Y<=dy1; l+=dl) {
+                    const int
+                      cx = (int)(X + 0.5f),
+                      cy = (int)(Y + 0.5f);
+                    const float
+                      u = (float)W(cx,cy,0,0),
+                      v = (float)W(cx,cy,0,1);
+                    if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)(*this)(cx,cy,0,c); ++S; }
+                    else {
+                      const float coef = (float)std::exp(-l*l/fsigma2);
+                      cimg_forC(*this,c) val[c]+=(Tfloat)(coef*(*this)(cx,cy,0,c));
+                      S+=coef;
+                    }
+                    X+=u; Y+=v;
+                  }
+                } break;
+                case 1 : { // Linear interpolation
+                  for (float l = 0; l<length && X>=0 && X<=dx1 && Y>=0 && Y<=dy1; l+=dl) {
+                    const float
+                      u = (float)(W._linear_atXY(X,Y,0,0)),
+                      v = (float)(W._linear_atXY(X,Y,0,1));
+                    if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)_linear_atXY(X,Y,0,c); ++S; }
+                    else {
+                      const float coef = (float)std::exp(-l*l/fsigma2);
+                      cimg_forC(*this,c) val[c]+=(Tfloat)(coef*_linear_atXY(X,Y,0,c));
+                      S+=coef;
+                    }
+                    X+=u; Y+=v;
+                  }
+                } break;
+                default : { // 2nd-order Runge-kutta interpolation
+                  for (float l = 0; l<length && X>=0 && X<=dx1 && Y>=0 && Y<=dy1; l+=dl) {
+                    const float
+                      u0 = (float)(0.5f*W._linear_atXY(X,Y,0,0)),
+                      v0 = (float)(0.5f*W._linear_atXY(X,Y,0,1)),
+                      u = (float)(W._linear_atXY(X + u0,Y + v0,0,0)),
+                      v = (float)(W._linear_atXY(X + u0,Y + v0,0,1));
+                    if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)_linear_atXY(X,Y,0,c); ++S; }
+                    else {
+                      const float coef = (float)std::exp(-l*l/fsigma2);
+                      cimg_forC(*this,c) val[c]+=(Tfloat)(coef*_linear_atXY(X,Y,0,c));
+                      S+=coef;
+                    }
+                    X+=u; Y+=v;
+                  }
+                }
+                }
+                Tfloat *ptrd = res.data(x,y);
+                if (S>0) cimg_forC(res,c) { *ptrd+=val[c]/S; ptrd+=whd; }
+                else cimg_forC(res,c) { *ptrd+=(Tfloat)((*this)(x,y,0,c)); ptrd+=whd; }
+              }
+            }
+          }
+        }
+        const Tfloat *ptrs = res._data;
+        cimg_for(*this,ptrd,T) {
+          const Tfloat val = *(ptrs++)/N;
+          *ptrd = val<val_min?val_min:(val>val_max?val_max:(T)val);
+        }
+      }
+      return *this;
+    }
+
+    //! Blur image anisotropically, directed by a field of diffusion tensors \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_blur_anisotropic(const CImg<t>& G,
+                                      const float amplitude=60, const float dl=0.8f, const float da=30,
+                                      const float gauss_prec=2, const unsigned int interpolation_type=0,
+                                      const bool is_fast_approx=true) const {
+      return CImg<Tfloat>(*this,false).blur_anisotropic(G,amplitude,dl,da,gauss_prec,interpolation_type,is_fast_approx);
+    }
+
+    //! Blur image anisotropically, in an edge-preserving way.
+    /**
+       \param amplitude Amplitude of the smoothing.
+       \param sharpness Sharpness.
+       \param anisotropy Anisotropy.
+       \param alpha Standard deviation of the gradient blur.
+       \param sigma Standard deviation of the structure tensor blur.
+       \param dl Spatial discretization.
+       \param da Angular discretization.
+       \param gauss_prec Precision of the diffusion process.
+       \param interpolation_type Interpolation scheme.
+         Can be <tt>{ 0=nearest-neighbor | 1=linear | 2=Runge-Kutta }</tt>.
+       \param is_fast_approx Tells if a fast approximation of the gaussian function is used or not.
+     **/
+    CImg<T>& blur_anisotropic(const float amplitude, const float sharpness=0.7f, const float anisotropy=0.6f,
+                              const float alpha=0.6f, const float sigma=1.1f, const float dl=0.8f, const float da=30,
+                              const float gauss_prec=2, const unsigned int interpolation_type=0,
+                              const bool is_fast_approx=true) {
+      return blur_anisotropic(get_diffusion_tensors(sharpness,anisotropy,alpha,sigma,interpolation_type!=3),
+                              amplitude,dl,da,gauss_prec,interpolation_type,is_fast_approx);
+    }
+
+    //! Blur image anisotropically, in an edge-preserving way \newinstance.
+    CImg<Tfloat> get_blur_anisotropic(const float amplitude, const float sharpness=0.7f, const float anisotropy=0.6f,
+                                      const float alpha=0.6f, const float sigma=1.1f, const float dl=0.8f,
+                                      const float da=30, const float gauss_prec=2,
+                                   
