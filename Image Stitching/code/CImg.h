@@ -31561,4 +31561,147 @@ namespace cimg_library_suffixed {
     //! Blur image with a box filter \newinstance.
     CImg<Tfloat> get_blur_box(const float boxsize_x, const float boxsize_y, const float boxsize_z,
                               const bool boundary_conditions=true) const {
-      return CImg<Tfloat>(*this,false).
+      return CImg<Tfloat>(*this,false).blur_box(boxsize_x,boxsize_y,boxsize_z,boundary_conditions);
+    }
+
+    //! Blur image with a box filter.
+    /**
+       \param boxsize Size of the box window (can be subpixel).
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.a
+       \see deriche(), vanvliet().
+    **/
+    CImg<T>& blur_box(const float boxsize, const bool boundary_conditions=true) {
+      const float nboxsize = boxsize>=0?boxsize:-boxsize*cimg::max(_width,_height,_depth)/100;
+      return blur_box(nboxsize,nboxsize,nboxsize,boundary_conditions);
+    }
+
+    //! Blur image with a box filter \newinstance.
+    CImg<Tfloat> get_blur_box(const float boxsize, const bool boundary_conditions=true) const {
+      return CImg<Tfloat>(*this,false).blur_box(boxsize,boundary_conditions);
+    }
+
+    //! Blur image, with the image guided filter.
+    /**
+       \param guide Image used to guide the smoothing process.
+       \param radius Spatial radius.
+       \param regularization Regularization parameter.
+
+       \note This method implements the filtering algorithm described in:
+       He, Kaiming; Sun, Jian; Tang, Xiaoou, "Guided Image Filtering," Pattern Analysis and Machine Intelligence,
+       IEEE Transactions on , vol.35, no.6, pp.1397,1409, June 2013
+    **/
+    template<typename t>
+    CImg<T>& blur_guided(const CImg<t>& guide, const float radius, const float regularization) {
+      return get_blur_guided(guide,radius,regularization).move_to(*this);
+    }
+
+    //! Blur image, with the image guided filter \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_blur_guided(const CImg<t>& guide, const float radius, const float regularization) const {
+      if (!is_sameXYZ(guide))
+        throw CImgArgumentException(_cimg_instance
+                                    "blur_guided(): Invalid size for specified guide image (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    guide._width,guide._height,guide._depth,guide._spectrum,guide._data);
+      if (is_empty() || !radius) return *this;
+      const int _radius = radius>=0?(int)radius:(int)(-radius*cimg::max(_width,_height,_depth)/100);
+      const unsigned int psize = (unsigned int)(1 + 2*_radius);
+      const CImg<uintT> N = CImg<uintT>(_width,_height,_depth,1,1)._blur_guided(psize);
+      CImg<Tfloat>
+        mean_I = CImg<Tfloat>(guide,false)._blur_guided(psize).div(N),
+        mean_p = CImg<Tfloat>(*this,false)._blur_guided(psize).div(N),
+        cov_Ip = CImg<Tfloat>(*this,false).mul(guide)._blur_guided(psize).div(N)-=mean_p.get_mul(mean_I),
+        var_I = CImg<Tfloat>(guide,false).sqr()._blur_guided(psize).div(N)-=mean_I.get_sqr(),
+        &a = cov_Ip.div(var_I+=regularization),
+        &b = mean_p-=a.get_mul(mean_I);
+      a._blur_guided(psize).div(N);
+      b._blur_guided(psize).div(N);
+      return a.mul(guide)+=b;
+    }
+
+    // [internal] Perform box filter with dirichlet boundary conditions.
+    CImg<T>& _blur_guided(const unsigned int psize) {
+      const int p1 = (int)psize/2, p2 = (int)psize - p1;
+      if (_depth!=1) {
+        CImg<floatT> cumul = get_cumulate('z'), cumul2 = cumul.get_shift(0,0,p2,0,1);
+        (cumul.shift(0,0,-p1,0,1)-=cumul2).move_to(*this);
+      }
+      if (_height!=1) {
+        CImg<floatT> cumul = get_cumulate('y'), cumul2 = cumul.get_shift(0,p2,0,0,1);
+        (cumul.shift(0,-p1,0,0,1)-=cumul2).move_to(*this);
+      }
+      if (_width!=1) {
+        CImg<floatT> cumul = get_cumulate('x'), cumul2 = cumul.get_shift(p2,0,0,0,1);
+        (cumul.shift(-p1,0,0,0,1)-=cumul2).move_to(*this);
+      }
+      return *this;
+    }
+
+    //! Blur image using patch-based space.
+    /**
+       \param sigma_s Amount of blur along the XYZ-axes.
+       \param sigma_p Amount of blur along the value axis.
+       \param patch_size Size of the patchs.
+       \param lookup_size Size of the window to search similar patchs.
+       \param smoothness Smoothness for the patch comparison.
+       \param is_fast_approx Tells if a fast approximation of the gaussian function is used or not.
+    **/
+    CImg<T>& blur_patch(const float sigma_s, const float sigma_p, const unsigned int patch_size=3,
+                        const unsigned int lookup_size=4, const float smoothness=0, const bool is_fast_approx=true) {
+      if (is_empty() || !patch_size || !lookup_size) return *this;
+      return get_blur_patch(sigma_s,sigma_p,patch_size,lookup_size,smoothness,is_fast_approx).move_to(*this);
+    }
+
+    //! Blur image using patch-based space \newinstance.
+    CImg<Tfloat> get_blur_patch(const float sigma_s, const float sigma_p, const unsigned int patch_size=3,
+                                const unsigned int lookup_size=4, const float smoothness=0,
+                                const bool is_fast_approx=true) const {
+
+#define _cimg_blur_patch3d_fast(N) \
+      cimg_for##N##XYZ(res,x,y,z) { \
+        T *pP = P._data; cimg_forC(res,c) { cimg_get##N##x##N##x##N(img,x,y,z,c,pP,T); pP+=N3; } \
+        const int x0 = x - rsize1, y0 = y - rsize1, z0 = z - rsize1, \
+          x1 = x + rsize2, y1 = y + rsize2, z1 = z + rsize2; \
+        float sum_weights = 0; \
+        cimg_for_in##N##XYZ(res,x0,y0,z0,x1,y1,z1,p,q,r) if (cimg::abs(img(x,y,z,0) - img(p,q,r,0))<sigma_p3) { \
+          T *pQ = Q._data; cimg_forC(res,c) { cimg_get##N##x##N##x##N(img,p,q,r,c,pQ,T); pQ+=N3; } \
+          float distance2 = 0; \
+          pQ = Q._data; cimg_for(P,pP,T) { const float dI = (float)*pP - (float)*(pQ++); distance2+=dI*dI; } \
+          distance2/=Pnorm; \
+          const float dx = (float)p - x, dy = (float)q - y, dz = (float)r - z, \
+            alldist = distance2 + (dx*dx + dy*dy + dz*dz)/sigma_s2, weight = alldist>3?0.0f:1.0f; \
+          sum_weights+=weight; \
+          cimg_forC(res,c) res(x,y,z,c)+=weight*(*this)(p,q,r,c); \
+        } \
+        if (sum_weights>0) cimg_forC(res,c) res(x,y,z,c)/=sum_weights; \
+        else cimg_forC(res,c) res(x,y,z,c) = (Tfloat)((*this)(x,y,z,c)); \
+    }
+
+#define _cimg_blur_patch3d(N) \
+      cimg_for##N##XYZ(res,x,y,z) { \
+        T *pP = P._data; cimg_forC(res,c) { cimg_get##N##x##N##x##N(img,x,y,z,c,pP,T); pP+=N3; } \
+        const int x0 = x - rsize1, y0 = y - rsize1, z0 = z - rsize1, \
+          x1 = x + rsize2, y1 = y + rsize2, z1 = z + rsize2; \
+        float sum_weights = 0, weight_max = 0; \
+        cimg_for_in##N##XYZ(res,x0,y0,z0,x1,y1,z1,p,q,r) if (p!=x || q!=y || r!=z) { \
+          T *pQ = Q._data; cimg_forC(res,c) { cimg_get##N##x##N##x##N(img,p,q,r,c,pQ,T); pQ+=N3; } \
+          float distance2 = 0; \
+          pQ = Q._data; cimg_for(P,pP,T) { const float dI = (float)*pP - (float)*(pQ++); distance2+=dI*dI; } \
+          distance2/=Pnorm; \
+          const float dx = (float)p - x, dy = (float)q - y, dz = (float)r - z, \
+            alldist = distance2 + (dx*dx + dy*dy + dz*dz)/sigma_s2, weight = (float)std::exp(-alldist); \
+          if (weight>weight_max) weight_max = weight; \
+          sum_weights+=weight; \
+          cimg_forC(res,c) res(x,y,z,c)+=weight*(*this)(p,q,r,c); \
+        } \
+        sum_weights+=weight_max; cimg_forC(res,c) res(x,y,z,c)+=weight_max*(*this)(x,y,z,c); \
+        if (sum_weights>0) cimg_forC(res,c) res(x,y,z,c)/=sum_weights; \
+        else cimg_forC(res,c) res(x,y,z,c) = (Tfloat)((*this)(x,y,z,c)); \
+      }
+
+#define _cimg_blur_patch2d_fast(N) \
+        cimg_for##N##XY(res,x,y) { \
+          T *pP = P._data; cimg_forC(res,c) { cimg_get##N##x##N(img,x,y,0,c,pP,T); pP+=N2; } \
+          const int x0 = x - rsize1, y0 = y - rsize1, x1 = x + rsize2, y1 = y + rsize2; \
+          float sum_weights = 0; \
+         
