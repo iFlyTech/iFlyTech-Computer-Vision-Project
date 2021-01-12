@@ -31827,4 +31827,146 @@ namespace cimg_library_suffixed {
                 sum_weights+=weight;
                 cimg_forC(res,c) res(x,y,c)+=weight*(*this)(p,q,c);
               }
-              if (sum_weights>0) cimg_forC(res,c) res(x,y,c
+              if (sum_weights>0) cimg_forC(res,c) res(x,y,c)/=sum_weights;
+              else cimg_forC(res,c) res(x,y,c) = (Tfloat)((*this)(x,y,c));
+            } else
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=32 && res._height>=4) firstprivate(P,Q)
+#endif
+            cimg_forXY(res,x,y) { // 2d exact algorithm.
+              P = img.get_crop(x - psize1,y - psize1,x + psize2,y + psize2,true);
+              const int x0 = x - rsize1, y0 = y - rsize1, x1 = x + rsize2, y1 = y + rsize2;
+              float sum_weights = 0, weight_max = 0;
+              cimg_for_inXY(res,x0,y0,x1,y1,p,q) if (p!=x || q!=y) {
+                (Q = img.get_crop(p - psize1,q - psize1,p + psize2,q + psize2,true))-=P;
+                const float
+                  dx = (float)x - p, dy = (float)y - q,
+                  distance2 = (float)(Q.pow(2).sum()/Pnorm + (dx*dx + dy*dy)/sigma_s2),
+                  weight = (float)std::exp(-distance2);
+                if (weight>weight_max) weight_max = weight;
+                sum_weights+=weight;
+                cimg_forC(res,c) res(x,y,c)+=weight*(*this)(p,q,c);
+              }
+              sum_weights+=weight_max; cimg_forC(res,c) res(x,y,c)+=weight_max*(*this)(x,y,c);
+              if (sum_weights>0) cimg_forC(res,c) res(x,y,c)/=sum_weights;
+              else cimg_forC(res,c) res(x,y,0,c) = (Tfloat)((*this)(x,y,c));
+            }
+        }
+        }
+      return res;
+    }
+
+    //! Blur image with the median filter.
+    /**
+       \param n Size of the median filter.
+       \param threshold Threshold used to discard pixels too far from the current pixel value in the median computation.
+    **/
+    CImg<T>& blur_median(const unsigned int n, const float threshold=0) {
+      if (!n) return *this;
+      return get_blur_median(n,threshold).move_to(*this);
+    }
+
+    //! Blur image with the median filter \newinstance.
+    CImg<T> get_blur_median(const unsigned int n, const float threshold=0) const {
+      if (is_empty() || n<=1) return +*this;
+      CImg<T> res(_width,_height,_depth,_spectrum);
+      T *ptrd = res._data;
+      cimg::unused(ptrd);
+      const int hl = (int)n/2, hr = hl - 1 + (int)n%2;
+      if (res._depth!=1) { // 3d
+        if (threshold>0)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=16 && _height*_depth*_spectrum>=4)
+#endif
+          cimg_forXYZC(*this,x,y,z,c) { // With threshold.
+            const int
+              x0 = x - hl, y0 = y - hl, z0 = z - hl, x1 = x + hr, y1 = y + hr, z1 = z + hr,
+              nx0 = x0<0?0:x0, ny0 = y0<0?0:y0, nz0 = z0<0?0:z0,
+              nx1 = x1>=width()?width() - 1:x1, ny1 = y1>=height()?height() - 1:y1, nz1 = z1>=depth()?depth() - 1:z1;
+            const float val0 = (float)(*this)(x,y,z,c);
+            CImg<T> values(n*n*n);
+            unsigned int nb_values = 0;
+            T *ptrd = values.data();
+            cimg_for_inXYZ(*this,nx0,ny0,nz0,nx1,ny1,nz1,p,q,r)
+              if (cimg::abs((float)(*this)(p,q,r,c)-val0)<=threshold) { *(ptrd++) = (*this)(p,q,r,c); ++nb_values; }
+            res(x,y,z,c) = values.get_shared_points(0,nb_values - 1).median();
+          }
+        else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=16 && _height*_depth*_spectrum>=4)
+#endif
+          cimg_forXYZC(*this,x,y,z,c) { // Without threshold.
+            const int
+              x0 = x - hl, y0 = y - hl, z0 = z - hl, x1 = x + hr, y1 = y + hr, z1 = z + hr,
+              nx0 = x0<0?0:x0, ny0 = y0<0?0:y0, nz0 = z0<0?0:z0,
+              nx1 = x1>=width()?width() - 1:x1, ny1 = y1>=height()?height() - 1:y1, nz1 = z1>=depth()?depth() - 1:z1;
+            res(x,y,z,c) = get_crop(nx0,ny0,nz0,c,nx1,ny1,nz1,c).median();
+          }
+      } else {
+#define _cimg_median_sort(a,b) if ((a)>(b)) cimg::swap(a,b)
+        if (res._height!=1) { // 2d
+          if (threshold>0)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=16 && _height*_spectrum>=4)
+#endif
+            cimg_forXYC(*this,x,y,c) { // With threshold.
+              const int
+                x0 = x - hl, y0 = y - hl, x1 = x + hr, y1 = y + hr,
+                nx0 = x0<0?0:x0, ny0 = y0<0?0:y0,
+                                          nx1 = x1>=width()?width() - 1:x1, ny1 = y1>=height()?height() - 1:y1;
+              const float val0 = (float)(*this)(x,y,c);
+              CImg<T> values(n*n);
+              unsigned int nb_values = 0;
+              T *ptrd = values.data();
+              cimg_for_inXY(*this,nx0,ny0,nx1,ny1,p,q)
+                if (cimg::abs((float)(*this)(p,q,c)-val0)<=threshold) { *(ptrd++) = (*this)(p,q,c); ++nb_values; }
+              res(x,y,c) = values.get_shared_points(0,nb_values - 1).median();
+            }
+          else switch (n) { // Without threshold.
+            case 3 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                T I[9] = { 0 };
+                CImg_3x3(J,T);
+                cimg_for3x3(*this,x,y,0,c,I,T) {
+                  std::memcpy(J,I,9*sizeof(T));
+                  _cimg_median_sort(Jcp, Jnp); _cimg_median_sort(Jcc, Jnc); _cimg_median_sort(Jcn, Jnn);
+                  _cimg_median_sort(Jpp, Jcp); _cimg_median_sort(Jpc, Jcc); _cimg_median_sort(Jpn, Jcn);
+                  _cimg_median_sort(Jcp, Jnp); _cimg_median_sort(Jcc, Jnc); _cimg_median_sort(Jcn, Jnn);
+                  _cimg_median_sort(Jpp, Jpc); _cimg_median_sort(Jnc, Jnn); _cimg_median_sort(Jcc, Jcn);
+                  _cimg_median_sort(Jpc, Jpn); _cimg_median_sort(Jcp, Jcc); _cimg_median_sort(Jnp, Jnc);
+                  _cimg_median_sort(Jcc, Jcn); _cimg_median_sort(Jcc, Jnp); _cimg_median_sort(Jpn, Jcc);
+                  _cimg_median_sort(Jcc, Jnp);
+                  res(x,y,c) = Jcc;
+                }
+              }
+            } break;
+            case 5 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                T I[25] = { 0 };
+                CImg_5x5(J,T);
+                cimg_for5x5(*this,x,y,0,c,I,T) {
+                  std::memcpy(J,I,25*sizeof(T));
+                  _cimg_median_sort(Jbb,Jpb); _cimg_median_sort(Jnb,Jab); _cimg_median_sort(Jcb,Jab);
+                  _cimg_median_sort(Jcb,Jnb); _cimg_median_sort(Jpp,Jcp); _cimg_median_sort(Jbp,Jcp);
+                  _cimg_median_sort(Jbp,Jpp); _cimg_median_sort(Jap,Jbc); _cimg_median_sort(Jnp,Jbc);
+                  _cimg_median_sort(Jnp,Jap); _cimg_median_sort(Jcc,Jnc); _cimg_median_sort(Jpc,Jnc);
+                  _cimg_median_sort(Jpc,Jcc); _cimg_median_sort(Jbn,Jpn); _cimg_median_sort(Jac,Jpn);
+                  _cimg_median_sort(Jac,Jbn); _cimg_median_sort(Jnn,Jan); _cimg_median_sort(Jcn,Jan);
+                  _cimg_median_sort(Jcn,Jnn); _cimg_median_sort(Jpa,Jca); _cimg_median_sort(Jba,Jca);
+                  _cimg_median_sort(Jba,Jpa); _cimg_median_sort(Jna,Jaa); _cimg_median_sort(Jcb,Jbp);
+                  _cimg_median_sort(Jnb,Jpp); _cimg_median_sort(Jbb,Jpp); _cimg_median_sort(Jbb,Jnb);
+                  _cimg_median_sort(Jab,Jcp); _cimg_median_sort(Jpb,Jcp); _cimg_median_sort(Jpb,Jab);
+                  _cimg_median_sort(Jpc,Jac); _cimg_median_sort(Jnp,Jac); _cimg_median_sort(Jnp,Jpc);
+                  _cimg_median_sort(Jcc,Jbn); _cimg_median_sort(Jap,Jbn); _cimg_median_sort(Jap,Jcc);
+                  _cimg_median_sort(Jnc,Jpn); _cimg_median_sort(Jbc,Jpn); _cimg_median_sort(Jbc,Jnc);
+                  _cimg_median_sort(Jba,Jna); _cimg_median_sort(Jcn,Jna); _cimg_median_sort(Jcn,Jba);
+                  _cimg_median_sort(Jpa,Jaa); _cimg_median_sort(Jnn,Jaa); _cimg_median_sort(Jnn,Jpa);
+                  _cimg_median_sort(Jan,Jca); _cimg_median_sort(Jnp,Jcn); _cimg_median_sort(Jap,Jnn);
+                  _cimg_median_sort(Jbb,Jnn); _cimg_median_sort(Jbb,Jap); _cimg_median_sort(Jbc,Jan);
+                  _cimg_median_sort(Jpb,Jan); _cimg_median_sort
