@@ -32694,4 +32694,152 @@ namespace cimg_library_suffixed {
               wx = vec(2,0), wy = vec(2,1), wz = vec(2,2),
               n1 = (float)std::pow(1 + l1 + l2 + l3,-power1),
               n2 = (float)std::pow(1 + l1 + l2 + l3,-power2);
-            *(ptrd0++) = n1*(u
+            *(ptrd0++) = n1*(ux*ux + vx*vx) + n2*wx*wx;
+            *(ptrd1++) = n1*(ux*uy + vx*vy) + n2*wx*wy;
+            *(ptrd2++) = n1*(ux*uz + vx*vz) + n2*wx*wz;
+            *(ptrd3++) = n1*(uy*uy + vy*vy) + n2*wy*wy;
+            *(ptrd4++) = n1*(uy*uz + vy*vz) + n2*wy*wz;
+            *(ptrd5++) = n1*(uz*uz + vz*vz) + n2*wz*wz;
+          }
+        }
+      } else { // for 2d images
+        get_structure_tensors().move_to(res).blur(sigma);
+#ifdef cimg_use_openmp
+#pragma omp parallel for if(_width>=256 && _height>=256)
+#endif
+        cimg_forY(*this,y) {
+          Tfloat *ptrd0 = res.data(0,y,0,0), *ptrd1 = res.data(0,y,0,1), *ptrd2 = res.data(0,y,0,2);
+          CImg<floatT> val(2), vec(2,2);
+          cimg_forX(*this,x) {
+            res.get_tensor_at(x,y).symmetric_eigen(val,vec);
+            const float
+              _l1 = val[1], _l2 = val[0],
+              l1 = _l1>0?_l1:0, l2 = _l2>0?_l2:0,
+              ux = vec(1,0), uy = vec(1,1),
+              vx = vec(0,0), vy = vec(0,1),
+              n1 = (float)std::pow(1 + l1 + l2,-power1),
+              n2 = (float)std::pow(1 + l1 + l2,-power2);
+            *(ptrd0++) = n1*ux*ux + n2*vx*vx;
+            *(ptrd1++) = n1*ux*uy + n2*vx*vy;
+            *(ptrd2++) = n1*uy*uy + n2*vy*vy;
+          }
+        }
+      }
+      return res.move_to(*this);
+    }
+
+    //! Compute field of diffusion tensors for edge-preserving smoothing \newinstance.
+    CImg<Tfloat> get_diffusion_tensors(const float sharpness=0.7f, const float anisotropy=0.6f,
+                                       const float alpha=0.6f, const float sigma=1.1f, const bool is_sqrt=false) const {
+      return CImg<Tfloat>(*this,false).diffusion_tensors(sharpness,anisotropy,alpha,sigma,is_sqrt);
+    }
+
+    //! Estimate displacement field between two images.
+    /**
+       \param source Reference image.
+       \param smoothness Smoothness of estimated displacement field.
+       \param precision Precision required for algorithm convergence.
+       \param nb_scales Number of scales used to estimate the displacement field.
+       \param iteration_max Maximum number of iterations allowed for one scale.
+       \param is_backward If false, match I2(X + U(X)) = I1(X), else match I2(X) = I1(X - U(X)).
+       \param guide Image used as the initial correspondence estimate for the algorithm.
+       'guide' may have a last channel with boolean values (0=false | other=true) that
+       tells for each pixel if its correspondence vector is constrained to its initial value (constraint mask).
+    **/
+    CImg<T>& displacement(const CImg<T>& source, const float smoothness=0.1f, const float precision=5.0f,
+                          const unsigned int nb_scales=0, const unsigned int iteration_max=10000,
+                          const bool is_backward=false,
+                          const CImg<floatT>& guide=CImg<floatT>::const_empty()) {
+      return get_displacement(source,smoothness,precision,nb_scales,iteration_max,is_backward,guide).
+        move_to(*this);
+    }
+
+    //! Estimate displacement field between two images \newinstance.
+    CImg<floatT> get_displacement(const CImg<T>& source,
+                                  const float smoothness=0.1f, const float precision=5.0f,
+                                  const unsigned int nb_scales=0, const unsigned int iteration_max=10000,
+                                  const bool is_backward=false,
+                                  const CImg<floatT>& guide=CImg<floatT>::const_empty()) const {
+      if (is_empty() || !source) return +*this;
+      if (!is_sameXYZC(source))
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Instance and source image (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    source._width,source._height,source._depth,source._spectrum,source._data);
+      if (precision<0)
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Invalid specified precision %g "
+                                    "(should be >=0)",
+                                    cimg_instance,
+                                    precision);
+
+      const bool is_3d = source._depth>1;
+      const unsigned int constraint = is_3d?3:2;
+
+      if (guide &&
+          (guide._width!=_width || guide._height!=_height || guide._depth!=_depth || guide._spectrum<constraint))
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Specified guide (%u,%u,%u,%u,%p) "
+                                    "has invalid dimensions.",
+                                    cimg_instance,
+                                    guide._width,guide._height,guide._depth,guide._spectrum,guide._data);
+
+      const unsigned int
+        mins = is_3d?cimg::min(_width,_height,_depth):cimg::min(_width,_height),
+        _nb_scales = nb_scales>0?nb_scales:
+        (unsigned int)cimg::round(std::log(mins/8.0)/std::log(1.5),1,1);
+
+      const float _precision = (float)std::pow(10.0,-(double)precision);
+      float sm, sM = source.max_min(sm), tm, tM = max_min(tm);
+      const float sdelta = sm==sM?1:(sM - sm), tdelta = tm==tM?1:(tM - tm);
+
+      CImg<floatT> U, V;
+      floatT bound = 0;
+      for (int scale = (int)_nb_scales - 1; scale>=0; --scale) {
+        const float factor = (float)std::pow(1.5,(double)scale);
+        const unsigned int
+          _sw = (unsigned int)(_width/factor), sw = _sw?_sw:1,
+          _sh = (unsigned int)(_height/factor), sh = _sh?_sh:1,
+          _sd = (unsigned int)(_depth/factor), sd = _sd?_sd:1;
+        if (sw<5 && sh<5 && (!is_3d || sd<5)) continue;  // skip too small scales.
+        const CImg<Tfloat>
+          I1 = (source.get_resize(sw,sh,sd,-100,2)-=sm)/=sdelta,
+          I2 = (get_resize(I1,2)-=tm)/=tdelta;
+        if (guide._spectrum>constraint) guide.get_resize(I2._width,I2._height,I2._depth,-100,1).move_to(V);
+        if (U) (U*=1.5f).resize(I2._width,I2._height,I2._depth,-100,3);
+        else {
+          if (guide)
+            guide.get_shared_channels(0,is_3d?2:1).get_resize(I2._width,I2._height,I2._depth,-100,2).move_to(U);
+          else U.assign(I2._width,I2._height,I2._depth,is_3d?3:2,0);
+        }
+
+        float dt = 2, energy = cimg::type<float>::max();
+        const CImgList<Tfloat> dI = is_backward?I1.get_gradient():I2.get_gradient();
+
+        for (unsigned int iteration = 0; iteration<iteration_max; ++iteration) {
+          cimg_test_abort();
+          float _energy = 0;
+
+          if (is_3d) { // 3d version.
+            if (smoothness>=0) // Isotropic regularization.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_height*_depth>=8 && _width>=16) reduction(+:_energy)
+#endif
+              cimg_forYZ(U,y,z) {
+                const int
+                  _p1y = y?y - 1:0, _n1y = y<U.height() - 1?y + 1:y,
+                  _p1z = z?z - 1:0, _n1z = z<U.depth() - 1?z + 1:z;
+                cimg_for3X(U,x) {
+                  const float
+                    X = is_backward?x - U(x,y,z,0):x + U(x,y,z,0),
+                    Y = is_backward?y - U(x,y,z,1):y + U(x,y,z,1),
+                    Z = is_backward?z - U(x,y,z,2):z + U(x,y,z,2);
+                  float delta_I = 0, _energy_regul = 0;
+                  if (is_backward) cimg_forC(I2,c) delta_I+=(float)(I1.linear_atXYZ(X,Y,Z,c) - I2(x,y,z,c));
+                  else cimg_forC(I2,c) delta_I+=(float)(I1(x,y,z,c) - I2.linear_atXYZ(X,Y,Z,c));
+                  cimg_forC(U,c) {
+                    const float
+                      Ux = 0.5f*(U(_n1x,y,z,c) - U(_p1x,y,z,c)),
+                      Uy = 0.5f*(U(x,_n1y,z,c) - U(x,_p1y,z,c)),
+                      Uz = 0.5f*(U(x,y,_n1z,c) - U(x,y,_p1z,c
