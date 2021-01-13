@@ -32134,4 +32134,195 @@ namespace cimg_library_suffixed {
             cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
               const Tfloat veloc = -Ipcc - Incc - Icpc - Icnc - Iccp - Iccn + 6*Iccc;
               *(ptrd++) = veloc;
-              if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) v
+              if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+            }
+            _veloc_max[c] = veloc_max;
+          }
+      } else { // 2d.
+        if (sharpen_type) { // Shock filters.
+          CImg<Tfloat> G = (alpha>0?get_blur(alpha).get_structure_tensors():get_structure_tensors());
+          if (sigma>0) G.blur(sigma);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width>=32 && _height>=16)
+#endif
+          cimg_forY(G,y) {
+            CImg<Tfloat> val, vec;
+            Tfloat *ptrG0 = G.data(0,y,0,0), *ptrG1 = G.data(0,y,0,1), *ptrG2 = G.data(0,y,0,2);
+            cimg_forX(G,x) {
+              G.get_tensor_at(x,y).symmetric_eigen(val,vec);
+              if (val[0]<0) val[0] = 0;
+              if (val[1]<0) val[1] = 0;
+              *(ptrG0++) = vec(0,0);
+              *(ptrG1++) = vec(0,1);
+              *(ptrG2++) = 1 - (Tfloat)std::pow(1 + val[0] + val[1],-(Tfloat)nedge);
+            }
+          }
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height>=512 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            Tfloat *ptrd = velocity.data(0,0,0,c), veloc_max = 0;
+            CImg_3x3(I,Tfloat);
+            cimg_for3x3(*this,x,y,0,c,I,Tfloat) {
+              const Tfloat
+                u = G(x,y,0),
+                v = G(x,y,1),
+                amp = G(x,y,2),
+                ixx = Inc + Ipc - 2*Icc,
+                ixy = (Inn + Ipp - Inp - Ipn)/4,
+                iyy = Icn + Icp - 2*Icc,
+                ixf = Inc - Icc,
+                ixb = Icc - Ipc,
+                iyf = Icn - Icc,
+                iyb = Icc - Icp,
+                itt = u*u*ixx + v*v*iyy + 2*u*v*ixy,
+                it = u*cimg::minmod(ixf,ixb) + v*cimg::minmod(iyf,iyb),
+                veloc = -amp*cimg::sign(itt)*cimg::abs(it);
+              *(ptrd++) = veloc;
+              if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+            }
+            _veloc_max[c] = veloc_max;
+          }
+        } else // Inverse diffusion.
+          cimg_forC(*this,c) {
+            Tfloat *ptrd = velocity.data(0,0,0,c), veloc_max = 0;
+            CImg_3x3(I,Tfloat);
+            cimg_for3x3(*this,x,y,0,c,I,Tfloat) {
+              const Tfloat veloc = -Ipc - Inc - Icp - Icn + 4*Icc;
+              *(ptrd++) = veloc;
+              if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+            }
+            _veloc_max[c] = veloc_max;
+          }
+      }
+      const Tfloat veloc_max = _veloc_max.max();
+      if (veloc_max<=0) return *this;
+      return ((velocity*=amplitude/veloc_max)+=*this).cut(val_min,val_max).move_to(*this);
+    }
+
+    //! Sharpen image \newinstance.
+    CImg<T> get_sharpen(const float amplitude, const bool sharpen_type=false, const float edge=1,
+                        const float alpha=0, const float sigma=0) const {
+      return (+*this).sharpen(amplitude,sharpen_type,edge,alpha,sigma);
+    }
+
+    //! Return image gradient.
+    /**
+       \param axes Axes considered for the gradient computation, as a C-string (e.g "xy").
+       \param scheme = Numerical scheme used for the gradient computation:
+       - -1 = Backward finite differences
+       - 0 = Centered finite differences
+       - 1 = Forward finite differences
+       - 2 = Using Sobel masks
+       - 3 = Using rotation invariant masks
+       - 4 = Using Deriche recusrsive filter.
+       - 5 = Using Van Vliet recusrsive filter.
+    **/
+    CImgList<Tfloat> get_gradient(const char *const axes=0, const int scheme=3) const {
+      CImgList<Tfloat> grad(2,_width,_height,_depth,_spectrum);
+      bool is_3d = false;
+      if (axes) {
+        for (unsigned int a = 0; axes[a]; ++a) {
+          const char axis = cimg::uncase(axes[a]);
+          switch (axis) {
+          case 'x' : case 'y' : break;
+          case 'z' : is_3d = true; break;
+          default :
+            throw CImgArgumentException(_cimg_instance
+                                        "get_gradient(): Invalid specified axis '%c'.",
+                                        cimg_instance,
+                                        axis);
+          }
+        }
+      } else is_3d = (_depth>1);
+      if (is_3d) {
+        CImg<Tfloat>(_width,_height,_depth,_spectrum).move_to(grad);
+        switch (scheme) { // 3d.
+        case -1 : { // Backward finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            const ulongT off = (ulongT)c*_width*_height*_depth;
+            Tfloat *ptrd0 = grad[0]._data + off, *ptrd1 = grad[1]._data + off, *ptrd2 = grad[2]._data + off;
+            CImg_3x3x3(I,Tfloat);
+            cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
+              *(ptrd0++) = Iccc - Ipcc;
+              *(ptrd1++) = Iccc - Icpc;
+              *(ptrd2++) = Iccc - Iccp;
+            }
+          }
+        } break;
+        case 1 : { // Forward finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            const ulongT off = (ulongT)c*_width*_height*_depth;
+            Tfloat *ptrd0 = grad[0]._data + off, *ptrd1 = grad[1]._data + off, *ptrd2 = grad[2]._data + off;
+            CImg_2x2x2(I,Tfloat);
+            cimg_for2x2x2(*this,x,y,z,c,I,Tfloat) {
+              *(ptrd0++) = Incc - Iccc;
+              *(ptrd1++) = Icnc - Iccc;
+              *(ptrd2++) = Iccn - Iccc;
+            }
+          }
+        } break;
+        case 4 : { // Deriche filter with low standard variation.
+          grad[0] = get_deriche(0,1,'x');
+          grad[1] = get_deriche(0,1,'y');
+          grad[2] = get_deriche(0,1,'z');
+        } break;
+        case 5 : { // Van Vliet filter with low standard variation.
+          grad[0] = get_vanvliet(0,1,'x');
+          grad[1] = get_vanvliet(0,1,'y');
+          grad[2] = get_vanvliet(0,1,'z');
+        } break;
+        default : { // Central finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            const ulongT off = (ulongT)c*_width*_height*_depth;
+            Tfloat *ptrd0 = grad[0]._data + off, *ptrd1 = grad[1]._data + off, *ptrd2 = grad[2]._data + off;
+            CImg_3x3x3(I,Tfloat);
+            cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
+              *(ptrd0++) = (Incc - Ipcc)/2;
+              *(ptrd1++) = (Icnc - Icpc)/2;
+              *(ptrd2++) = (Iccn - Iccp)/2;
+            }
+          }
+        }
+        }
+      } else switch (scheme) { // 2d.
+      case -1 : { // Backward finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+        cimg_forZC(*this,z,c) {
+          const ulongT off = (ulongT)c*_width*_height*_depth + z*_width*_height;
+          Tfloat *ptrd0 = grad[0]._data + off, *ptrd1 = grad[1]._data + off;
+          CImg_3x3(I,Tfloat);
+          cimg_for3x3(*this,x,y,z,c,I,Tfloat) {
+            *(ptrd0++) = Icc - Ipc;
+            *(ptrd1++) = Icc - Icp;
+          }
+        }
+      } break;
+      case 1 : { // Forward finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+        cimg_forZC(*this,z,c) {
+          const ulongT off = (ulongT)c*_width*_height*_depth + z*_width*_height;
+          Tfloat *ptrd0 = grad[0]._data + off, *ptrd1 = grad[1]._data + off;
+          CImg_2x2(I,Tfloat);
+          cimg_for2x2(*this,x,y,z,c,I,Tfloat) {
+            *(ptrd0++) = Inc - Icc;
+            *(ptrd1++) = Icn - Icc;
+          }
+        }
+      } break;
+      case 2 : { // Sobel scheme.
+#ifdef cimg_use_openmp
+#pragma omp paralle
