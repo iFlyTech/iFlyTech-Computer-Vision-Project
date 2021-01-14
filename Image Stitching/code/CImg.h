@@ -32842,4 +32842,132 @@ namespace cimg_library_suffixed {
                     const float
                       Ux = 0.5f*(U(_n1x,y,z,c) - U(_p1x,y,z,c)),
                       Uy = 0.5f*(U(x,_n1y,z,c) - U(x,_p1y,z,c)),
-                      Uz = 0.5f*(U(x,y,_n1z,c) - U(x,y,_p1z,c
+                      Uz = 0.5f*(U(x,y,_n1z,c) - U(x,y,_p1z,c)),
+                      Uxx = U(_n1x,y,z,c) + U(_p1x,y,z,c),
+                      Uyy = U(x,_n1y,z,c) + U(x,_p1y,z,c),
+                      Uzz = U(x,y,_n1z,c) + U(x,y,_p1z,c);
+                    U(x,y,z,c) = (float)(U(x,y,z,c) + dt*(delta_I*dI[c].linear_atXYZ(X,Y,Z) +
+                                                          smoothness* ( Uxx + Uyy + Uzz)))/(1 + 6*smoothness*dt);
+                    _energy_regul+=Ux*Ux + Uy*Uy + Uz*Uz;
+                  }
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,z,0)>x) U(x,y,z,0) = (float)x;
+                    if (U(x,y,z,1)>y) U(x,y,z,1) = (float)y;
+                    if (U(x,y,z,2)>z) U(x,y,z,2) = (float)z;
+                    bound = (float)x - _width; if (U(x,y,z,0)<=bound) U(x,y,z,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,z,1)<=bound) U(x,y,z,1) = bound;
+                    bound = (float)z - _depth; if (U(x,y,z,2)<=bound) U(x,y,z,2) = bound;
+                  } else {
+                    if (U(x,y,z,0)<-x) U(x,y,z,0) = -(float)x;
+                    if (U(x,y,z,1)<-y) U(x,y,z,1) = -(float)y;
+                    if (U(x,y,z,2)<-z) U(x,y,z,2) = -(float)z;
+                    bound = (float)_width - x; if (U(x,y,z,0)>=bound) U(x,y,z,0) = bound;
+                    bound = (float)_height - y; if (U(x,y,z,1)>=bound) U(x,y,z,1) = bound;
+                    bound = (float)_depth - z; if (U(x,y,z,2)>=bound) U(x,y,z,2) = bound;
+                  }
+                  _energy+=delta_I*delta_I + smoothness*_energy_regul;
+                }
+                if (V) cimg_forXYZ(V,x,y,z) if (V(x,y,z,3)) { // Apply constraints.
+                    U(x,y,z,0) = V(x,y,z,0)/factor;
+                    U(x,y,z,1) = V(x,y,z,1)/factor;
+                    U(x,y,z,2) = V(x,y,z,2)/factor;
+                  }
+              } else { // Anisotropic regularization.
+              const float nsmoothness = -smoothness;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_height*_depth>=8 && _width>=16) reduction(+:_energy)
+#endif
+              cimg_forYZ(U,y,z) {
+                const int
+                  _p1y = y?y - 1:0, _n1y = y<U.height() - 1?y + 1:y,
+                  _p1z = z?z - 1:0, _n1z = z<U.depth() - 1?z + 1:z;
+                cimg_for3X(U,x) {
+                  const float
+                    X = is_backward?x - U(x,y,z,0):x + U(x,y,z,0),
+                    Y = is_backward?y - U(x,y,z,1):y + U(x,y,z,1),
+                    Z = is_backward?z - U(x,y,z,2):z + U(x,y,z,2);
+                  float delta_I = 0, _energy_regul = 0;
+                  if (is_backward) cimg_forC(I2,c) delta_I+=(float)(I1.linear_atXYZ(X,Y,Z,c) - I2(x,y,z,c));
+                  else cimg_forC(I2,c) delta_I+=(float)(I1(x,y,z,c) - I2.linear_atXYZ(X,Y,Z,c));
+                  cimg_forC(U,c) {
+                    const float
+                      Ux = 0.5f*(U(_n1x,y,z,c) - U(_p1x,y,z,c)),
+                      Uy = 0.5f*(U(x,_n1y,z,c) - U(x,_p1y,z,c)),
+                      Uz = 0.5f*(U(x,y,_n1z,c) - U(x,y,_p1z,c)),
+                      N2 = Ux*Ux + Uy*Uy + Uz*Uz,
+                      N = std::sqrt(N2),
+                      N3 = 1e-5f + N2*N,
+                      coef_a = (1 - Ux*Ux/N2)/N,
+                      coef_b = -2*Ux*Uy/N3,
+                      coef_c = -2*Ux*Uz/N3,
+                      coef_d = (1 - Uy*Uy/N2)/N,
+                      coef_e = -2*Uy*Uz/N3,
+                      coef_f = (1 - Uz*Uz/N2)/N,
+                      Uxx = U(_n1x,y,z,c) + U(_p1x,y,z,c),
+                      Uyy = U(x,_n1y,z,c) + U(x,_p1y,z,c),
+                      Uzz = U(x,y,_n1z,c) + U(x,y,_p1z,c),
+                      Uxy = 0.25f*(U(_n1x,_n1y,z,c) + U(_p1x,_p1y,z,c) - U(_n1x,_p1y,z,c) - U(_n1x,_p1y,z,c)),
+                      Uxz = 0.25f*(U(_n1x,y,_n1z,c) + U(_p1x,y,_p1z,c) - U(_n1x,y,_p1z,c) - U(_n1x,y,_p1z,c)),
+                      Uyz = 0.25f*(U(x,_n1y,_n1z,c) + U(x,_p1y,_p1z,c) - U(x,_n1y,_p1z,c) - U(x,_n1y,_p1z,c));
+                    U(x,y,z,c) = (float)(U(x,y,z,c) + dt*(delta_I*dI[c].linear_atXYZ(X,Y,Z) +
+                                                          nsmoothness* ( coef_a*Uxx + coef_b*Uxy +
+                                                                         coef_c*Uxz + coef_d*Uyy +
+                                                                         coef_e*Uyz + coef_f*Uzz ))
+                                         )/(1 + 2*(coef_a + coef_d + coef_f)*nsmoothness*dt);
+                    _energy_regul+=N;
+                  }
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,z,0)>x) U(x,y,z,0) = (float)x;
+                    if (U(x,y,z,1)>y) U(x,y,z,1) = (float)y;
+                    if (U(x,y,z,2)>z) U(x,y,z,2) = (float)z;
+                    bound = (float)x - _width; if (U(x,y,z,0)<=bound) U(x,y,z,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,z,1)<=bound) U(x,y,z,1) = bound;
+                    bound = (float)z - _depth; if (U(x,y,z,2)<=bound) U(x,y,z,2) = bound;
+                  } else {
+                    if (U(x,y,z,0)<-x) U(x,y,z,0) = -(float)x;
+                    if (U(x,y,z,1)<-y) U(x,y,z,1) = -(float)y;
+                    if (U(x,y,z,2)<-z) U(x,y,z,2) = -(float)z;
+                    bound = (float)_width - x; if (U(x,y,z,0)>=bound) U(x,y,z,0) = bound;
+                    bound = (float)_height - y; if (U(x,y,z,1)>=bound) U(x,y,z,1) = bound;
+                    bound = (float)_depth - z; if (U(x,y,z,2)>=bound) U(x,y,z,2) = bound;
+                  }
+                  _energy+=delta_I*delta_I + nsmoothness*_energy_regul;
+                }
+                if (V) cimg_forXYZ(V,x,y,z) if (V(x,y,z,3)) { // Apply constraints.
+                    U(x,y,z,0) = V(x,y,z,0)/factor;
+                    U(x,y,z,1) = V(x,y,z,1)/factor;
+                    U(x,y,z,2) = V(x,y,z,2)/factor;
+                  }
+              }
+            }
+          } else { // 2d version.
+            if (smoothness>=0) // Isotropic regularization.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_height>=8 && _width>=16) reduction(+:_energy)
+#endif
+              cimg_forY(U,y) {
+                const int _p1y = y?y - 1:0, _n1y = y<U.height() - 1?y + 1:y;
+                cimg_for3X(U,x) {
+                  const float
+                    X = is_backward?x - U(x,y,0):x + U(x,y,0),
+                    Y = is_backward?y - U(x,y,1):y + U(x,y,1);
+                  float delta_I = 0, _energy_regul = 0;
+                  if (is_backward) cimg_forC(I2,c) delta_I+=(float)(I1.linear_atXY(X,Y,c) - I2(x,y,c));
+                  else cimg_forC(I2,c) delta_I+=(float)(I1(x,y,c) - I2.linear_atXY(X,Y,c));
+                  cimg_forC(U,c) {
+                    const float
+                      Ux = 0.5f*(U(_n1x,y,c) - U(_p1x,y,c)),
+                      Uy = 0.5f*(U(x,_n1y,c) - U(x,_p1y,c)),
+                      Uxx = U(_n1x,y,c) + U(_p1x,y,c),
+                      Uyy = U(x,_n1y,c) + U(x,_p1y,c);
+                    U(x,y,c) = (float)(U(x,y,c) + dt*(delta_I*dI[c].linear_atXY(X,Y) +
+                                                      smoothness*( Uxx + Uyy )))/(1 + 4*smoothness*dt);
+                    _energy_regul+=Ux*Ux + Uy*Uy;
+                  }
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,0)>x) U(x,y,0) = (float)x;
+                    if (U(x,y,1)>y) U(x,y,1) = (float)y;
+                    bound = (float)x - _width; if (U(x,y,0)<=bound) U(x,y,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,1)<=bound) U(x,y,1) = bound;
+                  } else {
+                    if (U(x,y,0
