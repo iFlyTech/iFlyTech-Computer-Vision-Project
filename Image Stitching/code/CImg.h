@@ -33534,4 +33534,177 @@ namespace cimg_library_suffixed {
       if (cimg::type<Tint>::string()!=cimg::type<T>::string()) // For datatype < int.
         return CImg<Tint>(*this,false).distance((Tint)value,metric).
           cut((Tint)cimg::type<T>::min(),(Tint)cimg::type<T>::max()).move_to(*this);
-      bool is_value =
+      bool is_value = false;
+      cimg_for(*this,ptr,T) *ptr = *ptr==value?is_value=true,0:(T)cimg::max(0,99999999); // Trick to avoid VC++ warning
+      if (!is_value) return fill(cimg::type<T>::max());
+      switch (metric) {
+      case 0 : return _distance_core(_distance_sep_cdt,_distance_dist_cdt);          // Chebyshev.
+      case 1 : return _distance_core(_distance_sep_mdt,_distance_dist_mdt);          // Manhattan.
+      case 3 : return _distance_core(_distance_sep_edt,_distance_dist_edt);          // Squared Euclidean.
+      default : return _distance_core(_distance_sep_edt,_distance_dist_edt).sqrt();  // Euclidean.
+      }
+      return *this;
+    }
+
+    //! Compute distance to a specified value \newinstance.
+    CImg<Tfloat> get_distance(const T& value, const unsigned int metric=2) const {
+      return CImg<Tfloat>(*this,false).distance((Tfloat)value,metric);
+    }
+
+    static longT _distance_sep_edt(const longT i, const longT u, const longT *const g) {
+      return (u*u - i*i + g[u] - g[i])/(2*(u - i));
+    }
+
+    static longT _distance_dist_edt(const longT x, const longT i, const longT *const g) {
+      return (x - i)*(x - i) + g[i];
+    }
+
+    static longT _distance_sep_mdt(const longT i, const longT u, const longT *const g) {
+      return (u - i<=g[u] - g[i]?999999999:(g[u] - g[i] + u + i)/2);
+    }
+
+    static longT _distance_dist_mdt(const longT x, const longT i, const longT *const g) {
+      return (x<i?i - x:x - i) + g[i];
+    }
+
+    static longT _distance_sep_cdt(const longT i, const longT u, const longT *const g) {
+      const longT h = (i + u)/2;
+      if (g[i]<=g[u]) { return h<i + g[u]?i + g[u]:h; }
+      return h<u - g[i]?h:u - g[i];
+    }
+
+    static longT _distance_dist_cdt(const longT x, const longT i, const longT *const g) {
+      const longT d = x<i?i - x:x - i;
+      return d<g[i]?g[i]:d;
+    }
+
+    static void _distance_scan(const unsigned int len,
+                               const longT *const g,
+                               longT (*const sep)(const longT, const longT, const longT *const),
+                               longT (*const f)(const longT, const longT, const longT *const),
+                               longT *const s,
+                               longT *const t,
+                               longT *const dt) {
+      longT q = s[0] = t[0] = 0;
+      for (int u = 1; u<(int)len; ++u) { // Forward scan.
+        while ((q>=0) && f(t[q],s[q],g)>f(t[q],u,g)) { --q; }
+        if (q<0) { q = 0; s[0] = u; }
+        else { const longT w = 1 + sep(s[q], u, g); if (w<(longT)len) { ++q; s[q] = u; t[q] = w; }}
+      }
+      for (int u = (int)len - 1; u>=0; --u) { dt[u] = f(u,s[q],g); if (u==t[q]) --q; } // Backward scan.
+    }
+
+    CImg<T>& _distance_core(longT (*const sep)(const longT, const longT, const longT *const),
+                            longT (*const f)(const longT, const longT, const longT *const)) {
+ // Check for g++ 4.9.X, as OpenMP seems to crash for this particular function. I have no clues why.
+#define cimg_is_gcc49x (__GNUC__==4 && __GNUC_MINOR__==9)
+
+      const ulongT wh = (ulongT)_width*_height;
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+      cimg_forC(*this,c) {
+        CImg<longT> g(_width), dt(_width), s(_width), t(_width);
+        CImg<T> img = get_shared_channel(c);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16) firstprivate(g,dt,s,t)
+#endif
+        cimg_forYZ(*this,y,z) { // Over X-direction.
+          cimg_forX(*this,x) g[x] = (longT)img(x,y,z,0,wh);
+          _distance_scan(_width,g,sep,f,s,t,dt);
+          cimg_forX(*this,x) img(x,y,z,0,wh) = (T)dt[x];
+        }
+        if (_height>1) {
+          g.assign(_height); dt.assign(_height); s.assign(_height); t.assign(_height);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_height>=512 && _width*_depth>=16) firstprivate(g,dt,s,t)
+#endif
+          cimg_forXZ(*this,x,z) { // Over Y-direction.
+            cimg_forY(*this,y) g[y] = (longT)img(x,y,z,0,wh);
+            _distance_scan(_height,g,sep,f,s,t,dt);
+            cimg_forY(*this,y) img(x,y,z,0,wh) = (T)dt[y];
+          }
+        }
+        if (_depth>1) {
+          g.assign(_depth); dt.assign(_depth); s.assign(_depth); t.assign(_depth);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_depth>=512 && _width*_height>=16) firstprivate(g,dt,s,t)
+#endif
+          cimg_forXY(*this,x,y) { // Over Z-direction.
+            cimg_forZ(*this,z) g[z] = (longT)img(x,y,z,0,wh);
+            _distance_scan(_depth,g,sep,f,s,t,dt);
+            cimg_forZ(*this,z) img(x,y,z,0,wh) = (T)dt[z];
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Compute chamfer distance to a specified value, with a custom metric.
+    /**
+       \param value Reference value.
+       \param metric_mask Metric mask.
+       \note The algorithm code has been initially proposed by A. Meijster, and modified by D. Tschumperlé.
+    **/
+    template<typename t>
+    CImg<T>& distance(const T& value, const CImg<t>& metric_mask) {
+      if (is_empty()) return *this;
+      bool is_value = false;
+      cimg_for(*this,ptr,T) *ptr = *ptr==value?is_value=true,0:(T)999999999;
+      if (!is_value) return fill(cimg::type<T>::max());
+      const ulongT wh = (ulongT)_width*_height;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+      cimg_forC(*this,c) {
+        CImg<T> img = get_shared_channel(c);
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=1024)
+#endif
+        cimg_forXYZ(metric_mask,dx,dy,dz) {
+          const t weight = metric_mask(dx,dy,dz);
+          if (weight) {
+            for (int z = dz, nz = 0; z<depth(); ++z,++nz) { // Forward scan.
+              for (int y = dy , ny = 0; y<height(); ++y,++ny) {
+                for (int x = dx, nx = 0; x<width(); ++x,++nx) {
+                  const T dd = img(nx,ny,nz,0,wh) + weight;
+                  if (dd<img(x,y,z,0,wh)) img(x,y,z,0,wh) = dd;
+                }
+              }
+            }
+            for (int z = depth() - 1 - dz, nz = depth() - 1; z>=0; --z,--nz) { // Backward scan.
+              for (int y = height() - 1 - dy, ny = height() - 1; y>=0; --y,--ny) {
+                for (int x = width() - 1 - dx, nx = width() - 1; x>=0; --x,--nx) {
+                  const T dd = img(nx,ny,nz,0,wh) + weight;
+                  if (dd<img(x,y,z,0,wh)) img(x,y,z,0,wh) = dd;
+                }
+              }
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Compute chamfer distance to a specified value, with a custom metric \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_distance(const T& value, const CImg<t>& metric_mask) const {
+      return CImg<Tfloat>(*this,false).distance(value,metric_mask);
+    }
+
+    //! Compute distance to a specified value, according to a custom metric (use dijkstra algorithm).
+    /**
+       \param value Reference value.
+       \param metric Field of distance potentials.
+       \param is_high_connectivity Tells if the algorithm uses low or high connectivity.
+     **/
+    template<typename t, typename to>
+    CImg<T>& distance_dijkstra(const T& value, const CImg<t>& metric, const bool is_high_connectivity,
+                               CImg<to>& return_path) {
+      return get_distance_dijkstra(value,metric,is_high_connectivity,return_path).move_to(*this);
+    }
+
+    //! Compute distance map to a specified value, according to a custom metric (use dijkstra algorithm) \newinstance.
+    template<typename t, typename to>
+    CImg<typename cimg::superset<t,long>::type>
+    get_distance_dijkstra(const T& value, const CImg<t>& m
