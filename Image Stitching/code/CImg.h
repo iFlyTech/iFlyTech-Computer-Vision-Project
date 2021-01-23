@@ -34473,4 +34473,173 @@ namespace cimg_library_suffixed {
           fftw_execute(data_plan);
           const unsigned int fact = real._depth;
           if (is_invert)
-            cimg_forZ(real,z) { ptrr-=off; 
+            cimg_forZ(real,z) { ptrr-=off; ptri-=off; *ptri = (T)(*(--ptrd)/fact); *ptrr = (T)(*(--ptrd)/fact); }
+          else cimg_forZ(real,z) { ptrr-=off; ptri-=off; *ptri = (T)*(--ptrd); *ptrr = (T)*(--ptrd); }
+        }
+      } break;
+      default :
+        throw CImgArgumentException("CImgList<%s>::FFT(): Invalid specified axis '%c' for real and imaginary parts "
+                                    "(%u,%u,%u,%u) "
+                                    "(should be { x | y | z }).",
+                                    pixel_type(),axis,
+                                    real._width,real._height,real._depth,real._spectrum);
+      }
+      fftw_destroy_plan(data_plan);
+      fftw_free(data_in);
+      cimg::mutex(12,0);
+#else
+      switch (cimg::uncase(axis)) {
+      case 'x' : { // Fourier along X, using built-in functions.
+        const unsigned int N = real._width, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the X-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forYZC(real,y,z,c) {
+              cimg::swap(real(i,y,z,c),real(j,y,z,c));
+              cimg::swap(imag(i,y,z,c),imag(j,y,z,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(ri,y,z,c),real(rj,y,z,c));
+                cimg::swap(imag(ri,y,z,c),imag(rj,y,z,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = delta>>1;
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forYZC(real,y,z,c) {
+                T &ir = real(j,y,z,c), &ii = imag(j,y,z,c), &nir = real(nj,y,z,c), &nii = imag(nj,y,z,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      case 'y' : { // Fourier along Y, using built-in functions.
+        const unsigned int N = real._height, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the Y-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forXZC(real,x,z,c) {
+              cimg::swap(real(x,i,z,c),real(x,j,z,c));
+              cimg::swap(imag(x,i,z,c),imag(x,j,z,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(x,ri,z,c),real(x,rj,z,c));
+                cimg::swap(imag(x,ri,z,c),imag(x,rj,z,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = (delta>>1);
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forXZC(real,x,z,c) {
+                T &ir = real(x,j,z,c), &ii = imag(x,j,z,c), &nir = real(x,nj,z,c), &nii = imag(x,nj,z,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      case 'z' : { // Fourier along Z, using built-in functions.
+        const unsigned int N = real._depth, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the Z-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forXYC(real,x,y,c) {
+              cimg::swap(real(x,y,i,c),real(x,y,j,c));
+              cimg::swap(imag(x,y,i,c),imag(x,y,j,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(x,y,ri,c),real(x,y,rj,c));
+                cimg::swap(imag(x,y,ri,c),imag(x,y,rj,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = (delta>>1);
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forXYC(real,x,y,c) {
+                T &ir = real(x,y,j,c), &ii = imag(x,y,j,c), &nir = real(x,y,nj,c), &nii = imag(x,y,nj,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      default :
+        throw CImgArgumentException("CImgList<%s>::FFT(): Invalid specified axis '%c' for real and imaginary parts "
+                                    "(%u,%u,%u,%u) "
+                                    "(should be { x | y | z }).",
+                                    pixel_type(),axis,
+                                    real._width,real._height,real._depth,real._spectrum);
+      }
+#endif
+    }
+
+    //! Compute n-d Fast Fourier Transform.
+    /**
+       \param[in,out] real Real part of the pixel values.
+       \param[in,out] imag Imaginary part of the pixel values.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+       \param nb_threads Number of parallel threads u
