@@ -34642,4 +34642,171 @@ namespace cimg_library_suffixed {
        \param[in,out] real Real part of the pixel values.
        \param[in,out] imag Imaginary part of the pixel values.
        \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
-       \param nb_threads Number of parallel threads u
+       \param nb_threads Number of parallel threads used for the computation.
+         Use \c 0 to set this to the number of available cpus.
+    **/
+    static void FFT(CImg<T>& real, CImg<T>& imag, const bool is_invert=false, const unsigned int nb_threads=0) {
+      if (!real)
+        throw CImgInstanceException("CImgList<%s>::FFT(): Empty specified real part.",
+                                    pixel_type());
+
+      if (!imag) imag.assign(real._width,real._height,real._depth,real._spectrum,0);
+      if (!real.is_sameXYZC(imag))
+        throw CImgInstanceException("CImgList<%s>::FFT(): Specified real part (%u,%u,%u,%u,%p) and "
+                                    "imaginary part (%u,%u,%u,%u,%p) have different dimensions.",
+                                    pixel_type(),
+                                    real._width,real._height,real._depth,real._spectrum,real._data,
+                                    imag._width,imag._height,imag._depth,imag._spectrum,imag._data);
+
+#ifdef cimg_use_fftw3
+      cimg::mutex(12);
+#ifndef cimg_use_fftw3_singlethread
+      const unsigned int _nb_threads = nb_threads?nb_threads:cimg::nb_cpus();
+      static int fftw_st = fftw_init_threads();
+      cimg::unused(fftw_st);
+      fftw_plan_with_nthreads(_nb_threads);
+#else
+      cimg::unused(nb_threads);
+#endif
+      fftw_complex *data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*real._width*real._height*real._depth);
+      if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                "for computing FFT of image (%u,%u,%u,%u).",
+                                                pixel_type(),
+                                                cimg::strbuffersize(sizeof(fftw_complex)*real._width*
+                                                                    real._height*real._depth*real._spectrum),
+                                                real._width,real._height,real._depth,real._spectrum);
+
+      fftw_plan data_plan;
+      const ulongT w = (ulongT)real._width, wh = w*real._height, whd = wh*real._depth;
+      data_plan = fftw_plan_dft_3d(real._width,real._height,real._depth,data_in,data_in,
+                                   is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+      cimg_forC(real,c) {
+        T *ptrr = real.data(0,0,0,c), *ptri = imag.data(0,0,0,c);
+        double *ptrd = (double*)data_in;
+        for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *(ptrd++) = (double)*ptrr; *(ptrd++) = (double)*ptri;
+            }
+        fftw_execute(data_plan);
+        ptrd = (double*)data_in;
+        ptrr = real.data(0,0,0,c);
+        ptri = imag.data(0,0,0,c);
+        if (!is_invert) for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)*(ptrd++); *ptri = (T)*(ptrd++);
+            }
+        else for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)(*(ptrd++)/whd); *ptri = (T)(*(ptrd++)/whd);
+            }
+      }
+      fftw_destroy_plan(data_plan);
+      fftw_free(data_in);
+#ifndef cimg_use_fftw3_singlethread
+      fftw_cleanup_threads();
+#endif
+      cimg::mutex(12,0);
+#else
+      cimg::unused(nb_threads);
+      if (real._depth>1) FFT(real,imag,'z',is_invert);
+      if (real._height>1) FFT(real,imag,'y',is_invert);
+      if (real._width>1) FFT(real,imag,'x',is_invert);
+#endif
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name 3d Objects Management
+    //@{
+    //-------------------------------------
+
+    //! Shift 3d object's vertices.
+    /**
+       \param tx X-coordinate of the 3d displacement vector.
+       \param ty Y-coordinate of the 3d displacement vector.
+       \param tz Z-coordinate of the 3d displacement vector.
+    **/
+    CImg<T>& shift_object3d(const float tx, const float ty=0, const float tz=0) {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      get_shared_row(0)+=tx; get_shared_row(1)+=ty; get_shared_row(2)+=tz;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices \newinstance.
+    CImg<Tfloat> get_shift_object3d(const float tx, const float ty=0, const float tz=0) const {
+      return CImg<Tfloat>(*this,false).shift_object3d(tx,ty,tz);
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered.
+    /**
+       \note The object center is computed as its barycenter.
+    **/
+    CImg<T>& shift_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      xcoords-=(xm + xM)/2; ycoords-=(ym + yM)/2; zcoords-=(zm + zM)/2;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered \newinstance.
+    CImg<Tfloat> get_shift_object3d() const {
+      return CImg<Tfloat>(*this,false).shift_object3d();
+    }
+
+    //! Resize 3d object.
+    /**
+       \param sx Width of the 3d object's bounding box.
+       \param sy Height of the 3d object's bounding box.
+       \param sz Depth of the 3d object's bounding box.
+    **/
+    CImg<T>& resize_object3d(const float sx, const float sy=-100, const float sz=-100) {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      if (xm<xM) { if (sx>0) xcoords*=sx/(xM-xm); else xcoords*=-sx/100; }
+      if (ym<yM) { if (sy>0) ycoords*=sy/(yM-ym); else ycoords*=-sy/100; }
+      if (zm<zM) { if (sz>0) zcoords*=sz/(zM-zm); else zcoords*=-sz/100; }
+      return *this;
+    }
+
+    //! Resize 3d object \newinstance.
+    CImg<Tfloat> get_resize_object3d(const float sx, const float sy=-100, const float sz=-100) const {
+      return CImg<Tfloat>(*this,false).resize_object3d(sx,sy,sz);
+    }
+
+    //! Resize 3d object to unit size.
+    CImg<T> resize_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      const f
