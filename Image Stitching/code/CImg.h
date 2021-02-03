@@ -34809,4 +34809,159 @@ namespace cimg_library_suffixed {
         xm, xM = (float)xcoords.max_min(xm),
         ym, yM = (float)ycoords.max_min(ym),
         zm, zM = (float)zcoords.max_min(zm);
-      const f
+      const float dx = xM - xm, dy = yM - ym, dz = zM - zm, dmax = cimg::max(dx,dy,dz);
+      if (dmax>0) { xcoords/=dmax; ycoords/=dmax; zcoords/=dmax; }
+      return *this;
+    }
+
+    //! Resize 3d object to unit size \newinstance.
+    CImg<Tfloat> get_resize_object3d() const {
+      return CImg<Tfloat>(*this,false).resize_object3d();
+    }
+
+    //! Merge two 3d objects together.
+    /**
+       \param[in,out] primitives Primitives data of the current 3d object.
+       \param obj_vertices Vertices data of the additional 3d object.
+       \param obj_primitives Primitives data of the additional 3d object.
+    **/
+    template<typename tf, typename tp, typename tff>
+    CImg<T>& append_object3d(CImgList<tf>& primitives, const CImg<tp>& obj_vertices,
+                             const CImgList<tff>& obj_primitives) {
+      if (!obj_vertices || !obj_primitives) return *this;
+      if (obj_vertices._height!=3 || obj_vertices._depth>1 || obj_vertices._spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Specified vertice image (%u,%u,%u,%u,%p) is not a "
+                                    "set of 3d vertices.",
+                                    cimg_instance,
+                                    obj_vertices._width,obj_vertices._height,
+                                    obj_vertices._depth,obj_vertices._spectrum,obj_vertices._data);
+
+      if (is_empty()) { primitives.assign(obj_primitives); return assign(obj_vertices); }
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      const unsigned int P = _width;
+      append(obj_vertices,'x');
+      const unsigned int N = primitives._width;
+      primitives.insert(obj_primitives);
+      for (unsigned int i = N; i<primitives._width; ++i) {
+        CImg<tf> &p = primitives[i];
+        switch (p.size()) {
+        case 1 : p[0]+=P; break; // Point.
+        case 5 : p[0]+=P; p[1]+=P; break; // Sphere.
+        case 2 : case 6 : p[0]+=P; p[1]+=P; break; // Segment.
+        case 3 : case 9 : p[0]+=P; p[1]+=P; p[2]+=P; break; // Triangle.
+        case 4 : case 12 : p[0]+=P; p[1]+=P; p[2]+=P; p[3]+=P; break; // Rectangle.
+        }
+      }
+      return *this;
+    }
+
+    //! Texturize primitives of a 3d object.
+    /**
+       \param[in,out] primitives Primitives data of the 3d object.
+       \param[in,out] colors Colors data of the 3d object.
+       \param texture Texture image to map to 3d object.
+       \param coords Texture-mapping coordinates.
+    **/
+    template<typename tp, typename tc, typename tt, typename tx>
+    const CImg<T>& texturize_object3d(CImgList<tp>& primitives, CImgList<tc>& colors,
+                                      const CImg<tt>& texture, const CImg<tx>& coords=CImg<tx>::const_empty()) const {
+      if (is_empty()) return *this;
+      if (_height!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "texturize_object3d(): image instance is not a set of 3d points.",
+                                    cimg_instance);
+      if (coords && (coords._width!=_width || coords._height!=2))
+        throw CImgArgumentException(_cimg_instance
+                                    "texturize_object3d(): Invalid specified texture coordinates (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    coords._width,coords._height,coords._depth,coords._spectrum,coords._data);
+      CImg<intT> _coords;
+      if (!coords) { // If no texture coordinates specified, do a default XY-projection.
+        _coords.assign(_width,2);
+        float
+          xmin, xmax = (float)get_shared_row(0).max_min(xmin),
+          ymin, ymax = (float)get_shared_row(1).max_min(ymin),
+          dx = xmax>xmin?xmax-xmin:1,
+          dy = ymax>ymin?ymax-ymin:1;
+        cimg_forX(*this,p) {
+          _coords(p,0) = (int)(((*this)(p,0) - xmin)*texture._width/dx);
+          _coords(p,1) = (int)(((*this)(p,1) - ymin)*texture._height/dy);
+        }
+      } else _coords = coords;
+
+      int texture_ind = -1;
+      cimglist_for(primitives,l) {
+        CImg<tp> &p = primitives[l];
+        const unsigned int siz = p.size();
+        switch (siz) {
+        case 1 : { // Point.
+          const unsigned int i0 = (unsigned int)p[0];
+          const int x0 = _coords(i0,0), y0 = _coords(i0,1);
+          texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                y0<=0?0:y0>=texture.height()?texture.height() - 1:y0).move_to(colors[l]);
+        } break;
+        case 2 : case 6 : { // Line.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,x0,y0,x1,y1).move_to(p);
+        } break;
+        case 3 : case 9 : { // Triangle.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,x0,y0,x1,y1,x2,y2).move_to(p);
+        } break;
+        case 4 : case 12 : { // Quadrangle.
+          const unsigned int
+            i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2], i3 = (unsigned int)p[3];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1),
+            x3 = _coords(i3,0), y3 = _coords(i3,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,i3,x0,y0,x1,y1,x2,y2,x3,y3).move_to(p);
+        } break;
+        }
+      }
+      return *this;
+    }
+
+    //! Generate a 3d elevation of the image instance.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param[out] colors The returned list of the 3d object colors.
+       \param elevation The input elevation map.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       CImgList<unsigned char> colors3d;
+       const CImg<float> points3d = img.get_elevation3d(faces3d,colors3d,img.get_norm()*0.2);
+       CImg<unsigned char>().display_object3d("Elevation3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_elevation3d.jpg
+    **/
+    template<typename tf, typename tc, typename te>
+    CImg<floatT> get_elevation3d(CImgList<tf>& primitives, CImgList<tc>& colors, const CImg<te>& elevation) const {
+      if (!is_sameXY(elevation) || elevation._depth>1 || elevation._spectrum>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "get_elevation3d(): Instance and specified elevation (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_insta
