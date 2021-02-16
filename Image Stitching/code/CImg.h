@@ -34964,4 +34964,149 @@ namespace cimg_library_suffixed {
         throw CImgArgumentException(_cimg_instance
                                     "get_elevation3d(): Instance and specified elevation (%u,%u,%u,%u,%p) "
                                     "have incompatible dimensions.",
-                                    cimg_insta
+                                    cimg_instance,
+                                    elevation._width,elevation._height,elevation._depth,
+                                    elevation._spectrum,elevation._data);
+      if (is_empty()) return *this;
+      float m, M = (float)max_min(m);
+      if (M==m) ++M;
+      colors.assign();
+      const unsigned int size_x1 = _width - 1, size_y1 = _height - 1;
+      for (unsigned int y = 0; y<size_y1; ++y)
+        for (unsigned int x = 0; x<size_x1; ++x) {
+          const unsigned char
+            r = (unsigned char)(((*this)(x,y,0) - m)*255/(M-m)),
+            g = (unsigned char)(_spectrum>1?((*this)(x,y,1) - m)*255/(M-m):r),
+            b = (unsigned char)(_spectrum>2?((*this)(x,y,2) - m)*255/(M-m):_spectrum>1?0:r);
+          CImg<tc>::vector((tc)r,(tc)g,(tc)b).move_to(colors);
+        }
+      const typename CImg<te>::_functor2d_int func(elevation);
+      return elevation3d(primitives,func,0,0,_width - 1.0f,_height - 1.0f,_width,_height);
+    }
+
+    //! Generate the 3d projection planes of the image instance.
+    /**
+       \param[out] primitives Primitives data of the returned 3d object.
+       \param[out] colors Colors data of the returned 3d object.
+       \param x0 X-coordinate of the projection point.
+       \param y0 Y-coordinate of the projection point.
+       \param z0 Z-coordinate of the projection point.
+       \param normalize_colors Tells if the created textures have normalized colors.
+    **/
+    template<typename tf, typename tc>
+    CImg<floatT> get_projections3d(CImgList<tf>& primitives, CImgList<tc>& colors,
+                                   const unsigned int x0, const unsigned int y0, const unsigned int z0,
+                                   const bool normalize_colors=false) const {
+      float m = 0, M = 0, delta = 1;
+      if (normalize_colors) { m = (float)min_max(M); delta = 255/(m==M?1:M-m); }
+      const unsigned int
+        _x0 = (x0>=_width)?_width - 1:x0,
+        _y0 = (y0>=_height)?_height - 1:y0,
+        _z0 = (z0>=_depth)?_depth - 1:z0;
+      CImg<tc> img_xy, img_xz, img_yz;
+      if (normalize_colors) {
+        ((get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1)-=m)*=delta).move_to(img_xy);
+        ((get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_width,_depth,1,-100,-1).
+          move_to(img_xz);
+        ((get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_height,_depth,1,-100,-1).
+          move_to(img_yz);
+      } else {
+        get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1).move_to(img_xy);
+        get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1).resize(_width,_depth,1,-100,-1).move_to(img_xz);
+        get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).resize(_height,_depth,1,-100,-1).move_to(img_yz);
+      }
+      CImg<floatT> points(12,3,1,1,
+                          0,_width - 1,_width - 1,0,   0,_width - 1,_width - 1,0, _x0,_x0,_x0,_x0,
+                          0,0,_height - 1,_height - 1, _y0,_y0,_y0,_y0,       0,_height - 1,_height - 1,0,
+                          _z0,_z0,_z0,_z0,         0,0,_depth - 1,_depth - 1, 0,0,_depth - 1,_depth - 1);
+      primitives.assign();
+      CImg<tf>::vector(0,1,2,3,0,0,img_xy._width - 1,0,img_xy._width - 1,img_xy._height - 1,0,img_xy._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(4,5,6,7,0,0,img_xz._width - 1,0,img_xz._width - 1,img_xz._height - 1,0,img_xz._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(8,9,10,11,0,0,img_yz._width - 1,0,img_yz._width - 1,img_yz._height - 1,0,img_yz._height - 1).
+        move_to(primitives);
+      colors.assign();
+      img_xy.move_to(colors);
+      img_xz.move_to(colors);
+      img_yz.move_to(colors);
+      return points;
+    }
+
+    //! Generate a isoline of the image instance as a 3d object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param isovalue The returned list of the 3d object colors.
+       \param size_x The number of subdivisions along the X-axis.
+       \param size_y The number of subdisivions along the Y-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = img.get_isoline3d(faces3d,100);
+       CImg<unsigned char>().display_object3d("Isoline3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_isoline3d.jpg
+    **/
+    template<typename tf>
+    CImg<floatT> get_isoline3d(CImgList<tf>& primitives, const float isovalue,
+                               const int size_x=-100, const int size_y=-100) const {
+      if (_spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isoline3d(): Instance is not a scalar image.",
+                                    cimg_instance);
+      if (_depth>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isoline3d(): Instance is not a 2d image.",
+                                    cimg_instance);
+      primitives.assign();
+      if (is_empty()) return *this;
+      CImg<floatT> vertices;
+      if ((size_x==-100 && size_y==-100) || (size_x==width() && size_y==height())) {
+        const _functor2d_int func(*this);
+        vertices = isoline3d(primitives,func,isovalue,0,0,width() - 1.0f,height() - 1.0f,width(),height());
+      } else {
+        const _functor2d_float func(*this);
+        vertices = isoline3d(primitives,func,isovalue,0,0,width() - 1.0f,height() - 1.0f,size_x,size_y);
+      }
+      return vertices;
+    }
+
+    //! Generate an isosurface of the image instance as a 3d object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param isovalue The returned list of the 3d object colors.
+       \param size_x Number of subdivisions along the X-axis.
+       \param size_y Number of subdisivions along the Y-axis.
+       \param size_z Number of subdisivions along the Z-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img = CImg<unsigned char>("reference.jpg").resize(-100,-100,20);
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = img.get_isosurface3d(faces3d,100);
+       CImg<unsigned char>().display_object3d("Isosurface3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_isosurface3d.jpg
+    **/
+    template<typename tf>
+    CImg<floatT> get_isosurface3d(CImgList<tf>& primitives, const float isovalue,
+                                  const int size_x=-100, const int size_y=-100, const int size_z=-100) const {
+      if (_spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isosurface3d(): Instance is not a scalar image.",
+                                    cimg_instance);
+      primitives.assign();
+      if (is_empty()) return *this;
+      CImg<floatT> vertices;
+      if ((size_x==-100 && size_y==-100 && size_z==-100) || (size_x==width() && size_y==height() && size_z==depth())) {
+        const _functor3d_int func(*this);
+        vertices = isosurface3d(primitives,func,isovalue,0,0,0,width() - 1.0f,height() - 1.0f,depth() - 1.0f,
+                                width(),height(),depth());
+      } else {
+        const _functor3d_float func(*this);
+        vertices = isosurface3d(primitives,func,isovalue,0,0,0,width() - 1.0f,height() - 1.0f,depth() - 1.0f,
+    
