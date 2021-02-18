@@ -35626,4 +35626,182 @@ namespace cimg_library_suffixed {
           for (unsigned int xi = 0, nxi = 1; xi<nxm1; ++xi, ++nxi, X = nX, nX+=dx) {
 
             // Determine cube configuration
-  
+            const float
+              val0 = values1(xi,yi),
+              val1 = values1(nxi,yi),
+              val2 = values1(nxi,nyi),
+              val3 = values1(xi,nyi),
+              val4 = values2(xi,yi) = (float)func(X,Y,nZ),
+              val5 = values2(nxi,yi) = (float)func(nX,Y,nZ),
+              val6 = values2(nxi,nyi) = (float)func(nX,nY,nZ),
+              val7 = values2(xi,nyi) = (float)func(X,nY,nZ);
+
+            const unsigned int configuration =
+              (val0<isovalue?1U:0U)  | (val1<isovalue?2U:0U)  | (val2<isovalue?4U:0U)  | (val3<isovalue?8U:0U) |
+              (val4<isovalue?16U:0U) | (val5<isovalue?32U:0U) | (val6<isovalue?64U:0U) | (val7<isovalue?128U:0U),
+              edge = edges[configuration];
+
+            // Compute intersection vertices
+            if (edge) {
+              if ((edge&1) && indices1(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val0)*dx/(val1-val0);
+                indices1(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,Z).move_to(vertices);
+              }
+              if ((edge&2) && indices1(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val1)*dy/(val2-val1);
+                indices1(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,Z).move_to(vertices);
+              }
+              if ((edge&4) && indices1(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val3)*dx/(val2-val3);
+                indices1(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,Z).move_to(vertices);
+              }
+              if ((edge&8) && indices1(xi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val0)*dy/(val3-val0);
+                indices1(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,Z).move_to(vertices);
+              }
+              if ((edge&16) && indices2(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val4)*dx/(val5-val4);
+                indices2(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,nZ).move_to(vertices);
+              }
+              if ((edge&32) && indices2(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val5)*dy/(val6-val5);
+                indices2(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&64) && indices2(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val7)*dx/(val6-val7);
+                indices2(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,nZ).move_to(vertices);
+              }
+              if ((edge&128) && indices2(xi,yi,1)<0)  {
+                const float Yi = Y + (isovalue-val4)*dy/(val7-val4);
+                indices2(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&256) && indices1(xi,yi,2)<0) {
+                const float Zi = Z+ (isovalue-val0)*dz/(val4-val0);
+                indices1(xi,yi,2) = vertices.width();
+                CImg<floatT>::vector(X,Y,Zi).move_to(vertices);
+              }
+              if ((edge&512) && indices1(nxi,yi,2)<0)  {
+                const float Zi = Z + (isovalue-val1)*dz/(val5-val1);
+                indices1(nxi,yi,2) = vertices.width();
+                CImg<floatT>::vector(nX,Y,Zi).move_to(vertices);
+              }
+              if ((edge&1024) && indices1(nxi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val2)*dz/(val6-val2);
+                indices1(nxi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(nX,nY,Zi).move_to(vertices);
+              }
+              if ((edge&2048) && indices1(xi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val3)*dz/(val7-val3);
+                indices1(xi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(X,nY,Zi).move_to(vertices);
+              }
+
+              // Create triangles
+              for (const int *triangle = triangles[configuration]; *triangle!=-1; ) {
+                const unsigned int
+                  p0 = (unsigned int)*(triangle++),
+                  p1 = (unsigned int)*(triangle++),
+                  p2 = (unsigned int)*(triangle++);
+                const tf
+                  i0 = (tf)(_isosurface3d_indice(p0,indices1,indices2,xi,yi,nxi,nyi)),
+                  i1 = (tf)(_isosurface3d_indice(p1,indices1,indices2,xi,yi,nxi,nyi)),
+                  i2 = (tf)(_isosurface3d_indice(p2,indices1,indices2,xi,yi,nxi,nyi));
+                CImg<tf>::vector(i0,i2,i1).move_to(primitives);
+              }
+            }
+          }
+        }
+        cimg::swap(values1,values2);
+        cimg::swap(indices1,indices2);
+      }
+      return vertices>'x';
+    }
+
+    //! Compute isosurface of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> isosurface3d(CImgList<tf>& primitives, const char *const expression, const float isovalue,
+                                     const float x0, const float y0, const float z0,
+                                     const float x1, const float y1, const float z1,
+                                     const int dx=32, const int dy=32, const int dz=32) {
+      const _functor3d_expr func(expression);
+      return isosurface3d(primitives,func,isovalue,x0,y0,z0,x1,y1,z1,dx,dy,dz);
+    }
+
+    template<typename t>
+    static int _isosurface3d_indice(const unsigned int edge, const CImg<t>& indices1, const CImg<t>& indices2,
+                                    const unsigned int x, const unsigned int y,
+                                    const unsigned int nx, const unsigned int ny) {
+      switch (edge) {
+      case 0 : return indices1(x,y,0);
+      case 1 : return indices1(nx,y,1);
+      case 2 : return indices1(x,ny,0);
+      case 3 : return indices1(x,y,1);
+      case 4 : return indices2(x,y,0);
+      case 5 : return indices2(nx,y,1);
+      case 6 : return indices2(x,ny,0);
+      case 7 : return indices2(x,y,1);
+      case 8 : return indices1(x,y,2);
+      case 9 : return indices1(nx,y,2);
+      case 10 : return indices1(nx,ny,2);
+      case 11 : return indices1(x,ny,2);
+      }
+      return 0;
+    }
+
+    // Define functors for accessing image values (used in previous functions).
+    struct _functor2d_int {
+      const CImg<T>& ref;
+      _functor2d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref((int)x,(int)y);
+      }
+    };
+
+    struct _functor2d_float {
+      const CImg<T>& ref;
+      _functor2d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref._linear_atXY(x,y);
+      }
+    };
+
+    struct _functor2d_expr {
+      _cimg_math_parser *mp;
+      _functor2d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      ~_functor2d_expr() { delete mp; }
+      float operator()(const float x, const float y) const {
+        return (float)(*mp)(x,y,0,0);
+      }
+    };
+
+    struct _functor3d_int {
+      const CImg<T>& ref;
+      _functor3d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref((int)x,(int)y,(int)z);
+      }
+    };
+
+    struct _functor3d_float {
+      const CImg<T>& ref;
+      _functor3d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref._linear_atXYZ(x,y,z);
+      }
+    };
+
+    struct _functor3d_expr {
+      _cimg_math_parser *mp;
+      ~_functor3d_expr() { delete mp; }
+      _functor3d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_
