@@ -35804,4 +35804,171 @@ namespace cimg_library_suffixed {
       _cimg_math_parser *mp;
       ~_functor3d_expr() { delete mp; }
       _functor3d_expr(const char *const expr):mp(0) {
-        mp = new _cimg_
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y, const float z) const {
+        return (float)(*mp)(x,y,z,0);
+      }
+    };
+
+    struct _functor4d_int {
+      const CImg<T>& ref;
+      _functor4d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)ref((int)x,(int)y,(int)z,c);
+      }
+    };
+
+    //! Generate a 3d box object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param size_x The width of the box (dimension along the X-axis).
+       \param size_y The height of the box (dimension along the Y-axis).
+       \param size_z The depth of the box (dimension along the Z-axis).
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::box3d(faces3d,10,20,30);
+       CImg<unsigned char>().display_object3d("Box3d",points3d,faces3d);
+       \endcode
+       \image html ref_box3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> box3d(CImgList<tf>& primitives,
+                              const float size_x=200, const float size_y=100, const float size_z=100) {
+      primitives.assign(6,1,4,1,1, 0,3,2,1, 4,5,6,7, 0,1,5,4, 3,7,6,2, 0,4,7,3, 1,2,6,5);
+      return CImg<floatT>(8,3,1,1,
+                          0.,size_x,size_x,    0.,    0.,size_x,size_x,    0.,
+                          0.,    0.,size_y,size_y,    0.,    0.,size_y,size_y,
+                          0.,    0.,    0.,    0.,size_z,size_z,size_z,size_z);
+    }
+
+    //! Generate a 3d cone.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cone basis.
+       \param size_z The cone's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cone3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cone3d",points3d,faces3d);
+       \endcode
+       \image html ref_cone3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cone3d(CImgList<tf>& primitives,
+                               const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,size_z,
+                                0.,0.,0.);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0).move_to(vertices);
+      }
+      const unsigned int nbr = vertices._width - 2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + p, next = 2 + ((p + 1)%nbr);
+        CImg<tf>::vector(1,next,curr).move_to(primitives);
+        CImg<tf>::vector(0,curr,next).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d cylinder.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cylinder basis.
+       \param size_z The cylinder's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cylinder3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cylinder3d",points3d,faces3d);
+       \endcode
+       \image html ref_cylinder3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cylinder3d(CImgList<tf>& primitives,
+                                   const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,0.,
+                                0.,0.,size_z);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0.0f).move_to(vertices);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),size_z).move_to(vertices);
+      }
+      const unsigned int nbr = (vertices._width - 2)/2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + 2*p, next = 2 + (2*((p + 1)%nbr));
+        CImg<tf>::vector(0,next,curr).move_to(primitives);
+        CImg<tf>::vector(1,curr + 1,next + 1).move_to(primitives);
+        CImg<tf>::vector(curr,next,next + 1,curr + 1).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d torus.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius1 The large radius.
+       \param radius2 The small radius.
+       \param subdivisions1 The number of angular subdivisions for the large radius.
+       \param subdivisions2 The number of angular subdivisions for the small radius.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::torus3d(faces3d,20,4);
+       CImg<unsigned char>().display_object3d("Torus3d",points3d,faces3d);
+       \endcode
+       \image html ref_torus3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> torus3d(CImgList<tf>& primitives,
+                                const float radius1=100, const float radius2=30,
+                                const unsigned int subdivisions1=24, const unsigned int subdivisions2=12) {
+      primitives.assign();
+      if (!subdivisions1 || !subdivisions2) return CImg<floatT>();
+      CImgList<floatT> vertices;
+      for (unsigned int v = 0; v<subdivisions1; ++v) {
+        const float
+          beta = (float)(v*2*cimg::PI/subdivisions1),
+          xc = radius1*(float)std::cos(beta),
+          yc = radius1*(float)std::sin(beta);
+        for (unsigned int u = 0; u<subdivisions2; ++u) {
+          const float
+            alpha = (float)(u*2*cimg::PI/subdivisions2),
+            x = xc + radius2*(float)(std::cos(alpha)*std::cos(beta)),
+            y = yc + radius2*(float)(std::cos(alpha)*std::sin(beta)),
+            z = radius2*(float)std::sin(alpha);
+          CImg<floatT>::vector(x,y,z).move_to(vertices);
+        }
+      }
+      for (unsigned int vv = 0; vv<subdivisions1; ++vv) {
+        const unsigned int nv = (vv + 1)%subdivisions1;
+        for (unsigned int uu = 0; uu<subdivisions2; ++uu) {
+          const unsigned int nu = (uu + 1)%subdivisions2, svv = subdivisions2*vv, snv = subdivisions2*nv;
+          CImg<tf>::vector(svv + nu,svv + uu,snv + uu,snv + nu).move_to(primitives);
+        }
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d XY-plane.
+    /**
+       \param[out] primitives 
