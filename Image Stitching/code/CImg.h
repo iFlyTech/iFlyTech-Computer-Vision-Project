@@ -36300,4 +36300,181 @@ namespace cimg_library_suffixed {
     }
 
     //! Convert 3d object into a CImg3d representation \overloading.
-    CImg<floatT> get_object3dtoCImg3d(const bool full_check=true) con
+    CImg<floatT> get_object3dtoCImg3d(const bool full_check=true) const {
+      CImgList<T> opacities, colors;
+      CImgList<uintT> primitives(width(),1,1,1,1);
+      cimglist_for(primitives,p) primitives(p,0) = p;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert CImg3d representation into a 3d object.
+    /**
+       \param[out] primitives Primitives data of the 3d object.
+       \param[out] colors Colors data of the 3d object.
+       \param[out] opacities Opacities data of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+    **/
+    template<typename tp, typename tc, typename to>
+    CImg<T>& CImg3dtoobject3d(CImgList<tp>& primitives,
+                              CImgList<tc>& colors,
+                              CImgList<to>& opacities,
+                              const bool full_check=true) {
+      return get_CImg3dtoobject3d(primitives,colors,opacities,full_check).move_to(*this);
+    }
+
+    //! Convert CImg3d representation into a 3d object \newinstance.
+    template<typename tp, typename tc, typename to>
+    CImg<T> get_CImg3dtoobject3d(CImgList<tp>& primitives,
+                                 CImgList<tc>& colors,
+                                 CImgList<to>& opacities,
+                                 const bool full_check=true) const {
+      CImg<charT> error_message(1024);
+      if (!is_CImg3d(full_check,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "CImg3dtoobject3d(): image instance is not a CImg3d (%s).",
+                                    cimg_instance,error_message.data());
+      const T *ptrs = _data + 6;
+      const unsigned int
+        nb_points = cimg::float2uint((float)*(ptrs++)),
+        nb_primitives = cimg::float2uint((float)*(ptrs++));
+      const CImg<T> points = CImg<T>(ptrs,3,nb_points,1,1,true).get_transpose();
+      ptrs+=3*nb_points;
+      primitives.assign(nb_primitives);
+      cimglist_for(primitives,p) {
+        const unsigned int nb_inds = (unsigned int)*(ptrs++);
+        primitives[p].assign(1,nb_inds);
+        tp *ptrp = primitives[p]._data;
+        for (unsigned int i = 0; i<nb_inds; ++i) *(ptrp++) = (tp)cimg::float2uint((float)*(ptrs++));
+      }
+      colors.assign(nb_primitives);
+      cimglist_for(colors,c) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) colors[c].assign(colors[w],true);
+          else { colors[c].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else { colors[c].assign(ptrs,1,1,1,3,false); ptrs+=3; }
+      }
+      opacities.assign(nb_primitives);
+      cimglist_for(opacities,o) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) opacities[o].assign(opacities[w],true);
+          else { opacities[o].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else opacities[o].assign(1,1,1,1,*(ptrs++));
+      }
+      return points;
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name Drawing Functions
+    //@{
+    //---------------------------
+
+#define cimg_init_scanline(color,opacity) \
+    const float _sc_nopacity = cimg::abs((float)opacity), _sc_copacity = 1 - cimg::max((float)opacity,0); \
+  const ulongT _sc_whd = (ulongT)_width*_height*_depth
+
+#define cimg_draw_scanline(x0,x1,y,color,opacity,brightness) \
+    _draw_scanline(x0,x1,y,color,opacity,brightness,_sc_nopacity,_sc_copacity,_sc_whd)
+
+    // [internal] The following _draw_scanline() routines are *non user-friendly functions*,
+    // used only for internal purpose.
+    // Pre-requisites: x0<x1, y-coordinate is valid, col is valid.
+    template<typename tc>
+    CImg<T>& _draw_scanline(const int x0, const int x1, const int y,
+                            const tc *const color, const float opacity,
+                            const float brightness,
+                            const float nopacity, const float copacity, const ulongT whd) {
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const int nx0 = x0>0?x0:0, nx1 = x1<width()?x1:width() - 1, dx = nx1 - nx0;
+      if (dx>=0) {
+        const tc *col = color;
+        const ulongT off = whd - dx - 1;
+        T *ptrd = data(nx0,y);
+        if (opacity>=1) { // ** Opaque drawing **
+          if (brightness==1) { // Brightness==1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else if (brightness<1) { // Brightness<1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else { // Brightness>1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          }
+        } else { // ** Transparent drawing **
+          if (brightness==1) { // Brightness==1
+            cimg_forC(*this,c) {
+              const T val = (T)*(col++);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else if (brightness<=1) { // Brightness<1
+            cimg_forC(*this,c) {
+              const T val = (T)(*(col++)*brightness);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else { // Brightness>1
+            cimg_forC(*this,c) {
+              const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 3d point.
+    /**
+       \param x0 X-coordinate of the point.
+       \param y0 Y-coordinate of the point.
+       \param z0 Z-coordinate of the point.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - To set pixel values without clipping needs, you should use the faster CImg::operator()() function.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,128,64 };
+       img.draw_point(50,50,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_point(const int x0, const int y0, const int z0,
+                        const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_point(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0>=0 && y0>=0 && z0>=0 && x0<width() && y0<height() && z0<depth()) {
+        con
