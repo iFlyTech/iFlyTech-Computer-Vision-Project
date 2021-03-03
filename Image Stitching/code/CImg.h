@@ -37483,4 +37483,159 @@ namespace cimg_library_suffixed {
        \param u1 X-coordinate of the ending velocity
        \param v1 Y-coordinate of the ending velocity
        \param texture Texture image defining line pixel colors.
-    
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param precision Curve drawing precision.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch if \c true, reinit hatch motif.
+    **/
+    template<typename t>
+    CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
+                         const int x1, const int y1, const float u1, const float v1,
+                         const CImg<t>& texture,
+                         const int tx0, const int ty0, const int tx1, const int ty1,
+                         const float opacity=1,
+                         const float precision=4, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_empty()) return *this;
+      if (is_overlapped(texture))
+        return draw_spline(x0,y0,u0,v0,x1,y1,u1,v1,+texture,tx0,ty0,tx1,ty1,precision,opacity,pattern,init_hatch);
+      if (x0==x1 && y0==y1)
+        return draw_point(x0,y0,texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                                      y0<=0?0:y0>=texture.height()?texture.height() - 1:y0),opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        _precision = 1/(std::sqrt(cimg::sqr(x0 - x1) + cimg::sqr(y0 - y1))*(precision>0?precision:1));
+      int ox = x0, oy = y0, otx = tx0, oty = ty0;
+      for (float t1 = 0; t1<1; t1+=_precision) {
+        const float t2 = t1*t1, t3 = t2*t1;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t1 + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t1 + y0),
+          ntx = tx0 + (int)((tx1 - tx0)*t1),
+          nty = ty0 + (int)((ty1 - ty0)*t1);
+        draw_line(ox,oy,nx,ny,texture,otx,oty,ntx,nty,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny; otx = ntx; oty = nty;
+      }
+      return draw_line(ox,oy,x1,y1,texture,otx,oty,tx1,ty1,opacity,pattern,false);
+    }
+
+    //! Draw a set of consecutive splines.
+    /**
+       \param points Vertices data.
+       \param tangents Tangents data.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param is_closed_set Tells if the drawn spline set is closed.
+       \param precision Precision of the drawing.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If \c true, init hatch motif.
+    **/
+    template<typename tp, typename tt, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points, const CImg<tt>& tangents,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || !tangents || points._width<2 || tangents._width<2) return *this;
+      bool ninit_hatch = init_hatch;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+
+      case 2 : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1);
+        int ox = x0, oy = y0;
+        float ou = u0, ov = v0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1);
+          draw_spline(ox,oy,ou,ov,x,y,u,v,color,precision,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; ou = u; ov = v;
+        }
+        if (is_closed_set) draw_spline(ox,oy,ou,ov,x0,y0,u0,v0,color,precision,opacity,pattern,false);
+      } break;
+      default : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1), z0 = (int)points(0,2);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1), w0 = (float)tangents(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        float ou = u0, ov = v0, ow = w0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1), z = (int)points(i,2);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1), w = (float)tangents(i,2);
+          draw_spline(ox,oy,oz,ou,ov,ow,x,y,z,u,v,w,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z; ou = u; ov = v; ow = w;
+        }
+        if (is_closed_set) draw_spline(ox,oy,oz,ou,ov,ow,x0,y0,z0,u0,v0,w0,color,precision,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a set of consecutive splines \overloading.
+    /**
+       Similar to previous function, with the point tangents automatically estimated from the given points set.
+    **/
+    template<typename tp, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || points._width<2) return *this;
+      CImg<Tfloat> tangents;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+      case 2 : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            u0 = x - x0,
+            v0 = y - y0,
+            n0 = 1e-8f + (float)std::sqrt(u0*u0 + v0*v0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            n1 = 1e-8f + (float)std::sqrt(u1*u1 + v1*v1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            n = 1e-8f + (float)std::sqrt(u*u + v*v),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+        }
+      } break;
+      default : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:
