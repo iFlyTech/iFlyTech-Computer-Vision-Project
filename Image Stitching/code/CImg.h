@@ -37638,4 +37638,153 @@ namespace cimg_library_suffixed {
         tangents.assign(points._width,points._height);
         cimg_forX(points,p) {
           const unsigned int
-            p0 = is_closed_set?(p + points._width - 1)%points._width:
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            z = (float)points(p,2),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            z0 = (float)points(p0,2),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            z1 = (float)points(p1,2),
+            u0 = x - x0,
+            v0 = y - y0,
+            w0 = z - z0,
+            n0 = 1e-8f + (float)std::sqrt(u0*u0 + v0*v0 + w0*w0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            w1 = z1 - z,
+            n1 = 1e-8f + (float)std::sqrt(u1*u1 + v1*v1 + w1*w1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            w = w0/n0 + w1/n1,
+            n = 1e-8f + (float)std::sqrt(u*u + v*v + w*w),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+          tangents(p,2) = (Tfloat)(fact*w/n);
+        }
+      }
+      }
+      return draw_spline(points,tangents,color,opacity,is_closed_set,precision,pattern,init_hatch);
+    }
+
+    // Inner macro for drawing triangles.
+#define _cimg_for_triangle1(img,xl,xr,y,x0,y0,x1,y1,x2,y2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               _sxn=1, \
+               _sxr=1, \
+               _sxl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter = (_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                           _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                           _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                           cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, \
+               _errr = _dyr/2, \
+               _errl = _dyl/2, \
+               _rxn = _dyn?(x2-x1)/_dyn:0, \
+               _rxr = _dyr?(x2-x0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1-x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               xl+=(y!=y1)?_rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0): \
+                           (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1-xl))
+
+#define _cimg_for_triangle2(img,xl,cl,xr,cr,y,x0,y0,c0,x1,y1,c1,x2,y2,c2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               cr = y0>=0?c0:(c0 - y0*(c2 - c0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               cl = y1>=0?(y0>=0?(y0==y1?c1:c0):(c0 - y0*(c1 - c0)/(y1 - y0))):(c1 - y1*(c2 - c1)/(y2 - y1)), \
+               _sxn=1, _scn=1, \
+               _sxr=1, _scr=1, \
+               _sxl=1, _scl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dcn = c2>c1?c2-c1:(_scn=-1,c1 - c2), \
+               _dcr = c2>c0?c2-c0:(_scr=-1,c0 - c2), \
+               _dcl = c1>c0?c1-c0:(_scl=-1,c0 - c1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dcn-=_dyn?_dyn*(_dcn/_dyn):0, \
+                          _dcr-=_dyr?_dyr*(_dcr/_dyr):0, \
+                          _dcl-=_dyl?_dyl*(_dcl/_dyl):0, \
+                          cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errcn = _errn, \
+               _errr = _dyr/2, _errcr = _errr, \
+               _errl = _dyl/2, _errcl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rcn = _dyn?(c2 - c1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rcr = _dyr?(c2 - c0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1-x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rcl = (y0!=y1 && y1>0)?(_dyl?(c1-c0)/_dyl:0): \
+                                       (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               cr+=_rcr+((_errcr-=_dcr)<0?_errcr+=_dyr,_scr:0), \
+               xl+=(y!=y1)?(cl+=_rcl+((_errcl-=_dcl)<0?(_errcl+=_dyl,_scl):0), \
+                           _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcl=_rcn, cl=c1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1-xl))
+
+#define _cimg_for_triangle3(img,xl,txl,tyl,xr,txr,tyr,y,x0,y0,tx0,ty0,x1,y1,tx1,ty1,x2,y2,tx2,ty2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               _sxn=1, _stxn=1, _styn=1, \
+               _sxr=1, _stxr=1, _styr=1, \
+               _sxl=1, _stxl=1, _styl=1, \
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errtxn = _errn, _errtyn = _errn, \
+               _errr = _dyr/2, _errtxr = _errr, _errtyr = _errr, \
+               _errl = _dyl/2, _errtxl = _errl, _errtyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+  
