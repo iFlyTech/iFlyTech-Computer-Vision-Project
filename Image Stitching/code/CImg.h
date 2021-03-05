@@ -37895,4 +37895,138 @@ namespace cimg_library_suffixed {
                _sxn=1, _stxn=1, _styn=1, _slxn=1, _slyn=1, \
                _sxr=1, _stxr=1, _styr=1, _slxr=1, _slyr=1, \
                _sxl=1, _stxl=1, _styl=1, _slxl=1, _slyl=1, \
-               _dxn = x2>x1?x2 - x1:(_sx
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), _dyn = y2 - y1, \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), _dyr = y2 - y0, \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), _dyl = y1 - y0, \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dlxn = lx2>lx1?lx2 - lx1:(_slxn=-1,lx1 - lx2), \
+               _dlxr = lx2>lx0?lx2 - lx0:(_slxr=-1,lx0 - lx2), \
+               _dlxl = lx1>lx0?lx1 - lx0:(_slxl=-1,lx0 - lx1), \
+               _dlyn = ly2>ly1?ly2 - ly1:(_slyn=-1,ly1 - ly2), \
+               _dlyr = ly2>ly0?ly2 - ly0:(_slyr=-1,ly0 - ly2), \
+               _dlyl = ly1>ly0?ly1 - ly0:(_slyl=-1,ly0 - ly1), \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          _dlxn-=_dyn?_dyn*(_dlxn/_dyn):0, \
+                          _dlxr-=_dyr?_dyr*(_dlxr/_dyr):0, \
+                          _dlxl-=_dyl?_dyl*(_dlxl/_dyl):0, \
+                          _dlyn-=_dyn?_dyn*(_dlyn/_dyn):0, \
+                          _dlyr-=_dyr?_dyr*(_dlyr/_dyr):0, \
+                          _dlyl-=_dyl?_dyl*(_dlyl/_dyl):0, \
+                          cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errtxn = _errn, _errtyn = _errn, _errlxn = _errn, _errlyn = _errn, \
+               _errr = _dyr/2, _errtxr = _errr, _errtyr = _errr, _errlxr = _errr, _errlyr = _errr, \
+               _errl = _dyl/2, _errtxl = _errl, _errtyl = _errl, _errlxl = _errl, _errlyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rlxn = _dyn?(lx2 - lx1)/_dyn:0, \
+               _rlyn = _dyn?(ly2 - ly1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rlxr = _dyr?(lx2 - lx0)/_dyr:0, \
+               _rlyr = _dyr?(ly2 - ly0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                        (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                        (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ), \
+               _rlxl = (y0!=y1 && y1>0)?(_dyl?(lx1 - lx0)/_dyl:0): \
+                                        (_errlxl=_errlxn, _dlxl=_dlxn, _dyl=_dyn, _slxl=_slxn, _rlxn ), \
+               _rlyl = (y0!=y1 && y1>0)?(_dyl?(ly1 - ly0)/_dyl:0): \
+                                        (_errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               lxr+=_rlxr+((_errlxr-=_dlxr)<0?_errlxr+=_dyr,_slxr:0), \
+               lyr+=_rlyr+((_errlyr-=_dlyr)<0?_errlyr+=_dyr,_slyr:0), \
+               xl+=(y!=y1)?(txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                            lxl+=_rlxl+((_errlxl-=_dlxl)<0?(_errlxl+=_dyl,_slxl):0), \
+                            lyl+=_rlyl+((_errlyl-=_dlyl)<0?(_errlyl+=_dyl,_slyl):0), \
+                            _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1, \
+                _errlxl=_errlxn, _dlxl=_dlxn, _dyl=_dyn, _slxl=_slxn, _rlxl=_rlxn, lxl=lx1, \
+                _errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyl=_rlyn, lyl=ly1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+    // [internal] Draw a filled triangle.
+    template<typename tc>
+    CImg<T>& _draw_triangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const int x2, const int y2,
+                            const tc *const color, const float opacity,
+                            const float brightness) {
+      cimg_init_scanline(color,opacity);
+      const float nbrightness = brightness<0?0:(brightness>2?2:brightness);
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2);
+      if (ny0<height() && ny2>=0) {
+        if ((nx1 - nx0)*(ny2 - ny0) - (nx2 - nx0)*(ny1 - ny0)<0)
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xl,xr,y,color,opacity,nbrightness);
+        else
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xr,xl,y,color,opacity,nbrightness);
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      _draw_triangle(x0,y0,x1,y1,x2,y2,color,opacity,1);
+      return *this;
+    }
+
+    //! Draw a outlined 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           con
