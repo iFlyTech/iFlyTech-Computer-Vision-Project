@@ -37787,4 +37787,112 @@ namespace cimg_library_suffixed {
                _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
                _rxr = _dyr?(x2 - x0)/_dyr:0, \
                _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
-  
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                       (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                       (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               xl+=(y!=y1)?(txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                           _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1,\
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+#define _cimg_for_triangle4(img,xl,cl,txl,tyl,xr,cr,txr,tyr,y,x0,y0,c0,tx0,ty0,x1,y1,c1,tx1,ty1,x2,y2,c2,tx2,ty2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               cr = y0>=0?c0:(c0 - y0*(c2 - c0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               cl = y1>=0?(y0>=0?(y0==y1?c1:c0):(c0 - y0*(c1 - c0)/(y1 - y0))):(c1 - y1*(c2 - c1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               _sxn=1, _scn=1, _stxn=1, _styn=1, \
+               _sxr=1, _scr=1, _stxr=1, _styr=1, \
+               _sxl=1, _scl=1, _stxl=1, _styl=1, \
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), \
+               _dcn = c2>c1?c2 - c1:(_scn=-1,c1 - c2), \
+               _dcr = c2>c0?c2 - c0:(_scr=-1,c0 - c2), \
+               _dcl = c1>c0?c1 - c0:(_scl=-1,c0 - c1), \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dyn = y2 - y1, \
+               _dyr = y2 - y0, \
+               _dyl = y1 - y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dcn-=_dyn?_dyn*(_dcn/_dyn):0, \
+                          _dcr-=_dyr?_dyr*(_dcr/_dyr):0, \
+                          _dcl-=_dyl?_dyl*(_dcl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errcn = _errn, _errtxn = _errn, _errtyn = _errn, \
+               _errr = _dyr/2, _errcr = _errr, _errtxr = _errr, _errtyr = _errr, \
+               _errl = _dyl/2, _errcl = _errl, _errtxl = _errl, _errtyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rcn = _dyn?(c2 - c1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rcr = _dyr?(c2 - c0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rcl = (y0!=y1 && y1>0)?(_dyl?(c1 - c0)/_dyl:0): \
+                                       (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcn ), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                        (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                        (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               cr+=_rcr+((_errcr-=_dcr)<0?_errcr+=_dyr,_scr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               xl+=(y!=y1)?(cl+=_rcl+((_errcl-=_dcl)<0?(_errcl+=_dyl,_scl):0), \
+                            txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                            _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcl=_rcn, cl=c1, \
+                _errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+#define _cimg_for_triangle5(img,xl,txl,tyl,lxl,lyl,xr,txr,tyr,lxr,lyr,y,x0,y0,\
+                            tx0,ty0,lx0,ly0,x1,y1,tx1,ty1,lx1,ly1,x2,y2,tx2,ty2,lx2,ly2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               lxr = y0>=0?lx0:(lx0 - y0*(lx2 - lx0)/(y2 - y0)), \
+               lyr = y0>=0?ly0:(ly0 - y0*(ly2 - ly0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               lxl = y1>=0?(y0>=0?(y0==y1?lx1:lx0):(lx0 - y0*(lx1 - lx0)/(y1 - y0))):(lx1 - y1*(lx2 - lx1)/(y2 - y1)), \
+               lyl = y1>=0?(y0>=0?(y0==y1?ly1:ly0):(ly0 - y0*(ly1 - ly0)/(y1 - y0))):(ly1 - y1*(ly2 - ly1)/(y2 - y1)), \
+               _sxn=1, _stxn=1, _styn=1, _slxn=1, _slyn=1, \
+               _sxr=1, _stxr=1, _styr=1, _slxr=1, _slyr=1, \
+               _sxl=1, _stxl=1, _styl=1, _slxl=1, _slyl=1, \
+               _dxn = x2>x1?x2 - x1:(_sx
