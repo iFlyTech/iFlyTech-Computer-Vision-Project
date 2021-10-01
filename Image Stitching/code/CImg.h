@@ -39688,4 +39688,159 @@ namespace cimg_library_suffixed {
         whd = (ulongT)_width*_height*_depth,
         twh = (ulongT)texture._width*texture._height,
         lwh = (ulongT)light._width*light._height,
- 
+        offx = _spectrum*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nlx0,nlx1,nly0,nly1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nlx0,nlx2,nly0,nly2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nlx1,nlx2,nly1,nly2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle3(*this,xleft0,lxleft0,lyleft0,xright0,lxright0,lyright0,y,
+                          nx0,ny0,nlx0,nly0,nx1,ny1,nlx1,nly1,nx2,ny2,nlx2,nly2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0;
+        float txleft = txl, txright = txr, tyleft = tyl, tyright = tyr;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft)
+          cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,lxleft,lxright,lyleft,lyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0);
+        float pentetx = (txright - txleft)/dx, pentety = (tyright - tyleft)/dx;
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errlx = dx>>1, errly = errlx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y);
+        tz *ptrz = zbuffer.data(xleft,y);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                *ptrd = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                const T val = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 4d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param c0 C-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param c1 C-coordinate of the lower-right rectangle corner.
+       \param val Scalar value used to fill the rectangle area.
+       \param opacity Drawing opacity.
+    **/
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0, const int c0,
+                            const int x1, const int y1, const int z1, const int c1,
+                            const T val, const float opacity=1) {
+      if (is_empty()) return *this;
+      const bool bx = (x0<x1), by = (y0<y1), bz = (z0<z1), bc = (c0<c1);
+      const int
+        nx0 = bx?x0:x1, nx1 = bx?x1:x0,
+        ny0 = by?y0:y1, ny1 = by?y1:y0,
+        nz0 = bz?z0:z1, nz1 = bz?z1:z0,
+        nc0 = bc?c0:c1, nc1 = bc?c1:c0;
+      const int
+        lX = (1 + nx1 - nx0) + (nx1>=width()?width() - 1 - nx1:0) + (nx0<0?nx0:0),
+        lY = (1 + ny1 - ny0) + (ny1>=height()?height() - 1 - ny1:0) + (ny0<0?ny0:0),
+        lZ = (1 + nz1 - nz0) + (nz1>=depth()?depth() - 1 - nz1:0) + (nz0<0?nz0:0),
+        lC = (1 + nc1 - nc0) + (nc1>=spectrum()?spectrum() - 1 - nc1:0) + (nc0<0?nc0:0);
+      const ulongT
+        offX = (ulongT)_width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      T *ptrd = data(nx0<0?0:nx0,ny0<0?0:ny0,nz0<0?0:nz0,nc0<0?0:nc0);
+      if (lX>0 && lY>0 && lZ>0 && lC>0)
+        for (int v = 0; v<lC; ++v) {
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              if (opacity>=1) {
+                if (sizeof(T)!=1) { for (int x = 0; x<lX; ++x) *(ptrd++) = val; ptrd+=offX; }
+                else { std::memset(ptrd,(int)val,lX); ptrd+=_width; }
+              } else { for (int x = 0; x<lX; ++x) { *ptrd = (T)(nopacity*val + *ptrd*copacity); ++ptrd; } ptrd+=offX; }
+            }
+            ptrd+=offY;
+          }
+          ptrd+=offZ;
+        }
+      return *this;
+    }
+
+    //! Draw a filled 3d rect
