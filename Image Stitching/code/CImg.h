@@ -39843,4 +39843,152 @@ namespace cimg_library_suffixed {
       return *this;
     }
 
-    //! Draw a filled 3d rect
+    //! Draw a filled 3d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_rectangle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_forC(*this,c) draw_rectangle(x0,y0,z0,c,x1,y1,z1,c,(T)color[c],opacity);
+      return *this;
+    }
+
+    //! Draw an outlined 3d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      return draw_line(x0,y0,z0,x1,y0,z0,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y1,z0,color,opacity,pattern,false).
+        draw_line(x1,y1,z0,x0,y1,z0,color,opacity,pattern,false).
+        draw_line(x0,y1,z0,x0,y0,z0,color,opacity,pattern,false).
+        draw_line(x0,y0,z1,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z1,x1,y1,z1,color,opacity,pattern,false).
+        draw_line(x1,y1,z1,x0,y1,z1,color,opacity,pattern,false).
+        draw_line(x0,y1,z1,x0,y0,z1,color,opacity,pattern,false).
+        draw_line(x0,y0,z0,x0,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y1,z0,x1,y1,z1,color,opacity,pattern,true).
+        draw_line(x0,y1,z0,x0,y1,z1,color,opacity,pattern,true);
+    }
+
+    //! Draw a filled 2d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity=1) {
+      return draw_rectangle(x0,y0,0,x1,y1,_depth - 1,color,opacity);
+    }
+
+    //! Draw a outlined 2d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (y0==y1) return draw_line(x0,y0,x1,y0,color,opacity,pattern,true);
+      if (x0==x1) return draw_line(x0,y0,x0,y1,color,opacity,pattern,true);
+      const bool bx = (x0<x1), by = (y0<y1);
+      const int
+        nx0 = bx?x0:x1, nx1 = bx?x1:x0,
+        ny0 = by?y0:y1, ny1 = by?y1:y0;
+      if (ny1==ny0 + 1) return draw_line(nx0,ny0,nx1,ny0,color,opacity,pattern,true).
+                      draw_line(nx1,ny1,nx0,ny1,color,opacity,pattern,false);
+      return draw_line(nx0,ny0,nx1,ny0,color,opacity,pattern,true).
+        draw_line(nx1,ny0 + 1,nx1,ny1 - 1,color,opacity,pattern,false).
+        draw_line(nx1,ny1,nx0,ny1,color,opacity,pattern,false).
+        draw_line(nx0,ny1 - 1,nx0,ny0 + 1,color,opacity,pattern,false);
+    }
+
+    //! Draw a filled 2d polygon.
+    /**
+       \param points Set of polygon vertices.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+     **/
+    template<typename t, typename tc>
+    CImg<T>& draw_polygon(const CImg<t>& points,
+                          const tc *const color, const float opacity=1) {
+      if (is_empty() || !points) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_polygon(): Specified color is (null).",
+                                    cimg_instance);
+
+      // Normalize 2d input coordinates (remove adjacent duplicates).
+      CImg<intT> npoints(points._width,2);
+      unsigned int nb_points = 1, p = 0;
+      int cx = npoints(0,0) = (int)points(0,0), cy = npoints(0,1) = (int)points(0,1);
+      const int cx0 = cx, cy0 = cy;
+      for (p = 1; p<points._width; ++p) {
+        const int nx = (int)points(p,0), ny = (int)points(p,1);
+        if (nx!=cx || ny!=cy) { npoints(nb_points,0) = nx; npoints(nb_points++,1) = ny; cx = nx; cy = ny; }
+      }
+      --p;
+      if ((int)points(p,0)==cx0 && (int)points(p,1)==cy0) --nb_points;
+      if (nb_points<=1) return draw_point((int)npoints(0,0),(int)npoints(0,1),color,opacity);
+      if (nb_points==2) return draw_line((int)npoints(0,0),(int)npoints(0,1),
+                                         (int)npoints(1,0),(int)npoints(1,1),color,opacity);
+      if (nb_points==3) return draw_triangle((int)npoints(0,0),(int)npoints(0,1),
+                                             (int)npoints(1,0),(int)npoints(1,1),
+                                             (int)npoints(2,0),(int)npoints(2,1),color,opacity);
+
+      // Shift the coordinates so that the first and last vertices are not located on the same scanline.
+      if (npoints(0,1)==npoints(nb_points - 1,1)) {
+        const intT y0 = npoints(0,1);
+        unsigned int off = 1;
+        while ((int)npoints(off,1)==y0 && off<nb_points) ++off;
+        if (off<nb_points) {
+          npoints.get_shared_points(0,nb_points - 1,0).shift(-(int)off,0,0,0,2);
+          npoints.get_shared_points(0,nb_points - 1,1).shift(-(int)off,0,0,0,2);
+        }
+      }
+
+      cimg_init_scanline(color,1);
+
+      if (opacity!=1) { // For non-opaque polygons, do a little trick to avoid horizontal lines artefacts.
+        npoints.resize(nb_points,2,1,1,0);
+        CImg<intT> npoints_x = npoints.get_shared_row(0), npoints_y = npoints.get_shared_row(1);
+        int xmax = 0, xmin = (int)npoints_x.min_max(xmax), ymax = 0, ymin = (int)npoints_y.min_max(ymax);
+        if (xmax<0 || xmin>=width() || ymax<0 || ymin>=height()) return *this;
+        if (ymin==ymax) return cimg_draw_scanline(xmin,xmax,ymin,color,opacity,1);
+        const unsigned int
+          nxmin = xmin<0?0:(unsigned int)xmin, nxmax = xmax>=width()?_width - 1:(unsigned int)xmax,
+          nymin = ymin<0?0:(unsigned int)ymin, nymax = ymax>=height()?_height - 1:(unsigned int)ymax,
+          dx = 1 + nxmax - nxmin,
+          dy = 1 + nymax - nymin;
+        npoints_x-=nxmin; npoints_y-=nymin;
+        unsigned char one = 1;
+        const CImg<unsigned char> mask = CImg<unsigned char>(dx,dy,1,1,0).draw_polygon(npoints,&one,1);
+        CImg<T> _color(dx,dy,1,spectrum());
+        cimg_forC(_color,c) _color.get_shared_channel(c).fill(color[c]);
+        return draw_image(nxmin,nymin,0,0,_color,mask,opacity,1);
+      }
+
+      // Draw polygon segments.
+      int
+        xmax = 0, xmin = (int)npoints.get_shared_points(0,nb_points - 1,0).min_max(x
