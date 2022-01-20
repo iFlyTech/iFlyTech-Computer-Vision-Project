@@ -40160,4 +40160,170 @@ namespace cimg_library_suffixed {
     **/
     template<typename t, typename tc>
     CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
-   
+                          const tc *const color, const float opacity,
+                          const unsigned int pattern) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity,pattern);
+    }
+
+    template<typename tc>
+    CImg<T>& _draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                           const tc *const color, const float opacity,
+                           const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_ellipse(): Specified color is (null).",
+                                    cimg_instance);
+      if (r1<=0 || r2<=0) return draw_point(x0,y0,color,opacity);
+      cimg_init_scanline(color,opacity);
+      const float
+        nr1 = cimg::abs(r1), nr2 = cimg::abs(r2),
+        nangle = (float)(angle*cimg::PI/180),
+        u = (float)std::cos(nangle),
+        v = (float)std::sin(nangle),
+        rmax = cimg::max(nr1,nr2),
+        l1 = (float)std::pow(rmax/(nr1>0?nr1:1e-6),2),
+        l2 = (float)std::pow(rmax/(nr2>0?nr2:1e-6),2),
+        a = l1*u*u + l2*v*v,
+        b = u*v*(l1 - l2),
+        c = l1*v*v + l2*u*u;
+      const int
+        yb = (int)std::sqrt(a*rmax*rmax/(a*c - b*b)),
+        tymin = y0 - yb - 1,
+        tymax = y0 + yb + 1,
+        ymin = tymin<0?0:tymin,
+        ymax = tymax>=height()?height() - 1:tymax;
+      int oxmin = 0, oxmax = 0;
+      bool first_line = true;
+      for (int y = ymin; y<=ymax; ++y) {
+        const float
+          Y = y - y0 + (y<y0?0.5f:-0.5f),
+          delta = b*b*Y*Y - a*(c*Y*Y - rmax*rmax),
+          sdelta = delta>0?(float)std::sqrt(delta)/a:0.0f,
+          bY = b*Y/a,
+          fxmin = x0 - 0.5f - bY - sdelta,
+          fxmax = x0 + 0.5f - bY + sdelta;
+        const int xmin = (int)fxmin, xmax = (int)fxmax;
+        if (!pattern) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+        else {
+          if (first_line) {
+            if (y0 - yb>=0) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+            else draw_point(xmin,y,color,opacity).draw_point(xmax,y,color,opacity);
+            first_line = false;
+          } else {
+            if (xmin<oxmin) cimg_draw_scanline(xmin,oxmin - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmin + (oxmin==xmin?0:1),xmin,y,color,opacity,1);
+            if (xmax<oxmax) cimg_draw_scanline(xmax,oxmax - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmax + (oxmax==xmax?0:1),xmax,y,color,opacity,1);
+            if (y==tymax) cimg_draw_scanline(xmin + 1,xmax - 1,y,color,opacity,1);
+          }
+        }
+        oxmin = xmin; oxmax = xmax;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d circle.
+    /**
+       \param x0 X-coordinate of the circle center.
+       \param y0 Y-coordinate of the circle center.
+       \param radius  Circle radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - Circle version of the Bresenham's algorithm is used.
+    **/
+    template<typename tc>
+    CImg<T>& draw_circle(const int x0, const int y0, int radius,
+                         const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_circle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_init_scanline(color,opacity);
+      if (radius<0 || x0 - radius>=width() || y0 + radius<0 || y0 - radius>=height()) return *this;
+      if (y0>=0 && y0<height()) cimg_draw_scanline(x0 - radius,x0 + radius,y0,color,opacity,1);
+      for (int f = 1 - radius, ddFx = 0, ddFy = -(radius<<1), x = 0, y = radius; x<y; ) {
+        if (f>=0) {
+          const int x1 = x0 - x, x2 = x0 + x, y1 = y0 - y, y2 = y0 + y;
+          if (y1>=0 && y1<height()) cimg_draw_scanline(x1,x2,y1,color,opacity,1);
+          if (y2>=0 && y2<height()) cimg_draw_scanline(x1,x2,y2,color,opacity,1);
+          f+=(ddFy+=2); --y;
+        }
+        const bool no_diag = y!=(x++);
+        ++(f+=(ddFx+=2));
+        const int x1 = x0 - y, x2 = x0 + y, y1 = y0 - x, y2 = y0 + x;
+        if (no_diag) {
+          if (y1>=0 && y1<height()) cimg_draw_scanline(x1,x2,y1,color,opacity,1);
+          if (y2>=0 && y2<height()) cimg_draw_scanline(x1,x2,y2,color,opacity,1);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an outlined 2d circle.
+    /**
+       \param x0 X-coordinate of the circle center.
+       \param y0 Y-coordinate of the circle center.
+       \param radius Circle radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_circle(const int x0, const int y0, int radius,
+                         const tc *const color, const float opacity,
+                         const unsigned int pattern) {
+      cimg::unused(pattern);
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_circle(): Specified color is (null).",
+                                    cimg_instance);
+      if (radius<0 || x0 - radius>=width() || y0 + radius<0 || y0 - radius>=height()) return *this;
+      if (!radius) return draw_point(x0,y0,color,opacity);
+      draw_point(x0 - radius,y0,color,opacity).draw_point(x0 + radius,y0,color,opacity).
+        draw_point(x0,y0 - radius,color,opacity).draw_point(x0,y0 + radius,color,opacity);
+      if (radius==1) return *this;
+      for (int f = 1 - radius, ddFx = 0, ddFy = -(radius<<1), x = 0, y = radius; x<y; ) {
+        if (f>=0) { f+=(ddFy+=2); --y; }
+        ++x; ++(f+=(ddFx+=2));
+        if (x!=y + 1) {
+          const int x1 = x0 - y, x2 = x0 + y, y1 = y0 - x, y2 = y0 + x,
+            x3 = x0 - x, x4 = x0 + x, y3 = y0 - y, y4 = y0 + y;
+          draw_point(x1,y1,color,opacity).draw_point(x1,y2,color,opacity).
+            draw_point(x2,y1,color,opacity).draw_point(x2,y2,color,opacity);
+          if (x!=y)
+            draw_point(x3,y3,color,opacity).draw_point(x4,y4,color,opacity).
+              draw_point(x4,y3,color,opacity).draw_point(x3,y4,color,opacity);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an image.
+    /**
+       \param sprite Sprite image.
+       \param x0 X-coordinate of the sprite position.
+       \param y0 Y-coordinate of the sprite position.
+       \param z0 Z-coordinate of the sprite position.
+       \param c0 C-coordinate of the sprite position.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0, const int c0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      if (is_empty() || !sprite) return *this;
+      if (is_overlapped(sprite)) return draw_image(x0,y0,z0,c0,+sprite,opacity);
+      if (x0==0 && y0==0 && z0==0 && c0==0 && is_sameXYZC(sprite) && opacity>=1 && !is_shared())
+        return assign(sprite,false);
+      const bool bx = (x0<0), by = (y0<0), bz = (z0<0), bc = (c0<0);
+      const int
+        lX = sprite.width() - (x0 + sprite.width()>width()?x0 + sprite.width() - width():0) + (bx?x0:0),
+        lY = sprite.height() - (y0 + sprite.height()>height()?y0 + sprite.height() - height():0) + (by?y0:0),
+        lZ = spr
