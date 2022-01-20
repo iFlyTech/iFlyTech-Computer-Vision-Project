@@ -39991,4 +39991,173 @@ namespace cimg_library_suffixed {
 
       // Draw polygon segments.
       int
-        xmax = 0, xmin = (int)npoints.get_shared_points(0,nb_points - 1,0).min_max(x
+        xmax = 0, xmin = (int)npoints.get_shared_points(0,nb_points - 1,0).min_max(xmax),
+        ymax = 0, ymin = (int)npoints.get_shared_points(0,nb_points - 1,1).min_max(ymax);
+      if (xmax<0 || xmin>=width() || ymax<0 || ymin>=height()) return *this;
+      if (ymin==ymax) return cimg_draw_scanline(xmin,xmax,ymin,color,1,1);
+      const unsigned int
+        nymin = ymin<0?0:(unsigned int)ymin,
+        nymax = ymax>=height()?_height - 1:(unsigned int)ymax,
+        dy = 1 + nymax - nymin;
+      CImg<intT> X(1 + 2*nb_points,dy,1,1,0), tmp;
+      cx = (int)npoints(0,0), cy = (int)npoints(0,1);
+      unsigned int cp = 0;
+      for (unsigned int p = 0; p<nb_points; ++p) {
+        const unsigned int np = (p!=nb_points - 1)?p + 1:0, ap = (np!=nb_points - 1)?np + 1:0;
+        const int
+          nx = (int)npoints(np,0), ny = (int)npoints(np,1), ay = (int)npoints(ap,1),
+          y0 = cy - (int)nymin, y1 = ny - (int)nymin;
+        if (y0!=y1) {
+          const int countermin = ((ny<ay && cy<ny) || (ny>ay && cy>ny))?1:0;
+          for (int x = cx, y = y0, _sx = 1, _sy = 1,
+                 _dx = nx>cx?nx - cx:((_sx=-1),cx - nx),
+                 _dy = y1>y0?y1 - y0:((_sy=-1),y0 - y1),
+                 _counter = ((_dx-=_dy?_dy*(_dx/_dy):0),_dy),
+                 _err = _dx>>1,
+                 _rx = _dy?(nx - cx)/_dy:0;
+               _counter>=countermin;
+               --_counter, y+=_sy, x+=_rx + ((_err-=_dx)<0?_err+=_dy,_sx:0))
+            if (y>=0 && y<(int)dy) X(++X(0,y),y) = x;
+          cp = np; cx = nx; cy = ny;
+        } else {
+          const int pp = (int)(cp?cp - 1:nb_points - 1), py = (int)npoints(pp,1);
+          if (y0>=0 && y0<(int)dy) {
+            cimg_draw_scanline(cx<nx?cx:nx,cx<nx?nx:cx,y0 + nymin,color,1,1);
+            if ((cy>py && ay>cy) || (cy<py && ay<cy)) X(++X(0,y0),y0) = cx;
+          }
+          if (cy!=ay) { cp = np; cx = nx; cy = ny; }
+        }
+      }
+
+      // Draw polygon scanlines.
+      for (int y = 0; y<(int)dy; ++y) {
+        tmp.assign(X.data(1,y),X(0,y),1,1,1,true).sort();
+        for (int i = 1; i<=X(0,y); ) {
+          const int xb = X(i++,y), xe = X(i++,y);
+          cimg_draw_scanline(xb,xe,nymin + y,color,1,1);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a outlined 2d polygon \overloading.
+    template<typename t, typename tc>
+    CImg<T>& draw_polygon(const CImg<t>& points,
+                          const tc *const color, const float opacity, const unsigned int pattern) {
+      if (is_empty() || !points || points._width<3) return *this;
+      bool ninit_hatch = true;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_polygon(): Invalid specified point set.",
+                                    cimg_instance);
+      case 2 : { // 2d version.
+        CImg<intT> npoints(points._width,2);
+        int x = npoints(0,0) = (int)points(0,0), y = npoints(0,1) = (int)points(0,1);
+        unsigned int nb_points = 1;
+        for (unsigned int p = 1; p<points._width; ++p) {
+          const int nx = (int)points(p,0), ny = (int)points(p,1);
+          if (nx!=x || ny!=y) { npoints(nb_points,0) = nx; npoints(nb_points++,1) = ny; x = nx; y = ny; }
+        }
+        const int x0 = (int)npoints(0,0), y0 = (int)npoints(0,1);
+        int ox = x0, oy = y0;
+        for (unsigned int i = 1; i<nb_points; ++i) {
+          const int x = (int)npoints(i,0), y = (int)npoints(i,1);
+          draw_line(ox,oy,x,y,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y;
+        }
+        draw_line(ox,oy,x0,y0,color,opacity,pattern,false);
+      } break;
+      default : { // 3d version.
+        CImg<intT> npoints(points._width,3);
+        int
+          x = npoints(0,0) = (int)points(0,0),
+          y = npoints(0,1) = (int)points(0,1),
+          z = npoints(0,2) = (int)points(0,2);
+        unsigned int nb_points = 1;
+        for (unsigned int p = 1; p<points._width; ++p) {
+          const int nx = (int)points(p,0), ny = (int)points(p,1), nz = (int)points(p,2);
+          if (nx!=x || ny!=y || nz!=z) {
+            npoints(nb_points,0) = nx; npoints(nb_points,1) = ny; npoints(nb_points++,2) = nz;
+            x = nx; y = ny; z = nz;
+          }
+        }
+        const int x0 = (int)npoints(0,0), y0 = (int)npoints(0,1), z0 = (int)npoints(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        for (unsigned int i = 1; i<nb_points; ++i) {
+          const int x = (int)npoints(i,0), y = (int)npoints(i,1), z = (int)npoints(i,2);
+          draw_line(ox,oy,oz,x,y,z,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z;
+        }
+        draw_line(ox,oy,oz,x0,y0,z0,color,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity=1) {
+      return _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,0U);
+    }
+
+    //! Draw a filled 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+                          const tc *const color, const float opacity=1) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity);
+    }
+
+    //! Draw an outlined 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity, const unsigned int pattern) {
+      if (pattern) _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,pattern);
+      return *this;
+    }
+
+    //! Draw an outlined 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+   
