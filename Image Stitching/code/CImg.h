@@ -40652,4 +40652,163 @@ namespace cimg_library_suffixed {
       if (!font)
         throw CImgArgumentException(_cimg_instance
                                     "draw_text(): Empty specified font.",
-                                    cimg_in
+                                    cimg_instance);
+
+      const unsigned int text_length = (unsigned int)std::strlen(text);
+      const bool _is_empty = is_empty();
+      if (_is_empty) {
+        // If needed, pre-compute necessary size of the image
+        int x = 0, y = 0, w = 0;
+        unsigned char c = 0;
+        for (unsigned int i = 0; i<text_length; ++i) {
+          c = (unsigned char)text[i];
+          switch (c) {
+          case '\n' : y+=font[0]._height; if (x>w) w = x; x = 0; break;
+          case '\t' : x+=4*font[' ']._width; break;
+          default : if (c<font._width) x+=font[c]._width;
+          }
+        }
+        if (x!=0 || c=='\n') {
+          if (x>w) w=x;
+          y+=font[0]._height;
+        }
+        assign(x0 + w,y0 + y,1,is_native_font?1:font[0]._spectrum,0);
+      }
+
+      int x = x0, y = y0;
+      for (unsigned int i = 0; i<text_length; ++i) {
+        const unsigned char c = (unsigned char)text[i];
+        switch (c) {
+        case '\n' : y+=font[0]._height; x = x0; break;
+        case '\t' : x+=4*font[' ']._width; break;
+        default : if (c<font._width) {
+            CImg<T> letter = font[c];
+            if (letter) {
+              if (is_native_font && _spectrum>letter._spectrum) letter.resize(-100,-100,1,_spectrum,0,2);
+              const unsigned int cmin = cimg::min(_spectrum,letter._spectrum);
+              if (foreground_color)
+                for (unsigned int c = 0; c<cmin; ++c)
+                  if (foreground_color[c]!=1) letter.get_shared_channel(c)*=foreground_color[c];
+              if (c + 256<font.width()) { // Letter has mask.
+                if (background_color)
+                  for (unsigned int c = 0; c<cmin; ++c)
+                    draw_rectangle(x,y,0,c,x + letter._width - 1,y + letter._height - 1,0,c,
+                                   background_color[c],opacity);
+                draw_image(x,y,letter,font[c + 256],opacity,255.0f);
+              } else draw_image(x,y,letter,opacity); // Letter has no mask.
+              x+=letter._width;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d vector field.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Drawing opacity.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const t2 *const color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      return draw_quiver(flow,CImg<t2>(color,_spectrum,1,1,1,true),opacity,sampling,factor,is_arrow,pattern);
+    }
+
+    //! Draw a 2d vector field, using a field of colors.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Opacity of the drawing.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const CImg<t2>& color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      if (is_empty()) return *this;
+      if (!flow || flow._spectrum!=2)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_quiver(): Invalid dimensions of specified flow (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    flow._width,flow._height,flow._depth,flow._spectrum,flow._data);
+      if (sampling<=0)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_quiver(): Invalid sampling value %g "
+                                    "(should be >0)",
+                                    cimg_instance,
+                                    sampling);
+      const bool colorfield = (color._width==flow._width && color._height==flow._height &&
+                               color._depth==1 && color._spectrum==_spectrum);
+      if (is_overlapped(flow)) return draw_quiver(+flow,color,opacity,sampling,factor,is_arrow,pattern);
+      float vmax,fact;
+      if (factor<=0) {
+        float m, M = (float)flow.get_norm(2).max_min(m);
+        vmax = (float)cimg::max(cimg::abs(m),cimg::abs(M));
+        if (!vmax) vmax = 1;
+        fact = -factor;
+      } else { fact = factor; vmax = 1; }
+
+      for (unsigned int y = sampling/2; y<_height; y+=sampling)
+        for (unsigned int x = sampling/2; x<_width; x+=sampling) {
+          const unsigned int X = x*flow._width/_width, Y = y*flow._height/_height;
+          float u = (float)flow(X,Y,0,0)*fact/vmax, v = (float)flow(X,Y,0,1)*fact/vmax;
+          if (is_arrow) {
+            const int xx = (int)(x + u), yy = (int)(y + v);
+            if (colorfield) draw_arrow(x,y,xx,yy,color.get_vector_at(X,Y)._data,opacity,45,sampling/5.0f,pattern);
+            else draw_arrow(x,y,xx,yy,color._data,opacity,45,sampling/5.0f,pattern);
+          } else {
+            if (colorfield)
+              draw_line((int)(x - 0.5*u),(int)(y - 0.5*v),(int)(x + 0.5*u),(int)(y + 0.5*v),
+                        color.get_vector_at(X,Y)._data,opacity,pattern);
+            else draw_line((int)(x - 0.5*u),(int)(y - 0.5*v),(int)(x + 0.5*u),(int)(y + 0.5*v),
+                           color._data,opacity,pattern);
+          }
+        }
+      return *this;
+    }
+
+    //! Draw a labeled horizontal axis.
+    /**
+       \param values_x Values along the horizontal axis.
+       \param y Y-coordinate of the horizontal axis in the image instance.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern Drawing pattern.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_axis(const CImg<t>& values_x, const int y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const unsigned int font_height=13,
+                       const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      const int yt = (y + 3 + font_height)<_height?y + 3:y - 2 - (int)font_height;
+      const int siz = (int)values_x.size() - 1;
+      CImg<charT> txt(32);
+      CImg<T> label;
+      if (siz<=0) { // Degenerated case.
+        draw_line(0,y,_width - 1,y,color,opacity,pattern);
+        if (!siz) {
+          cimg_snprintf(txt,txt._width,"%g",(double)*values_x);
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            _xt = (width() - label.width())/2,
+            xt = _xt<3?3:_xt + label.width()>=width() - 2?width() - 3 - label.width():_xt;
+          draw_point(width()/2,y - 1,color,opacity).draw_point(width()/2,y + 1,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,
