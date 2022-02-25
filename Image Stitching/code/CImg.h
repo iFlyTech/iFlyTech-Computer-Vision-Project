@@ -40811,4 +40811,156 @@ namespace cimg_library_suffixed {
             xt = _xt<3?3:_xt + label.width()>=width() - 2?width() - 3 - label.width():_xt;
           draw_point(width()/2,y - 1,color,opacity).draw_point(width()/2,y + 1,color,opacity);
           if (allow_zero || *txt!='0' || txt[1]!=0)
-            draw_text(xt,yt,txt,
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      } else { // Regular case.
+        if (values_x[0]<values_x[siz]) draw_arrow(0,y,_width - 1,y,color,opacity,30,5,pattern);
+        else draw_arrow(_width - 1,y,0,y,color,opacity,30,5,pattern);
+        cimg_foroff(values_x,x) {
+          cimg_snprintf(txt,txt._width,"%g",(double)values_x(x));
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            xi = (int)(x*(_width - 1)/siz),
+            _xt = xi - label.width()/2,
+            xt = _xt<3?3:_xt + label.width()>=width() - 2?width() - 3 - label.width():_xt;
+          draw_point(xi,y - 1,color,opacity).draw_point(xi,y + 1,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a labeled vertical axis.
+    /**
+       \param x X-coordinate of the vertical axis in the image instance.
+       \param values_y Values along the Y-axis.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern Drawing pattern.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_axis(const int x, const CImg<t>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const unsigned int font_height=13,
+                       const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      int siz = (int)values_y.size() - 1;
+      CImg<charT> txt(32);
+      CImg<T> label;
+      if (siz<=0) { // Degenerated case.
+        draw_line(x,0,x,_height - 1,color,opacity,pattern);
+        if (!siz) {
+          cimg_snprintf(txt,txt._width,"%g",(double)*values_y);
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            _yt = (height() - label.height())/2,
+            yt = _yt<0?0:_yt + label.height()>=height()?height() - 1-label.height():_yt,
+            _xt = x - 2 - label.width(),
+            xt = _xt>=0?_xt:x + 3;
+          draw_point(x - 1,height()/2,color,opacity).draw_point(x + 1,height()/2,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      } else { // Regular case.
+        if (values_y[0]<values_y[siz]) draw_arrow(x,0,x,_height - 1,color,opacity,30,5,pattern);
+        else draw_arrow(x,_height - 1,x,0,color,opacity,30,5,pattern);
+        cimg_foroff(values_y,y) {
+          cimg_snprintf(txt,txt._width,"%g",(double)values_y(y));
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            yi = (int)(y*(_height - 1)/siz),
+            _yt = yi - label.height()/2,
+            yt = _yt<0?0:_yt + label.height()>=height()?height() - 1-label.height():_yt,
+            _xt = x - 2 - label.width(),
+            xt = _xt>=0?_xt:x + 3;
+          draw_point(x - 1,yi,color,opacity).draw_point(x + 1,yi,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw labeled horizontal and vertical axes.
+    /**
+       \param values_x Values along the X-axis.
+       \param values_y Values along the Y-axis.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern_x Drawing pattern for the X-axis.
+       \param pattern_y Drawing pattern for the Y-axis.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename tx, typename ty, typename tc>
+    CImg<T>& draw_axes(const CImg<tx>& values_x, const CImg<ty>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13, const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      const CImg<tx> nvalues_x(values_x._data,values_x.size(),1,1,1,true);
+      const int sizx = (int)values_x.size() - 1, wm1 = width() - 1;
+      if (sizx>=0) {
+        float ox = (float)*nvalues_x;
+        for (unsigned int x = sizx?1U:0U; x<_width; ++x) {
+          const float nx = (float)nvalues_x._linear_atX((float)x*sizx/wm1);
+          if (nx*ox<=0) { draw_axis(nx==0?x:x - 1,values_y,color,opacity,pattern_y,font_height,allow_zero); break; }
+          ox = nx;
+        }
+      }
+      const CImg<ty> nvalues_y(values_y._data,values_y.size(),1,1,1,true);
+      const int sizy = (int)values_y.size() - 1, hm1 = height() - 1;
+      if (sizy>0) {
+        float oy = (float)nvalues_y[0];
+        for (unsigned int y = sizy?1U:0U; y<_height; ++y) {
+          const float ny = (float)nvalues_y._linear_atX((float)y*sizy/hm1);
+          if (ny*oy<=0) { draw_axis(values_x,ny==0?y:y - 1,color,opacity,pattern_x,font_height,allow_zero); break; }
+          oy = ny;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw labeled horizontal and vertical axes \overloading.
+    template<typename tc>
+    CImg<T>& draw_axes(const float x0, const float x1, const float y0, const float y1,
+                       const tc *const color, const float opacity=1,
+                       const int subdivisionx=-60, const int subdivisiony=-60,
+                       const float precisionx=0, const float precisiony=0,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13) {
+      if (is_empty()) return *this;
+      const bool allow_zero = (x0*x1>0) || (y0*y1>0);
+      const float
+        dx = cimg::abs(x1-x0), dy = cimg::abs(y1-y0),
+        px = dx<=0?1:precisionx==0?(float)std::pow(10.0,(int)std::log10(dx) - 2.0):precisionx,
+        py = dy<=0?1:precisiony==0?(float)std::pow(10.0,(int)std::log10(dy) - 2.0):precisiony;
+      if (x0!=x1 && y0!=y1)
+        draw_axes(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),
+                  CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_x,pattern_y,font_height,allow_zero);
+      else if (x0==x1 && y0!=y1)
+        draw_axis((int)x0,CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_y,font_height);
+      else if (x0!=x1 && y0==y1)
+        draw_axis(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),(int)y0,
+                  color,opacity,pattern_x,font_height);
+      return *this;
+    }
+
+    //! Draw 2d grid.
+    /**
+       \param values_x X-coordinates of the vertical lines.
+       \param values_y Y-coordinates of the horizontal lines.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern_x Drawing pattern for vertical lines.
+       \param pattern_y Drawing pattern for horizontal lines.
+    **/
+    template<typename tx, typename ty, typename tc>
+    CImg<T>& draw_grid(const CImg<tx>& values_x, const CImg<ty>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned in
