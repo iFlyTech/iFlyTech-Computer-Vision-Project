@@ -40963,4 +40963,201 @@ namespace cimg_library_suffixed {
     template<typename tx, typename ty, typename tc>
     CImg<T>& draw_grid(const CImg<tx>& values_x, const CImg<ty>& values_y,
                        const tc *const color, const float opacity=1,
-                       const unsigned int pattern_x=~0U, const unsigned in
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      if (values_x) cimg_foroff(values_x,x) {
+          const int xi = (int)values_x[x];
+          if (xi>=0 && xi<width()) draw_line(xi,0,xi,_height - 1,color,opacity,pattern_x);
+        }
+      if (values_y) cimg_foroff(values_y,y) {
+          const int yi = (int)values_y[y];
+          if (yi>=0 && yi<height()) draw_line(0,yi,_width - 1,yi,color,opacity,pattern_y);
+        }
+      return *this;
+    }
+
+    //! Draw 2d grid \simplification.
+    template<typename tc>
+    CImg<T>& draw_grid(const float delta_x,  const float delta_y,
+                       const float offsetx, const float offsety,
+                       const bool invertx, const bool inverty,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      CImg<uintT> seqx, seqy;
+      if (delta_x!=0) {
+        const float dx = delta_x>0?delta_x:_width*-delta_x/100;
+        const unsigned int nx = (unsigned int)(_width/dx);
+        seqx = CImg<uintT>::sequence(1 + nx,0,(unsigned int)(dx*nx));
+        if (offsetx) cimg_foroff(seqx,x) seqx(x) = (unsigned int)cimg::mod(seqx(x) + offsetx,(float)_width);
+        if (invertx) cimg_foroff(seqx,x) seqx(x) = _width - 1 - seqx(x);
+      }
+      if (delta_y!=0) {
+        const float dy = delta_y>0?delta_y:_height*-delta_y/100;
+        const unsigned int ny = (unsigned int)(_height/dy);
+        seqy = CImg<uintT>::sequence(1 + ny,0,(unsigned int)(dy*ny));
+        if (offsety) cimg_foroff(seqy,y) seqy(y) = (unsigned int)cimg::mod(seqy(y) + offsety,(float)_height);
+        if (inverty) cimg_foroff(seqy,y) seqy(y) = _height - 1 - seqy(y);
+     }
+      return draw_grid(seqx,seqy,color,opacity,pattern_x,pattern_y);
+    }
+
+    //! Draw 1d graph.
+    /**
+       \param data Image containing the graph values I = f(x).
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+
+       \param plot_type Define the type of the plot:
+                      - 0 = No plot.
+                      - 1 = Plot using segments.
+                      - 2 = Plot using cubic splines.
+                      - 3 = Plot with bars.
+       \param vertex_type Define the type of points:
+                      - 0 = No points.
+                      - 1 = Point.
+                      - 2 = Straight cross.
+                      - 3 = Diagonal cross.
+                      - 4 = Filled circle.
+                      - 5 = Outlined circle.
+                      - 6 = Square.
+                      - 7 = Diamond.
+       \param ymin Lower bound of the y-range.
+       \param ymax Upper bound of the y-range.
+       \param pattern Drawing pattern.
+       \note
+         - if \c ymin==ymax==0, the y-range is computed automatically from the input samples.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_graph(const CImg<t>& data,
+                        const tc *const color, const float opacity=1,
+                        const unsigned int plot_type=1, const int vertex_type=1,
+                        const double ymin=0, const double ymax=0, const unsigned int pattern=~0U) {
+      if (is_empty() || _height<=1) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_graph(): Specified color is (null).",
+                                    cimg_instance);
+
+      // Create shaded colors for displaying bar plots.
+      CImg<tc> color1, color2;
+      if (plot_type==3) {
+        color1.assign(_spectrum); color2.assign(_spectrum);
+        cimg_forC(*this,c) {
+          color1[c] = (tc)cimg::min((float)cimg::type<tc>::max(),color[c]*1.2f);
+          color2[c] = (tc)(color[c]*0.4f);
+        }
+      }
+
+      // Compute min/max and normalization factors.
+      const ulongT
+        siz = data.size(),
+        _siz1 = siz - (plot_type!=3?1:0),
+        siz1 = _siz1?_siz1:1;
+      const unsigned int
+        _width1 = _width - (plot_type!=3?1:0),
+        width1 = _width1?_width1:1;
+      double m = ymin, M = ymax;
+      if (ymin==ymax) m = (double)data.max_min(M);
+      if (m==M) { --m; ++M; }
+      const float ca = (float)(M-m)/(_height - 1);
+      bool init_hatch = true;
+
+      // Draw graph edges
+      switch (plot_type%4) {
+      case 1 : { // Segments
+        int oX = 0, oY = (int)((data[0] - m)/ca);
+        if (siz==1) {
+          const int Y = (int)((*data - m)/ca);
+          draw_line(0,Y,width() - 1,Y,color,opacity,pattern);
+        } else {
+          const float fx = (float)_width/siz1;
+          for (ulongT off = 1; off<siz; ++off) {
+            const int
+              X = (int)(off*fx) - 1,
+              Y = (int)((data[off]-m)/ca);
+            draw_line(oX,oY,X,Y,color,opacity,pattern,init_hatch);
+            oX = X; oY = Y;
+            init_hatch = false;
+          }
+        }
+      } break;
+      case 2 : { // Spline
+        const CImg<t> ndata(data._data,siz,1,1,1,true);
+        int oY = (int)((data[0] - m)/ca);
+        cimg_forX(*this,x) {
+          const int Y = (int)((ndata._cubic_atX((float)x*siz1/width1)-m)/ca);
+          if (x>0) draw_line(x,oY,x + 1,Y,color,opacity,pattern,init_hatch);
+          init_hatch = false;
+          oY = Y;
+        }
+      } break;
+      case 3 : { // Bars
+        const int Y0 = (int)(-m/ca);
+        const float fx = (float)_width/siz1;
+        int oX = 0;
+        cimg_foroff(data,off) {
+          const int
+            X = (int)((off + 1)*fx) - 1,
+            Y = (int)((data[off] - m)/ca);
+          draw_rectangle(oX,Y0,X,Y,color,opacity).
+            draw_line(oX,Y,oX,Y0,color2.data(),opacity).
+            draw_line(oX,Y0,X,Y0,Y<=Y0?color2.data():color1.data(),opacity).
+            draw_line(X,Y,X,Y0,color1.data(),opacity).
+            draw_line(oX,Y,X,Y,Y<=Y0?color1.data():color2.data(),opacity);
+          oX = X + 1;
+        }
+      } break;
+      default : break; // No edges
+      }
+
+      // Draw graph points
+      const unsigned int wb2 = plot_type==3?_width1/(2*siz):0;
+      const float fx = (float)_width1/siz1;
+      switch (vertex_type%8) {
+      case 1 : { // Point
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_point(X,Y,color,opacity);
+        }
+      } break;
+      case 2 : { // Straight Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y,X + 3,Y,color,opacity).draw_line(X,Y - 3,X,Y + 3,color,opacity);
+        }
+      } break;
+      case 3 : { // Diagonal Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y - 3,X + 3,Y + 3,color,opacity).draw_line(X - 3,Y + 3,X + 3,Y - 3,color,opacity);
+        }
+      } break;
+      case 4 : { // Filled Circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity);
+        }
+      } break;
+      case 5 : { // Outlined circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity,0U);
+        }
+      } break;
+      case 6 : { // Square
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_rectangle(X - 3,Y - 3,X + 3
