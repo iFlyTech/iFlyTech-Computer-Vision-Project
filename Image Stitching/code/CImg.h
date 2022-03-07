@@ -41481,4 +41481,157 @@ namespace cimg_library_suffixed {
                              const double param_r=0, const double param_i=0) {
       if (is_empty()) return *this;
       CImg<tc> palette;
-      if (colormap) palette.assign(colormap._data,colormap.size()/colormap._spectrum,1,1,colormap
+      if (colormap) palette.assign(colormap._data,colormap.size()/colormap._spectrum,1,1,colormap._spectrum,true);
+      if (palette && palette._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_mandelbrot(): Instance and specified colormap (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0), ln2 = (float)std::log(2.0);
+      const int
+        _x0 = x0<0?0:x0>=width()?width() - 1:x0,
+        _y0 = y0<0?0:y0>=height()?height() - 1:y0,
+        _x1 = x1<0?1:x1>=width()?width() - 1:x1,
+        _y1 = y1<0?1:y1>=height()?height() - 1:y1;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if ((1 + _x1 - _x0)*(1 + _y1 - _y0)>=2048)
+#endif
+      for (int q = _y0; q<=_y1; ++q)
+        for (int p = _x0; p<=_x1; ++p) {
+          unsigned int iteration = 0;
+          const double x = z0r + p*(z1r-z0r)/_width, y = z0i + q*(z1i-z0i)/_height;
+          double zr, zi, cr, ci;
+          if (is_julia_set) { zr = x; zi = y; cr = param_r; ci = param_i; }
+          else { zr = param_r; zi = param_i; cr = x; ci = y; }
+          for (iteration=1; zr*zr + zi*zi<=4 && iteration<=iteration_max; ++iteration) {
+            const double temp = zr*zr - zi*zi + cr;
+            zi = 2*zr*zi + ci;
+            zr = temp;
+          }
+          if (iteration>iteration_max) {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette(0,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(0,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)0;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)((*this)(p,q,0,c)*copacity);
+            }
+          } else if (is_normalized_iteration) {
+            const float
+              normz = (float)cimg::abs(zr*zr + zi*zi),
+              niteration = (float)(iteration + 1 - std::log(std::log(normz))/ln2);
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._linear_atX(niteration,c);
+              else cimg_forC(*this,c)
+                     (*this)(p,q,0,c) = (T)(palette._linear_atX(niteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)niteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(niteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          } else {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._atX(iteration,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(iteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)iteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(iteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          }
+        }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal \overloading.
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      return draw_mandelbrot(0,0,_width - 1,_height - 1,colormap,opacity,
+                             z0r,z0i,z1r,z1i,iteration_max,is_normalized_iteration,is_julia_set,param_r,param_i);
+    }
+
+    //! Draw a 1d gaussian function.
+    /**
+       \param xc X-coordinate of the gaussian center.
+       \param sigma Standard variation of the gaussian distribution.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified color is (null).",
+                                    cimg_instance);
+      const float sigma2 = 2*sigma*sigma, nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      cimg_forX(*this,x) {
+        const float dx = (x - xc), val = (float)std::exp(-dx*dx/sigma2);
+        T *ptrd = data(x,0,0,0);
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+        col-=_spectrum;
+      }
+      return *this;
+    }
+
+    //! Draw a 2d gaussian function.
+    /**
+       \param xc X-coordinate of the gaussian center.
+       \param yc Y-coordinate of the gaussian center.
+       \param tensor Covariance matrix (must be 2x2).
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const CImg<t>& tensor,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (tensor._width!=2 || tensor._height!=2 || tensor._depth!=1 || tensor._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified tensor (%u,%u,%u,%u,%p) is not a 2x2 matrix.",
+                                    cimg_instance,
+                                    tensor._width,tensor._height,tensor._depth,tensor._spectrum,tensor._data);
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified color is (null).",
+                                    cimg_instance);
+      typedef typename CImg<t>::Tfloat tfloat;
+      const CImg<tfloat> invT = tensor.get_invert(), invT2 = (invT*invT)/(-2.0);
+      const tfloat a = invT2(0,0), b = 2*invT2(1,0), c = invT2(1,1);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      float dy = -yc;
+      cimg_forY(*this,y) {
+        float dx = -xc;
+        cimg_forX(*this,x) {
+          const float val = (float)std::exp(a*dx*dx + b*dx*dy + c*dy*dy);
+          T *ptrd = data(x,y,0,0);
+          if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+          else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+          col-=_spectrum;
+          ++dx;
+        }
+        ++dy;
+      }
+      return *this;
+    }
+
+    //! Draw a 2d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const int xc, const int yc, const float r1, const float r2, const float ru, const float rv,
+                           const tc *const color, const float opacity=1) {
+      const double
+        a = r1*ru*ru + r2*rv*rv,
+        b = (r1-r2)*ru*rv,
+        c = r1*rv*rv + r2*ru*ru;
+      const CImg<Tfloat> tensor(2,2,1,1, a,b,b,c)
