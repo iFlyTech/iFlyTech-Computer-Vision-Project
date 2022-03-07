@@ -41323,4 +41323,162 @@ namespace cimg_library_suffixed {
               _cimg_draw_fill_test_neighbor(nxc - 1,yc - 1,0,(nxc!=0 && yc!=0));
               _cimg_draw_fill_test_neighbor(nxc + 1,yc - 1,0,(nxc<W1 && yc!=0));
               _cimg_draw_fill_test_neighbor(nxc - 1,yc + 1,0,(nxc!=0 && yc<H1));
-              _cimg_draw_fill_test_neighbor(nxc + 1,yc + 1,
+              _cimg_draw_fill_test_neighbor(nxc + 1,yc + 1,0,(nxc<W1 && yc<H1));
+            }
+            if (nxc) { --nxc; _cimg_draw_fill_test(nxc,yc,0,cont); } else cont = false;
+          } while (cont);
+          nxc = xc;
+          do { // X-forward
+            if ((++nxc)<=W1) { _cimg_draw_fill_test(nxc,yc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(nxc,yc,0);
+              _cimg_draw_fill_test_neighbor(nxc,yc - 1,0,yc!=0);
+              _cimg_draw_fill_test_neighbor(nxc,yc + 1,0,yc<H1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(nxc - 1,yc - 1,0,(nxc!=0 && yc!=0));
+                _cimg_draw_fill_test_neighbor(nxc + 1,yc - 1,0,(nxc<W1 && yc!=0));
+                _cimg_draw_fill_test_neighbor(nxc - 1,yc + 1,0,(nxc!=0 && yc<H1));
+                _cimg_draw_fill_test_neighbor(nxc + 1,yc + 1,0,(nxc<W1 && yc<H1));
+              }
+            }
+          } while (cont);
+          unsigned int nyc = yc;
+          do { // Y-backward
+            if (nyc) { --nyc; _cimg_draw_fill_test(xc,nyc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,0);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,0,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,0,xc<W1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc - 1,0,(xc!=0 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc - 1,0,(xc<W1 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc + 1,0,(xc!=0 && nyc<H1));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc + 1,0,(xc<W1 && nyc<H1));
+              }
+            }
+          } while (cont);
+          nyc = yc;
+          do { // Y-forward
+            if ((++nyc)<=H1) { _cimg_draw_fill_test(xc,nyc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,0);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,0,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,0,xc<W1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc - 1,0,(xc!=0 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc - 1,0,(xc<W1 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc + 1,0,(xc!=0 && nyc<H1));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc + 1,0,(xc<W1 && nyc<H1));
+              }
+            }
+          } while (cont);
+        } while (posr1>posr0);
+        if (noregion) cimg_for(region,ptrd,t) if (*ptrd==noregion) *ptrd = (t)0;
+      }
+      return *this;
+    }
+
+    //! Draw filled 3d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x, const int y, const int z,
+                       const tc *const color, const float opacity=1,
+                       const float sigma=0, const bool is_high_connexity=false) {
+      CImg<boolT> tmp;
+      return draw_fill(x,y,z,color,opacity,tmp,sigma,is_high_connexity);
+    }
+
+    //! Draw filled 2d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x, const int y,
+                       const tc *const color, const float opacity=1,
+                       const float sigma=0, const bool is_high_connexity=false) {
+      CImg<boolT> tmp;
+      return draw_fill(x,y,0,color,opacity,tmp,sigma,is_high_connexity);
+    }
+
+    //! Draw a random plasma texture.
+    /**
+       \param alpha Alpha-parameter.
+       \param beta Beta-parameter.
+       \param scale Scale-parameter.
+       \note Use the mid-point algorithm to render.
+    **/
+    CImg<T>& draw_plasma(const float alpha=1, const float beta=0, const unsigned int scale=8) {
+      if (is_empty()) return *this;
+      const int w = width(), h = height();
+      const Tfloat m = (Tfloat)cimg::type<T>::min(), M = (Tfloat)cimg::type<T>::max();
+      cimg_forZC(*this,z,c) {
+        CImg<T> ref = get_shared_slice(z,c);
+        for (int delta = 1<<cimg::min(scale,31U); delta>1; delta>>=1) {
+          const int delta2 = delta>>1;
+          const float r = alpha*delta + beta;
+
+          // Square step.
+          for (int y0 = 0; y0<h; y0+=delta)
+            for (int x0 = 0; x0<w; x0+=delta) {
+              const int x1 = (x0 + delta)%w, y1 = (y0 + delta)%h, xc = (x0 + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(x0,y0) + ref(x0,y1) + ref(x0,y1) + ref(x1,y1)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+
+          // Diamond steps.
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x0=0; x0<w; x0+=delta) {
+              const int y0 = cimg::mod(y,h), x1 = (x0 + delta)%w, y1 = (y + delta)%h,
+                xc = (x0 + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y0 = 0; y0<h; y0+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), x1 = (x + delta)%w, y1 = (y0 + delta)%h,
+                xc = (x + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), y0 = cimg::mod(y,h), x1 = (x + delta)%w, y1 = (y + delta)%h,
+                xc = (x + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+                ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal.
+    /**
+       \param x0 X-coordinate of the upper-left pixel.
+       \param y0 Y-coordinate of the upper-left pixel.
+       \param x1 X-coordinate of the lower-right pixel.
+       \param y1 Y-coordinate of the lower-right pixel.
+       \param colormap Colormap.
+       \param opacity Drawing opacity.
+       \param z0r Real part of the upper-left fractal vertex.
+       \param z0i Imaginary part of the upper-left fractal vertex.
+       \param z1r Real part of the lower-right fractal vertex.
+       \param z1i Imaginary part of the lower-right fractal vertex.
+       \param iteration_max Maximum number of iterations for each estimated point.
+       \param is_normalized_iteration Tells if iterations are normalized.
+       \param is_julia_set Tells if the Mandelbrot or Julia set is rendered.
+       \param param_r Real part of the Julia set parameter.
+       \param param_i Imaginary part of the Julia set parameter.
+       \note Fractal rendering is done by the Escape Time Algorithm.
+    **/
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const int x0, const int y0, const int x1, const int y1,
+                             const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      if (is_empty()) return *this;
+      CImg<tc> palette;
+      if (colormap) palette.assign(colormap._data,colormap.size()/colormap._spectrum,1,1,colormap
