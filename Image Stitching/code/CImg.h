@@ -41634,4 +41634,135 @@ namespace cimg_library_suffixed {
         a = r1*ru*ru + r2*rv*rv,
         b = (r1-r2)*ru*rv,
         c = r1*rv*rv + r2*ru*ru;
-      const CImg<Tfloat> tensor(2,2,1,1, a,b,b,c)
+      const CImg<Tfloat> tensor(2,2,1,1, a,b,b,c);
+      return draw_gaussian(xc,yc,tensor,color,opacity);
+    }
+
+    //! Draw a 2d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      return draw_gaussian(xc,yc,CImg<floatT>::diagonal(sigma,sigma),color,opacity);
+    }
+
+    //! Draw a 3d gaussian function \overloading.
+    template<typename t, typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float zc, const CImg<t>& tensor,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      typedef typename CImg<t>::Tfloat tfloat;
+      if (tensor._width!=3 || tensor._height!=3 || tensor._depth!=1 || tensor._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified tensor (%u,%u,%u,%u,%p) is not a 3x3 matrix.",
+                                    cimg_instance,
+                                    tensor._width,tensor._height,tensor._depth,tensor._spectrum,tensor._data);
+
+      const CImg<tfloat> invT = tensor.get_invert(), invT2 = (invT*invT)/(-2.0);
+      const tfloat a = invT2(0,0), b = 2*invT2(1,0), c = 2*invT2(2,0), d = invT2(1,1), e = 2*invT2(2,1), f = invT2(2,2);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      cimg_forXYZ(*this,x,y,z) {
+        const float
+          dx = (x - xc), dy = (y - yc), dz = (z - zc),
+          val = (float)std::exp(a*dx*dx + b*dx*dy + c*dx*dz + d*dy*dy + e*dy*dz + f*dz*dz);
+        T *ptrd = data(x,y,z,0);
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+        col-=_spectrum;
+      }
+      return *this;
+    }
+
+    //! Draw a 3d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float zc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      return draw_gaussian(xc,yc,zc,CImg<floatT>::diagonal(sigma,sigma,sigma),color,opacity);
+    }
+
+    //! Draw a 3d object.
+    /**
+       \param x0 X-coordinate of the 3d object position
+       \param y0 Y-coordinate of the 3d object position
+       \param z0 Z-coordinate of the 3d object position
+       \param vertices Image Nx3 describing 3d point coordinates
+       \param primitives List of P primitives
+       \param colors List of P color (or textures)
+       \param opacities Image or list of P opacities
+       \param render_type d Render type (0=Points, 1=Lines, 2=Faces (no light), 3=Faces (flat), 4=Faces(Gouraud)
+       \param is_double_sided Tells if object faces have two sides or are oriented.
+       \param focale length of the focale (0 for parallel projection)
+       \param lightx X-coordinate of the light
+       \param lighty Y-coordinate of the light
+       \param lightz Z-coordinate of the light
+       \param specular_lightness Amount of specular light.
+       \param specular_shininess Shininess of the object
+    **/
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d(0,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+
+#ifdef cimg_use_board
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(board,x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d((void*)&board,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+#endif
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImgList<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float ligh
