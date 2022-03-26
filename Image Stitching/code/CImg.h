@@ -42228,4 +42228,172 @@ namespace cimg_library_suffixed {
               i3 = rectangle_flag?(unsigned int)primitive(3):0;
             const tpfloat
               x0 = (tpfloat)vertices(i0,0), y0 = (tpfloat)vertices(i0,1), z0 = (tpfloat)vertices(i0,2),
-              x1 = (tpfloat)vertices(i1,0),
+              x1 = (tpfloat)vertices(i1,0), y1 = (tpfloat)vertices(i1,1), z1 = (tpfloat)vertices(i1,2),
+              x2 = (tpfloat)vertices(i2,0), y2 = (tpfloat)vertices(i2,1), z2 = (tpfloat)vertices(i2,2),
+              dx1 = x1 - x0, dy1 = y1 - y0, dz1 = z1 - z0,
+              dx2 = x2 - x0, dy2 = y2 - y0, dz2 = z2 - z0,
+              nnx = dy1*dz2 - dz1*dy2,
+              nny = dz1*dx2 - dx1*dz2,
+              nnz = dx1*dy2 - dy1*dx2,
+              norm = (tpfloat)(1e-5f + std::sqrt(nnx*nnx + nny*nny + nnz*nnz)),
+              nx = nnx/norm,
+              ny = nny/norm,
+              nz = nnz/norm;
+            unsigned int ix = 0, iy = 1, iz = 2;
+            if (is_double_sided && nz>0) { ix = 3; iy = 4; iz = 5; }
+            vertices_normals(i0,ix)+=nx; vertices_normals(i0,iy)+=ny; vertices_normals(i0,iz)+=nz;
+            vertices_normals(i1,ix)+=nx; vertices_normals(i1,iy)+=ny; vertices_normals(i1,iz)+=nz;
+            vertices_normals(i2,ix)+=nx; vertices_normals(i2,iy)+=ny; vertices_normals(i2,iz)+=nz;
+            if (rectangle_flag) {
+              vertices_normals(i3,ix)+=nx; vertices_normals(i3,iy)+=ny; vertices_normals(i3,iz)+=nz;
+            }
+          }
+        }
+
+        if (is_double_sided) cimg_forX(vertices_normals,p) {
+            const float
+              nx0 = vertices_normals(p,0), ny0 = vertices_normals(p,1), nz0 = vertices_normals(p,2),
+              nx1 = vertices_normals(p,3), ny1 = vertices_normals(p,4), nz1 = vertices_normals(p,5),
+              n0 = nx0*nx0 + ny0*ny0 + nz0*nz0, n1 = nx1*nx1 + ny1*ny1 + nz1*nz1;
+            if (n1>n0) {
+              vertices_normals(p,0) = -nx1;
+              vertices_normals(p,1) = -ny1;
+              vertices_normals(p,2) = -nz1;
+            }
+          }
+
+        if (render_type==4) {
+          lightprops.assign(vertices._width);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+          cimg_forX(lightprops,l) {
+            const tpfloat
+              nx = vertices_normals(l,0),
+              ny = vertices_normals(l,1),
+              nz = vertices_normals(l,2),
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              lx = X + vertices(l,0) - lightx,
+              ly = Y + vertices(l,1) - lighty,
+              lz = Z + vertices(l,2) - lightz,
+              nl = (tpfloat)std::sqrt(1e-5f + lx*lx + ly*ly + lz*lz),
+              factor = cimg::max((-lx*nx-ly*ny-lz*nz)/(norm*nl),0);
+            lightprops[l] = factor<=nspec?factor:(nsl1*factor*factor + nsl2*factor + nsl3);
+          }
+        } else {
+          const unsigned int
+            lw2 = light_texture._width/2 - 1,
+            lh2 = light_texture._height/2 - 1;
+          lightprops.assign(vertices._width,2);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+          cimg_forX(lightprops,l) {
+            const tpfloat
+              nx = vertices_normals(l,0),
+              ny = vertices_normals(l,1),
+              nz = vertices_normals(l,2),
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              nnx = nx/norm,
+              nny = ny/norm;
+            lightprops(l,0) = lw2*(1 + nnx);
+            lightprops(l,1) = lh2*(1 + nny);
+          }
+        }
+      } break;
+      }
+
+      // Draw visible primitives
+      const CImg<tc> default_color(1,_spectrum,1,1,(tc)200);
+      CImg<_to> _opacity;
+
+      for (unsigned int l = 0; l<nb_visibles; ++l) {
+        const unsigned int n_primitive = visibles(permutations(l));
+        const CImg<tf>& primitive = primitives[n_primitive];
+        const CImg<tc>
+          &__color = n_primitive<colors._width?colors[n_primitive]:CImg<tc>(),
+          _color = (__color && __color.size()!=_spectrum && __color._spectrum<_spectrum)?
+            __color.get_resize(-100,-100,-100,_spectrum,0):CImg<tc>(),
+          &color = _color?_color:(__color?__color:default_color);
+        const tc *const pcolor = color._data;
+        const float opacity = __draw_object3d(opacities,n_primitive,_opacity);
+
+#ifdef cimg_use_board
+        LibBoard::Board &board = *(LibBoard::Board*)pboard;
+#endif
+
+        switch (primitive.size()) {
+        case 1 : { // Colored point or sprite
+          const unsigned int n0 = (unsigned int)primitive[0];
+          const int x0 = (int)projections(n0,0), y0 = (int)projections(n0,1);
+
+          if (_opacity.is_empty()) { // Scalar opacity.
+
+            if (color.size()==_spectrum) { // Colored point.
+              draw_point(x0,y0,pcolor,opacity);
+#ifdef cimg_use_board
+              if (pboard) {
+                board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+                board.fillCircle((float)x0,height()-(float)y0,0);
+              }
+#endif
+            } else { // Sprite.
+              const tpfloat z = Z + vertices(n0,2);
+              const float factor = focale<0?1:sprite_scale*(absfocale?absfocale/(z + absfocale):1);
+              const unsigned int
+                _sw = (unsigned int)(color._width*factor),
+                _sh = (unsigned int)(color._height*factor),
+                sw = _sw?_sw:1, sh = _sh?_sh:1;
+              const int nx0 = x0 - (int)sw/2, ny0 = y0 - (int)sh/2;
+              if (sw<=3*_width/2 && sh<=3*_height/2 &&
+                  (nx0 + (int)sw/2>=0 || nx0 - (int)sw/2<width() || ny0 + (int)sh/2>=0 || ny0 - (int)sh/2<height())) {
+                const CImg<tc>
+                  _sprite = (sw!=color._width || sh!=color._height)?
+                    color.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<tc>(),
+                  &sprite = _sprite?_sprite:color;
+                draw_image(nx0,ny0,sprite,opacity);
+#ifdef cimg_use_board
+                if (pboard) {
+                  board.setPenColorRGBi(128,128,128);
+                  board.setFillColor(LibBoard::Color::None);
+                  board.drawRectangle((float)nx0,height() - (float)ny0,sw,sh);
+                }
+#endif
+              }
+            }
+          } else { // Opacity mask.
+            const tpfloat z = Z + vertices(n0,2);
+            const float factor = focale<0?1:sprite_scale*(absfocale?absfocale/(z + absfocale):1);
+            const unsigned int
+              _sw = (unsigned int)(cimg::max(color._width,_opacity._width)*factor),
+              _sh = (unsigned int)(cimg::max(color._height,_opacity._height)*factor),
+              sw = _sw?_sw:1, sh = _sh?_sh:1;
+            const int nx0 = x0 - (int)sw/2, ny0 = y0 - (int)sh/2;
+            if (sw<=3*_width/2 && sh<=3*_height/2 &&
+                (nx0 + (int)sw/2>=0 || nx0 - (int)sw/2<width() || ny0 + (int)sh/2>=0 || ny0 - (int)sh/2<height())) {
+              const CImg<tc>
+                _sprite = (sw!=color._width || sh!=color._height)?
+                  color.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<tc>(),
+                &sprite = _sprite?_sprite:color;
+              const CImg<_to>
+                _nopacity = (sw!=_opacity._width || sh!=_opacity._height)?
+                  _opacity.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<_to>(),
+                &nopacity = _nopacity?_nopacity:_opacity;
+              draw_image(nx0,ny0,sprite,nopacity);
+#ifdef cimg_use_board
+              if (pboard) {
+                board.setPenColorRGBi(128,128,128);
+                board.setFillColor(LibBoard::Color::None);
+                board.drawRectangle((float)nx0,height() - (float)ny0,sw,sh);
+              }
+#endif
+            }
+          }
+        } break;
+        case 2 : { // Colored line
+          const unsigned int
+            n0 = (unsigned int)primitive[0],
+            n1 = (unsigned int)primitive[1];
+          const int
+            x0 = (int)projections(n0,0), y0 = (int)projections(n0,1),
+            x1 = (in
