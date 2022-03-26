@@ -42056,4 +42056,176 @@ namespace cimg_library_suffixed {
             xc = X + Xc*(absfocale?absfocale/zc:1),
             yc = Y + Yc*(absfocale?absfocale/zc:1),
             radius = 0.5f*std::sqrt(cimg::sqr(vertices(i1,0) - vertices(i0,0)) +
-                                    cimg::sqr(verti
+                                    cimg::sqr(vertices(i1,1) - vertices(i0,1)) +
+                                    cimg::sqr(vertices(i1,2) - vertices(i0,2)))*(absfocale?absfocale/zc:1),
+            xm = xc - radius,
+            ym = yc - radius,
+            xM = xc + radius,
+            yM = yc + radius;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && _zc>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = _zc;
+          }
+          is_forward = false;
+        } break;
+        case 2 : // Segment
+        case 6 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = (z0 + z1)/2;
+          }
+        } break;
+        case 3 :  // Triangle
+        case 9 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2),
+            x2 = projections(i2,0), y2 = projections(i2,1), z2 = Z + vertices(i2,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (x2<xm) xm = x2;
+          if (x2>xM) xM = x2;
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (y2<ym) ym = y2;
+          if (y2>yM) yM = y2;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin && z2>zmin) {
+            const tpfloat d = (x1-x0)*(y2-y0) - (x2-x0)*(y1-y0);
+            if (is_double_sided || d<0) {
+              visibles(l) = (unsigned int)l;
+              zrange(l) = (z0 + z1 + z2)/3;
+            }
+          }
+        } break;
+        case 4 : // Rectangle
+        case 12 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2),
+            i3 = (unsigned int)primitive(3);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2),
+            x2 = projections(i2,0), y2 = projections(i2,1), z2 = Z + vertices(i2,2),
+            x3 = projections(i3,0), y3 = projections(i3,1), z3 = Z + vertices(i3,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (x2<xm) xm = x2;
+          if (x2>xM) xM = x2;
+          if (x3<xm) xm = x3;
+          if (x3>xM) xM = x3;
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (y2<ym) ym = y2;
+          if (y2>yM) yM = y2;
+          if (y3<ym) ym = y3;
+          if (y3>yM) yM = y3;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin && z2>zmin) {
+            const float d = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
+            if (is_double_sided || d<0) {
+              visibles(l) = (unsigned int)l;
+              zrange(l) = (z0 + z1 + z2 + z3)/4;
+            }
+          }
+        } break;
+        default :
+          if (render_type==5) cimg::mutex(10,0);
+          throw CImgArgumentException(_cimg_instance
+                                      "draw_object3d(): Invalid primitive[%u] with size %u "
+                                      "(should have size 1,2,3,4,5,6,9 or 12).",
+                                      cimg_instance,
+                                      l,primitive.size());
+        }
+      }
+
+      // Force transparent primitives to be drawn last when zbuffer is activated
+      // (and if object contains no spheres or sprites).
+      if (is_forward)
+        cimglist_for(primitives,l)
+          if (___draw_object3d(opacities,l)!=1) zrange(l) = 2*zmax - zrange(l);
+
+      // Sort only visibles primitives.
+      unsigned int *p_visibles = visibles._data;
+      tpfloat *p_zrange = zrange._data;
+      const tpfloat *ptrz = p_zrange;
+      cimg_for(visibles,ptr,unsigned int) {
+        if (*ptr!=~0U) { *(p_visibles++) = *ptr; *(p_zrange++) = *ptrz; }
+        ++ptrz;
+      }
+      const unsigned int nb_visibles = (unsigned int)(p_zrange - zrange._data);
+      if (!nb_visibles) {
+        if (render_type==5) cimg::mutex(10,0);
+        return *this;
+      }
+      CImg<uintT> permutations;
+      CImg<tpfloat>(zrange._data,nb_visibles,1,1,1,true).sort(permutations,is_forward);
+
+      // Compute light properties
+      CImg<floatT> lightprops;
+      switch (render_type) {
+      case 3 : { // Flat Shading
+        lightprops.assign(nb_visibles);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+        cimg_forX(lightprops,l) {
+          const CImg<tf>& primitive = primitives(visibles(permutations(l)));
+          const unsigned int psize = primitive.size();
+          if (psize==3 || psize==4 || psize==9 || psize==12) {
+            const unsigned int
+              i0 = (unsigned int)primitive(0),
+              i1 = (unsigned int)primitive(1),
+              i2 = (unsigned int)primitive(2);
+            const tpfloat
+              x0 = (tpfloat)vertices(i0,0), y0 = (tpfloat)vertices(i0,1), z0 = (tpfloat)vertices(i0,2),
+              x1 = (tpfloat)vertices(i1,0), y1 = (tpfloat)vertices(i1,1), z1 = (tpfloat)vertices(i1,2),
+              x2 = (tpfloat)vertices(i2,0), y2 = (tpfloat)vertices(i2,1), z2 = (tpfloat)vertices(i2,2),
+              dx1 = x1 - x0, dy1 = y1 - y0, dz1 = z1 - z0,
+              dx2 = x2 - x0, dy2 = y2 - y0, dz2 = z2 - z0,
+              nx = dy1*dz2 - dz1*dy2,
+              ny = dz1*dx2 - dx1*dz2,
+              nz = dx1*dy2 - dy1*dx2,
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              lx = X + (x0 + x1 + x2)/3 - lightx,
+              ly = Y + (y0 + y1 + y2)/3 - lighty,
+              lz = Z + (z0 + z1 + z2)/3 - lightz,
+              nl = (tpfloat)std::sqrt(1e-5f + lx*lx + ly*ly + lz*lz),
+              factor = cimg::max(cimg::abs(-lx*nx-ly*ny-lz*nz)/(norm*nl),0);
+            lightprops[l] = factor<=nspec?factor:(nsl1*factor*factor + nsl2*factor + nsl3);
+          } else lightprops[l] = 1;
+        }
+      } break;
+
+      case 4 : // Gouraud Shading
+      case 5 : { // Phong-Shading
+        CImg<tpfloat> vertices_normals(vertices._width,6,1,1,0);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+        for (unsigned int l = 0; l<nb_visibles; ++l) {
+          const CImg<tf>& primitive = primitives[visibles(l)];
+          const unsigned int psize = primitive.size();
+          const bool
+            triangle_flag = (psize==3) || (psize==9),
+            rectangle_flag = (psize==4) || (psize==12);
+          if (triangle_flag || rectangle_flag) {
+            const unsigned int
+              i0 = (unsigned int)primitive(0),
+              i1 = (unsigned int)primitive(1),
+              i2 = (unsigned int)primitive(2),
+              i3 = rectangle_flag?(unsigned int)primitive(3):0;
+            const tpfloat
+              x0 = (tpfloat)vertices(i0,0), y0 = (tpfloat)vertices(i0,1), z0 = (tpfloat)vertices(i0,2),
+              x1 = (tpfloat)vertices(i1,0),
