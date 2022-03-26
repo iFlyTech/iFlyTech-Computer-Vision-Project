@@ -41889,4 +41889,171 @@ namespace cimg_library_suffixed {
     template<typename t, typename to>
     static float __draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive, CImg<to>& opacity) {
       opacity.assign();
-      return n_primitive>=opacities._width?1.0f:(float)opaci
+      return n_primitive>=opacities._width?1.0f:(float)opacities[n_primitive];
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImgList<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width && opacities[n_primitive].size()==1?(float)opacities(n_primitive,0):1.0f;
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width?(float)opacities[n_primitive]:1.0f;
+    }
+
+    template<typename tz, typename tp, typename tf, typename tc, typename to>
+    CImg<T>& _draw_object3d(void *const pboard, CImg<tz>& zbuffer,
+                            const float X, const float Y, const float Z,
+                            const CImg<tp>& vertices,
+                            const CImgList<tf>& primitives,
+                            const CImgList<tc>& colors,
+                            const to& opacities,
+                            const unsigned int render_type,
+                            const bool is_double_sided, const float focale,
+                            const float lightx, const float lighty, const float lightz,
+                            const float specular_lightness, const float specular_shininess,
+                            const float sprite_scale) {
+      typedef typename cimg::superset2<tp,tz,float>::type tpfloat;
+      typedef typename to::value_type _to;
+      if (is_empty() || !vertices || !primitives) return *this;
+      CImg<char> error_message(1024);
+      if (!vertices.is_object3d(primitives,colors,opacities,false,error_message))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_object3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,vertices._width,primitives._width,error_message.data());
+#ifndef cimg_use_board
+      if (pboard) return *this;
+#endif
+      if (render_type==5) cimg::mutex(10);  // Static variable used in this case, breaks thread-safety.
+
+      const float
+        nspec = 1 - (specular_lightness<0.0f?0.0f:(specular_lightness>1.0f?1.0f:specular_lightness)),
+        nspec2 = 1 + (specular_shininess<0.0f?0.0f:specular_shininess),
+        nsl1 = (nspec2 - 1)/cimg::sqr(nspec - 1),
+        nsl2 = 1 - 2*nsl1*nspec,
+        nsl3 = nspec2 - nsl1 - nsl2;
+
+      // Create light texture for phong-like rendering.
+      CImg<floatT> light_texture;
+      if (render_type==5) {
+        if (colors._width>primitives._width) {
+          static CImg<floatT> default_light_texture;
+          static const tc *lptr = 0;
+          static tc ref_values[64] = { 0 };
+          const CImg<tc>& img = colors.back();
+          bool is_same_texture = (lptr==img._data);
+          if (is_same_texture)
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                if (ref_values[r++]!=img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum)) {
+                  is_same_texture = false; break;
+                }
+          if (!is_same_texture || default_light_texture._spectrum<_spectrum) {
+            (default_light_texture.assign(img,false)/=255).resize(-100,-100,1,_spectrum);
+            lptr = colors.back().data();
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                ref_values[r++] = img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum);
+          }
+          light_texture.assign(default_light_texture,true);
+        } else {
+          static CImg<floatT> default_light_texture;
+          static float olightx = 0, olighty = 0, olightz = 0, ospecular_shininess = 0;
+          if (!default_light_texture ||
+              lightx!=olightx || lighty!=olighty || lightz!=olightz ||
+              specular_shininess!=ospecular_shininess || default_light_texture._spectrum<_spectrum) {
+            default_light_texture.assign(512,512);
+            const float
+              dlx = lightx - X,
+              dly = lighty - Y,
+              dlz = lightz - Z,
+              nl = (float)std::sqrt(dlx*dlx + dly*dly + dlz*dlz),
+              nlx = (default_light_texture._width - 1)/2*(1 + dlx/nl),
+              nly = (default_light_texture._height - 1)/2*(1 + dly/nl),
+              white[] = { 1 };
+            default_light_texture.draw_gaussian(nlx,nly,default_light_texture._width/3.0f,white);
+            cimg_forXY(default_light_texture,x,y) {
+              const float factor = default_light_texture(x,y);
+              if (factor>nspec) default_light_texture(x,y) = cimg::min(2,nsl1*factor*factor + nsl2*factor + nsl3);
+            }
+            default_light_texture.resize(-100,-100,1,_spectrum);
+            olightx = lightx; olighty = lighty; olightz = lightz; ospecular_shininess = specular_shininess;
+          }
+          light_texture.assign(default_light_texture,true);
+        }
+      }
+
+      // Compute 3d to 2d projection.
+      CImg<tpfloat> projections(vertices._width,2);
+      tpfloat parallzmin = cimg::type<tpfloat>::max();
+      const float absfocale = focale?cimg::abs(focale):0;
+      if (absfocale) {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(projections.size()>4096)
+#endif
+        cimg_forX(projections,l) { // Perspective projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          const tpfloat projectedz = z + Z + absfocale;
+          projections(l,1) = Y + absfocale*y/projectedz;
+          projections(l,0) = X + absfocale*x/projectedz;
+        }
+
+      } else {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(projections.size()>4096)
+#endif
+        cimg_forX(projections,l) { // Parallel projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          if (z<parallzmin) parallzmin = z;
+          projections(l,1) = Y + y;
+          projections(l,0) = X + x;
+        }
+      }
+      const float _focale = absfocale?absfocale:(1e5f-parallzmin);
+      float zmax = 0;
+      if (zbuffer) zmax = vertices.get_shared_row(2).max();
+
+      // Compute visible primitives.
+      CImg<uintT> visibles(primitives._width,1,1,1,~0U);
+      CImg<tpfloat> zrange(primitives._width);
+      const tpfloat zmin = absfocale?(tpfloat)(1.5f - absfocale):cimg::type<tpfloat>::min();
+      bool is_forward = zbuffer?true:false;
+
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(primitives.size()>4096)
+#endif
+      cimglist_for(primitives,l) {
+        const CImg<tf>& primitive = primitives[l];
+        switch (primitive.size()) {
+        case 1 : { // Point
+          CImg<_to> _opacity;
+          __draw_object3d(opacities,l,_opacity);
+          if (l<=colors.width() && (colors[l].size()!=_spectrum || _opacity)) is_forward = false;
+          const unsigned int i0 = (unsigned int)primitive(0);
+          const tpfloat z0 = Z + vertices(i0,2);
+          if (z0>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = z0;
+          }
+        } break;
+        case 5 : { // Sphere
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          const tpfloat
+            Xc = 0.5f*((float)vertices(i0,0) + (float)vertices(i1,0)),
+            Yc = 0.5f*((float)vertices(i0,1) + (float)vertices(i1,1)),
+            Zc = 0.5f*((float)vertices(i0,2) + (float)vertices(i1,2)),
+            _zc = Z + Zc,
+            zc = _zc + _focale,
+            xc = X + Xc*(absfocale?absfocale/zc:1),
+            yc = Y + Yc*(absfocale?absfocale/zc:1),
+            radius = 0.5f*std::sqrt(cimg::sqr(vertices(i1,0) - vertices(i0,0)) +
+                                    cimg::sqr(verti
