@@ -42559,4 +42559,151 @@ namespace cimg_library_suffixed {
 #ifdef cimg_use_board
             if (pboard) {
               board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
-              board.fillTriangle((float)x0,height() - (
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x1,height() - (float)y1,
+                                 (float)x2,height() - (float)y2);
+            }
+#endif
+            break;
+          case 3 :
+            if (zbuffer) draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,pcolor,opacity,lightprops(l));
+            else _draw_triangle(x0,y0,x1,y1,x2,y2,pcolor,opacity,lightprops(l));
+#ifdef cimg_use_board
+            if (pboard) {
+              const float lp = cimg::min(lightprops(l),1);
+              board.setPenColorRGBi((unsigned char)(color[0]*lp),
+                                     (unsigned char)(color[1]*lp),
+                                     (unsigned char)(color[2]*lp),
+                                     (unsigned char)(opacity*255));
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x1,height() - (float)y1,
+                                 (float)x2,height() - (float)y2);
+            }
+#endif
+            break;
+          case 4 :
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,pcolor,
+                            lightprops(n0),lightprops(n1),lightprops(n2),opacity);
+            else draw_triangle(x0,y0,x1,y1,x2,y2,pcolor,lightprops(n0),lightprops(n1),lightprops(n2),opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi((unsigned char)(color[0]),
+                                     (unsigned char)(color[1]),
+                                     (unsigned char)(color[2]),
+                                     (unsigned char)(opacity*255));
+              board.fillGouraudTriangle((float)x0,height() - (float)y0,lightprops(n0),
+                                         (float)x1,height() - (float)y1,lightprops(n1),
+                                         (float)x2,height() - (float)y2,lightprops(n2));
+            }
+#endif
+            break;
+          case 5 : {
+            const unsigned int
+              lx0 = (unsigned int)lightprops(n0,0), ly0 = (unsigned int)lightprops(n0,1),
+              lx1 = (unsigned int)lightprops(n1,0), ly1 = (unsigned int)lightprops(n1,1),
+              lx2 = (unsigned int)lightprops(n2,0), ly2 = (unsigned int)lightprops(n2,1);
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,pcolor,light_texture,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+            else draw_triangle(x0,y0,x1,y1,x2,y2,pcolor,light_texture,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              const float
+                l0 = light_texture((int)(light_texture.width()/2*(1 + lightprops(n0,0))),
+                                   (int)(light_texture.height()/2*(1 + lightprops(n0,1)))),
+                l1 = light_texture((int)(light_texture.width()/2*(1 + lightprops(n1,0))),
+                                   (int)(light_texture.height()/2*(1 + lightprops(n1,1)))),
+                l2 = light_texture((int)(light_texture.width()/2*(1 + lightprops(n2,0))),
+                                   (int)(light_texture.height()/2*(1 + lightprops(n2,1))));
+              board.setPenColorRGBi((unsigned char)(color[0]),
+                                     (unsigned char)(color[1]),
+                                     (unsigned char)(color[2]),
+                                     (unsigned char)(opacity*255));
+              board.fillGouraudTriangle((float)x0,height() - (float)y0,l0,
+                                         (float)x1,height() - (float)y1,l1,
+                                         (float)x2,height() - (float)y2,l2);
+            }
+#endif
+          } break;
+          }
+        } break;
+        case 4 : { // Colored rectangle
+          const unsigned int
+            n0 = (unsigned int)primitive[0],
+            n1 = (unsigned int)primitive[1],
+            n2 = (unsigned int)primitive[2],
+            n3 = (unsigned int)primitive[3];
+          const int
+            x0 = (int)projections(n0,0), y0 = (int)projections(n0,1),
+            x1 = (int)projections(n1,0), y1 = (int)projections(n1,1),
+            x2 = (int)projections(n2,0), y2 = (int)projections(n2,1),
+            x3 = (int)projections(n3,0), y3 = (int)projections(n3,1);
+          const float
+            z0 = vertices(n0,2) + Z + _focale,
+            z1 = vertices(n1,2) + Z + _focale,
+            z2 = vertices(n2,2) + Z + _focale,
+            z3 = vertices(n3,2) + Z + _focale;
+
+          switch (render_type) {
+          case 0 :
+            draw_point(x0,y0,pcolor,opacity).draw_point(x1,y1,pcolor,opacity).
+              draw_point(x2,y2,pcolor,opacity).draw_point(x3,y3,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.drawCircle((float)x0,height() - (float)y0,0);
+              board.drawCircle((float)x1,height() - (float)y1,0);
+              board.drawCircle((float)x2,height() - (float)y2,0);
+              board.drawCircle((float)x3,height() - (float)y3,0);
+            }
+#endif
+            break;
+          case 1 :
+            if (zbuffer)
+              draw_line(zbuffer,x0,y0,z0,x1,y1,z1,pcolor,opacity).draw_line(zbuffer,x1,y1,z1,x2,y2,z2,pcolor,opacity).
+                draw_line(zbuffer,x2,y2,z2,x3,y3,z3,pcolor,opacity).draw_line(zbuffer,x3,y3,z3,x0,y0,z0,pcolor,opacity);
+            else
+              draw_line(x0,y0,x1,y1,pcolor,opacity).draw_line(x1,y1,x2,y2,pcolor,opacity).
+                draw_line(x2,y2,x3,y3,pcolor,opacity).draw_line(x3,y3,x0,y0,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.drawLine((float)x0,height() - (float)y0,(float)x1,height() - (float)y1);
+              board.drawLine((float)x1,height() - (float)y1,(float)x2,height() - (float)y2);
+              board.drawLine((float)x2,height() - (float)y2,(float)x3,height() - (float)y3);
+              board.drawLine((float)x3,height() - (float)y3,(float)x0,height() - (float)y0);
+            }
+#endif
+            break;
+          case 2 :
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,pcolor,opacity).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,pcolor,opacity);
+            else
+              draw_triangle(x0,y0,x1,y1,x2,y2,pcolor,opacity).draw_triangle(x0,y0,x2,y2,x3,y3,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x1,height() - (float)y1,
+                                 (float)x2,height() - (float)y2);
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x2,height() - (float)y2,
+                                 (float)x3,height() - (float)y3);
+            }
+#endif
+            break;
+          case 3 :
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,pcolor,opacity,lightprops(l)).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,pcolor,opacity,lightprops(l));
+            else
+              _draw_triangle(x0,y0,x1,y1,x2,y2,pcolor,opacity,lightprops(l)).
+                _draw_triangle(x0,y0,x2,y2,x3,y3,pcolor,opacity,lightprops(l));
+#ifdef cimg_use_board
+            if (pboard) {
+              const float lp = cimg::min(lightprops(l),1);
+              board.setPenColorRGBi((unsigned char)(color[0]*lp),
+                                     (unsigned char)(color[1]*lp),
+                                     (unsigned char)(color[2]*lp),(unsigned char)(opacity*255));
+              board.fillTriangle((float)x0,height(
