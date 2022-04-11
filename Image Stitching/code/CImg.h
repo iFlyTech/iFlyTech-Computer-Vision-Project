@@ -42977,4 +42977,147 @@ namespace cimg_library_suffixed {
             break;
           case 2 :
             if (zbuffer)
-   
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,opacity).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,opacity);
+            else
+              draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,opacity).
+                draw_triangle(x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(128,128,128,(unsigned char)(opacity*255));
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x1,height() - (float)y1,
+                                 (float)x2,height() - (float)y2);
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x2,height() - (float)y2,
+                                 (float)x3,height() - (float)y3);
+            }
+#endif
+            break;
+          case 3 :
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,opacity,lightprops(l)).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,opacity,lightprops(l));
+            else
+              draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,opacity,lightprops(l)).
+                draw_triangle(x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,opacity,lightprops(l));
+#ifdef cimg_use_board
+            if (pboard) {
+              const float lp = cimg::min(lightprops(l),1);
+              board.setPenColorRGBi((unsigned char)(128*lp),
+                                     (unsigned char)(128*lp),
+                                     (unsigned char)(128*lp),
+                                     (unsigned char)(opacity*255));
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x1,height() - (float)y1,
+                                 (float)x2,height() - (float)y2);
+              board.fillTriangle((float)x0,height() - (float)y0,
+                                 (float)x2,height() - (float)y2,
+                                 (float)x3,height() - (float)y3);
+            }
+#endif
+            break;
+          case 4 : {
+            const float
+              lightprop0 = lightprops(n0), lightprop1 = lightprops(n1),
+              lightprop2 = lightprops(n2), lightprop3 = lightprops(n3);
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,
+                            lightprop0,lightprop1,lightprop2,opacity).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,
+                              lightprop0,lightprop2,lightprop3,opacity);
+            else
+              draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,
+                            lightprop0,lightprop1,lightprop2,opacity).
+                draw_triangle(x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,
+                              lightprop0,lightprop2,lightprop3,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(128,128,128,(unsigned char)(opacity*255));
+              board.fillGouraudTriangle((float)x0,height() - (float)y0,lightprop0,
+                                         (float)x1,height() - (float)y1,lightprop1,
+                                         (float)x2,height() - (float)y2,lightprop2);
+              board.fillGouraudTriangle((float)x0,height()  -(float)y0,lightprop0,
+                                         (float)x2,height() - (float)y2,lightprop2,
+                                         (float)x3,height() - (float)y3,lightprop3);
+            }
+#endif
+          } break;
+          case 5 : {
+            const unsigned int
+              lx0 = (unsigned int)lightprops(n0,0), ly0 = (unsigned int)lightprops(n0,1),
+              lx1 = (unsigned int)lightprops(n1,0), ly1 = (unsigned int)lightprops(n1,1),
+              lx2 = (unsigned int)lightprops(n2,0), ly2 = (unsigned int)lightprops(n2,1),
+              lx3 = (unsigned int)lightprops(n3,0), ly3 = (unsigned int)lightprops(n3,1);
+            if (zbuffer)
+              draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,
+                            light_texture,lx0,ly0,lx1,ly1,lx2,ly2,opacity).
+                draw_triangle(zbuffer,x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,
+                              light_texture,lx0,ly0,lx2,ly2,lx3,ly3,opacity);
+            else
+              draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,color,tx0,ty0,tx1,ty1,tx2,ty2,
+                            light_texture,lx0,ly0,lx1,ly1,lx2,ly2,opacity).
+                draw_triangle(x0,y0,z0,x2,y2,z2,x3,y3,z3,color,tx0,ty0,tx2,ty2,tx3,ty3,
+                              light_texture,lx0,ly0,lx2,ly2,lx3,ly3,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              const float
+                l0 = light_texture((int)(light_texture.width()/2*(1 + lx0)), (int)(light_texture.height()/2*(1 + ly0))),
+                l1 = light_texture((int)(light_texture.width()/2*(1 + lx1)), (int)(light_texture.height()/2*(1 + ly1))),
+                l2 = light_texture((int)(light_texture.width()/2*(1 + lx2)), (int)(light_texture.height()/2*(1 + ly2))),
+                l3 = light_texture((int)(light_texture.width()/2*(1 + lx3)), (int)(light_texture.height()/2*(1 + ly3)));
+              board.setPenColorRGBi(128,128,128,(unsigned char)(opacity*255));
+              board.fillGouraudTriangle((float)x0,height() - (float)y0,l0,
+                                         (float)x1,height() - (float)y1,l1,
+                                         (float)x2,height() - (float)y2,l2);
+              board.fillGouraudTriangle((float)x0,height()  -(float)y0,l0,
+                                         (float)x2,height() - (float)y2,l2,
+                                         (float)x3,height() - (float)y3,l3);
+            }
+#endif
+          } break;
+          }
+        } break;
+        }
+      }
+
+      if (render_type==5) cimg::mutex(10,0);
+      return *this;
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name Data Input
+    //@{
+    //---------------------------
+
+    //! Launch simple interface to select a shape from an image.
+    /**
+       \param disp Display window to use.
+       \param feature_type Type of feature to select. Can be <tt>{ 0=point | 1=line | 2=rectangle | 3=ellipse }</tt>.
+       \param XYZ Pointer to 3 values X,Y,Z which tells about the projection point coordinates, for volumetric images.
+    **/
+    CImg<T>& select(CImgDisplay &disp,
+                    const unsigned int feature_type=2, unsigned int *const XYZ=0,
+                    const bool exit_on_anykey=false) {
+      return get_select(disp,feature_type,XYZ,exit_on_anykey).move_to(*this);
+    }
+
+    //! Simple interface to select a shape from an image \overloading.
+    CImg<T>& select(const char *const title,
+                    const unsigned int feature_type=2, unsigned int *const XYZ=0,
+                    const bool exit_on_anykey=false) {
+      return get_select(title,feature_type,XYZ,exit_on_anykey).move_to(*this);
+    }
+
+    //! Simple interface to select a shape from an image \newinstance.
+    CImg<intT> get_select(CImgDisplay &disp,
+                          const unsigned int feature_type=2, unsigned int *const XYZ=0,
+                          const bool exit_on_anykey=false) const {
+      return _get_select(disp,0,feature_type,XYZ,0,0,0,exit_on_anykey,true,false);
+    }
+
+    //! Simple interface to select a shape from an image \newinstance.
+    CImg<intT> get_select(const char *const title,
+                      
