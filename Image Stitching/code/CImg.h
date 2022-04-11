@@ -43120,4 +43120,158 @@ namespace cimg_library_suffixed {
 
     //! Simple interface to select a shape from an image \newinstance.
     CImg<intT> get_select(const char *const title,
-                      
+                          const unsigned int feature_type=2, unsigned int *const XYZ=0,
+                          const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _get_select(disp,title,feature_type,XYZ,0,0,0,exit_on_anykey,true,false);
+    }
+
+    CImg<intT> _get_select(CImgDisplay &disp, const char *const title,
+                           const unsigned int feature_type, unsigned int *const XYZ,
+                           const int origX, const int origY, const int origZ,
+                           const bool exit_on_anykey,
+                           const bool reset_view3d,
+                           const bool force_display_z_coord) const {
+      if (is_empty()) return CImg<intT>(1,feature_type==0?3:6,1,1,-1);
+      if (!disp) {
+        disp.assign(cimg_fitscreen(_width,_height,_depth),title?title:0,1);
+        if (!title) disp.set_title("CImg<%s> (%ux%ux%ux%u)",pixel_type(),_width,_height,_depth,_spectrum);
+      } else if (title) disp.set_title("%s",title);
+
+      CImg<T> thumb;
+      if (width()>disp.screen_width() || height()>disp.screen_height())
+        get_resize(cimg_fitscreen(width(),height(),1),1,-100).move_to(thumb);
+
+      const unsigned int old_normalization = disp.normalization();
+      bool old_is_resized = disp.is_resized();
+      disp._normalization = 0;
+      disp.show().set_key(0).set_wheel().show_mouse();
+
+      static const unsigned char foreground_color[] = { 255,255,255 }, background_color[] = { 0,0,0 };
+
+      int area = 0, starting_area = 0, clicked_area = 0, phase = 0,
+        X0 = (int)((XYZ?XYZ[0]:(_width - 1)/2)%_width),
+        Y0 = (int)((XYZ?XYZ[1]:(_height - 1)/2)%_height),
+        Z0 = (int)((XYZ?XYZ[2]:(_depth - 1)/2)%_depth),
+        X1 =-1, Y1 = -1, Z1 = -1,
+        X3d = -1, Y3d = -1,
+        oX3d = X3d, oY3d = -1,
+        omx = -1, omy = -1;
+      float X = -1, Y = -1, Z = -1;
+      unsigned int old_button = 0, key = 0;
+
+      bool shape_selected = false, text_down = false, visible_cursor = true;
+      static CImg<floatT> pose3d;
+      static bool is_view3d = false, is_axes = true;
+      if (reset_view3d) { pose3d.assign(); is_view3d = false; }
+      CImg<floatT> points3d, opacities3d, sel_opacities3d;
+      CImgList<uintT> primitives3d, sel_primitives3d;
+      CImgList<ucharT> colors3d, sel_colors3d;
+      CImg<ucharT> visu, visu0, view3d;
+      CImg<charT> text(1024); *text = 0;
+
+      while (!key && !disp.is_closed() && !shape_selected) {
+
+        // Handle mouse motion and selection
+        int
+          mx = disp.mouse_x(),
+          my = disp.mouse_y();
+
+        const float
+          mX = mx<0?-1.0f:(float)mx*(width() + (depth()>1?depth():0))/disp.width(),
+          mY = my<0?-1.0f:(float)my*(height() + (depth()>1?depth():0))/disp.height();
+
+        area = 0;
+        if (mX>=0 && mY>=0 && mX<width() && mY<height())  { area = 1; X = mX; Y = mY; Z = (float)(phase?Z1:Z0); }
+        if (mX>=0 && mX<width() && mY>=height()) { area = 2; X = mX; Z = mY - _height; Y = (float)(phase?Y1:Y0); }
+        if (mY>=0 && mX>=width() && mY<height()) { area = 3; Y = mY; Z = mX - _width; X = (float)(phase?X1:X0); }
+        if (mX>=width() && mY>=height()) area = 4;
+        if (disp.button()) { if (!clicked_area) clicked_area = area; } else clicked_area = 0;
+
+        CImg<charT> filename(32);
+
+        switch (key = disp.key()) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT :
+#endif
+        case 0 : case cimg::keyCTRLLEFT : key = 0; break;
+        case cimg::keyPAGEUP :
+          if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { disp.set_wheel(1); key = 0; } break;
+        case cimg::keyPAGEDOWN :
+          if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { disp.set_wheel(-1); key = 0; } break;
+        case cimg::keyA : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            is_axes = !is_axes; disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                     CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).resize(cimg_fitscreen(_width,_height,_depth),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.resize(disp.screen_width(),disp.screen_height(),false).toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyV : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            is_view3d = !is_view3d; disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            if (visu0) {
+              (+visu0).draw_text(0,0," Saving snapshot... ",foreground_color,background_color,0.7f,13).display(disp);
+              visu0.save(filename);
+              (+visu0).draw_text(0,0," Snapshot '%s' saved. ",foreground_color,background_color,0.7f,13,filename._data).
+                display(disp);
+            }
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyO : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu0).draw_text(0,0," Saving instance... ",foreground_color,background_color,0.7f,13).display(disp);
+            save(filename);
+            (+visu0).draw_text(0,0," Instance '%s' saved. ",foreground_color,background_color,0.7f,13,filename._data).
+              display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        }
+
+        switch (area) {
+
+        case 0 : // When mouse is out of image range.
+          mx = my = -1; X = Y = Z = -1;
+          break;
+
+        case 1 : case 2 : case 3 : // When mouse is over the XY,XZ or YZ projections.
+          if (disp.button()&1 && phase<2 && clicked_area==area) { // When selection has been started (1st step).
+            if (_depth>1 && (X1!=(int)X || Y1!=(int)Y || Z1!=(int)Z)) visu0.assign();
+            X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z;
+          }
+          if (!(disp.button()&1) && phase>=2 && clicked_area!=area) { // When selection is at 2nd step (for volumes).
+            switch (starting_area) {
+            case 1 : if (Z1!=(int)Z) visu0.assign(); Z1 = (int)Z; break;
+            case 2 : if (Y1!=(int)Y) visu0.assign(); Y1 = (int)Y; break;
+            case 3 : if (X1!=(int)X
