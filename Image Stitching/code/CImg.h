@@ -43274,4 +43274,150 @@ namespace cimg_library_suffixed {
             switch (starting_area) {
             case 1 : if (Z1!=(int)Z) visu0.assign(); Z1 = (int)Z; break;
             case 2 : if (Y1!=(int)Y) visu0.assign(); Y1 = (int)Y; break;
-            case 3 : if (X1!=(int)X
+            case 3 : if (X1!=(int)X) visu0.assign(); X1 = (int)X; break;
+            }
+          }
+          if (disp.button()&2 && clicked_area==area) { // When moving through the image/volume.
+            if (phase) {
+              if (_depth>1 && (X1!=(int)X || Y1!=(int)Y || Z1!=(int)Z)) visu0.assign();
+              X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z;
+            } else {
+              if (_depth>1 && (X0!=(int)X || Y0!=(int)Y || Z0!=(int)Z)) visu0.assign();
+              X0 = (int)X; Y0 = (int)Y; Z0 = (int)Z;
+            }
+          }
+          if (disp.button()&4) {
+            X = (float)X0; Y = (float)Y0; Z = (float)Z0; phase = area = clicked_area = starting_area = 0;
+            visu0.assign();
+          }
+          if (disp.wheel()) { // When moving through the slices of the volume (with mouse wheel).
+            if (_depth>1 && !disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT() &&
+                !disp.is_keySHIFTLEFT() && !disp.is_keySHIFTRIGHT() &&
+                !disp.is_keyALT() && !disp.is_keyALTGR()) {
+              switch (area) {
+              case 1 :
+                if (phase) Z = (float)(Z1+=disp.wheel()); else Z = (float)(Z0+=disp.wheel());
+                visu0.assign(); break;
+              case 2 :
+                if (phase) Y = (float)(Y1+=disp.wheel()); else Y = (float)(Y0+=disp.wheel());
+                visu0.assign(); break;
+              case 3 :
+                if (phase) X = (float)(X1+=disp.wheel()); else X = (float)(X0+=disp.wheel());
+                visu0.assign(); break;
+              }
+              disp.set_wheel();
+            } else key = ~0U;
+          }
+          if ((disp.button()&1)!=old_button) { // When left button has just been pressed or released.
+            switch (phase) {
+            case 0 :
+              if (area==clicked_area) {
+                X0 = X1 = (int)X; Y0 = Y1 = (int)Y; Z0 = Z1 = (int)Z; starting_area = area; ++phase;
+              } break;
+            case 1 :
+              if (area==starting_area) {
+                X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z; ++phase;
+              } else if (!(disp.button()&1)) { X = (float)X0; Y = (float)Y0; Z = (float)Z0; phase = 0; visu0.assign(); }
+              break;
+            case 2 : ++phase; break;
+            }
+            old_button = disp.button()&1;
+          }
+          break;
+
+        case 4 : // When mouse is over the 3d view.
+          if (is_view3d && points3d) {
+            X3d = mx - width()*disp.width()/(width() + (depth()>1?depth():0));
+            Y3d = my - height()*disp.height()/(height() + (depth()>1?depth():0));
+            if (oX3d<0) { oX3d = X3d; oY3d = Y3d; }
+            // Left + right buttons: reset.
+            if ((disp.button()&3)==3) { pose3d.assign(); view3d.assign(); oX3d = oY3d = X3d = Y3d = -1; }
+            else if (disp.button()&1 && pose3d && (oX3d!=X3d || oY3d!=Y3d)) { // Left button: rotate.
+              const float
+                R = 0.45f*cimg::min(view3d._width,view3d._height),
+                R2 = R*R,
+                u0 = (float)(oX3d - view3d.width()/2),
+                v0 = (float)(oY3d - view3d.height()/2),
+                u1 = (float)(X3d - view3d.width()/2),
+                v1 = (float)(Y3d - view3d.height()/2),
+                n0 = (float)std::sqrt(u0*u0 + v0*v0),
+                n1 = (float)std::sqrt(u1*u1 + v1*v1),
+                nu0 = n0>R?(u0*R/n0):u0,
+                nv0 = n0>R?(v0*R/n0):v0,
+                nw0 = (float)std::sqrt(cimg::max(0,R2 - nu0*nu0 - nv0*nv0)),
+                nu1 = n1>R?(u1*R/n1):u1,
+                nv1 = n1>R?(v1*R/n1):v1,
+                nw1 = (float)std::sqrt(cimg::max(0,R2 - nu1*nu1 - nv1*nv1)),
+                u = nv0*nw1 - nw0*nv1,
+                v = nw0*nu1 - nu0*nw1,
+                w = nv0*nu1 - nu0*nv1,
+                n = (float)std::sqrt(u*u + v*v + w*w),
+                alpha = (float)std::asin(n/R2);
+              pose3d.draw_image(CImg<floatT>::rotation_matrix(u,v,w,alpha)*pose3d.get_crop(0,0,2,2));
+              view3d.assign();
+            } else if (disp.button()&2 && pose3d && oY3d!=Y3d) {  // Right button: zoom.
+              pose3d(3,2)-=(oY3d - Y3d)*1.5f; view3d.assign();
+            }
+            if (disp.wheel()) { // Wheel: zoom
+              pose3d(3,2)-=disp.wheel()*15; view3d.assign(); disp.set_wheel();
+            }
+            if (disp.button()&4 && pose3d && (oX3d!=X3d || oY3d!=Y3d)) { // Middle button: shift.
+              pose3d(3,0)-=oX3d - X3d; pose3d(3,1)-=oY3d - Y3d; view3d.assign();
+            }
+            oX3d = X3d; oY3d = Y3d;
+          }
+          mx = my = -1; X = Y = Z = -1;
+          break;
+        }
+
+        if (phase) {
+          if (!feature_type) shape_selected = phase?true:false;
+          else {
+            if (_depth>1) shape_selected = (phase==3)?true:false;
+            else shape_selected = (phase==2)?true:false;
+          }
+        }
+
+        if (X0<0) X0 = 0; if (X0>=width()) X0 = width() - 1;
+        if (Y0<0) Y0 = 0; if (Y0>=height()) Y0 = height() - 1;
+        if (Z0<0) Z0 = 0; if (Z0>=depth()) Z0 = depth() - 1;
+        if (X1<1) X1 = 0; if (X1>=width()) X1 = width() - 1;
+        if (Y1<0) Y1 = 0; if (Y1>=height()) Y1 = height() - 1;
+        if (Z1<0) Z1 = 0; if (Z1>=depth()) Z1 = depth() - 1;
+
+        // Draw visualization image on the display
+        if (mx!=omx || my!=omy || !visu0 || (_depth>1 && !view3d)) {
+
+          if (!visu0) { // Create image of projected planes.
+            if (thumb) thumb.__get_select(disp,old_normalization,phase?X1:X0,phase?Y1:Y0,phase?Z1:Z0).move_to(visu0);
+            else __get_select(disp,old_normalization,phase?X1:X0,phase?Y1:Y0,phase?Z1:Z0).move_to(visu0);
+            visu0.resize(disp);
+            view3d.assign();
+            points3d.assign();
+          }
+
+          if (is_view3d && _depth>1 && !view3d) { // Create 3d view for volumetric images.
+            const unsigned int
+              _x3d = (unsigned int)cimg::round((float)_width*visu0._width/(_width + _depth),1,1),
+              _y3d = (unsigned int)cimg::round((float)_height*visu0._height/(_height + _depth),1,1),
+              x3d = _x3d>=visu0._width?visu0._width - 1:_x3d,
+              y3d = _y3d>=visu0._height?visu0._height - 1:_y3d;
+            CImg<ucharT>(1,2,1,1,64,128).resize(visu0._width - x3d,visu0._height - y3d,1,visu0._spectrum,3).
+              move_to(view3d);
+            if (!points3d) {
+              get_projections3d(primitives3d,colors3d,phase?X1:X0,phase?Y1:Y0,phase?Z1:Z0,true).move_to(points3d);
+              points3d.append(CImg<floatT>(8,3,1,1,
+                                           0,_width - 1,_width - 1,0,0,_width - 1,_width - 1,0,
+                                           0,0,_height - 1,_height - 1,0,0,_height - 1,_height - 1,
+                                           0,0,0,0,_depth - 1,_depth - 1,_depth - 1,_depth - 1),'x');
+              CImg<uintT>::vector(12,13).move_to(primitives3d); CImg<uintT>::vector(13,14).move_to(primitives3d);
+              CImg<uintT>::vector(14,15).move_to(primitives3d); CImg<uintT>::vector(15,12).move_to(primitives3d);
+              CImg<uintT>::vector(16,17).move_to(primitives3d); CImg<uintT>::vector(17,18).move_to(primitives3d);
+              CImg<uintT>::vector(18,19).move_to(primitives3d); CImg<uintT>::vector(19,16).move_to(primitives3d);
+              CImg<uintT>::vector(12,16).move_to(primitives3d); CImg<uintT>::vector(13,17).move_to(primitives3d);
+              CImg<uintT>::vector(14,18).move_to(primitives3d); CImg<uintT>::vector(15,19).move_to(primitives3d);
+              colors3d.insert(12,CImg<ucharT>::vector(255,255,255));
+              opacities3d.assign(primitives3d.width(),1,1,1,0.5f);
+              if (!phase) {
+                opacities3d[0] = opacities3d[1] = opacities3d[2] = 0.8f;
+     
