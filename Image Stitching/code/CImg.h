@@ -43420,4 +43420,131 @@ namespace cimg_library_suffixed {
               opacities3d.assign(primitives3d.width(),1,1,1,0.5f);
               if (!phase) {
                 opacities3d[0] = opacities3d[1] = opacities3d[2] = 0.8f;
-     
+                sel_primitives3d.assign();
+                sel_colors3d.assign();
+                sel_opacities3d.assign();
+              } else {
+                if (feature_type==2) {
+                  points3d.append(CImg<floatT>(8,3,1,1,
+                                               X0,X1,X1,X0,X0,X1,X1,X0,
+                                               Y0,Y0,Y1,Y1,Y0,Y0,Y1,Y1,
+                                               Z0,Z0,Z0,Z0,Z1,Z1,Z1,Z1),'x');
+                  sel_primitives3d.assign();
+                  CImg<uintT>::vector(20,21).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(21,22).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(22,23).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(23,20).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(24,25).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(25,26).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(26,27).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(27,24).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(20,24).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(21,25).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(22,26).move_to(sel_primitives3d);
+                  CImg<uintT>::vector(23,27).move_to(sel_primitives3d);
+                } else {
+                  points3d.append(CImg<floatT>(2,3,1,1,
+                                               X0,X1,
+                                               Y0,Y1,
+                                               Z0,Z1),'x');
+                  sel_primitives3d.assign(CImg<uintT>::vector(20,21));
+                }
+                sel_colors3d.assign(sel_primitives3d._width,CImg<ucharT>::vector(255,255,255));
+                sel_opacities3d.assign(sel_primitives3d._width,1,1,1,0.8f);
+              }
+              points3d.shift_object3d(-0.5f*(_width - 1),-0.5f*(_height - 1),-0.5f*(_depth - 1)).resize_object3d();
+              points3d*=0.75f*cimg::min(view3d._width,view3d._height);
+            }
+
+            if (!pose3d) CImg<floatT>(4,3,1,1, 1,0,0,0, 0,1,0,0, 0,0,1,0).move_to(pose3d);
+            CImg<floatT> zbuffer3d(view3d._width,view3d._height,1,1,0);
+            const CImg<floatT> rotated_points3d = pose3d.get_crop(0,0,2,2)*points3d;
+            if (sel_primitives3d)
+              view3d.draw_object3d(pose3d(3,0) + 0.5f*view3d._width,
+                                   pose3d(3,1) + 0.5f*view3d._height,
+                                   pose3d(3,2),
+                                   rotated_points3d,sel_primitives3d,sel_colors3d,sel_opacities3d,
+                                   2,true,500,0,0,0,0,0,zbuffer3d);
+            view3d.draw_object3d(pose3d(3,0) + 0.5f*view3d._width,
+                                 pose3d(3,1) + 0.5f*view3d._height,
+                                 pose3d(3,2),
+                                 rotated_points3d,primitives3d,colors3d,opacities3d,
+                                 2,true,500,0,0,0,0,0,zbuffer3d);
+            visu0.draw_image(x3d,y3d,view3d);
+          }
+          visu = visu0;
+
+          if (X<0 || Y<0 || Z<0) { if (!visible_cursor) { disp.show_mouse(); visible_cursor = true; }}
+          else {
+            if (is_axes) { if (visible_cursor) { disp.hide_mouse(); visible_cursor = false; }}
+            else { if (!visible_cursor) { disp.show_mouse(); visible_cursor = true; }}
+            const int d = (depth()>1)?depth():0;
+            int
+              _X = (int)X, _Y = (int)Y, _Z = (int)Z,
+              w = disp.width(), W = width() + d,
+              h = disp.height(), H = height() + d,
+              _xp = (int)(_X*(float)w/W), xp = _xp + ((int)(_xp*(float)W/w)!=_X?1:0),
+              _yp = (int)(_Y*(float)h/H), yp = _yp + ((int)(_yp*(float)H/h)!=_Y?1:0),
+              _xn = (int)((_X + 1.0f)*w/W - 1), xn = _xn + ((int)((_xn + 1.0f)*W/w)!=_X + 1?1:0),
+              _yn = (int)((_Y + 1.0f)*h/H - 1), yn = _yn + ((int)((_yn + 1.0f)*H/h)!=_Y + 1?1:0),
+              _zxp = (int)((_Z + width())*(float)w/W), zxp = _zxp + ((int)(_zxp*(float)W/w)!=_Z + width()?1:0),
+              _zyp = (int)((_Z + height())*(float)h/H), zyp = _zyp + ((int)(_zyp*(float)H/h)!=_Z + height()?1:0),
+              _zxn = (int)((_Z + width() + 1.0f)*w/W - 1),
+                       zxn = _zxn + ((int)((_zxn + 1.0f)*W/w)!=_Z + width() + 1?1:0),
+              _zyn = (int)((_Z + height() + 1.0f)*h/H - 1),
+                       zyn = _zyn + ((int)((_zyn + 1.0f)*H/h)!=_Z + height() + 1?1:0),
+              _xM = (int)(width()*(float)w/W - 1), xM = _xM + ((int)((_xM + 1.0f)*W/w)!=width()?1:0),
+              _yM = (int)(height()*(float)h/H - 1), yM = _yM + ((int)((_yM + 1.0f)*H/h)!=height()?1:0),
+              xc = (xp + xn)/2,
+              yc = (yp + yn)/2,
+              zxc = (zxp + zxn)/2,
+              zyc = (zyp + zyn)/2,
+              xf = (int)(X*w/W),
+              yf = (int)(Y*h/H),
+              zxf = (int)((Z + width())*w/W),
+              zyf = (int)((Z + height())*h/H);
+
+            if (is_axes) { // Draw axes.
+              visu.draw_line(0,yf,visu.width() - 1,yf,foreground_color,0.7f,0xFF00FF00).
+                draw_line(0,yf,visu.width() - 1,yf,background_color,0.7f,0x00FF00FF).
+                draw_line(xf,0,xf,visu.height() - 1,foreground_color,0.7f,0xFF00FF00).
+                draw_line(xf,0,xf,visu.height() - 1,background_color,0.7f,0x00FF00FF);
+              if (_depth>1)
+                visu.draw_line(zxf,0,zxf,yM,foreground_color,0.7f,0xFF00FF00).
+                  draw_line(zxf,0,zxf,yM,background_color,0.7f,0x00FF00FF).
+                  draw_line(0,zyf,xM,zyf,foreground_color,0.7f,0xFF00FF00).
+                  draw_line(0,zyf,xM,zyf,background_color,0.7f,0x00FF00FF);
+            }
+
+            // Draw box cursor.
+            if (xn - xp>=4 && yn - yp>=4) visu.draw_rectangle(xp,yp,xn,yn,foreground_color,0.2f).
+                                        draw_rectangle(xp,yp,xn,yn,foreground_color,1,0xAAAAAAAA).
+                                        draw_rectangle(xp,yp,xn,yn,background_color,1,0x55555555);
+            if (_depth>1) {
+              if (yn - yp>=4 && zxn - zxp>=4) visu.draw_rectangle(zxp,yp,zxn,yn,background_color,0.2f).
+                                            draw_rectangle(zxp,yp,zxn,yn,foreground_color,1,0xAAAAAAAA).
+                                            draw_rectangle(zxp,yp,zxn,yn,background_color,1,0x55555555);
+              if (xn - xp>=4 && zyn - zyp>=4) visu.draw_rectangle(xp,zyp,xn,zyn,background_color,0.2f).
+                                            draw_rectangle(xp,zyp,xn,zyn,foreground_color,1,0xAAAAAAAA).
+                                            draw_rectangle(xp,zyp,xn,zyn,background_color,1,0x55555555);
+            }
+
+            // Draw selection.
+            if (phase) {
+              const int
+                _xp0 = (int)(X0*(float)w/W), xp0 = _xp0 + ((int)(_xp0*(float)W/w)!=X0?1:0),
+                _yp0 = (int)(Y0*(float)h/H), yp0 = _yp0 + ((int)(_yp0*(float)H/h)!=Y0?1:0),
+                _xn0 = (int)((X0 + 1.0f)*w/W - 1), xn0 = _xn0 + ((int)((_xn0 + 1.0f)*W/w)!=X0 + 1?1:0),
+                _yn0 = (int)((Y0 + 1.0f)*h/H - 1), yn0 = _yn0 + ((int)((_yn0 + 1.0f)*H/h)!=Y0 + 1?1:0),
+                _zxp0 = (int)((Z0 + width())*(float)w/W), zxp0 = _zxp0 + ((int)(_zxp0*(float)W/w)!=Z0 + width()?1:0),
+                _zyp0 = (int)((Z0 + height())*(float)h/H), zyp0 = _zyp0 + ((int)(_zyp0*(float)H/h)!=Z0 + height()?1:0),
+                _zxn0 = (int)((Z0 + width() + 1.0f)*w/W - 1),
+                zxn0 = _zxn0 + ((int)((_zxn0 + 1.0f)*W/w)!=Z0 + width() + 1?1:0),
+                _zyn0 = (int)((Z0 + height() + 1.0f)*h/H - 1),
+                zyn0 = _zyn0 + ((int)((_zyn0 + 1.0f)*H/h)!=Z0 + height() + 1?1:0),
+                xc0 = (xp0 + xn0)/2,
+                yc0 = (yp0 + yn0)/2,
+                zxc0 = (zxp0 + zxn0)/2,
+                zyc0 = (zyp0 + zyn0)/2;
+
+              switch (feature_t
