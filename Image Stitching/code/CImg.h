@@ -43671,4 +43671,160 @@ namespace cimg_library_suffixed {
         }
         if (X1<0 || Y1<0 || Z1<0) X0 = Y0 = Z0 = X1 = Y1 = Z1 = -1;
         switch (feature_type) {
-        case 1 : case 2 : res[0] = X0; res[1] = Y0; res[2] = Z0; res[3] = X1; res[4] = Y1; res[5] = Z1; bre
+        case 1 : case 2 : res[0] = X0; res[1] = Y0; res[2] = Z0; res[3] = X1; res[4] = Y1; res[5] = Z1; break;
+        case 3 :
+          res[3] = cimg::abs(X1 - X0); res[4] = cimg::abs(Y1 - Y0); res[5] = cimg::abs(Z1 - Z0); // keep no break here!
+        default : res[0] = X0; res[1] = Y0; res[2] = Z0;
+        }
+      }
+      if (!exit_on_anykey || !(disp.button()&4)) disp.set_button();
+      if (!visible_cursor) disp.show_mouse();
+      disp._normalization = old_normalization;
+      disp._is_resized = old_is_resized;
+      if (key!=~0U) disp.set_key(key);
+      return res;
+    }
+
+    // Return a visualizable uchar8 image for display routines.
+    CImg<ucharT> __get_select(const CImgDisplay& disp, const int normalization,
+                              const int x, const int y, const int z) const {
+      if (is_empty()) return CImg<ucharT>(1,1,1,1,0);
+      const CImg<T> crop = get_shared_channels(0,cimg::min(2,spectrum() - 1));
+      CImg<Tuchar> img2d;
+      if (_depth>1) crop.get_projections2d(x,y,z).move_to(img2d);
+      else CImg<Tuchar>(crop,false).move_to(img2d);
+
+      // Check for inf and NaN values.
+      if (cimg::type<T>::is_float() && normalization) {
+        bool is_inf = false, is_nan = false;
+        cimg_for(img2d,ptr,Tuchar)
+          if (cimg::type<T>::is_inf(*ptr)) { is_inf = true; break; }
+          else if (cimg::type<T>::is_nan(*ptr)) { is_nan = true; break; }
+        if (is_inf || is_nan) {
+          Tint m0 = (Tint)cimg::type<T>::max(), M0 = (Tint)cimg::type<T>::min();
+          if (!normalization) { m0 = 0; M0 = 255; }
+          else if (normalization==2) { m0 = (Tint)disp._min; M0 = (Tint)disp._max; }
+          else
+            cimg_for(img2d,ptr,Tuchar)
+              if (!cimg::type<T>::is_inf(*ptr) && !cimg::type<T>::is_nan(*ptr)) {
+                if (*ptr<(Tuchar)m0) m0 = *ptr;
+                if (*ptr>(Tuchar)M0) M0 = *ptr;
+              }
+          const T
+            val_minf = (T)(normalization==1 || normalization==3?m0 - (M0 - m0)*20 - 1:m0),
+            val_pinf = (T)(normalization==1 || normalization==3?M0 + (M0 - m0)*20 + 1:M0);
+          if (is_nan)
+            cimg_for(img2d,ptr,Tuchar)
+              if (cimg::type<T>::is_nan(*ptr)) *ptr = val_minf; // Replace NaN values.
+          if (is_inf)
+            cimg_for(img2d,ptr,Tuchar)
+              if (cimg::type<T>::is_inf(*ptr)) *ptr = (float)*ptr<0?val_minf:val_pinf; // Replace +-inf values.
+        }
+      }
+
+      switch (normalization) {
+      case 1 : img2d.normalize(0,255); break;
+      case 2 : {
+        const float m = disp._min, M = disp._max;
+        (img2d-=m)*=255.0f/(M - m>0?M - m:1);
+      } break;
+      case 3 :
+        if (cimg::type<T>::is_float()) img2d.normalize(0,255);
+        else {
+          const float m = (float)cimg::type<T>::min(), M = (float)cimg::type<T>::max();
+          (img2d-=m)*=255.0f/(M - m>0?M - m:1);
+        } break;
+      }
+
+      if (img2d.spectrum()==2) img2d.channels(0,2);
+      return img2d;
+    }
+
+    //! Select sub-graph in a graph.
+    CImg<intT> get_select_graph(CImgDisplay &disp,
+                                const unsigned int plot_type=1, const unsigned int vertex_type=1,
+                                const char *const labelx=0, const double xmin=0, const double xmax=0,
+                                const char *const labely=0, const double ymin=0, const double ymax=0,
+                                const bool exit_on_anykey=false) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "select_graph(): Empty instance.",
+                                    cimg_instance);
+      if (!disp) disp.assign(cimg_fitscreen(CImgDisplay::screen_width()/2,CImgDisplay::screen_height()/2,1),0,0).
+                   set_title("CImg<%s>",pixel_type());
+      const ulongT siz = (ulongT)_width*_height*_depth;
+      const unsigned int old_normalization = disp.normalization();
+      disp.show().set_button().set_wheel()._normalization = 0;
+
+      double nymin = ymin, nymax = ymax, nxmin = xmin, nxmax = xmax;
+      if (nymin==nymax) { nymin = (Tfloat)min_max(nymax); const double dy = nymax - nymin; nymin-=dy/20; nymax+=dy/20; }
+      if (nymin==nymax) { --nymin; ++nymax; }
+      if (nxmin==nxmax && nxmin==0) { nxmin = 0; nxmax = siz - 1.0; }
+
+      static const unsigned char black[] = { 0, 0, 0 }, white[] = { 255, 255, 255 }, gray[] = { 220, 220, 220 };
+      static const unsigned char gray2[] = { 110, 110, 110 }, ngray[] = { 35, 35, 35 };
+      static unsigned int odimv = 0;
+      static CImg<ucharT> colormap;
+      if (odimv!=_spectrum) {
+        odimv = _spectrum;
+        colormap = CImg<ucharT>(3,_spectrum,1,1,120).noise(70,1);
+        if (_spectrum==1) { colormap[0] = colormap[1] = 120; colormap[2] = 200; }
+        else {
+          colormap(0,0) = 220; colormap(1,0) = 10; colormap(2,0) = 10;
+          if (_spectrum>1) { colormap(0,1) = 10; colormap(1,1) = 220; colormap(2,1) = 10; }
+          if (_spectrum>2) { colormap(0,2) = 10; colormap(1,2) = 10; colormap(2,2) = 220; }
+        }
+      }
+
+      CImg<ucharT> visu0, visu, graph, text, axes;
+      int x0 = -1, x1 = -1, y0 = -1, y1 = -1, omouse_x = -2, omouse_y = -2;
+      const unsigned int one = plot_type==3?0U:1U;
+      unsigned int okey = 0, obutton = 0;
+      CImg<charT> message(1024);
+      CImg_3x3(I,unsigned char);
+
+      for (bool selected = false; !selected && !disp.is_closed() && !okey && !disp.wheel(); ) {
+        const int mouse_x = disp.mouse_x(), mouse_y = disp.mouse_y();
+        const unsigned int key = disp.key(), button = disp.button();
+
+        // Generate graph representation.
+        if (!visu0) {
+          visu0.assign(disp.width(),disp.height(),1,3,220);
+          const int gdimx = disp.width() - 32, gdimy = disp.height() - 32;
+          if (gdimx>0 && gdimy>0) {
+            graph.assign(gdimx,gdimy,1,3,255);
+            if (siz<32) {
+              if (siz>1) graph.draw_grid(gdimx/(float)(siz - one),gdimy/(float)(siz - one),0,0,
+                                         false,true,black,0.2f,0x33333333,0x33333333);
+            } else graph.draw_grid(-10,-10,0,0,false,true,black,0.2f,0x33333333,0x33333333);
+            cimg_forC(*this,c)
+              graph.draw_graph(get_shared_channel(c),&colormap(0,c),(plot_type!=3 || _spectrum==1)?1:0.6f,
+                               plot_type,vertex_type,nymax,nymin);
+
+            axes.assign(gdimx,gdimy,1,1,0);
+            const float
+              dx = (float)cimg::abs(nxmax - nxmin), dy = (float)cimg::abs(nymax - nymin),
+              px = (float)std::pow(10.0,(int)std::log10(dx?dx:1) - 2.0),
+              py = (float)std::pow(10.0,(int)std::log10(dy?dy:1) - 2.0);
+            const CImg<Tdouble>
+              seqx = dx<=0?CImg<Tdouble>::vector(nxmin):
+                CImg<Tdouble>::sequence(1 + gdimx/60,nxmin,one?nxmax:nxmin + (nxmax - nxmin)*(siz + 1)/siz).round(px),
+              seqy = CImg<Tdouble>::sequence(1 + gdimy/60,nymax,nymin).round(py);
+
+            const bool allow_zero = (nxmin*nxmax>0) || (nymin*nymax>0);
+            axes.draw_axes(seqx,seqy,white,1,~0U,~0U,13,allow_zero);
+            if (nymin>0) axes.draw_axis(seqx,gdimy - 1,gray,1,~0U,13,allow_zero);
+            if (nymax<0) axes.draw_axis(seqx,0,gray,1,~0U,13,allow_zero);
+            if (nxmin>0) axes.draw_axis(0,seqy,gray,1,~0U,13,allow_zero);
+            if (nxmax<0) axes.draw_axis(gdimx - 1,seqy,gray,1,~0U,13,allow_zero);
+
+            cimg_for3x3(axes,x,y,0,0,I,unsigned char)
+              if (Icc) {
+                if (Icc==255) cimg_forC(graph,c) graph(x,y,c) = 0;
+                else cimg_forC(graph,c) graph(x,y,c) = (unsigned char)(2*graph(x,y,c)/3);
+              }
+              else if (Ipc || Inc || Icp || Icn || Ipp || Inn || Ipn || Inp)
+                cimg_forC(graph,c) graph(x,y,c) = (unsigned char)((graph(x,y,c) + 511)/3);
+
+            visu0.draw_image(16,16,graph);
+ 
