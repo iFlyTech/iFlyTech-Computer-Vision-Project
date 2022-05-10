@@ -43547,4 +43547,128 @@ namespace cimg_library_suffixed {
                 zxc0 = (zxp0 + zxn0)/2,
                 zyc0 = (zyp0 + zyn0)/2;
 
-              switch (feature_t
+              switch (feature_type) {
+              case 1 : {
+                visu.draw_arrow(xc0,yc0,xc,yc,background_color,0.9f,30,5,0x55555555).
+                  draw_arrow(xc0,yc0,xc,yc,foreground_color,0.9f,30,5,0xAAAAAAAA);
+                if (d) {
+                  visu.draw_arrow(zxc0,yc0,zxc,yc,background_color,0.9f,30,5,0x55555555).
+                    draw_arrow(zxc0,yc0,zxc,yc,foreground_color,0.9f,30,5,0xAAAAAAAA).
+                    draw_arrow(xc0,zyc0,xc,zyc,background_color,0.9f,30,5,0x55555555).
+                    draw_arrow(xc0,zyc0,xc,zyc,foreground_color,0.9f,30,5,0xAAAAAAAA);
+                }
+              } break;
+              case 2 : {
+                visu.draw_rectangle(X0<X1?xp0:xp,Y0<Y1?yp0:yp,X0<X1?xn:xn0,Y0<Y1?yn:yn0,background_color,0.2f).
+                  draw_rectangle(X0<X1?xp0:xp,Y0<Y1?yp0:yp,X0<X1?xn:xn0,Y0<Y1?yn:yn0,foreground_color,0.9f,0xAAAAAAAA).
+                  draw_rectangle(X0<X1?xp0:xp,Y0<Y1?yp0:yp,X0<X1?xn:xn0,Y0<Y1?yn:yn0,background_color,0.9f,0x55555555);
+                if (d) {
+                  visu.draw_rectangle(Z0<Z1?zxp0:zxp,Y0<Y1?yp0:yp,Z0<Z1?zxn:zxn0,Y0<Y1?yn:yn0,background_color,0.2f).
+                    draw_rectangle(Z0<Z1?zxp0:zxp,Y0<Y1?yp0:yp,Z0<Z1?zxn:zxn0,Y0<Y1?yn:yn0,
+                                   foreground_color,0.9f,0xAAAAAAAA).
+                    draw_rectangle(Z0<Z1?zxp0:zxp,Y0<Y1?yp0:yp,Z0<Z1?zxn:zxn0,Y0<Y1?yn:yn0,
+                                   background_color,0.9f,0x55555555).
+                    draw_rectangle(X0<X1?xp0:xp,Z0<Z1?zyp0:zyp,X0<X1?xn:xn0,Z0<Z1?zyn:zyn0,
+                                   background_color,0.2f).
+                    draw_rectangle(X0<X1?xp0:xp,Z0<Z1?zyp0:zyp,X0<X1?xn:xn0,Z0<Z1?zyn:zyn0,
+                                   foreground_color,0.9f,0xAAAAAAAA).
+                    draw_rectangle(X0<X1?xp0:xp,Z0<Z1?zyp0:zyp,X0<X1?xn:xn0,Z0<Z1?zyn:zyn0,
+                                   background_color,0.9f,0x55555555);
+                }
+              } break;
+              case 3 : {
+                visu.draw_ellipse(xc0,yc0,
+                                  (float)cimg::abs(xc - xc0),
+                                  (float)cimg::abs(yc - yc0),0,background_color,0.2f).
+                  draw_ellipse(xc0,yc0,
+                               (float)cimg::abs(xc - xc0),
+                               (float)cimg::abs(yc - yc0),0,foreground_color,0.9f,~0U).
+                  draw_point(xc0,yc0,foreground_color,0.9f);
+                if (d) {
+                  visu.draw_ellipse(zxc0,yc0,(float)cimg::abs(zxc - zxc0),(float)cimg::abs(yc - yc0),0,
+                                    background_color,0.2f).
+                    draw_ellipse(zxc0,yc0,(float)cimg::abs(zxc - zxc0),(float)cimg::abs(yc - yc0),0,
+                                 foreground_color,0.9f,~0U).
+                    draw_point(zxc0,yc0,foreground_color,0.9f).
+                    draw_ellipse(xc0,zyc0,(float)cimg::abs(xc - xc0),(float)cimg::abs(zyc - zyc0),0,
+                                 background_color,0.2f).
+                    draw_ellipse(xc0,zyc0,(float)cimg::abs(xc - xc0),(float)cimg::abs(zyc - zyc0),0,
+                                 foreground_color,0.9f,~0U).
+                    draw_point(xc0,zyc0,foreground_color,0.9f);
+                }
+              } break;
+              }
+            }
+
+            // Draw text info.
+            if (my>=0 && my<13) text_down = true; else if (my>=visu.height() - 13) text_down = false;
+            if (!feature_type || !phase) {
+              if (X>=0 && Y>=0 && Z>=0 && X<width() && Y<height() && Z<depth()) {
+                if (_depth>1 || force_display_z_coord)
+                  cimg_snprintf(text,text._width," Point (%d,%d,%d) = [ ",origX + (int)X,origY + (int)Y,origZ + (int)Z);
+                else cimg_snprintf(text,text._width," Point (%d,%d) = [ ",origX + (int)X,origY + (int)Y);
+                char *ctext = text._data + std::strlen(text), *const ltext = text._data + 512;
+                for (unsigned int c = 0; c<_spectrum && ctext<ltext; ++c) {
+                  cimg_snprintf(ctext,text._width/2,cimg::type<T>::format(),
+                                cimg::type<T>::format((*this)((int)X,(int)Y,(int)Z,c)));
+                  ctext = text._data + std::strlen(text);
+                  *(ctext++) = ' '; *ctext = 0;
+                }
+                std::strcpy(text._data + std::strlen(text),"] ");
+              }
+            } else switch (feature_type) {
+              case 1 : {
+                const double dX = (double)(X0 - X1), dY = (double)(Y0 - Y1), dZ = (double)(Z0 - Z1),
+                  norm = std::sqrt(dX*dX + dY*dY + dZ*dZ);
+                if (_depth>1 || force_display_z_coord)
+                  cimg_snprintf(text,text._width," Vect (%d,%d,%d)-(%d,%d,%d), Norm = %g ",
+                                origX + X0,origY + Y0,origZ + Z0,origX + X1,origY + Y1,origZ + Z1,norm);
+                else cimg_snprintf(text,text._width," Vect (%d,%d)-(%d,%d), Norm = %g ",
+                                   origX + X0,origY + Y0,origX + X1,origY + Y1,norm);
+              } break;
+              case 2 :
+                if (_depth>1 || force_display_z_coord)
+                  cimg_snprintf(text,text._width," Box (%d,%d,%d)-(%d,%d,%d), Size = (%d,%d,%d) ",
+                                origX + (X0<X1?X0:X1),origY + (Y0<Y1?Y0:Y1),origZ + (Z0<Z1?Z0:Z1),
+                                origX + (X0<X1?X1:X0),origY + (Y0<Y1?Y1:Y0),origZ + (Z0<Z1?Z1:Z0),
+                                1 + cimg::abs(X0 - X1),1 + cimg::abs(Y0 - Y1),1 + cimg::abs(Z0 - Z1));
+                else cimg_snprintf(text,text._width," Box (%d,%d)-(%d,%d), Size = (%d,%d) ",
+                                   origX + (X0<X1?X0:X1),origY + (Y0<Y1?Y0:Y1),
+                                   origX + (X0<X1?X1:X0),origY + (Y0<Y1?Y1:Y0),
+                                   1 + cimg::abs(X0 - X1),1 + cimg::abs(Y0 - Y1));
+                break;
+              default :
+                if (_depth>1 || force_display_z_coord)
+                  cimg_snprintf(text,text._width," Ellipse (%d,%d,%d)-(%d,%d,%d), Radii = (%d,%d,%d) ",
+                                origX + X0,origY + Y0,origZ + Z0,origX + X1,origY + Y1,origZ + Z1,
+                                1 + cimg::abs(X0 - X1),1 + cimg::abs(Y0 - Y1),1 + cimg::abs(Z0 - Z1));
+                else cimg_snprintf(text,text._width," Ellipse (%d,%d)-(%d,%d), Radii = (%d,%d) ",
+                                   origX + X0,origY + Y0,origX + X1,origY + Y1,
+                                   1 + cimg::abs(X0 - X1),1 + cimg::abs(Y0 - Y1));
+              }
+            if (phase || (mx>=0 && my>=0))
+              visu.draw_text(0,text_down?visu.height() - 13:0,text,foreground_color,background_color,0.7f,13);
+          }
+
+          disp.display(visu).wait();
+        } else if (!shape_selected) disp.wait();
+        if (disp.is_resized()) { disp.resize(false)._is_resized = false; old_is_resized = true; visu0.assign(); }
+        omx = mx; omy = my;
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+
+      // Return result.
+      CImg<intT> res(1,feature_type==0?3:6,1,1,-1);
+      if (XYZ) { XYZ[0] = (unsigned int)X0; XYZ[1] = (unsigned int)Y0; XYZ[2] = (unsigned int)Z0; }
+      if (shape_selected) {
+        if (feature_type==2) {
+          if (X0>X1) cimg::swap(X0,X1);
+          if (Y0>Y1) cimg::swap(Y0,Y1);
+          if (Z0>Z1) cimg::swap(Z0,Z1);
+        }
+        if (X1<0 || Y1<0 || Z1<0) X0 = Y0 = Z0 = X1 = Y1 = Z1 = -1;
+        switch (feature_type) {
+        case 1 : case 2 : res[0] = X0; res[1] = Y0; res[2] = Z0; res[3] = X1; res[4] = Y1; res[5] = Z1; bre
