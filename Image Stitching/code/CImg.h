@@ -43973,4 +43973,183 @@ namespace cimg_library_suffixed {
               if (!obutton) { x0 = cx; y0 = -1; } else { x1 = cx; y1 = -1; }
             }
             else if (button&2) {
-            
+              if (!obutton) { x0 = cx; y0 = cy; } else { x1 = cx; y1 = cy; }
+            }
+            else if (obutton) { x1 = x1>=0?cx:-1; y1 = y1>=0?cy:-1; selected = true; }
+          } else if (!button && obutton) selected = true;
+          obutton = button; omouse_x = mouse_x; omouse_y = mouse_y;
+        }
+        if (disp.is_resized()) { disp.resize(false); visu0.assign(); }
+        if (visu && visu0) disp.wait();
+        if (!exit_on_anykey && okey && okey!=cimg::keyESC &&
+            (okey!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          disp.set_key(key,false);
+          okey = 0;
+        }
+      }
+
+      disp._normalization = old_normalization;
+      if (x1>=0 && x1<x0) cimg::swap(x0,x1);
+      if (y1<y0) cimg::swap(y0,y1);
+      disp.set_key(okey);
+      return CImg<intT>(4,1,1,1,x0,y0,x1>=0?x1 + (int)one:-1,y1);
+    }
+
+    //! Load image from a file.
+    /**
+       \param filename Filename, as a C-string.
+       \note The extension of \c filename defines the file format. If no filename
+       extension is provided, CImg<T>::get_load() will try to load the file as a .cimg or .cimgz file.
+    **/
+    CImg<T>& load(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load(): Specified filename is (null).",
+                                    cimg_instance);
+
+      if (!cimg::strncasecmp(filename,"http://",7) || !cimg::strncasecmp(filename,"https://",8)) {
+        CImg<charT> filename_local(256);
+        load(cimg::load_network(filename,filename_local));
+        std::remove(filename_local);
+        return *this;
+      }
+
+      const char *const ext = cimg::split_filename(filename);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+#ifdef cimg_load_plugin
+        cimg_load_plugin(filename);
+#endif
+#ifdef cimg_load_plugin1
+        cimg_load_plugin1(filename);
+#endif
+#ifdef cimg_load_plugin2
+        cimg_load_plugin2(filename);
+#endif
+#ifdef cimg_load_plugin3
+        cimg_load_plugin3(filename);
+#endif
+#ifdef cimg_load_plugin4
+        cimg_load_plugin4(filename);
+#endif
+#ifdef cimg_load_plugin5
+        cimg_load_plugin5(filename);
+#endif
+#ifdef cimg_load_plugin6
+        cimg_load_plugin6(filename);
+#endif
+#ifdef cimg_load_plugin7
+        cimg_load_plugin7(filename);
+#endif
+#ifdef cimg_load_plugin8
+        cimg_load_plugin8(filename);
+#endif
+        // Ascii formats
+        if (!cimg::strcasecmp(ext,"asc")) load_ascii(filename);
+        else if (!cimg::strcasecmp(ext,"dlm") ||
+                 !cimg::strcasecmp(ext,"txt")) load_dlm(filename);
+
+        // 2d binary formats
+        else if (!cimg::strcasecmp(ext,"bmp")) load_bmp(filename);
+        else if (!cimg::strcasecmp(ext,"jpg") ||
+                 !cimg::strcasecmp(ext,"jpeg") ||
+                 !cimg::strcasecmp(ext,"jpe") ||
+                 !cimg::strcasecmp(ext,"jfif") ||
+                 !cimg::strcasecmp(ext,"jif")) load_jpeg(filename);
+        else if (!cimg::strcasecmp(ext,"png")) load_png(filename);
+        else if (!cimg::strcasecmp(ext,"ppm") ||
+                 !cimg::strcasecmp(ext,"pgm") ||
+                 !cimg::strcasecmp(ext,"pnm") ||
+                 !cimg::strcasecmp(ext,"pbm") ||
+                 !cimg::strcasecmp(ext,"pnk")) load_pnm(filename);
+        else if (!cimg::strcasecmp(ext,"pfm")) load_pfm(filename);
+        else if (!cimg::strcasecmp(ext,"tif") ||
+                 !cimg::strcasecmp(ext,"tiff")) load_tiff(filename);
+        else if (!cimg::strcasecmp(ext,"exr")) load_exr(filename);
+        else if (!cimg::strcasecmp(ext,"cr2") ||
+                 !cimg::strcasecmp(ext,"crw") ||
+                 !cimg::strcasecmp(ext,"dcr") ||
+                 !cimg::strcasecmp(ext,"mrw") ||
+                 !cimg::strcasecmp(ext,"nef") ||
+                 !cimg::strcasecmp(ext,"orf") ||
+                 !cimg::strcasecmp(ext,"pix") ||
+                 !cimg::strcasecmp(ext,"ptx") ||
+                 !cimg::strcasecmp(ext,"raf") ||
+                 !cimg::strcasecmp(ext,"srf")) load_dcraw_external(filename);
+        else if (!cimg::strcasecmp(ext,"gif")) load_gif_external(filename);
+
+        // 3d binary formats
+        else if (!cimg::strcasecmp(ext,"dcm") ||
+                 !cimg::strcasecmp(ext,"dicom")) load_medcon_external(filename);
+        else if (!cimg::strcasecmp(ext,"hdr") ||
+                 !cimg::strcasecmp(ext,"nii")) load_analyze(filename);
+        else if (!cimg::strcasecmp(ext,"par") ||
+                 !cimg::strcasecmp(ext,"rec")) load_parrec(filename);
+        else if (!cimg::strcasecmp(ext,"mnc")) load_minc2(filename);
+        else if (!cimg::strcasecmp(ext,"inr")) load_inr(filename);
+        else if (!cimg::strcasecmp(ext,"pan")) load_pandore(filename);
+        else if (!cimg::strcasecmp(ext,"cimg") ||
+                 !cimg::strcasecmp(ext,"cimgz") ||
+                 !*ext)  return load_cimg(filename);
+
+        // Archive files
+        else if (!cimg::strcasecmp(ext,"gz")) load_gzip_external(filename);
+
+        // Image sequences
+        else if (!cimg::strcasecmp(ext,"avi") ||
+                 !cimg::strcasecmp(ext,"mov") ||
+                 !cimg::strcasecmp(ext,"asf") ||
+                 !cimg::strcasecmp(ext,"divx") ||
+                 !cimg::strcasecmp(ext,"flv") ||
+                 !cimg::strcasecmp(ext,"mpg") ||
+                 !cimg::strcasecmp(ext,"m1v") ||
+                 !cimg::strcasecmp(ext,"m2v") ||
+                 !cimg::strcasecmp(ext,"m4v") ||
+                 !cimg::strcasecmp(ext,"mjp") ||
+                 !cimg::strcasecmp(ext,"mp4") ||
+                 !cimg::strcasecmp(ext,"mkv") ||
+                 !cimg::strcasecmp(ext,"mpe") ||
+                 !cimg::strcasecmp(ext,"movie") ||
+                 !cimg::strcasecmp(ext,"ogm") ||
+                 !cimg::strcasecmp(ext,"ogg") ||
+                 !cimg::strcasecmp(ext,"ogv") ||
+                 !cimg::strcasecmp(ext,"qt") ||
+                 !cimg::strcasecmp(ext,"rm") ||
+                 !cimg::strcasecmp(ext,"vob") ||
+                 !cimg::strcasecmp(ext,"wmv") ||
+                 !cimg::strcasecmp(ext,"xvid") ||
+                 !cimg::strcasecmp(ext,"mpeg")) load_video(filename);
+        else throw CImgIOException("CImg<%s>::load()",
+                                   pixel_type());
+      } catch (CImgIOException&) {
+        std::FILE *file = 0;
+        try {
+          file = cimg::fopen(filename,"rb");
+        } catch (CImgIOException&) {
+          cimg::exception_mode(omode);
+          throw CImgIOException(_cimg_instance
+                                "load(): Failed to open file '%s'.",
+                                cimg_instance,
+                                filename);
+        }
+
+        try {
+          const char *const f_type = cimg::ftype(file,filename);
+          std::fclose(file);
+          if (!cimg::strcasecmp(f_type,"pnm")) load_pnm(filename);
+          else if (!cimg::strcasecmp(f_type,"pfm")) load_pfm(filename);
+          else if (!cimg::strcasecmp(f_type,"bmp")) load_bmp(filename);
+          else if (!cimg::strcasecmp(f_type,"inr")) load_inr(filename);
+          else if (!cimg::strcasecmp(f_type,"jpg")) load_jpeg(filename);
+          else if (!cimg::strcasecmp(f_type,"pan")) load_pandore(filename);
+          else if (!cimg::strcasecmp(f_type,"png")) load_png(filename);
+          else if (!cimg::strcasecmp(f_type,"tif")) load_tiff(filename);
+          else if (!cimg::strcasecmp(f_type,"gif")) load_gif_external(filename);
+          else if (!cimg::strcasecmp(f_type,"dcm")) load_medcon_external(filename);
+          else throw CImgIOException("CImg<%s>::load()",
+                                     pixel_type());
+        } catch (CImgIOException&) {
+          try {
+            load_other(filename);
+          }
