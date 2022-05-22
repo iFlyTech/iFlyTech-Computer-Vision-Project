@@ -44356,4 +44356,219 @@ namespace cimg_library_suffixed {
 
       CImg<intT> colormap;
       if (bpp<16) { if (!nb_colors) nb_colors = 1<<bpp; } else nb_colors = 0;
-      if (nb_colors) { colormap.assign(nb_colors); cimg::fread(colormap._data,nb_c
+      if (nb_colors) { colormap.assign(nb_colors); cimg::fread(colormap._data,nb_colors,nfile); }
+      const int xoffset = offset - 14 - header_size - 4*nb_colors;
+      if (xoffset>0) cimg::fseek(nfile,xoffset,SEEK_CUR);
+
+      CImg<ucharT> buffer;
+      if (buf_size<cimg_iobuffer) { buffer.assign(buf_size); cimg::fread(buffer._data,buf_size,nfile); }
+      else buffer.assign(dx_bytes + align_bytes);
+      unsigned char *ptrs = buffer;
+
+      // Decompress buffer (if necessary)
+      if (compression) {
+        if (file)
+          throw CImgIOException(_cimg_instance
+                                "load_bmp(): Unable to load compressed data from '(*FILE)' inputs.",
+                                cimg_instance);
+        else {
+          if (!file) cimg::fclose(nfile);
+          return load_other(filename);
+        }
+      }
+
+      // Read pixel data
+      assign(dx,cimg::abs(dy),1,3);
+      switch (bpp) {
+      case 1 : { // Monochrome
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          unsigned char mask = 0x80, val = 0;
+          cimg_forX(*this,x) {
+            if (mask==0x80) val = *(ptrs++);
+            const unsigned char *col = (unsigned char*)(colormap._data + (val&mask?1:0));
+            (*this)(x,y,2) = (T)*(col++);
+            (*this)(x,y,1) = (T)*(col++);
+            (*this)(x,y,0) = (T)*(col++);
+            mask = cimg::ror(mask);
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      case 4 : { // 16 colors
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          unsigned char mask = 0xF0, val = 0;
+          cimg_forX(*this,x) {
+            if (mask==0xF0) val = *(ptrs++);
+            const unsigned char color = (unsigned char)((mask<16)?(val&mask):((val&mask)>>4));
+            const unsigned char *col = (unsigned char*)(colormap._data + color);
+            (*this)(x,y,2) = (T)*(col++);
+            (*this)(x,y,1) = (T)*(col++);
+            (*this)(x,y,0) = (T)*(col++);
+            mask = cimg::ror(mask,4);
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      case 8 : { //  256 colors
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          cimg_forX(*this,x) {
+            const unsigned char *col = (unsigned char*)(colormap._data + *(ptrs++));
+            (*this)(x,y,2) = (T)*(col++);
+            (*this)(x,y,1) = (T)*(col++);
+            (*this)(x,y,0) = (T)*(col++);
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      case 16 : { // 16 bits colors
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          cimg_forX(*this,x) {
+            const unsigned char c1 = *(ptrs++), c2 = *(ptrs++);
+            const unsigned short col = (unsigned short)(c1|(c2<<8));
+            (*this)(x,y,2) = (T)(col&0x1F);
+            (*this)(x,y,1) = (T)((col>>5)&0x1F);
+            (*this)(x,y,0) = (T)((col>>10)&0x1F);
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      case 24 : { // 24 bits colors
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          cimg_forX(*this,x) {
+            (*this)(x,y,2) = (T)*(ptrs++);
+            (*this)(x,y,1) = (T)*(ptrs++);
+            (*this)(x,y,0) = (T)*(ptrs++);
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      case 32 : { // 32 bits colors
+        for (int y = height() - 1; y>=0; --y) {
+          if (buf_size>=cimg_iobuffer) {
+            cimg::fread(ptrs=buffer._data,dx_bytes,nfile);
+            cimg::fseek(nfile,align_bytes,SEEK_CUR);
+          }
+          cimg_forX(*this,x) {
+            (*this)(x,y,2) = (T)*(ptrs++);
+            (*this)(x,y,1) = (T)*(ptrs++);
+            (*this)(x,y,0) = (T)*(ptrs++);
+            ++ptrs;
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      }
+      if (dy<0) mirror('y');
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a JPEG file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_jpeg(const char *const filename) {
+      return _load_jpeg(0,filename);
+    }
+
+    //! Load image from a JPEG file \newinstance.
+    static CImg<T> get_load_jpeg(const char *const filename) {
+      return CImg<T>().load_jpeg(filename);
+    }
+
+    //! Load image from a JPEG file \overloading.
+    CImg<T>& load_jpeg(std::FILE *const file) {
+      return _load_jpeg(file,0);
+    }
+
+    //! Load image from a JPEG file \newinstance.
+    static CImg<T> get_load_jpeg(std::FILE *const file) {
+      return CImg<T>().load_jpeg(file);
+    }
+
+    // Custom error handler for libjpeg.
+#ifdef cimg_use_jpeg
+    struct _cimg_error_mgr {
+      struct jpeg_error_mgr original;
+      jmp_buf setjmp_buffer;
+      char message[JMSG_LENGTH_MAX];
+    };
+
+    typedef struct _cimg_error_mgr *_cimg_error_ptr;
+
+    METHODDEF(void) _cimg_jpeg_error_exit(j_common_ptr cinfo) {
+      _cimg_error_ptr c_err = (_cimg_error_ptr) cinfo->err;  // Return control to the setjmp point
+      (*cinfo->err->format_message)(cinfo,c_err->message);
+      jpeg_destroy(cinfo);  // Clean memory and temp files.
+      longjmp(c_err->setjmp_buffer,1);
+    }
+#endif
+
+    CImg<T>& _load_jpeg(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_jpeg(): Specified filename is (null).",
+                                    cimg_instance);
+
+#ifndef cimg_use_jpeg
+      if (file)
+        throw CImgIOException(_cimg_instance
+                              "load_jpeg(): Unable to load data from '(FILE*)' unless libjpeg is enabled.",
+                              cimg_instance);
+      else return load_other(filename);
+#else
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      struct jpeg_decompress_struct cinfo;
+      struct _cimg_error_mgr jerr;
+      cinfo.err = jpeg_std_error(&jerr.original);
+      jerr.original.error_exit = _cimg_jpeg_error_exit;
+      if (setjmp(jerr.setjmp_buffer)) { // JPEG error
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                             "load_jpeg(): Error message returned by libjpeg: %s.",
+                             cimg_instance,jerr.message);
+      }
+
+      jpeg_create_decompress(&cinfo);
+      jpeg_stdio_src(&cinfo,nfile);
+      jpeg_read_header(&cinfo,TRUE);
+      jpeg_start_decompress(&cinfo);
+
+      if (cinfo.output_components!=1 && cinfo.output_components!=3 && cinfo.output_components!=4) {
+        if (!file) {
+          cimg::fclose(nfile);
+          return load_other(filename);
+        } else
+          throw CImgIOException(_cimg_instance
+                                "load_jpeg(): Failed to load JPEG data from file '%s'.",
+                                cimg_instance,filename?filename:"(FILE*)");
+      }
+      CImg<ucharT> buffer(cinfo.output_width*cinfo.output_components);
+      JSAMPROW row_pointer[1];
+      try { assign(cinfo.output_width,cinfo.output_height,1,cinfo.output_components); }
+      catch (...) { if (!file) cimg::fclose(nfile); throw; }
+      T *ptr_r = _data, *ptr_g = _data + 1UL*_width*_height, *ptr_b = _data + 2UL*_width*_height,
+        *ptr_a = _data + 3UL*_width*_height;
+      while (cinfo.output_scanline<cinfo.output_height) {
+        *row_pointer = buffer._dat
