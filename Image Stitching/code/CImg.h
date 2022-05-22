@@ -44152,4 +44152,208 @@ namespace cimg_library_suffixed {
         } catch (CImgIOException&) {
           try {
             load_other(filename);
+          } catch (CImgIOException&) {
+            cimg::exception_mode(omode);
+            throw CImgIOException(_cimg_instance
+                                  "load(): Failed to recognize format of file '%s'.",
+                                  cimg_instance,
+                                  filename);
           }
+        }
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Load image from a file \newinstance.
+    static CImg<T> get_load(const char *const filename) {
+      return CImg<T>().load(filename);
+    }
+
+    //! Load image from an ascii file.
+    /**
+       \param filename Filename, as a C -string.
+    **/
+    CImg<T>& load_ascii(const char *const filename) {
+      return _load_ascii(0,filename);
+    }
+
+    //! Load image from an ascii file \inplace.
+    static CImg<T> get_load_ascii(const char *const filename) {
+      return CImg<T>().load_ascii(filename);
+    }
+
+    //! Load image from an ascii file \overloading.
+    CImg<T>& load_ascii(std::FILE *const file) {
+      return _load_ascii(file,0);
+    }
+
+    //! Loadimage from an ascii file \newinstance.
+    static CImg<T> get_load_ascii(std::FILE *const file) {
+      return CImg<T>().load_ascii(file);
+    }
+
+    CImg<T>& _load_ascii(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_ascii(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<charT> line(256); *line = 0;
+      int err = std::fscanf(nfile,"%255[^\n]",line._data);
+      unsigned int dx = 0, dy = 1, dz = 1, dc = 1;
+      cimg_sscanf(line,"%u%*c%u%*c%u%*c%u",&dx,&dy,&dz,&dc);
+      err = std::fscanf(nfile,"%*[^0-9.eEinfa+-]");
+      if (!dx || !dy || !dz || !dc) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_ascii(): Invalid ascii header in file '%s', image dimensions are set "
+                              "to (%u,%u,%u,%u).",
+                              cimg_instance,
+                              filename?filename:"(FILE*)",dx,dy,dz,dc);
+      }
+      assign(dx,dy,dz,dc);
+      const ulongT siz = size();
+      ulongT off = 0;
+      double val;
+      T *ptr = _data;
+      for (err = 1, off = 0; off<siz && err==1; ++off) {
+        err = std::fscanf(nfile,"%lf%*[^0-9.eEinfa+-]",&val);
+        *(ptr++) = (T)val;
+      }
+      if (err!=1)
+        cimg::warn(_cimg_instance
+                   "load_ascii(): Only %lu/%lu values read from file '%s'.",
+                   cimg_instance,
+                   off - 1,siz,filename?filename:"(FILE*)");
+
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a DLM file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_dlm(const char *const filename) {
+      return _load_dlm(0,filename);
+    }
+
+    //! Load image from a DLM file \newinstance.
+    static CImg<T> get_load_dlm(const char *const filename) {
+      return CImg<T>().load_dlm(filename);
+    }
+
+    //! Load image from a DLM file \overloading.
+    CImg<T>& load_dlm(std::FILE *const file) {
+      return _load_dlm(file,0);
+    }
+
+    //! Load image from a DLM file \newinstance.
+    static CImg<T> get_load_dlm(std::FILE *const file) {
+      return CImg<T>().load_dlm(file);
+    }
+
+    CImg<T>& _load_dlm(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_dlm(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"r");
+      CImg<charT> delimiter(256), tmp(256); *delimiter = *tmp = 0;
+      unsigned int cdx = 0, dx = 0, dy = 0;
+      int err = 0;
+      double val;
+      assign(256,256,1,1,0);
+      while ((err = std::fscanf(nfile,"%lf%255[^0-9eEinfa.+-]",&val,delimiter._data))>0) {
+        if (err>0) (*this)(cdx++,dy) = (T)val;
+        if (cdx>=_width) resize(3*_width/2,_height,1,1,0);
+        char c = 0;
+        if (!cimg_sscanf(delimiter,"%255[^\n]%c",tmp._data,&c) || c=='\n') {
+          dx = cimg::max(cdx,dx);
+          if (++dy>=_height) resize(_width,3*_height/2,1,1,0);
+          cdx = 0;
+        }
+      }
+      if (cdx && err==1) { dx = cdx; ++dy; }
+      if (!dx || !dy) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_dlm(): Invalid DLM file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      resize(dx,dy,1,1,0);
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a BMP file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_bmp(const char *const filename) {
+      return _load_bmp(0,filename);
+    }
+
+    //! Load image from a BMP file \newinstance.
+    static CImg<T> get_load_bmp(const char *const filename) {
+      return CImg<T>().load_bmp(filename);
+    }
+
+    //! Load image from a BMP file \overloading.
+    CImg<T>& load_bmp(std::FILE *const file) {
+      return _load_bmp(file,0);
+    }
+
+    //! Load image from a BMP file \newinstance.
+    static CImg<T> get_load_bmp(std::FILE *const file) {
+      return CImg<T>().load_bmp(file);
+    }
+
+    CImg<T>& _load_bmp(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_bmp(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<ucharT> header(54);
+      cimg::fread(header._data,54,nfile);
+      if (*header!='B' || header[1]!='M') {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_bmp(): Invalid BMP file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+
+      // Read header and pixel buffer
+      int
+        file_size = header[0x02] + (header[0x03]<<8) + (header[0x04]<<16) + (header[0x05]<<24),
+        offset = header[0x0A] + (header[0x0B]<<8) + (header[0x0C]<<16) + (header[0x0D]<<24),
+        header_size = header[0x0E] + (header[0x0F]<<8) + (header[0x10]<<16) + (header[0x11]<<24),
+        dx = header[0x12] + (header[0x13]<<8) + (header[0x14]<<16) + (header[0x15]<<24),
+        dy = header[0x16] + (header[0x17]<<8) + (header[0x18]<<16) + (header[0x19]<<24),
+        compression = header[0x1E] + (header[0x1F]<<8) + (header[0x20]<<16) + (header[0x21]<<24),
+        nb_colors = header[0x2E] + (header[0x2F]<<8) + (header[0x30]<<16) + (header[0x31]<<24),
+        bpp = header[0x1C] + (header[0x1D]<<8);
+
+      if (!file_size || file_size==offset) {
+        cimg::fseek(nfile,0,SEEK_END);
+        file_size = (int)cimg::ftell(nfile);
+        cimg::fseek(nfile,54,SEEK_SET);
+      }
+      if (header_size>40) cimg::fseek(nfile,header_size - 40,SEEK_CUR);
+
+      const int
+        cimg_iobuffer = 24*1024*1024,
+        dx_bytes = (bpp==1)?(dx/8 + (dx%8?1:0)):((bpp==4)?(dx/2 + (dx%2?1:0)):(dx*bpp/8)),
+        align_bytes = (4 - dx_bytes%4)%4,
+        buf_size = cimg::min(cimg::abs(dy)*(dx_bytes + align_bytes),file_size - offset);
+
+      CImg<intT> colormap;
+      if (bpp<16) { if (!nb_colors) nb_colors = 1<<bpp; } else nb_colors = 0;
+      if (nb_colors) { colormap.assign(nb_colors); cimg::fread(colormap._data,nb_c
