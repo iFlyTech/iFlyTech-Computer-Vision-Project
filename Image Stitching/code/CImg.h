@@ -44777,4 +44777,195 @@ namespace cimg_library_suffixed {
       png_set_sig_bytes(png_ptr, 8);
 
       // Get PNG Header Info up to data block
-      p
+      png_read_info(png_ptr,info_ptr);
+      png_uint_32 W, H;
+      int bit_depth, color_type, interlace_type;
+      bool is_gray = false;
+      png_get_IHDR(png_ptr,info_ptr,&W,&H,&bit_depth,&color_type,&interlace_type,(int*)0,(int*)0);
+
+      // Transforms to unify image data
+      if (color_type==PNG_COLOR_TYPE_PALETTE) {
+        png_set_palette_to_rgb(png_ptr);
+        color_type = PNG_COLOR_TYPE_RGB;
+        bit_depth = 8;
+      }
+      if (color_type==PNG_COLOR_TYPE_GRAY && bit_depth<8) {
+        png_set_expand_gray_1_2_4_to_8(png_ptr);
+        is_gray = true;
+        bit_depth = 8;
+      }
+      if (png_get_valid(png_ptr,info_ptr,PNG_INFO_tRNS)) {
+        png_set_tRNS_to_alpha(png_ptr);
+        color_type |= PNG_COLOR_MASK_ALPHA;
+      }
+      if (color_type==PNG_COLOR_TYPE_GRAY || color_type==PNG_COLOR_TYPE_GRAY_ALPHA) {
+        png_set_gray_to_rgb(png_ptr);
+        color_type |= PNG_COLOR_MASK_COLOR;
+        is_gray = true;
+      }
+      if (color_type==PNG_COLOR_TYPE_RGB)
+        png_set_filler(png_ptr,0xffffU,PNG_FILLER_AFTER);
+
+      png_read_update_info(png_ptr,info_ptr);
+      if (bit_depth!=8 && bit_depth!=16) {
+        if (!file) cimg::fclose(nfile);
+        png_destroy_read_struct(&png_ptr,&end_info,(png_infopp)0);
+        throw CImgIOException(_cimg_instance
+                              "load_png(): Invalid bit depth %u in file '%s'.",
+                              cimg_instance,
+                              bit_depth,nfilename?nfilename:"(FILE*)");
+      }
+      const int byte_depth = bit_depth>>3;
+
+      // Allocate Memory for Image Read
+      png_bytep *const imgData = new png_bytep[H];
+      for (unsigned int row = 0; row<H; ++row) imgData[row] = new png_byte[(size_t)byte_depth*4*W];
+      png_read_image(png_ptr,imgData);
+      png_read_end(png_ptr,end_info);
+
+      // Read pixel data
+      if (color_type!=PNG_COLOR_TYPE_RGB && color_type!=PNG_COLOR_TYPE_RGB_ALPHA) {
+        if (!file) cimg::fclose(nfile);
+        png_destroy_read_struct(&png_ptr,&end_info,(png_infopp)0);
+        throw CImgIOException(_cimg_instance
+                              "load_png(): Invalid color coding type %u in file '%s'.",
+                              cimg_instance,
+                              color_type,nfilename?nfilename:"(FILE*)");
+      }
+      const bool is_alpha = (color_type==PNG_COLOR_TYPE_RGBA);
+      try { assign(W,H,1,(is_gray?1:3) + (is_alpha?1:0)); }
+      catch (...) { if (!file) cimg::fclose(nfile); throw; }
+      T
+        *ptr_r = data(0,0,0,0),
+        *ptr_g = is_gray?0:data(0,0,0,1),
+        *ptr_b = is_gray?0:data(0,0,0,2),
+        *ptr_a = !is_alpha?0:data(0,0,0,is_gray?1:3);
+      switch (bit_depth) {
+      case 8 : {
+        cimg_forY(*this,y) {
+          const unsigned char *ptrs = (unsigned char*)imgData[y];
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            if (ptr_g) *(ptr_g++) = (T)*(ptrs++); else ++ptrs;
+            if (ptr_b) *(ptr_b++) = (T)*(ptrs++); else ++ptrs;
+            if (ptr_a) *(ptr_a++) = (T)*(ptrs++); else ++ptrs;
+          }
+        }
+      } break;
+      case 16 : {
+        cimg_forY(*this,y) {
+          const unsigned short *ptrs = (unsigned short*)(imgData[y]);
+          if (!cimg::endianness()) cimg::invert_endianness(ptrs,4*_width);
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            if (ptr_g) *(ptr_g++) = (T)*(ptrs++); else ++ptrs;
+            if (ptr_b) *(ptr_b++) = (T)*(ptrs++); else ++ptrs;
+            if (ptr_a) *(ptr_a++) = (T)*(ptrs++); else ++ptrs;
+          }
+        }
+      } break;
+      }
+      png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+
+      // Deallocate Image Read Memory
+      cimg_forY(*this,n) delete[] imgData[n];
+      delete[] imgData;
+      if (!file) cimg::fclose(nfile);
+      return *this;
+#endif
+    }
+
+    //! Load image from a PNM file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_pnm(const char *const filename) {
+      return _load_pnm(0,filename);
+    }
+
+    //! Load image from a PNM file \newinstance.
+    static CImg<T> get_load_pnm(const char *const filename) {
+      return CImg<T>().load_pnm(filename);
+    }
+
+    //! Load image from a PNM file \overloading.
+    CImg<T>& load_pnm(std::FILE *const file) {
+      return _load_pnm(file,0);
+    }
+
+    //! Load image from a PNM file \newinstance.
+    static CImg<T> get_load_pnm(std::FILE *const file) {
+      return CImg<T>().load_pnm(file);
+    }
+
+    CImg<T>& _load_pnm(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_pnm(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      unsigned int ppm_type, W, H, D = 1, colormax = 255;
+      CImg<charT> item(16384,1,1,1,0);
+      int err, rval, gval, bval;
+      const longT cimg_iobuffer = (longT)24*1024*1024;
+      while ((err=std::fscanf(nfile,"%16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if (cimg_sscanf(item," P%u",&ppm_type)!=1) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pnm(): PNM header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if ((err=cimg_sscanf(item," %u %u %u %u",&W,&H,&D,&colormax))<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pnm(): WIDTH and HEIGHT fields undefined in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (ppm_type!=1 && ppm_type!=4) {
+        if (err==2 || (err==3 && (ppm_type==5 || ppm_type==7 || ppm_type==8 || ppm_type==9))) {
+          while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+          if (cimg_sscanf(item,"%u",&colormax)!=1)
+            cimg::warn(_cimg_instance
+                       "load_pnm(): COLORMAX field is undefined in file '%s'.",
+                       cimg_instance,
+                       filename?filename:"(FILE*)");
+        } else { colormax = D; D = 1; }
+      }
+      std::fgetc(nfile);
+
+      switch (ppm_type) {
+      case 1 : { // 2d b&w ascii.
+        assign(W,H,1,1);
+        T* ptrd = _data;
+        cimg_foroff(*this,off) { if (std::fscanf(nfile,"%d",&rval)>0) *(ptrd++) = (T)(rval?0:255); else break; }
+      } break;
+      case 2 : { // 2d grey ascii.
+        assign(W,H,1,1);
+        T* ptrd = _data;
+        cimg_foroff(*this,off) { if (std::fscanf(nfile,"%d",&rval)>0) *(ptrd++) = (T)rval; else break; }
+      } break;
+      case 3 : { // 2d color ascii.
+        assign(W,H,1,3);
+        T *ptrd = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+        cimg_forXY(*this,x,y) {
+          if (std::fscanf(nfile,"%d %d %d",&rval,&gval,&bval)==3) {
+            *(ptrd++) = (T)rval; *(ptr_g++) = (T)gval; *(ptr_b++) = (T)bval;
+          } else break;
+        }
+      } break;
+      case 4 : { // 2d b&w binary (support 3D PINK extension).
+        CImg<ucharT> raw;
+        assign(W,H,D,1);
+        T *ptrd = data(0,0,0,0);
+        unsigned int w = 0, h = 0, d = 0;
+        for (longT to_read = (longT)((W/8 + (W%8?1:0))*H*D); to_read>0; ) {
+          raw.assign(cimg::min(to_read,cimg_iobuffer));
+          cimg::fread(raw._data,raw._width,nfile);
+          to_read-=raw._width;
+          const unsigned char *ptrs = raw._data;
+          unsigned char mask = 0, val = 0;
+       
