@@ -45341,4 +45341,170 @@ namespace cimg_library_suffixed {
             resize(cimg::max(frame._width,_width),
                    cimg::max(frame._height,_height),-100,
                    cimg::max(frame._spectrum,_spectrum),0);
-          draw_image(0,0,(l - 
+          draw_image(0,0,(l - nfirst_frame)/nstep_frame,frame);
+        }
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimg_instance
+                                   "load_tiff(): Failed to open file '%s'.",
+                                   cimg_instance,
+                                   filename);
+      return *this;
+#endif
+    }
+
+    //! Load image from a TIFF file \newinstance.
+    static CImg<T> get_load_tiff(const char *const filename,
+                                 const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                 const unsigned int step_frame=1,
+                                 float *const voxel_size=0,
+                                 CImg<charT> *const description=0) {
+      return CImg<T>().load_tiff(filename,first_frame,last_frame,step_frame,voxel_size,description);
+    }
+
+    // (Original contribution by Jerome Boulanger).
+#ifdef cimg_use_tiff
+    template<typename t>
+    void _load_tiff_tiled_contig(TIFF *const tif, const uint16 samplesperpixel,
+                                 const uint32 nx, const uint32 ny, const uint32 tw, const uint32 th) {
+      t *const buf = (t*)_TIFFmalloc(TIFFTileSize(tif));
+      if (buf) {
+        for (unsigned int row = 0; row<ny; row+=th)
+          for (unsigned int col = 0; col<nx; col+=tw) {
+            if (TIFFReadTile(tif,buf,col,row,0,0)<0) {
+              _TIFFfree(buf); TIFFClose(tif);
+              throw CImgIOException(_cimg_instance
+                                    "load_tiff(): Invalid tile in file '%s'.",
+                                    cimg_instance,
+                                    TIFFFileName(tif));
+            }
+            const t *ptr = buf;
+            for (unsigned int rr = row; rr<cimg::min((unsigned int)(row + th),(unsigned int)ny); ++rr)
+              for (unsigned int cc = col; cc<cimg::min((unsigned int)(col + tw),(unsigned int)nx); ++cc)
+                for (unsigned int vv = 0; vv<samplesperpixel; ++vv)
+                  (*this)(cc,rr,vv) = (T)(ptr[(rr - row)*th*samplesperpixel + (cc - col)*samplesperpixel + vv]);
+          }
+        _TIFFfree(buf);
+      }
+    }
+
+    template<typename t>
+    void _load_tiff_tiled_separate(TIFF *const tif, const uint16 samplesperpixel,
+                                   const uint32 nx, const uint32 ny, const uint32 tw, const uint32 th) {
+      t *const buf = (t*)_TIFFmalloc(TIFFTileSize(tif));
+      if (buf) {
+        for (unsigned int vv = 0; vv<samplesperpixel; ++vv)
+          for (unsigned int row = 0; row<ny; row+=th)
+            for (unsigned int col = 0; col<nx; col+=tw) {
+              if (TIFFReadTile(tif,buf,col,row,0,vv)<0) {
+                _TIFFfree(buf); TIFFClose(tif);
+                throw CImgIOException(_cimg_instance
+                                      "load_tiff(): Invalid tile in file '%s'.",
+                                      cimg_instance,
+                                      TIFFFileName(tif));
+              }
+              const t *ptr = buf;
+              for (unsigned int rr = row; rr<cimg::min((unsigned int)(row + th),(unsigned int)ny); ++rr)
+                for (unsigned int cc = col; cc<cimg::min((unsigned int)(col + tw),(unsigned int)nx); ++cc)
+                  (*this)(cc,rr,vv) = (T)*(ptr++);
+            }
+        _TIFFfree(buf);
+      }
+    }
+
+    template<typename t>
+    void _load_tiff_contig(TIFF *const tif, const uint16 samplesperpixel, const uint32 nx, const uint32 ny) {
+      t *const buf = (t*)_TIFFmalloc(TIFFStripSize(tif));
+      if (buf) {
+        uint32 row, rowsperstrip = (uint32)-1;
+        TIFFGetField(tif,TIFFTAG_ROWSPERSTRIP,&rowsperstrip);
+        for (row = 0; row<ny; row+= rowsperstrip) {
+          uint32 nrow = (row + rowsperstrip>ny?ny - row:rowsperstrip);
+          tstrip_t strip = TIFFComputeStrip(tif, row, 0);
+          if ((TIFFReadEncodedStrip(tif,strip,buf,-1))<0) {
+            _TIFFfree(buf); TIFFClose(tif);
+            throw CImgIOException(_cimg_instance
+                                  "load_tiff(): Invalid strip in file '%s'.",
+                                  cimg_instance,
+                                  TIFFFileName(tif));
+          }
+          const t *ptr = buf;
+          for (unsigned int rr = 0; rr<nrow; ++rr)
+            for (unsigned int cc = 0; cc<nx; ++cc)
+              for (unsigned int vv = 0; vv<samplesperpixel; ++vv) (*this)(cc,row + rr,vv) = (T)*(ptr++);
+        }
+        _TIFFfree(buf);
+      }
+    }
+
+    template<typename t>
+    void _load_tiff_separate(TIFF *const tif, const uint16 samplesperpixel, const uint32 nx, const uint32 ny) {
+      t *buf = (t*)_TIFFmalloc(TIFFStripSize(tif));
+      if (buf) {
+        uint32 row, rowsperstrip = (uint32)-1;
+        TIFFGetField(tif,TIFFTAG_ROWSPERSTRIP,&rowsperstrip);
+        for (unsigned int vv = 0; vv<samplesperpixel; ++vv)
+          for (row = 0; row<ny; row+= rowsperstrip) {
+            uint32 nrow = (row + rowsperstrip>ny?ny - row:rowsperstrip);
+            tstrip_t strip = TIFFComputeStrip(tif, row, vv);
+            if ((TIFFReadEncodedStrip(tif,strip,buf,-1))<0) {
+              _TIFFfree(buf); TIFFClose(tif);
+              throw CImgIOException(_cimg_instance
+                                    "load_tiff(): Invalid strip in file '%s'.",
+                                    cimg_instance,
+                                    TIFFFileName(tif));
+            }
+            const t *ptr = buf;
+            for (unsigned int rr = 0;rr<nrow; ++rr)
+              for (unsigned int cc = 0; cc<nx; ++cc)
+                (*this)(cc,row + rr,vv) = (T)*(ptr++);
+          }
+        _TIFFfree(buf);
+      }
+    }
+
+    CImg<T>& _load_tiff(TIFF *const tif, const unsigned int directory,
+                        float *const voxel_size, CImg<charT> *const description) {
+      if (!TIFFSetDirectory(tif,directory)) return assign();
+      uint16 samplesperpixel = 1, bitspersample = 8, photo = 0;
+      uint16 sampleformat = 1;
+      uint32 nx = 1, ny = 1;
+      const char *const filename = TIFFFileName(tif);
+      const bool is_spp = (bool)TIFFGetField(tif,TIFFTAG_SAMPLESPERPIXEL,&samplesperpixel);
+      TIFFGetField(tif,TIFFTAG_IMAGEWIDTH,&nx);
+      TIFFGetField(tif,TIFFTAG_IMAGELENGTH,&ny);
+      TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
+      TIFFGetFieldDefaulted(tif,TIFFTAG_BITSPERSAMPLE,&bitspersample);
+      TIFFGetField(tif,TIFFTAG_PHOTOMETRIC,&photo);
+      if (voxel_size) {
+        const char *s_description = 0;
+        float vx = 0, vy = 0, vz = 0;
+        if (TIFFGetField(tif,TIFFTAG_IMAGEDESCRIPTION,&s_description) && s_description) {
+          const char *s_desc = std::strstr(s_description,"VX=");
+          if (s_desc && cimg_sscanf(s_desc,"VX=%f VY=%f VZ=%f",&vx,&vy,&vz)==3) { // CImg format.
+            voxel_size[0] = vx; voxel_size[1] = vy; voxel_size[2] = vz;
+          }
+          s_desc = std::strstr(s_description,"spacing=");
+          if (s_desc && cimg_sscanf(s_desc,"spacing=%f",&vz)==1) { // fiji format.
+            voxel_size[2] = vz;
+          }
+        }
+        TIFFGetField(tif,TIFFTAG_XRESOLUTION,voxel_size);
+        TIFFGetField(tif,TIFFTAG_YRESOLUTION,voxel_size + 1);
+        voxel_size[0] = 1.0f/voxel_size[0];
+        voxel_size[1] = 1.0f/voxel_size[1];
+      }
+      if (description) {
+        const char *s_description = 0;
+        if (TIFFGetField(tif,TIFFTAG_IMAGEDESCRIPTION,&s_description) && s_description)
+          CImg<charT>::string(s_description).move_to(*description);
+      }
+      const unsigned int spectrum = !is_spp || photo>=3?(photo>1?3:1):samplesperpixel;
+      assign(nx,ny,1,spectrum);
+
+      if ((photo>=3 && sampleformat==1 &&
+           (bitspersample==4 || bitspersample==8) &&
+           (samplesperpixel==1 || samplesperpixel==3 || samplesperpixel==4)) ||
+          (bitspersample==1 && samplesperpixel==1)) {
+        // Special case for unsigned color images.
+        uint32 *const raster = (uint32*)_TIFFmalloc(nx*ny*sizeof(uint32));
+        if (!r
