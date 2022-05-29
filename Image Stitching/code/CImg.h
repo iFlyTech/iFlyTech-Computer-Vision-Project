@@ -44968,4 +44968,194 @@ namespace cimg_library_suffixed {
           to_read-=raw._width;
           const unsigned char *ptrs = raw._data;
           unsigned char mask = 0, val = 0;
-       
+          for (ulongT off = (ulongT)raw._width; off || mask; mask>>=1) {
+            if (!mask) { if (off--) val = *(ptrs++); mask = 128; }
+            *(ptrd++) = (T)((val&mask)?0:255);
+            if (++w==W) { w = 0; mask = 0; if (++h==H) { h = 0; if (++d==D) break; }}
+          }
+        }
+      } break;
+      case 5 : case 7 : { // 2d/3d grey binary (support 3D PINK extension).
+        if (colormax<256) { // 8 bits.
+          CImg<ucharT> raw;
+          assign(W,H,D,1);
+          T *ptrd = data(0,0,0,0);
+          for (longT to_read = (longT)size(); to_read>0; ) {
+            raw.assign(cimg::min(to_read,cimg_iobuffer));
+            cimg::fread(raw._data,raw._width,nfile);
+            to_read-=raw._width;
+            const unsigned char *ptrs = raw._data;
+            for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++);
+          }
+        } else { // 16 bits.
+          CImg<ushortT> raw;
+          assign(W,H,D,1);
+          T *ptrd = data(0,0,0,0);
+          for (longT to_read = (longT)size(); to_read>0; ) {
+            raw.assign(cimg::min(to_read,cimg_iobuffer/2));
+            cimg::fread(raw._data,raw._width,nfile);
+            if (!cimg::endianness()) cimg::invert_endianness(raw._data,raw._width);
+            to_read-=raw._width;
+            const unsigned short *ptrs = raw._data;
+            for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++);
+          }
+        }
+      } break;
+      case 6 : { // 2d color binary.
+        if (colormax<256) { // 8 bits.
+          CImg<ucharT> raw;
+          assign(W,H,1,3);
+          T
+            *ptr_r = data(0,0,0,0),
+            *ptr_g = data(0,0,0,1),
+            *ptr_b = data(0,0,0,2);
+          for (longT to_read = (longT)size(); to_read>0; ) {
+            raw.assign(cimg::min(to_read,cimg_iobuffer));
+            cimg::fread(raw._data,raw._width,nfile);
+            to_read-=raw._width;
+            const unsigned char *ptrs = raw._data;
+            for (ulongT off = (ulongT)raw._width/3; off; --off) {
+              *(ptr_r++) = (T)*(ptrs++);
+              *(ptr_g++) = (T)*(ptrs++);
+              *(ptr_b++) = (T)*(ptrs++);
+            }
+          }
+        } else { // 16 bits.
+          CImg<ushortT> raw;
+          assign(W,H,1,3);
+          T
+            *ptr_r = data(0,0,0,0),
+            *ptr_g = data(0,0,0,1),
+            *ptr_b = data(0,0,0,2);
+          for (longT to_read = (longT)size(); to_read>0; ) {
+            raw.assign(cimg::min(to_read,cimg_iobuffer/2));
+            cimg::fread(raw._data,raw._width,nfile);
+            if (!cimg::endianness()) cimg::invert_endianness(raw._data,raw._width);
+            to_read-=raw._width;
+            const unsigned short *ptrs = raw._data;
+            for (ulongT off = (ulongT)raw._width/3; off; --off) {
+              *(ptr_r++) = (T)*(ptrs++);
+              *(ptr_g++) = (T)*(ptrs++);
+              *(ptr_b++) = (T)*(ptrs++);
+            }
+          }
+        }
+      } break;
+      case 8 : { // 2d/3d grey binary with int32 integers (PINK extension).
+        CImg<intT> raw;
+        assign(W,H,D,1);
+        T *ptrd = data(0,0,0,0);
+        for (longT to_read = (longT)size(); to_read>0; ) {
+          raw.assign(cimg::min(to_read,cimg_iobuffer));
+          cimg::fread(raw._data,raw._width,nfile);
+          to_read-=raw._width;
+          const int *ptrs = raw._data;
+          for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++);
+        }
+      } break;
+      case 9 : { // 2d/3d grey binary with float values (PINK extension).
+        CImg<floatT> raw;
+        assign(W,H,D,1);
+        T *ptrd = data(0,0,0,0);
+        for (longT to_read = (longT)size(); to_read>0; ) {
+          raw.assign(cimg::min(to_read,cimg_iobuffer));
+          cimg::fread(raw._data,raw._width,nfile);
+          to_read-=raw._width;
+          const float *ptrs = raw._data;
+          for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++);
+        }
+      } break;
+      default :
+        assign();
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pnm(): PNM type 'P%d' found, but type is not supported.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)",ppm_type);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a PFM file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_pfm(const char *const filename) {
+      return _load_pfm(0,filename);
+    }
+
+    //! Load image from a PFM file \newinstance.
+    static CImg<T> get_load_pfm(const char *const filename) {
+      return CImg<T>().load_pfm(filename);
+    }
+
+    //! Load image from a PFM file \overloading.
+    CImg<T>& load_pfm(std::FILE *const file) {
+      return _load_pfm(file,0);
+    }
+
+    //! Load image from a PFM file \newinstance.
+    static CImg<T> get_load_pfm(std::FILE *const file) {
+      return CImg<T>().load_pfm(file);
+    }
+
+    CImg<T>& _load_pfm(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_pfm(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      char pfm_type;
+      CImg<charT> item(16384,1,1,1,0);
+      int W = 0, H = 0, err = 0;
+      double scale = 0;
+      while ((err=std::fscanf(nfile,"%16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if (cimg_sscanf(item," P%c",&pfm_type)!=1) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pfm(): PFM header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if ((err=cimg_sscanf(item," %d %d",&W,&H))<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pfm(): WIDTH and HEIGHT fields are undefined in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (err==2) {
+        while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+        if (cimg_sscanf(item,"%lf",&scale)!=1)
+          cimg::warn(_cimg_instance
+                     "load_pfm(): SCALE field is undefined in file '%s'.",
+                     cimg_instance,
+                     filename?filename:"(FILE*)");
+      }
+      std::fgetc(nfile);
+      const bool is_color = (pfm_type=='F'), is_inverted = (scale>0)!=cimg::endianness();
+      if (is_color) {
+        assign(W,H,1,3,0);
+        CImg<floatT> buf(3*W);
+        T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+        cimg_forY(*this,y) {
+          cimg::fread(buf._data,3*W,nfile);
+          if (is_inverted) cimg::invert_endianness(buf._data,3*W);
+          const float *ptrs = buf._data;
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            *(ptr_g++) = (T)*(ptrs++);
+            *(ptr_b++) = (T)*(ptrs++);
+          }
+        }
+      } else {
+        assign(W,H,1,1,0);
+        CImg<floatT> buf(W);
+        T *ptrd = data(0,0,0,0);
+        cimg_forY(*this,y) {
+          cimg::fread(buf._data,W,nfile);
+          if (is_inverted) cimg::invert_endianness(buf._data,W);
+          const float *ptrs = bu
