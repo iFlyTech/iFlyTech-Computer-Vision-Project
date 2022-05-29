@@ -45507,4 +45507,182 @@ namespace cimg_library_suffixed {
           (bitspersample==1 && samplesperpixel==1)) {
         // Special case for unsigned color images.
         uint32 *const raster = (uint32*)_TIFFmalloc(nx*ny*sizeof(uint32));
-        if (!r
+        if (!raster) {
+          _TIFFfree(raster); TIFFClose(tif);
+          throw CImgException(_cimg_instance
+                              "load_tiff(): Failed to allocate memory (%s) for file '%s'.",
+                              cimg_instance,
+                              cimg::strbuffersize(nx*ny*sizeof(uint32)),filename);
+        }
+        TIFFReadRGBAImage(tif,nx,ny,raster,0);
+        switch (spectrum) {
+        case 1 :
+          cimg_forXY(*this,x,y)
+            (*this)(x,y,0) = (T)(float)TIFFGetR(raster[nx*(ny - 1 -y) + x]);
+          break;
+        case 3 :
+          cimg_forXY(*this,x,y) {
+            (*this)(x,y,0) = (T)(float)TIFFGetR(raster[nx*(ny - 1 -y) + x]);
+            (*this)(x,y,1) = (T)(float)TIFFGetG(raster[nx*(ny - 1 -y) + x]);
+            (*this)(x,y,2) = (T)(float)TIFFGetB(raster[nx*(ny - 1 -y) + x]);
+          }
+          break;
+        case 4 :
+          cimg_forXY(*this,x,y) {
+            (*this)(x,y,0) = (T)(float)TIFFGetR(raster[nx*(ny - 1 - y) + x]);
+            (*this)(x,y,1) = (T)(float)TIFFGetG(raster[nx*(ny - 1 - y) + x]);
+            (*this)(x,y,2) = (T)(float)TIFFGetB(raster[nx*(ny - 1 - y) + x]);
+            (*this)(x,y,3) = (T)(float)TIFFGetA(raster[nx*(ny - 1 - y) + x]);
+          }
+          break;
+        }
+        _TIFFfree(raster);
+      } else { // Other cases.
+        uint16 config;
+        TIFFGetField(tif,TIFFTAG_PLANARCONFIG,&config);
+        if (TIFFIsTiled(tif)) {
+          uint32 tw = 1, th = 1;
+          TIFFGetField(tif,TIFFTAG_TILEWIDTH,&tw);
+          TIFFGetField(tif,TIFFTAG_TILELENGTH,&th);
+          if (config==PLANARCONFIG_CONTIG) switch (bitspersample) {
+            case 8 : {
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_contig<unsigned char>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_contig<signed char>(tif,samplesperpixel,nx,ny,tw,th);
+            } break;
+            case 16 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_contig<unsigned short>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_contig<short>(tif,samplesperpixel,nx,ny,tw,th);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_contig<unsigned int>(tif,samplesperpixel,nx,ny,tw,th);
+              else if (sampleformat==SAMPLEFORMAT_INT)
+                _load_tiff_tiled_contig<int>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_contig<float>(tif,samplesperpixel,nx,ny,tw,th);
+              break;
+            } else switch (bitspersample) {
+            case 8 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_separate<unsigned char>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_separate<signed char>(tif,samplesperpixel,nx,ny,tw,th);
+              break;
+            case 16 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_separate<unsigned short>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_separate<short>(tif,samplesperpixel,nx,ny,tw,th);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_tiled_separate<unsigned int>(tif,samplesperpixel,nx,ny,tw,th);
+              else if (sampleformat==SAMPLEFORMAT_INT)
+                _load_tiff_tiled_separate<int>(tif,samplesperpixel,nx,ny,tw,th);
+              else _load_tiff_tiled_separate<float>(tif,samplesperpixel,nx,ny,tw,th);
+              break;
+            }
+        } else {
+          if (config==PLANARCONFIG_CONTIG) switch (bitspersample) {
+            case 8 :
+              if (sampleformat==SAMPLEFORMAT_UINT)
+                _load_tiff_contig<unsigned char>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_contig<signed char>(tif,samplesperpixel,nx,ny);
+              break;
+            case 16 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_contig<unsigned short>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_contig<short>(tif,samplesperpixel,nx,ny);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_contig<unsigned int>(tif,samplesperpixel,nx,ny);
+              else if (sampleformat==SAMPLEFORMAT_INT) _load_tiff_contig<int>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_contig<float>(tif,samplesperpixel,nx,ny);
+              break;
+            } else switch (bitspersample) {
+            case 8 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned char>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<signed char>(tif,samplesperpixel,nx,ny);
+              break;
+            case 16 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned short>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<short>(tif,samplesperpixel,nx,ny);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned int>(tif,samplesperpixel,nx,ny);
+              else if (sampleformat==SAMPLEFORMAT_INT) _load_tiff_separate<int>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<float>(tif,samplesperpixel,nx,ny);
+              break;
+            }
+        }
+      }
+      return *this;
+    }
+#endif
+
+    //! Load image from a MINC2 file.
+    /**
+        \param filename Filename, as a C-string.
+    **/
+    // (Original code by Haz-Edine Assemlal).
+    CImg<T>& load_minc2(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_minc2(): Specified filename is (null).",
+                                    cimg_instance);
+#ifndef cimg_use_minc2
+      return load_other(filename);
+#else
+      minc::minc_1_reader rdr;
+      rdr.open(filename);
+      assign(rdr.ndim(1)?rdr.ndim(1):1,
+             rdr.ndim(2)?rdr.ndim(2):1,
+             rdr.ndim(3)?rdr.ndim(3):1,
+             rdr.ndim(4)?rdr.ndim(4):1);
+      if(typeid(T)==typeid(unsigned char))
+        rdr.setup_read_byte();
+      else if(typeid(T)==typeid(int))
+        rdr.setup_read_int();
+      else if(typeid(T)==typeid(double))
+        rdr.setup_read_double();
+      else
+        rdr.setup_read_float();
+      minc::load_standard_volume(rdr, this->_data);
+      return *this;
+#endif
+    }
+
+    //! Load image from a MINC2 file \newinstance.
+    static CImg<T> get_load_minc2(const char *const filename) {
+      return CImg<T>().load_analyze(filename);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file.
+    /**
+       \param filename Filename, as a C-string.
+       \param[out] voxel_size Pointer to the three voxel sizes read from the file.
+    **/
+    CImg<T>& load_analyze(const char *const filename, float *const voxel_size=0) {
+      return _load_analyze(0,filename,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \newinstance.
+    static CImg<T> get_load_analyze(const char *const filename, float *const voxel_size=0) {
+      return CImg<T>().load_analyze(filename,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \overloading.
+    CImg<T>& load_analyze(std::FILE *const file, float *const voxel_size=0) {
+      return _load_analyze(file,0,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \newinstance.
+    static CImg<T> get_load_analyze(std::FILE *const file, float *const voxel_size=0) {
+      return CImg<T>().load_analyze(file,voxel_size);
+    }
+
+    CImg<T>& _load_analyze(std::FILE *const file, const char *const filename, float *const voxel_size=0) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_analyze(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *nfile_header = 0, *nf
