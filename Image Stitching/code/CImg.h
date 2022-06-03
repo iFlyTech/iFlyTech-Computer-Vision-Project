@@ -46004,4 +46004,192 @@ namespace cimg_library_suffixed {
       _cimg_load_inr_case(1,0,64,double);
       _cimg_load_inr_case(1,1,64,double);
       if (!loaded) {
-        if (!file) cimg::f
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_inr(): Unknown pixel type defined in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a EXR file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_exr(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_exr(): Specified filename is (null).",
+                                    cimg_instance);
+
+#ifndef cimg_use_openexr
+      return load_other(filename);
+#else
+      Imf::RgbaInputFile file(filename);
+      Imath::Box2i dw = file.dataWindow();
+      const int
+        inwidth = dw.max.x - dw.min.x + 1,
+        inheight = dw.max.y - dw.min.y + 1;
+      Imf::Array2D<Imf::Rgba> pixels;
+      pixels.resizeErase(inheight,inwidth);
+      file.setFrameBuffer(&pixels[0][0] - dw.min.x - dw.min.y*inwidth, 1, inwidth);
+      file.readPixels(dw.min.y, dw.max.y);
+      assign(inwidth,inheight,1,4);
+      T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3);
+      cimg_forXY(*this,x,y) {
+        *(ptr_r++) = (T)pixels[y][x].r;
+        *(ptr_g++) = (T)pixels[y][x].g;
+        *(ptr_b++) = (T)pixels[y][x].b;
+        *(ptr_a++) = (T)pixels[y][x].a;
+      }
+      return *this;
+#endif
+    }
+
+    //! Load image from a EXR file \newinstance.
+    static CImg<T> get_load_exr(const char *const filename) {
+      return CImg<T>().load_exr(filename);
+    }
+
+    //! Load image from a PANDORE-5 file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_pandore(const char *const filename) {
+      return _load_pandore(0,filename);
+    }
+
+    //! Load image from a PANDORE-5 file \newinstance.
+    static CImg<T> get_load_pandore(const char *const filename) {
+      return CImg<T>().load_pandore(filename);
+    }
+
+    //! Load image from a PANDORE-5 file \overloading.
+    CImg<T>& load_pandore(std::FILE *const file) {
+      return _load_pandore(file,0);
+    }
+
+    //! Load image from a PANDORE-5 file \newinstance.
+    static CImg<T> get_load_pandore(std::FILE *const file) {
+      return CImg<T>().load_pandore(file);
+    }
+
+    CImg<T>& _load_pandore(std::FILE *const file, const char *const filename) {
+#define __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,ndim,stype) \
+        cimg::fread(dims,nbdim,nfile); \
+        if (endian) cimg::invert_endianness(dims,nbdim); \
+        assign(nwidth,nheight,ndepth,ndim); \
+        const size_t siz = size(); \
+        stype *buffer = new stype[siz]; \
+        cimg::fread(buffer,siz,nfile); \
+        if (endian) cimg::invert_endianness(buffer,siz); \
+        T *ptrd = _data; \
+        cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++); \
+        buffer-=siz; \
+        delete[] buffer
+
+#define _cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype1,stype2,stype3,ltype) { \
+        if (sizeof(stype1)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype1); } \
+        else if (sizeof(stype2)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype2); } \
+        else if (sizeof(stype3)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype3); } \
+        else throw CImgIOException(_cimg_instance \
+                                   "load_pandore(): Unknown pixel datatype in file '%s'.", \
+                                   cimg_instance, \
+                                   filename?filename:"(FILE*)"); }
+
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_pandore(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<charT> header(32);
+      cimg::fread(header._data,12,nfile);
+      if (cimg::strncasecmp("PANDORE",header,7)) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pandore(): PANDORE header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      unsigned int imageid, dims[8] = { 0 };
+      int ptbuf[4] = { 0 };
+      cimg::fread(&imageid,1,nfile);
+      const bool endian = imageid>255;
+      if (endian) cimg::invert_endianness(imageid);
+      cimg::fread(header._data,20,nfile);
+
+      switch (imageid) {
+      case 2 : _cimg_load_pandore_case(2,dims[1],1,1,1,unsigned char,unsigned char,unsigned char,1); break;
+      case 3 : _cimg_load_pandore_case(2,dims[1],1,1,1,long,int,short,4); break;
+      case 4 : _cimg_load_pandore_case(2,dims[1],1,1,1,double,float,float,4); break;
+      case 5 : _cimg_load_pandore_case(3,dims[2],dims[1],1,1,unsigned char,unsigned char,unsigned char,1); break;
+      case 6 : _cimg_load_pandore_case(3,dims[2],dims[1],1,1,long,int,short,4); break;
+      case 7 : _cimg_load_pandore_case(3,dims[2],dims[1],1,1,double,float,float,4); break;
+      case 8 : _cimg_load_pandore_case(4,dims[3],dims[2],dims[1],1,unsigned char,unsigned char,unsigned char,1); break;
+      case 9 : _cimg_load_pandore_case(4,dims[3],dims[2],dims[1],1,long,int,short,4); break;
+      case 10 : _cimg_load_pandore_case(4,dims[3],dims[2],dims[1],1,double,float,float,4); break;
+      case 11 : { // Region 1d
+        cimg::fread(dims,3,nfile);
+        if (endian) cimg::invert_endianness(dims,3);
+        assign(dims[1],1,1,1);
+        const unsigned siz = size();
+        if (dims[2]<256) {
+          unsigned char *buffer = new unsigned char[siz];
+          cimg::fread(buffer,siz,nfile);
+          T *ptrd = _data;
+          cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+          buffer-=siz;
+          delete[] buffer;
+        } else {
+          if (dims[2]<65536) {
+            unsigned short *buffer = new unsigned short[siz];
+            cimg::fread(buffer,siz,nfile);
+            if (endian) cimg::invert_endianness(buffer,siz);
+            T *ptrd = _data;
+            cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+            buffer-=siz;
+            delete[] buffer;
+          } else {
+            unsigned int *buffer = new unsigned int[siz];
+            cimg::fread(buffer,siz,nfile);
+            if (endian) cimg::invert_endianness(buffer,siz);
+            T *ptrd = _data;
+            cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+            buffer-=siz;
+            delete[] buffer;
+          }
+        }
+      }
+        break;
+      case 12 : { // Region 2d
+        cimg::fread(dims,4,nfile);
+        if (endian) cimg::invert_endianness(dims,4);
+        assign(dims[2],dims[1],1,1);
+        const size_t siz = size();
+        if (dims[3]<256) {
+          unsigned char *buffer = new unsigned char[siz];
+          cimg::fread(buffer,siz,nfile);
+          T *ptrd = _data;
+          cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+          buffer-=siz;
+          delete[] buffer;
+        } else {
+          if (dims[3]<65536) {
+            unsigned short *buffer = new unsigned short[siz];
+            cimg::fread(buffer,siz,nfile);
+            if (endian) cimg::invert_endianness(buffer,siz);
+            T *ptrd = _data;
+            cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+            buffer-=siz;
+            delete[] buffer;
+          } else {
+            unsigned int *buffer = new unsigned int[siz];
+            cimg::fread(buffer,siz,nfile);
+            if (endian) cimg::invert_endianness(buffer,siz);
+            T *ptrd = _data;
+            cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++);
+            buffer-=siz;
+      
