@@ -47165,4 +47165,171 @@ namespace cimg_library_suffixed {
       if (!is_empty()) cimg_foroff(*this,off) {
         std::fprintf(cimg::output(),cimg::type<T>::format(),cimg::type<T>::format(_data[off]));
         if (off!=siz1) std::fprintf(cimg::output(),"%s",off%_width==width1?" ; ":" ");
-        if (off==
+        if (off==7 && siz>16) { off = siz1 - 8; std::fprintf(cimg::output(),"... "); }
+      }
+      if (!is_empty() && display_stats)
+        std::fprintf(cimg::output(),
+                     " ], %smin%s = %g, %smax%s = %g, %smean%s = %g, %sstd%s = %g, %scoords_min%s = (%u,%u,%u,%u), "
+                     "%scoords_max%s = (%u,%u,%u,%u).\n",
+                     cimg::t_bold,cimg::t_normal,st[0],
+                     cimg::t_bold,cimg::t_normal,st[1],
+                     cimg::t_bold,cimg::t_normal,st[2],
+                     cimg::t_bold,cimg::t_normal,std::sqrt(st[3]),
+                     cimg::t_bold,cimg::t_normal,xm,ym,zm,vm,
+                     cimg::t_bold,cimg::t_normal,xM,yM,zM,vM);
+      else std::fprintf(cimg::output(),"%s].\n",is_empty()?"":" ");
+      std::fflush(cimg::output());
+      return *this;
+    }
+
+    //! Display image into a CImgDisplay window.
+    /**
+       \param disp Display window.
+    **/
+    const CImg<T>& display(CImgDisplay& disp) const {
+      disp.display(*this);
+      return *this;
+    }
+
+    //! Display image into a CImgDisplay window, in an interactive way.
+    /**
+        \param disp Display window.
+        \param display_info Tells if image information are displayed on the standard output.
+    **/
+    const CImg<T>& display(CImgDisplay &disp, const bool display_info, unsigned int *const XYZ=0,
+                           const bool exit_on_anykey=false) const {
+      return _display(disp,0,display_info,XYZ,exit_on_anykey,false);
+    }
+
+    //! Display image into an interactive window.
+    /**
+        \param title Window title
+        \param display_info Tells if image information are displayed on the standard output.
+    **/
+    const CImg<T>& display(const char *const title=0, const bool display_info=true, unsigned int *const XYZ=0,
+                           const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _display(disp,title,display_info,XYZ,exit_on_anykey,false);
+    }
+
+    const CImg<T>& _display(CImgDisplay &disp, const char *const title, const bool display_info,
+                            unsigned int *const XYZ, const bool exit_on_anykey,
+                            const bool exit_on_simpleclick) const {
+      unsigned int oldw = 0, oldh = 0, _XYZ[3] = { 0 }, key = 0;
+      int x0 = 0, y0 = 0, z0 = 0, x1 = width() - 1, y1 = height() - 1, z1 = depth() - 1,
+        old_mouse_x = -1, old_mouse_y = -1;
+
+      if (!disp) {
+        disp.assign(cimg_fitscreen(_width,_height,_depth),title?title:0,1);
+        if (!title) disp.set_title("CImg<%s> (%ux%ux%ux%u)",pixel_type(),_width,_height,_depth,_spectrum);
+        else disp.set_title("%s",title);
+      } else if (title) disp.set_title("%s",title);
+      disp.show().flush();
+
+      const CImg<char> dtitle = CImg<char>::string(disp.title());
+      if (display_info) print(dtitle);
+
+      CImg<T> zoom;
+      for (bool reset_view = true, resize_disp = false, is_first_select = true; !key && !disp.is_closed(); ) {
+        if (reset_view) {
+          if (XYZ) { _XYZ[0] = XYZ[0]; _XYZ[1] = XYZ[1]; _XYZ[2] = XYZ[2]; }
+          else {
+            _XYZ[0] = (unsigned int)(x0 + x1)/2;
+            _XYZ[1] = (unsigned int)(y0 + y1)/2;
+            _XYZ[2] = (unsigned int)(z0 + z1)/2;
+          }
+          x0 = 0; y0 = 0; z0 = 0; x1 = width() - 1; y1 = height() - 1; z1 = depth() - 1;
+          oldw = disp._width; oldh = disp._height;
+          reset_view = false;
+        }
+        if (!x0 && !y0 && !z0 && x1==width() - 1 && y1==height() - 1 && z1==depth() - 1) {
+          if (is_empty()) zoom.assign(1,1,1,1,0); else zoom.assign();
+        } else zoom = get_crop(x0,y0,z0,x1,y1,z1);
+
+        const unsigned int
+          dx = 1U + x1 - x0, dy = 1U + y1 - y0, dz = 1U + z1 - z0,
+          tw = dx + (dz>1?dz:0U), th = dy + (dz>1?dz:0U);
+        if (!is_empty() && !disp.is_fullscreen() && resize_disp) {
+          const unsigned int
+            ttw = tw*disp.width()/oldw, tth = th*disp.height()/oldh,
+            dM = cimg::max(ttw,tth), diM = (unsigned int)cimg::max(disp.width(),disp.height()),
+            imgw = cimg::max(16U,ttw*diM/dM), imgh = cimg::max(16U,tth*diM/dM);
+          disp.set_fullscreen(false).resize(cimg_fitscreen(imgw,imgh,1),false);
+          resize_disp = false;
+        }
+        oldw = tw; oldh = th;
+
+        bool
+          go_up = false, go_down = false, go_left = false, go_right = false,
+          go_inc = false, go_dec = false, go_in = false, go_out = false,
+          go_in_center = false;
+        const CImg<T>& visu = zoom?zoom:*this;
+
+        disp.set_title("%s",dtitle._data);
+        if (_width>1 && visu._width==1) disp.set_title("%s | x=%u",disp._title,x0);
+        if (_height>1 && visu._height==1) disp.set_title("%s | y=%u",disp._title,y0);
+        if (_depth>1 && visu._depth==1) disp.set_title("%s | z=%u",disp._title,z0);
+
+        if (!is_first_select) {
+          _XYZ[0] = (unsigned int)(x1 - x0)/2;
+          _XYZ[1] = (unsigned int)(y1 - y0)/2;
+          _XYZ[2] = (unsigned int)(z1 - z0)/2;
+        }
+
+        disp._mouse_x = old_mouse_x; disp._mouse_y = old_mouse_y;
+        const CImg<intT> selection = visu._get_select(disp,0,2,_XYZ,x0,y0,z0,true,is_first_select,_depth>1);
+        old_mouse_x = disp._mouse_x; old_mouse_y = disp._mouse_y;
+        is_first_select = false;
+
+        if (disp.wheel()) {
+          if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            go_down = !(go_up = disp.wheel()>0);
+          } else if (disp.is_keySHIFTLEFT() || disp.is_keySHIFTRIGHT()) {
+            go_left = !(go_right = disp.wheel()>0);
+          }
+          else if (disp.is_keyALT() || disp.is_keyALTGR() || _depth==1) {
+            go_out = !(go_in = disp.wheel()>0); go_in_center = false;
+          }
+          disp.set_wheel();
+        }
+
+        const int
+          sx0 = selection(0), sy0 = selection(1), sz0 = selection(2),
+          sx1 = selection(3), sy1 = selection(4), sz1 = selection(5);
+        if (sx0>=0 && sy0>=0 && sz0>=0 && sx1>=0 && sy1>=0 && sz1>=0) {
+          x1 = x0 + sx1; y1 = y0 + sy1; z1 = z0 + sz1;
+          x0+=sx0; y0+=sy0; z0+=sz0;
+          if (sx0==sx1 && sy0==sy1 && sz0==sz1) {
+            if (exit_on_simpleclick && (!zoom || is_empty())) break; else reset_view = true;
+          }
+          resize_disp = true;
+        } else switch (key = disp.key()) {
+#if cimg_OS!=2
+          case cimg::keyCTRLRIGHT : case cimg::keySHIFTRIGHT :
+#endif
+          case 0 : case cimg::keyCTRLLEFT : case cimg::keyPAD5 : case cimg::keySHIFTLEFT :
+#if cimg_OS!=2
+          case cimg::keyALTGR :
+#endif
+          case cimg::keyALT : key = 0; break;
+          case cimg::keyP : if (visu._depth>1 && (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT())) {
+              // Special mode: play stack of frames
+              const unsigned int
+                w1 = visu._width*disp.width()/(visu._width + (visu._depth>1?visu._depth:0)),
+                h1 = visu._height*disp.height()/(visu._height + (visu._depth>1?visu._depth:0));
+              float frame_timing = 5;
+              bool is_stopped = false;
+              disp.set_key(key,false).set_wheel().resize(cimg_fitscreen(w1,h1,1),false); key = 0;
+              for (unsigned int timer = 0; !key && !disp.is_closed() && !disp.button(); ) {
+                if (disp.is_resized()) disp.resize(false);
+                if (!timer) {
+                  visu.get_slice((int)_XYZ[2]).display(disp.set_title("%s | z=%d",dtitle.data(),_XYZ[2]));
+                  (++_XYZ[2])%=visu._depth;
+                }
+                if (!is_stopped) { if (++timer>(unsigned int)frame_timing) timer = 0; } else timer = ~0U;
+                if (disp.wheel()) { frame_timing-=disp.wheel()/3.0f; disp.set_wheel(); }
+                switch (key = disp.key()) {
+#if cimg_OS!=2
+                case cimg::keyCTRLRIGHT :
+#endif
+               
