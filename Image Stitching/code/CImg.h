@@ -47332,4 +47332,142 @@ namespace cimg_library_suffixed {
 #if cimg_OS!=2
                 case cimg::keyCTRLRIGHT :
 #endif
-               
+                case cimg::keyCTRLLEFT : key = 0; break;
+                case cimg::keyPAGEUP : frame_timing-=0.3f; key = 0; break;
+                case cimg::keyPAGEDOWN : frame_timing+=0.3f; key = 0; break;
+                case cimg::keySPACE : is_stopped = !is_stopped; disp.set_key(key,false); key = 0; break;
+                case cimg::keyARROWLEFT : case cimg::keyARROWUP : is_stopped = true; timer = 0; key = 0; break;
+                case cimg::keyARROWRIGHT : case cimg::keyARROWDOWN : is_stopped = true;
+                  (_XYZ[2]+=visu._depth - 2)%=visu._depth; timer = 0; key = 0; break;
+                case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+                    disp.set_fullscreen(false).
+                      resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                             CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false);
+                    disp.set_key(key,false); key = 0;
+                  } break;
+                case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+                    disp.set_fullscreen(false).
+                      resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false).set_key(key,false); key = 0;
+                  } break;
+                case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+                    disp.set_fullscreen(false).
+                      resize(cimg_fitscreen(_width,_height,_depth),false).set_key(key,false); key = 0;
+                  } break;
+                case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+                    disp.resize(disp.screen_width(),disp.screen_height(),false).
+                      toggle_fullscreen().set_key(key,false); key = 0;
+                  } break;
+                }
+                frame_timing = frame_timing<1?1:(frame_timing>39?39:frame_timing);
+                disp.wait(20);
+              }
+              const unsigned int
+                w2 = (visu._width + (visu._depth>1?visu._depth:0))*disp.width()/visu._width,
+                h2 = (visu._height + (visu._depth>1?visu._depth:0))*disp.height()/visu._height;
+              disp.resize(cimg_fitscreen(w2,h2,1),false).set_title(dtitle.data()).set_key().set_button().set_wheel();
+              key = 0;
+            } break;
+          case cimg::keyHOME : reset_view = resize_disp = true; key = 0; break;
+          case cimg::keyPADADD : go_in = true; go_in_center = true; key = 0; break;
+          case cimg::keyPADSUB : go_out = true; key = 0; break;
+          case cimg::keyARROWLEFT : case cimg::keyPAD4: go_left = true; key = 0; break;
+          case cimg::keyARROWRIGHT : case cimg::keyPAD6: go_right = true; key = 0; break;
+          case cimg::keyARROWUP : case cimg::keyPAD8: go_up = true; key = 0; break;
+          case cimg::keyARROWDOWN : case cimg::keyPAD2: go_down = true; key = 0; break;
+          case cimg::keyPAD7 : go_up = go_left = true; key = 0; break;
+          case cimg::keyPAD9 : go_up = go_right = true; key = 0; break;
+          case cimg::keyPAD1 : go_down = go_left = true; key = 0; break;
+          case cimg::keyPAD3 : go_down = go_right = true; key = 0; break;
+          case cimg::keyPAGEUP : go_inc = true; key = 0; break;
+          case cimg::keyPAGEDOWN : go_dec = true; key = 0; break;
+          }
+        if (go_in) {
+          const int
+            mx = go_in_center?disp.width()/2:disp.mouse_x(),
+            my = go_in_center?disp.height()/2:disp.mouse_y(),
+            mX = mx*(width() + (depth()>1?depth():0))/disp.width(),
+            mY = my*(height() + (depth()>1?depth():0))/disp.height();
+          int X = (int)_XYZ[0], Y = (int)_XYZ[1], Z = (int)_XYZ[2];
+          if (mX<width() && mY<height())  {
+            X = x0 + mX*(1 + x1 - x0)/width(); Y = y0 + mY*(1 + y1 - y0)/height(); Z = (int)_XYZ[2];
+          }
+          if (mX<width() && mY>=height()) {
+            X = x0 + mX*(1 + x1 - x0)/width(); Z = z0 + (mY - height())*(1 + z1 - z0)/depth(); Y = (int)_XYZ[1];
+          }
+          if (mX>=width() && mY<height()) {
+            Y = y0 + mY*(1 + y1 - y0)/height(); Z = z0 + (mX - width())*(1 + z1 - z0)/depth(); X = (int)_XYZ[0];
+          }
+          if (x1 - x0>4) { x0 = X - 3*(X - x0)/4; x1 = X + 3*(x1 - X)/4; }
+          if (y1 - y0>4) { y0 = Y - 3*(Y - y0)/4; y1 = Y + 3*(y1 - Y)/4; }
+          if (z1 - z0>4) { z0 = Z - 3*(Z - z0)/4; z1 = Z + 3*(z1 - Z)/4; }
+        }
+        if (go_out) {
+          const int
+            delta_x = (x1 - x0)/8, delta_y = (y1 - y0)/8, delta_z = (z1 - z0)/8,
+            ndelta_x = delta_x?delta_x:(_width>1?1:0),
+            ndelta_y = delta_y?delta_y:(_height>1?1:0),
+            ndelta_z = delta_z?delta_z:(_depth>1?1:0);
+          x0-=ndelta_x; y0-=ndelta_y; z0-=ndelta_z;
+          x1+=ndelta_x; y1+=ndelta_y; z1+=ndelta_z;
+          if (x0<0) { x1-=x0; x0 = 0; if (x1>=width()) x1 = width() - 1; }
+          if (y0<0) { y1-=y0; y0 = 0; if (y1>=height()) y1 = height() - 1; }
+          if (z0<0) { z1-=z0; z0 = 0; if (z1>=depth()) z1 = depth() - 1; }
+          if (x1>=width()) { x0-=(x1 - width() + 1); x1 = width() - 1; if (x0<0) x0 = 0; }
+          if (y1>=height()) { y0-=(y1 - height() + 1); y1 = height() - 1; if (y0<0) y0 = 0; }
+          if (z1>=depth()) { z0-=(z1 - depth() + 1); z1 = depth() - 1; if (z0<0) z0 = 0; }
+        }
+        if (go_left) {
+          const int delta = (x1 - x0)/4, ndelta = delta?delta:(_width>1?1:0);
+          if (x0 - ndelta>=0) { x0-=ndelta; x1-=ndelta; }
+          else { x1-=x0; x0 = 0; }
+        }
+        if (go_right) {
+          const int delta = (x1 - x0)/4, ndelta = delta?delta:(_width>1?1:0);
+          if (x1+ndelta<width()) { x0+=ndelta; x1+=ndelta; }
+          else { x0+=(width() - 1 - x1); x1 = width() - 1; }
+        }
+        if (go_up) {
+          const int delta = (y1 - y0)/4, ndelta = delta?delta:(_height>1?1:0);
+          if (y0 - ndelta>=0) { y0-=ndelta; y1-=ndelta; }
+          else { y1-=y0; y0 = 0; }
+        }
+        if (go_down) {
+          const int delta = (y1 - y0)/4, ndelta = delta?delta:(_height>1?1:0);
+          if (y1+ndelta<height()) { y0+=ndelta; y1+=ndelta; }
+          else { y0+=(height() - 1 - y1); y1 = height() - 1; }
+        }
+        if (go_inc) {
+          const int delta = (z1 - z0)/4, ndelta = delta?delta:(_depth>1?1:0);
+          if (z0 - ndelta>=0) { z0-=ndelta; z1-=ndelta; }
+          else { z1-=z0; z0 = 0; }
+        }
+        if (go_dec) {
+          const int delta = (z1 - z0)/4, ndelta = delta?delta:(_depth>1?1:0);
+          if (z1+ndelta<depth()) { z0+=ndelta; z1+=ndelta; }
+          else { z0+=(depth() - 1 - z1); z1 = depth() - 1; }
+        }
+        disp.wait(100);
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      disp.set_key(key);
+      if (XYZ) { XYZ[0] = _XYZ[0]; XYZ[1] = _XYZ[1]; XYZ[2] = _XYZ[2]; }
+      return *this;
+    }
+
+    //! Display object 3d in an interactive window.
+    /**
+       \param disp Display window.
+       \param vertices Vertices data of the 3d object.
+       \param primitives Primitives data of the 3d object.
+       \param colors Colors data of the 3d object.
+       \param opacities Opacities data of the 3d object.
+       \param centering Tells if the 3d object must be centered for the display.
+       \param render_static Rendering mode.
+       \param render_motion Rendering mode, when the 3d object is moved.
+       \param is_double_sided Tells if the object primitives are double-sided.
+       \param focale Focale
+       \param light_x X-coordinate of the light source.
+       \param light_y Y-co
