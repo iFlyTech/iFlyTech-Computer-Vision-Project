@@ -47470,4 +47470,117 @@ namespace cimg_library_suffixed {
        \param is_double_sided Tells if the object primitives are double-sided.
        \param focale Focale
        \param light_x X-coordinate of the light source.
-       \param light_y Y-co
+       \param light_y Y-coordinate of the light source.
+       \param light_z Z-coordinate of the light source.
+       \param specular_lightness Amount of specular light.
+       \param specular_shininess Shininess of the object material.
+       \param display_axes Tells if the 3d axes are displayed.
+       \param pose_matrix Pointer to 12 values, defining a 3d pose (as a 4x3 matrix).
+    **/
+    template<typename tp, typename tf, typename tc, typename to>
+    const CImg<T>& display_object3d(CImgDisplay& disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const to& opacities,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return _display_object3d(disp,0,vertices,primitives,colors,opacities,centering,render_static,
+                               render_motion,is_double_sided,focale,
+                               light_x,light_y,light_z,specular_lightness,specular_shininess,
+                               display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc, typename to>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const to& opacities,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _display_object3d(disp,title,vertices,primitives,colors,opacities,centering,render_static,
+                               render_motion,is_double_sided,focale,
+                               light_x,light_y,light_z,specular_lightness,specular_shininess,
+                               display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc>
+    const CImg<T>& display_object3d(CImgDisplay &disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(disp,vertices,primitives,colors,CImgList<floatT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(title,vertices,primitives,colors,CImgList<floatT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf>
+    const CImg<T>& display_object3d(CImgDisplay &disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(disp,vertices,primitives,CImgList<T>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const
