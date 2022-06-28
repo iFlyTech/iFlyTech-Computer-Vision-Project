@@ -47703,4 +47703,153 @@ namespace cimg_library_suffixed {
                                                    ym,ym,yM,yM,ym,ym,yM,yM,
                                                    zm,zm,zm,zm,zM,zM,zM,zM);
       bbox_primitives.assign(6,1,4,1,1, 0,3,2,1, 4,5,6,7, 1,2,6,5, 0,4,7,3, 0,1,5,4, 2,3,7,6);
-      bbox_colors.assign(6,_spectrum,1,1,1,backgr
+      bbox_colors.assign(6,_spectrum,1,1,1,background_color[0]);
+      bbox_colors2.assign(6,_spectrum,1,1,1,foreground_color[0]);
+      bbox_opacities.assign(bbox_colors._width,1,1,1,0.3f);
+
+      rotated_axes_vertices = axes_vertices.assign(7,3,1,1,
+                                                   0,20,0,0,22,-6,-6,
+                                                   0,0,20,0,-6,22,-6,
+                                                   0,0,0,20,0,0,22);
+      axes_opacities.assign(3,1,1,1,1);
+      axes_colors.assign(3,_spectrum,1,1,1,foreground_color[0]);
+      axes_primitives.assign(3,1,2,1,1, 0,1, 0,2, 0,3);
+
+      // Begin user interaction loop
+      CImg<T> visu0(*this), visu;
+      CImg<tpfloat> zbuffer(visu0.width(),visu0.height(),1,1,0);
+      bool init_pose = true, clicked = false, redraw = true;
+      unsigned int key = 0;
+      int
+        x0 = 0, y0 = 0, x1 = 0, y1 = 0,
+        nrender_static = render_static,
+        nrender_motion = render_motion;
+      disp.show().flush();
+
+      while (!disp.is_closed() && !key) {
+
+        // Init object pose
+        if (init_pose) {
+          const float
+            ratio = delta>0?(2.0f*cimg::min(disp.width(),disp.height())/(3.0f*delta)):1,
+            dx = (xM + xm)/2, dy = (yM + ym)/2, dz = (zM + zm)/2;
+          if (centering)
+            CImg<floatT>(4,3,1,1, ratio,0.,0.,-ratio*dx, 0.,ratio,0.,-ratio*dy, 0.,0.,ratio,-ratio*dz).move_to(pose);
+          else CImg<floatT>(4,3,1,1, 1,0,0,0, 0,1,0,0, 0,0,1,0).move_to(pose);
+          if (pose_matrix) {
+            CImg<floatT> pose0(pose_matrix,4,3,1,1,false);
+            pose0.resize(4,4,1,1,0); pose.resize(4,4,1,1,0);
+            pose0(3,3) = pose(3,3) = 1;
+            (pose0*pose).get_crop(0,0,3,2).move_to(pose);
+            Xoff = pose_matrix[12]; Yoff = pose_matrix[13]; Zoff = pose_matrix[14]; sprite_scale = pose_matrix[15];
+          } else { Xoff = Yoff = Zoff = 0; sprite_scale = 1; }
+          init_pose = false;
+          redraw = true;
+        }
+
+        // Rotate and draw 3d object
+        if (redraw) {
+          const float
+            r00 = pose(0,0), r10 = pose(1,0), r20 = pose(2,0), r30 = pose(3,0),
+            r01 = pose(0,1), r11 = pose(1,1), r21 = pose(2,1), r31 = pose(3,1),
+            r02 = pose(0,2), r12 = pose(1,2), r22 = pose(2,2), r32 = pose(3,2);
+          if ((clicked && nrender_motion>=0) || (!clicked && nrender_static>=0))
+            cimg_forX(vertices,l) {
+              const float x = (float)vertices(l,0), y = (float)vertices(l,1), z = (float)vertices(l,2);
+              rotated_vertices(l,0) = r00*x + r10*y + r20*z + r30;
+              rotated_vertices(l,1) = r01*x + r11*y + r21*z + r31;
+              rotated_vertices(l,2) = r02*x + r12*y + r22*z + r32;
+            }
+          else cimg_forX(bbox_vertices,l) {
+              const float x = bbox_vertices(l,0), y = bbox_vertices(l,1), z = bbox_vertices(l,2);
+              rotated_bbox_vertices(l,0) = r00*x + r10*y + r20*z + r30;
+              rotated_bbox_vertices(l,1) = r01*x + r11*y + r21*z + r31;
+              rotated_bbox_vertices(l,2) = r02*x + r12*y + r22*z + r32;
+            }
+
+          // Draw objects
+          //#ifdef cimg_use_openmp
+          //          const bool render_with_zbuffer = true;
+          //#else
+          const bool render_with_zbuffer = !clicked && nrender_static>0;
+          //#endif
+          visu = visu0;
+          if ((clicked && nrender_motion<0) || (!clicked && nrender_static<0))
+            visu.draw_object3d(Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                               rotated_bbox_vertices,bbox_primitives,bbox_colors,bbox_opacities,2,false,focale).
+              draw_object3d(Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                            rotated_bbox_vertices,bbox_primitives,bbox_colors2,1,false,focale);
+          else visu._draw_object3d((void*)0,render_with_zbuffer?zbuffer.fill(0):CImg<tpfloat>::empty(),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,clicked?nrender_motion:nrender_static,_is_double_sided==1,focale,
+                                   width()/2.0f + light_x,height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,sprite_scale);
+          // Draw axes
+          if (ndisplay_axes) {
+            const float
+              n = (float)std::sqrt(1e-8 + r00*r00 + r01*r01 + r02*r02),
+              _r00 = r00/n, _r10 = r10/n, _r20 = r20/n,
+              _r01 = r01/n, _r11 = r11/n, _r21 = r21/n,
+              _r02 = r01/n, _r12 = r12/n, _r22 = r22/n,
+              Xaxes = 25, Yaxes = visu._height - 38.0f;
+            cimg_forX(axes_vertices,l) {
+              const float
+                x = axes_vertices(l,0),
+                y = axes_vertices(l,1),
+                z = axes_vertices(l,2);
+              rotated_axes_vertices(l,0) = _r00*x + _r10*y + _r20*z;
+              rotated_axes_vertices(l,1) = _r01*x + _r11*y + _r21*z;
+              rotated_axes_vertices(l,2) = _r02*x + _r12*y + _r22*z;
+            }
+            axes_opacities(0,0) = (rotated_axes_vertices(1,2)>0)?0.5f:1.0f;
+            axes_opacities(1,0) = (rotated_axes_vertices(2,2)>0)?0.5f:1.0f;
+            axes_opacities(2,0) = (rotated_axes_vertices(3,2)>0)?0.5f:1.0f;
+            visu.draw_object3d(Xaxes,Yaxes,0,rotated_axes_vertices,axes_primitives,
+                               axes_colors,axes_opacities,1,false,focale).
+              draw_text((int)(Xaxes + rotated_axes_vertices(4,0)),
+                        (int)(Yaxes + rotated_axes_vertices(4,1)),
+                        "X",axes_colors[0]._data,0,axes_opacities(0,0),13).
+              draw_text((int)(Xaxes + rotated_axes_vertices(5,0)),
+                        (int)(Yaxes + rotated_axes_vertices(5,1)),
+                        "Y",axes_colors[1]._data,0,axes_opacities(1,0),13).
+              draw_text((int)(Xaxes + rotated_axes_vertices(6,0)),
+                        (int)(Yaxes + rotated_axes_vertices(6,1)),
+                        "Z",axes_colors[2]._data,0,axes_opacities(2,0),13);
+          }
+          visu.display(disp);
+          if (!clicked || nrender_motion==nrender_static) redraw = false;
+        }
+
+        // Handle user interaction
+        disp.wait();
+        if ((disp.button() || disp.wheel()) && disp.mouse_x()>=0 && disp.mouse_y()>=0) {
+          redraw = true;
+          if (!clicked) { x0 = x1 = disp.mouse_x(); y0 = y1 = disp.mouse_y(); if (!disp.wheel()) clicked = true; }
+          else { x1 = disp.mouse_x(); y1 = disp.mouse_y(); }
+          if (disp.button()&1) {
+            const float
+              R = 0.45f*cimg::min(disp.width(),disp.height()),
+              R2 = R*R,
+              u0 = (float)(x0 - disp.width()/2),
+              v0 = (float)(y0 - disp.height()/2),
+              u1 = (float)(x1 - disp.width()/2),
+              v1 = (float)(y1 - disp.height()/2),
+              n0 = (float)std::sqrt(u0*u0 + v0*v0),
+              n1 = (float)std::sqrt(u1*u1 + v1*v1),
+              nu0 = n0>R?(u0*R/n0):u0,
+              nv0 = n0>R?(v0*R/n0):v0,
+              nw0 = (float)std::sqrt(cimg::max(0,R2 - nu0*nu0 - nv0*nv0)),
+              nu1 = n1>R?(u1*R/n1):u1,
+              nv1 = n1>R?(v1*R/n1):v1,
+              nw1 = (float)std::sqrt(cimg::max(0,R2 - nu1*nu1 - nv1*nv1)),
+              u = nv0*nw1 - nw0*nv1,
+              v = nw0*nu1 - nu0*nw1,
+              w = nv0*nu1 - nu0*nv1,
+              n = (float)std::sqrt(u*u + v*v + w*w),
+              alpha = (float)std::asin(n/R2);
+            (CImg<floatT>::rotation_matrix(u,v,w,alpha)*pose).move_to(pose);
+            x0 = x1; y0 = y1;
+          }
+          if (disp.button()&2) {
+            if 
