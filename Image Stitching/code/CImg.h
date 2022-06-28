@@ -47852,4 +47852,139 @@ namespace cimg_library_suffixed {
             x0 = x1; y0 = y1;
           }
           if (disp.button()&2) {
-            if 
+            if (focale>0) Zoff-=(y0 - y1)*focale/400;
+            else { const float s = std::exp((y0 - y1)/400.0f); pose*=s; sprite_scale*=s; }
+            x0 = x1; y0 = y1;
+          }
+          if (disp.wheel()) {
+            if (focale>0) Zoff-=disp.wheel()*focale/20;
+            else { const float s = std::exp(disp.wheel()/20.0f); pose*=s; sprite_scale*=s; }
+            disp.set_wheel();
+          }
+          if (disp.button()&4) { Xoff+=(x1 - x0); Yoff+=(y1 - y0); x0 = x1; y0 = y1; }
+          if ((disp.button()&1) && (disp.button()&2)) {
+            init_pose = true; disp.set_button(); x0 = x1; y0 = y1;
+            pose = CImg<floatT>(4,3,1,1, 1,0,0,0, 0,1,0,0, 0,0,1,0);
+          }
+        } else if (clicked) { x0 = x1; y0 = y1; clicked = false; redraw = true; }
+
+        CImg<charT> filename(32);
+        switch (key = disp.key()) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT :
+#endif
+        case 0 : case cimg::keyCTRLLEFT : key = 0; break;
+        case cimg::keyD: if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                     CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).resize(cimg_fitscreen(_width,_height,_depth),false)._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            if (!ns_width || !ns_height ||
+                ns_width>(unsigned int)disp.screen_width() || ns_height>(unsigned int)disp.screen_height()) {
+              ns_width = disp.screen_width()*3U/4;
+              ns_height = disp.screen_height()*3U/4;
+            }
+            if (disp.is_fullscreen()) disp.resize(ns_width,ns_height,false);
+            else {
+              ns_width = disp._width; ns_height = disp._height;
+              disp.resize(disp.screen_width(),disp.screen_height(),false);
+            }
+            disp.toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyT : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            // Switch single/double-sided primitives.
+            if (--_is_double_sided==-2) _is_double_sided = 1;
+            if (_is_double_sided>=0) reverse_primitives.assign();
+            else primitives.get_reverse_object3d().move_to(reverse_primitives);
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyZ : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Enable/disable Z-buffer
+            if (zbuffer) zbuffer.assign();
+            else zbuffer.assign(visu0.width(),visu0.height(),1,1,0);
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyA : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Show/hide 3d axes.
+            ndisplay_axes = !ndisplay_axes;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF1 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to points.
+            nrender_motion = (nrender_static==0 && nrender_motion!=0)?0:-1; nrender_static = 0;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF2 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to lines.
+            nrender_motion = (nrender_static==1 && nrender_motion!=1)?1:-1; nrender_static = 1;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF3 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to flat.
+            nrender_motion = (nrender_static==2 && nrender_motion!=2)?2:-1; nrender_static = 2;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF4 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to flat-shaded.
+            nrender_motion = (nrender_static==3 && nrender_motion!=3)?3:-1; nrender_static = 3;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF5 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            // Set rendering mode to gouraud-shaded.
+            nrender_motion = (nrender_static==4 && nrender_motion!=4)?4:-1; nrender_static = 4;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF6 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to phong-shaded.
+            nrender_motion = (nrender_static==5 && nrender_motion!=5)?5:-1; nrender_static = 5;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save snapshot
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            visu.save(filename);
+            (+visu).draw_text(0,0," Snapshot '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyG : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .off file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.off",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving object... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            vertices.save_off(reverse_primitives?reverse_primitives:primitives,colors,filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyO : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .cimg file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving object... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            vertices.get_object3dtoCImg3d(reverse_primitives?reverse_primitives:primitives,colors,opacities).
+   
