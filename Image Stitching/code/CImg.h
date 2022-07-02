@@ -48481,4 +48481,209 @@ namespace cimg_library_suffixed {
       header[0x04] = (file_size>>16)&0xFF;
       header[0x05] = (file_size>>24)&0xFF;
       header[0x0A] = 0x36;
-      heade
+      header[0x0E] = 0x28;
+      header[0x12] = _width&0xFF;
+      header[0x13] = (_width>>8)&0xFF;
+      header[0x14] = (_width>>16)&0xFF;
+      header[0x15] = (_width>>24)&0xFF;
+      header[0x16] = _height&0xFF;
+      header[0x17] = (_height>>8)&0xFF;
+      header[0x18] = (_height>>16)&0xFF;
+      header[0x19] = (_height>>24)&0xFF;
+      header[0x1A] = 1;
+      header[0x1B] = 0;
+      header[0x1C] = 24;
+      header[0x1D] = 0;
+      header[0x22] = buf_size&0xFF;
+      header[0x23] = (buf_size>>8)&0xFF;
+      header[0x24] = (buf_size>>16)&0xFF;
+      header[0x25] = (buf_size>>24)&0xFF;
+      header[0x27] = 0x1;
+      header[0x2B] = 0x1;
+      cimg::fwrite(header._data,54,nfile);
+
+      const T
+        *ptr_r = data(0,_height - 1,0,0),
+        *ptr_g = (_spectrum>=2)?data(0,_height - 1,0,1):0,
+        *ptr_b = (_spectrum>=3)?data(0,_height - 1,0,2):0;
+
+      switch (_spectrum) {
+      case 1 : {
+        cimg_forY(*this,y) {
+          cimg_forX(*this,x) {
+            const unsigned char val = (unsigned char)*(ptr_r++);
+            std::fputc(val,nfile); std::fputc(val,nfile); std::fputc(val,nfile);
+          }
+          cimg::fwrite(align_buf,align,nfile);
+          ptr_r-=2*_width;
+        }
+      } break;
+      case 2 : {
+        cimg_forY(*this,y) {
+          cimg_forX(*this,x) {
+            std::fputc(0,nfile);
+            std::fputc((unsigned char)(*(ptr_g++)),nfile);
+            std::fputc((unsigned char)(*(ptr_r++)),nfile);
+          }
+          cimg::fwrite(align_buf,align,nfile);
+          ptr_r-=2*_width; ptr_g-=2*_width;
+        }
+      } break;
+      default : {
+        cimg_forY(*this,y) {
+          cimg_forX(*this,x) {
+            std::fputc((unsigned char)(*(ptr_b++)),nfile);
+            std::fputc((unsigned char)(*(ptr_g++)),nfile);
+            std::fputc((unsigned char)(*(ptr_r++)),nfile);
+          }
+          cimg::fwrite(align_buf,align,nfile);
+          ptr_r-=2*_width; ptr_g-=2*_width; ptr_b-=2*_width;
+        }
+      }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a JPEG file.
+    /**
+      \param filename Filename, as a C-string.
+      \param quality Image quality (in %)
+    **/
+    const CImg<T>& save_jpeg(const char *const filename, const unsigned int quality=100) const {
+      return _save_jpeg(0,filename,quality);
+    }
+
+    //! Save image as a JPEG file \overloading.
+    const CImg<T>& save_jpeg(std::FILE *const file, const unsigned int quality=100) const {
+      return _save_jpeg(file,0,quality);
+    }
+
+    const CImg<T>& _save_jpeg(std::FILE *const file, const char *const filename, const unsigned int quality) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_jpeg(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_jpeg(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+#ifndef cimg_use_jpeg
+      if (!file) return save_other(filename,quality);
+      else throw CImgIOException(_cimg_instance
+                                 "save_jpeg(): Unable to save data in '(*FILE)' unless libjpeg is enabled.",
+                                 cimg_instance);
+#else
+      unsigned int dimbuf = 0;
+      J_COLOR_SPACE colortype = JCS_RGB;
+
+      switch (_spectrum) {
+      case 1 : dimbuf = 1; colortype = JCS_GRAYSCALE; break;
+      case 2 : dimbuf = 3; colortype = JCS_RGB; break;
+      case 3 : dimbuf = 3; colortype = JCS_RGB; break;
+      default : dimbuf = 4; colortype = JCS_CMYK; break;
+      }
+
+      // Call libjpeg functions
+      struct jpeg_compress_struct cinfo;
+      struct jpeg_error_mgr jerr;
+      cinfo.err = jpeg_std_error(&jerr);
+      jpeg_create_compress(&cinfo);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      jpeg_stdio_dest(&cinfo,nfile);
+      cinfo.image_width = _width;
+      cinfo.image_height = _height;
+      cinfo.input_components = dimbuf;
+      cinfo.in_color_space = colortype;
+      jpeg_set_defaults(&cinfo);
+      jpeg_set_quality(&cinfo,quality<100?quality:100,TRUE);
+      jpeg_start_compress(&cinfo,TRUE);
+
+      JSAMPROW row_pointer[1];
+      CImg<ucharT> buffer(_width*dimbuf);
+
+      while (cinfo.next_scanline<cinfo.image_height) {
+        unsigned char *ptrd = buffer._data;
+
+        // Fill pixel buffer
+        switch (_spectrum) {
+        case 1 : { // Greyscale images
+          const T *ptr_g = data(0, cinfo.next_scanline);
+          for (unsigned int b = 0; b<cinfo.image_width; b++)
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+        } break;
+        case 2 : { // RG images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = 0;
+          }
+        } break;
+        case 3 : { // RGB images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1),
+            *ptr_b = data(0,cinfo.next_scanline,0,2);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = (unsigned char)*(ptr_b++);
+          }
+        } break;
+        default : { // CMYK images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1),
+            *ptr_b = data(0,cinfo.next_scanline,0,2),
+            *ptr_a = data(0,cinfo.next_scanline,0,3);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = (unsigned char)*(ptr_b++);
+            *(ptrd++) = (unsigned char)*(ptr_a++);
+          }
+        }
+        }
+        *row_pointer = buffer._data;
+        jpeg_write_scanlines(&cinfo,row_pointer,1);
+      }
+      jpeg_finish_compress(&cinfo);
+      if (!file) cimg::fclose(nfile);
+      jpeg_destroy_compress(&cinfo);
+      return *this;
+#endif
+    }
+
+    //! Save image, using built-in ImageMagick++ library.
+    /**
+      \param filename Filename, as a C-string.
+      \param bytes_per_pixel Force the number of bytes per pixel for the saving, when possible.
+    **/
+    const CImg<T>& save_magick(const char *const filename, const unsigned int bytes_per_pixel=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_magick(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifdef cimg_use_magick
+      double stmin, stmax = (double)max_min(stmin);
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (_spectrum>3)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance is multispectral, only the three first channels will be "
+                   "saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (stmin<0 || (bytes_per_pixel==1 && stmax>=256) || stmax>=65536)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance has pixel values in [%g,%g],
