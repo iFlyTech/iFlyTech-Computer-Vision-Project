@@ -48119,4 +48119,180 @@ namespace cimg_library_suffixed {
                                                            labelx,
                                                            nxmin + x0*(nxmax - nxmin)/siz1,
                                                            nxmin + x1*(nxmax - nxmin)/siz1,
-                                              
+                                                           labely,y0,y1,true);
+        const int mouse_x = disp.mouse_x(), mouse_y = disp.mouse_y();
+        if (selection[0]>=0) {
+          if (selection[2]<0) reset_view = true;
+          else {
+            x1 = x0 + selection[2]; x0+=selection[0];
+            if (selection[1]>=0 && selection[3]>=0) {
+              y0 = y1 - selection[3]*(y1 - y0)/(disp.height() - 32);
+              y1-=selection[1]*(y1 - y0)/(disp.height() - 32);
+            }
+          }
+        } else {
+          bool go_in = false, go_out = false, go_left = false, go_right = false, go_up = false, go_down = false;
+          switch (key = (int)disp.key()) {
+          case cimg::keyHOME : reset_view = true; key = 0; disp.set_key(); break;
+          case cimg::keyPADADD : go_in = true; go_out = false; key = 0; disp.set_key(); break;
+          case cimg::keyPADSUB : go_out = true; go_in = false; key = 0; disp.set_key(); break;
+          case cimg::keyARROWLEFT : case cimg::keyPAD4 : go_left = true; go_right = false; key = 0; disp.set_key();
+            break;
+          case cimg::keyARROWRIGHT : case cimg::keyPAD6 : go_right = true; go_left = false; key = 0; disp.set_key();
+            break;
+          case cimg::keyARROWUP : case cimg::keyPAD8 : go_up = true; go_down = false; key = 0; disp.set_key(); break;
+          case cimg::keyARROWDOWN : case cimg::keyPAD2 : go_down = true; go_up = false; key = 0; disp.set_key(); break;
+          case cimg::keyPAD7 : go_left = true; go_up = true; key = 0; disp.set_key(); break;
+          case cimg::keyPAD9 : go_right = true; go_up = true; key = 0; disp.set_key(); break;
+          case cimg::keyPAD1 : go_left = true; go_down = true; key = 0; disp.set_key(); break;
+          case cimg::keyPAD3 : go_right = true; go_down = true; key = 0; disp.set_key(); break;
+          }
+          if (disp.wheel()) {
+            if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) go_up = !(go_down = disp.wheel()<0);
+            else if (disp.is_keySHIFTLEFT() || disp.is_keySHIFTRIGHT()) go_left = !(go_right = disp.wheel()>0);
+            else go_out = !(go_in = disp.wheel()>0);
+            key = 0;
+          }
+
+          if (go_in) {
+            const int
+              xsiz = x1 - x0,
+              mx = (mouse_x - 16)*xsiz/(disp.width() - 32),
+              cx = x0 + (mx<0?0:(mx>=xsiz?xsiz:mx));
+            if (x1 - x0>4) {
+              x0 = cx - 7*(cx - x0)/8; x1 = cx + 7*(x1 - cx)/8;
+              if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+                const double
+                  ysiz = y1 - y0,
+                  my = (mouse_y - 16)*ysiz/(disp.height() - 32),
+                  cy = y1 - (my<0?0:(my>=ysiz?ysiz:my));
+                y0 = cy - 7*(cy - y0)/8; y1 = cy + 7*(y1 - cy)/8;
+              } else y0 = y1 = 0;
+            }
+          }
+          if (go_out) {
+            if (x0>0 || x1<(int)siz1) {
+              const int delta_x = (x1 - x0)/8, ndelta_x = delta_x?delta_x:(siz>1?1:0);
+              const double ndelta_y = (y1 - y0)/8;
+              x0-=ndelta_x; x1+=ndelta_x;
+              y0-=ndelta_y; y1+=ndelta_y;
+              if (x0<0) { x1-=x0; x0 = 0; if (x1>=(int)siz) x1 = (int)siz1; }
+              if (x1>=(int)siz) { x0-=(x1 - siz1); x1 = (int)siz1; if (x0<0) x0 = 0; }
+            }
+          }
+          if (go_left) {
+            const int delta = (x1 - x0)/5, ndelta = delta?delta:1;
+            if (x0 - ndelta>=0) { x0-=ndelta; x1-=ndelta; }
+            else { x1-=x0; x0 = 0; }
+            go_left = false;
+          }
+          if (go_right) {
+            const int delta = (x1 - x0)/5, ndelta = delta?delta:1;
+            if (x1 + ndelta<(int)siz) { x0+=ndelta; x1+=ndelta; }
+            else { x0+=(siz1 - x1); x1 = (int)siz1; }
+            go_right = false;
+          }
+          if (go_up) {
+            const double delta = (y1 - y0)/10, ndelta = delta?delta:1;
+            y0+=ndelta; y1+=ndelta;
+            go_up = false;
+          }
+          if (go_down) {
+            const double delta = (y1 - y0)/10, ndelta = delta?delta:1;
+            y0-=ndelta; y1-=ndelta;
+            go_down = false;
+          }
+        }
+        if (!exit_on_anykey && key && key!=(int)cimg::keyESC &&
+            (key!=(int)cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          disp.set_key(key,false);
+          key = 0;
+        }
+      }
+      disp._normalization = old_normalization;
+      return *this;
+    }
+
+    //! Save image as a file.
+    /**
+       \param filename Filename, as a C-string.
+       \param number When positive, represents an index added to the filename. Otherwise, no number is added.
+       \param digits Number of digits used for adding the number to the filename.
+       \note
+       - The used file format is defined by the file extension in the filename \p filename.
+       - Parameter \p number can be used to add a 6-digit number to the filename before saving.
+
+    **/
+    const CImg<T>& save(const char *const filename, const int number=-1, const unsigned int digits=6) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save(): Specified filename is (null).",
+                                    cimg_instance);
+      // Do not test for empty instances, since .cimg format is able to manage empty instances.
+      const bool is_stdout = *filename=='-' && (!filename[1] || filename[1]=='.');
+      const char *const ext = cimg::split_filename(filename);
+      CImg<charT> nfilename(1024);
+      const char *const fn = is_stdout?filename:(number>=0)?cimg::number_filename(filename,number,digits,nfilename):
+        filename;
+
+#ifdef cimg_save_plugin
+      cimg_save_plugin(fn);
+#endif
+#ifdef cimg_save_plugin1
+      cimg_save_plugin1(fn);
+#endif
+#ifdef cimg_save_plugin2
+      cimg_save_plugin2(fn);
+#endif
+#ifdef cimg_save_plugin3
+      cimg_save_plugin3(fn);
+#endif
+#ifdef cimg_save_plugin4
+      cimg_save_plugin4(fn);
+#endif
+#ifdef cimg_save_plugin5
+      cimg_save_plugin5(fn);
+#endif
+#ifdef cimg_save_plugin6
+      cimg_save_plugin6(fn);
+#endif
+#ifdef cimg_save_plugin7
+      cimg_save_plugin7(fn);
+#endif
+#ifdef cimg_save_plugin8
+      cimg_save_plugin8(fn);
+#endif
+      // Ascii formats
+      if (!cimg::strcasecmp(ext,"asc")) return save_ascii(fn);
+      else if (!cimg::strcasecmp(ext,"dlm") ||
+               !cimg::strcasecmp(ext,"txt")) return save_dlm(fn);
+      else if (!cimg::strcasecmp(ext,"cpp") ||
+               !cimg::strcasecmp(ext,"hpp") ||
+               !cimg::strcasecmp(ext,"h") ||
+               !cimg::strcasecmp(ext,"c")) return save_cpp(fn);
+
+      // 2d binary formats
+      else if (!cimg::strcasecmp(ext,"bmp")) return save_bmp(fn);
+      else if (!cimg::strcasecmp(ext,"jpg") ||
+               !cimg::strcasecmp(ext,"jpeg") ||
+               !cimg::strcasecmp(ext,"jpe") ||
+               !cimg::strcasecmp(ext,"jfif") ||
+               !cimg::strcasecmp(ext,"jif")) return save_jpeg(fn);
+      else if (!cimg::strcasecmp(ext,"rgb")) return save_rgb(fn);
+      else if (!cimg::strcasecmp(ext,"rgba")) return save_rgba(fn);
+      else if (!cimg::strcasecmp(ext,"png")) return save_png(fn);
+      else if (!cimg::strcasecmp(ext,"pgm") ||
+               !cimg::strcasecmp(ext,"ppm") ||
+               !cimg::strcasecmp(ext,"pnm")) return save_pnm(fn);
+      else if (!cimg::strcasecmp(ext,"pnk")) return save_pnk(fn);
+      else if (!cimg::strcasecmp(ext,"pfm")) return save_pfm(fn);
+      else if (!cimg::strcasecmp(ext,"exr")) return save_exr(fn);
+      else if (!cimg::strcasecmp(ext,"tif") ||
+               !cimg::strcasecmp(ext,"tiff")) return save_tiff(fn);
+
+      // 3d binary formats
+      else if (!cimg::strcasecmp(ext,"cimgz")) return save_cimg(fn,true);
+      else if (!cimg::strcasecmp(ext,"cimg") || !*ext) return save_cimg(fn,false);
+      else if (!cimg::strcasecmp(ext,"dcm")) return save_medcon_external(fn);
+      else if (!cimg::strcasecmp(ext,"hdr") ||
+            
