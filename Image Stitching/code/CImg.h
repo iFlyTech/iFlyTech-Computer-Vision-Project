@@ -48295,4 +48295,190 @@ namespace cimg_library_suffixed {
       else if (!cimg::strcasecmp(ext,"cimg") || !*ext) return save_cimg(fn,false);
       else if (!cimg::strcasecmp(ext,"dcm")) return save_medcon_external(fn);
       else if (!cimg::strcasecmp(ext,"hdr") ||
-            
+               !cimg::strcasecmp(ext,"nii")) return save_analyze(fn);
+      else if (!cimg::strcasecmp(ext,"inr")) return save_inr(fn);
+      else if (!cimg::strcasecmp(ext,"mnc")) return save_minc2(fn);
+      else if (!cimg::strcasecmp(ext,"pan")) return save_pandore(fn);
+      else if (!cimg::strcasecmp(ext,"raw")) return save_raw(fn);
+
+      // Archive files
+      else if (!cimg::strcasecmp(ext,"gz")) return save_gzip_external(fn);
+
+      // Image sequences
+      else if (!cimg::strcasecmp(ext,"yuv")) return save_yuv(fn,true);
+      else if (!cimg::strcasecmp(ext,"avi") ||
+               !cimg::strcasecmp(ext,"mov") ||
+               !cimg::strcasecmp(ext,"asf") ||
+               !cimg::strcasecmp(ext,"divx") ||
+               !cimg::strcasecmp(ext,"flv") ||
+               !cimg::strcasecmp(ext,"mpg") ||
+               !cimg::strcasecmp(ext,"m1v") ||
+               !cimg::strcasecmp(ext,"m2v") ||
+               !cimg::strcasecmp(ext,"m4v") ||
+               !cimg::strcasecmp(ext,"mjp") ||
+               !cimg::strcasecmp(ext,"mp4") ||
+               !cimg::strcasecmp(ext,"mkv") ||
+               !cimg::strcasecmp(ext,"mpe") ||
+               !cimg::strcasecmp(ext,"movie") ||
+               !cimg::strcasecmp(ext,"ogm") ||
+               !cimg::strcasecmp(ext,"ogg") ||
+               !cimg::strcasecmp(ext,"ogv") ||
+               !cimg::strcasecmp(ext,"qt") ||
+               !cimg::strcasecmp(ext,"rm") ||
+               !cimg::strcasecmp(ext,"vob") ||
+               !cimg::strcasecmp(ext,"wmv") ||
+               !cimg::strcasecmp(ext,"xvid") ||
+               !cimg::strcasecmp(ext,"mpeg")) return save_video(fn);
+      return save_other(fn);
+    }
+
+    //! Save image as an ascii file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_ascii(const char *const filename) const {
+      return _save_ascii(0,filename);
+    }
+
+    //! Save image as an ascii file \overloading.
+    const CImg<T>& save_ascii(std::FILE *const file) const {
+      return _save_ascii(file,0);
+    }
+
+    const CImg<T>& _save_ascii(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_ascii(): Specified filename is (null).",
+                                    cimg_instance);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"w");
+      std::fprintf(nfile,"%u %u %u %u\n",_width,_height,_depth,_spectrum);
+      const T* ptrs = _data;
+      cimg_forYZC(*this,y,z,c) {
+        cimg_forX(*this,x) std::fprintf(nfile,"%.16g ",(double)*(ptrs++));
+        std::fputc('\n',nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a .cpp source file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_cpp(const char *const filename) const {
+      return _save_cpp(0,filename);
+    }
+
+    //! Save image as a .cpp source file \overloading.
+    const CImg<T>& save_cpp(std::FILE *const file) const {
+      return _save_cpp(file,0);
+    }
+
+    const CImg<T>& _save_cpp(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_cpp(): Specified filename is (null).",
+                                    cimg_instance);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"w");
+      CImg<charT> varname(1024); *varname = 0;
+      if (filename) cimg_sscanf(cimg::basename(filename),"%1023[a-zA-Z0-9_]",varname._data);
+      if (!*varname) cimg_snprintf(varname,varname._width,"unnamed");
+      std::fprintf(nfile,
+                   "/* Define image '%s' of size %ux%ux%ux%u and type '%s' */\n"
+                   "%s data_%s[] = { %s\n  ",
+                   varname._data,_width,_height,_depth,_spectrum,pixel_type(),pixel_type(),varname._data,
+                   is_empty()?"};":"");
+      if (!is_empty()) for (ulongT off = 0, siz = size() - 1; off<=siz; ++off) {
+        std::fprintf(nfile,cimg::type<T>::format(),cimg::type<T>::format((*this)[off]));
+        if (off==siz) std::fprintf(nfile," };\n");
+        else if (!((off + 1)%16)) std::fprintf(nfile,",\n  ");
+        else std::fprintf(nfile,", ");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a DLM file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_dlm(const char *const filename) const {
+      return _save_dlm(0,filename);
+    }
+
+    //! Save image as a DLM file \overloading.
+    const CImg<T>& save_dlm(std::FILE *const file) const {
+      return _save_dlm(file,0);
+    }
+
+    const CImg<T>& _save_dlm(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_dlm(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_dlm(): Instance is volumetric, values along Z will be unrolled in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+      if (_spectrum>1)
+        cimg::warn(_cimg_instance
+                   "save_dlm(): Instance is multispectral, values along C will be unrolled in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"w");
+      const T* ptrs = _data;
+      cimg_forYZC(*this,y,z,c) {
+        cimg_forX(*this,x) std::fprintf(nfile,"%.16g%s",(double)*(ptrs++),(x==width() - 1)?"":",");
+        std::fputc('\n',nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a BMP file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_bmp(const char *const filename) const {
+      return _save_bmp(0,filename);
+    }
+
+    //! Save image as a BMP file \overloading.
+    const CImg<T>& save_bmp(std::FILE *const file) const {
+      return _save_bmp(file,0);
+    }
+
+    const CImg<T>& _save_bmp(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_bmp(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_bmp(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+      if (_spectrum>3)
+        cimg::warn(_cimg_instance
+                   "save_bmp(): Instance is multispectral, only the three first channels will be saved in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      CImg<ucharT> header(54,1,1,1,0);
+      unsigned char align_buf[4] = { 0 };
+      const unsigned int
+        align = (4 - (3*_width)%4)%4,
+        buf_size = (3*_width + align)*height(),
+        file_size = 54 + buf_size;
+      header[0] = 'B'; header[1] = 'M';
+      header[0x02] = file_size&0xFF;
+      header[0x03] = (file_size>>8)&0xFF;
+      header[0x04] = (file_size>>16)&0xFF;
+      header[0x05] = (file_size>>24)&0xFF;
+      header[0x0A] = 0x36;
+      heade
