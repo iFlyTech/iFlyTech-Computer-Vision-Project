@@ -47987,4 +47987,136 @@ namespace cimg_library_suffixed {
             (+visu).draw_text(0,0," Saving object... ",
                               foreground_color._data,background_color._data,0.7f,13).display(disp);
             vertices.get_object3dtoCImg3d(reverse_primitives?reverse_primitives:primitives,colors,opacities).
-   
+              save(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+#ifdef cimg_use_board
+        case cimg::keyP : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .EPS file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.eps",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving EPS snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            LibBoard::Board board;
+            (+visu)._draw_object3d(&board,zbuffer.fill(0),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,clicked?nrender_motion:nrender_static,
+                                   _is_double_sided==1,focale,
+                                   visu.width()/2.0f + light_x,visu.height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,
+                                   sprite_scale);
+            board.saveEPS(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyV : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .SVG file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.svg",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving SVG snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            LibBoard::Board board;
+            (+visu)._draw_object3d(&board,zbuffer.fill(0),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,clicked?nrender_motion:nrender_static,
+                                   _is_double_sided==1,focale,
+                                   visu.width()/2.0f + light_x,visu.height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,
+                                   sprite_scale);
+            board.saveSVG(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+#endif
+        }
+        if (disp.is_resized()) {
+          disp.resize(false); visu0 = get_resize(disp,1);
+          if (zbuffer) zbuffer.assign(disp.width(),disp.height());
+          redraw = true;
+        }
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      if (pose_matrix) {
+        std::memcpy(pose_matrix,pose._data,12*sizeof(float));
+        pose_matrix[12] = Xoff; pose_matrix[13] = Yoff; pose_matrix[14] = Zoff; pose_matrix[15] = sprite_scale;
+      }
+      disp.set_button().set_key(key);
+      return *this;
+    }
+
+    //! Display 1d graph in an interactive window.
+    /**
+       \param disp Display window.
+       \param plot_type Plot type. Can be <tt>{ 0=points | 1=segments | 2=splines | 3=bars }</tt>.
+       \param vertex_type Vertex type.
+       \param labelx Title for the horizontal axis, as a C-string.
+       \param xmin Minimum value along the X-axis.
+       \param xmax Maximum value along the X-axis.
+       \param labely Title for the vertical axis, as a C-string.
+       \param ymin Minimum value along the X-axis.
+       \param ymax Maximum value along the X-axis.
+    **/
+    const CImg<T>& display_graph(CImgDisplay &disp,
+                                 const unsigned int plot_type=1, const unsigned int vertex_type=1,
+                                 const char *const labelx=0, const double xmin=0, const double xmax=0,
+                                 const char *const labely=0, const double ymin=0, const double ymax=0,
+                                 const bool exit_on_anykey=false) const {
+      return _display_graph(disp,0,plot_type,vertex_type,labelx,xmin,xmax,labely,ymin,ymax,exit_on_anykey);
+    }
+
+    //! Display 1d graph in an interactive window \overloading.
+    const CImg<T>& display_graph(const char *const title=0,
+                                 const unsigned int plot_type=1, const unsigned int vertex_type=1,
+                                 const char *const labelx=0, const double xmin=0, const double xmax=0,
+                                 const char *const labely=0, const double ymin=0, const double ymax=0,
+                                 const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _display_graph(disp,title,plot_type,vertex_type,labelx,xmin,xmax,labely,ymin,ymax,exit_on_anykey);
+    }
+
+    const CImg<T>& _display_graph(CImgDisplay &disp, const char *const title=0,
+                                  const unsigned int plot_type=1, const unsigned int vertex_type=1,
+                                  const char *const labelx=0, const double xmin=0, const double xmax=0,
+                                  const char *const labely=0, const double ymin=0, const double ymax=0,
+                                  const bool exit_on_anykey=false) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "display_graph(): Empty instance.",
+                                    cimg_instance);
+      if (!disp) disp.assign(cimg_fitscreen(CImgDisplay::screen_width()/2,CImgDisplay::screen_height()/2,1),0,0).
+                   set_title(title?"%s":"CImg<%s>",title?title:pixel_type());
+      const ulongT siz = (ulongT)_width*_height*_depth, siz1 = cimg::max(1U,siz - 1);
+      const unsigned int old_normalization = disp.normalization();
+      disp.show().flush()._normalization = 0;
+
+      double y0 = ymin, y1 = ymax, nxmin = xmin, nxmax = xmax;
+      if (nxmin==nxmax) { nxmin = 0; nxmax = siz1; }
+      int x0 = 0, x1 = width()*height()*depth() - 1, key = 0;
+
+      for (bool reset_view = true; !key && !disp.is_closed(); ) {
+        if (reset_view) { x0 = 0; x1 = width()*height()*depth() - 1; y0 = ymin; y1 = ymax; reset_view = false; }
+        CImg<T> zoom(x1 - x0 + 1,1,1,spectrum());
+        cimg_forC(*this,c) zoom.get_shared_channel(c) = CImg<T>(data(x0,0,0,c),x1 - x0 + 1,1,1,1,true);
+        if (y0==y1) { y0 = zoom.min_max(y1); const double dy = y1 - y0; y0-=dy/20; y1+=dy/20; }
+        if (y0==y1) { --y0; ++y1; }
+
+        const CImg<intT> selection = zoom.get_select_graph(disp,plot_type,vertex_type,
+                                                           labelx,
+                                                           nxmin + x0*(nxmax - nxmin)/siz1,
+                                                           nxmin + x1*(nxmax - nxmin)/siz1,
+                                              
