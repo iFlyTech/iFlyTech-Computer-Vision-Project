@@ -48865,4 +48865,183 @@ namespace cimg_library_suffixed {
         }
       } break;
       case 28 : { // RGB x/ Alpha 8-bit
-        const T *pC1 = data(0,0,0
+        const T *pC1 = data(0,0,0,1), *pC2 = data(0,0,0,2), *pC3 = data(0,0,0,3);
+        cimg_forY(*this,y){
+          unsigned char *ptrd = imgData[y];
+          cimg_forX(*this,x){
+            *(ptrd++) = (unsigned char)*(pC0++);
+            *(ptrd++) = (unsigned char)*(pC1++);
+            *(ptrd++) = (unsigned char)*(pC2++);
+            *(ptrd++) = (unsigned char)*(pC3++);
+          }
+        }
+      } break;
+      case 15 : { // Gray 16-bit
+        cimg_forY(*this,y){
+          unsigned short *ptrd = (unsigned short*)(imgData[y]);
+          cimg_forX(*this,x) *(ptrd++) = (unsigned short)*(pC0++);
+          if (!cimg::endianness()) cimg::invert_endianness((unsigned short*)imgData[y],_width);
+        }
+      } break;
+      case 30 : { // Gray w/ Alpha 16-bit
+        const T *pC1 = data(0,0,0,1);
+        cimg_forY(*this,y){
+          unsigned short *ptrd = (unsigned short*)(imgData[y]);
+          cimg_forX(*this,x) {
+            *(ptrd++) = (unsigned short)*(pC0++);
+            *(ptrd++) = (unsigned short)*(pC1++);
+          }
+          if (!cimg::endianness()) cimg::invert_endianness((unsigned short*)imgData[y],2*_width);
+        }
+      } break;
+      case 45 : { // RGB 16-bit
+        const T *pC1 = data(0,0,0,1), *pC2 = data(0,0,0,2);
+        cimg_forY(*this,y) {
+          unsigned short *ptrd = (unsigned short*)(imgData[y]);
+          cimg_forX(*this,x) {
+            *(ptrd++) = (unsigned short)*(pC0++);
+            *(ptrd++) = (unsigned short)*(pC1++);
+            *(ptrd++) = (unsigned short)*(pC2++);
+          }
+          if (!cimg::endianness()) cimg::invert_endianness((unsigned short*)imgData[y],3*_width);
+        }
+      } break;
+      case 60 : { // RGB w/ Alpha 16-bit
+        const T *pC1 = data(0,0,0,1), *pC2 = data(0,0,0,2), *pC3 = data(0,0,0,3);
+        cimg_forY(*this,y) {
+          unsigned short *ptrd = (unsigned short*)(imgData[y]);
+          cimg_forX(*this,x) {
+            *(ptrd++) = (unsigned short)*(pC0++);
+            *(ptrd++) = (unsigned short)*(pC1++);
+            *(ptrd++) = (unsigned short)*(pC2++);
+            *(ptrd++) = (unsigned short)*(pC3++);
+          }
+          if (!cimg::endianness()) cimg::invert_endianness((unsigned short*)imgData[y],4*_width);
+        }
+      } break;
+      default :
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "save_png(): Encountered unknown fatal error in libpng when saving file '%s'.",
+                              cimg_instance,
+                              nfilename?nfilename:"(FILE*)");
+      }
+      png_write_image(png_ptr,imgData);
+      png_write_end(png_ptr,info_ptr);
+      png_destroy_write_struct(&png_ptr, &info_ptr);
+
+      // Deallocate Image Write Memory
+      cimg_forY(*this,n) delete[] imgData[n];
+      delete[] imgData;
+
+      if (!file) cimg::fclose(nfile);
+      return *this;
+#endif
+    }
+
+    //! Save image as a PNM file.
+    /**
+      \param filename Filename, as a C-string.
+      \param bytes_per_pixel Force the number of bytes per pixels for the saving.
+    **/
+    const CImg<T>& save_pnm(const char *const filename, const unsigned int bytes_per_pixel=0) const {
+      return _save_pnm(0,filename,bytes_per_pixel);
+    }
+
+    //! Save image as a PNM file \overloading.
+    const CImg<T>& save_pnm(std::FILE *const file, const unsigned int bytes_per_pixel=0) const {
+      return _save_pnm(file,0,bytes_per_pixel);
+    }
+
+    const CImg<T>& _save_pnm(std::FILE *const file, const char *const filename,
+                             const unsigned int bytes_per_pixel=0) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_pnm(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+      double stmin, stmax = (double)max_min(stmin);
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_pnm(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+      if (_spectrum>3)
+        cimg::warn(_cimg_instance
+                   "save_pnm(): Instance is multispectral, only the three first channels will be saved in file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+      if (stmin<0 || (bytes_per_pixel==1 && stmax>=256) || stmax>=65536)
+        cimg::warn(_cimg_instance
+                   "save_pnm(): Instance has pixel values in [%g,%g], probable type overflow in file '%s'.",
+                   cimg_instance,
+                   stmin,stmax,filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const T
+        *ptr_r = data(0,0,0,0),
+        *ptr_g = (_spectrum>=2)?data(0,0,0,1):0,
+        *ptr_b = (_spectrum>=3)?data(0,0,0,2):0;
+      const ulongT buf_size = cimg::min((ulongT)1024*1024,(ulongT)_width*_height*(_spectrum==1?1UL:3UL));
+
+      std::fprintf(nfile,"P%c\n%u %u\n%u\n",
+                   (_spectrum==1?'5':'6'),_width,_height,stmax<256?255:(stmax<4096?4095:65535));
+
+      switch (_spectrum) {
+      case 1 : { // Scalar image
+        if (bytes_per_pixel==1 || (!bytes_per_pixel && stmax<256)) { // Binary PGM 8 bits
+          CImg<ucharT> buf(buf_size);
+          for (longT to_write = (longT)width()*height(); to_write>0; ) {
+            const ulongT N = cimg::min((ulongT)to_write,buf_size);
+            unsigned char *ptrd = buf._data;
+            for (ulongT i = N; i>0; --i) *(ptrd++) = (unsigned char)*(ptr_r++);
+            cimg::fwrite(buf._data,N,nfile);
+            to_write-=N;
+          }
+        } else { // Binary PGM 16 bits
+          CImg<ushortT> buf(buf_size);
+          for (longT to_write = (longT)width()*height(); to_write>0; ) {
+            const ulongT N = cimg::min((ulongT)to_write,buf_size);
+            unsigned short *ptrd = buf._data;
+            for (ulongT i = N; i>0; --i) *(ptrd++) = (unsigned short)*(ptr_r++);
+            if (!cimg::endianness()) cimg::invert_endianness(buf._data,buf_size);
+            cimg::fwrite(buf._data,N,nfile);
+            to_write-=N;
+          }
+        }
+      } break;
+      case 2 : { // RG image
+        if (bytes_per_pixel==1 || (!bytes_per_pixel && stmax<256)) { // Binary PPM 8 bits
+          CImg<ucharT> buf(buf_size);
+          for (longT to_write = (longT)width()*height(); to_write>0; ) {
+            const ulongT N = cimg::min((ulongT)to_write,buf_size/3);
+            unsigned char *ptrd = buf._data;
+            for (ulongT i = N; i>0; --i) {
+              *(ptrd++) = (unsigned char)*(ptr_r++);
+              *(ptrd++) = (unsigned char)*(ptr_g++);
+              *(ptrd++) = 0;
+            }
+            cimg::fwrite(buf._data,3*N,nfile);
+            to_write-=N;
+          }
+        } else {             // Binary PPM 16 bits
+          CImg<ushortT> buf(buf_size);
+          for (longT to_write = (longT)width()*height(); to_write>0; ) {
+            const ulongT N = cimg::min((ulongT)to_write,buf_size/3);
+            unsigned short *ptrd = buf._data;
+            for (ulongT i = N; i>0; --i) {
+              *(ptrd++) = (unsigned short)*(ptr_r++);
+              *(ptrd++) = (unsigned short)*(ptr_g++);
+              *(ptrd++) = 0;
+            }
+            if (!cimg::endianness()) cimg::invert_endianness(buf._data,buf_size);
+            cimg::fwrite(buf._data,3*N,nfile);
+            to_write-=N;
+          }
+        }
+      } break;
+      default : { // RGB image
+        if (bytes_per_pixel==1 || (!bytes_per_pixel && stmax<256)) { // Binary PPM 8 bits
+          CImg<ucharT> buf(buf_size);
+          for (longT to_write = (longT)width()*height(); to_write>0; ) 
