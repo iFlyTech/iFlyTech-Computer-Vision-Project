@@ -49427,4 +49427,166 @@ namespace cimg_library_suffixed {
       uint16 spp = _spectrum, bpp = sizeof(t)*8, photometric;
       if (spp==3 || spp==4) photometric = PHOTOMETRIC_RGB;
       else photometric = PHOTOMETRIC_MINISBLACK;
-      TIFFSetDirectory
+      TIFFSetDirectory(tif,directory);
+      TIFFSetField(tif,TIFFTAG_IMAGEWIDTH,_width);
+      TIFFSetField(tif,TIFFTAG_IMAGELENGTH,_height);
+      if (voxel_size) {
+        const float vx = voxel_size[0], vy = voxel_size[1], vz = voxel_size[2];
+        TIFFSetField(tif,TIFFTAG_RESOLUTIONUNIT,RESUNIT_NONE);
+        TIFFSetField(tif,TIFFTAG_XRESOLUTION,1.0f/vx);
+        TIFFSetField(tif,TIFFTAG_YRESOLUTION,1.0f/vy);
+        CImg<charT> s_description(256);
+        cimg_snprintf(s_description,s_description._width,"VX=%g VY=%g VZ=%g spacing=%g",vx,vy,vz,vz);
+        TIFFSetField(tif,TIFFTAG_IMAGEDESCRIPTION,s_description.data());
+      }
+      if (description) TIFFSetField(tif,TIFFTAG_IMAGEDESCRIPTION,description);
+      TIFFSetField(tif,TIFFTAG_ORIENTATION,ORIENTATION_TOPLEFT);
+      TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,spp);
+      if (cimg::type<t>::is_float()) TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,3);
+      else if (cimg::type<t>::min()==0) TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,1);
+      else TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,2);
+      TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bpp);
+      TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
+      TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,photometric);
+      TIFFSetField(tif,TIFFTAG_COMPRESSION,compression_type==2?COMPRESSION_JPEG:
+                   compression_type==1?COMPRESSION_LZW:COMPRESSION_NONE);
+      rowsperstrip = TIFFDefaultStripSize(tif,rowsperstrip);
+      TIFFSetField(tif,TIFFTAG_ROWSPERSTRIP,rowsperstrip);
+      TIFFSetField(tif,TIFFTAG_FILLORDER,FILLORDER_MSB2LSB);
+      TIFFSetField(tif,TIFFTAG_SOFTWARE,"CImg");
+      t *const buf = (t*)_TIFFmalloc(TIFFStripSize(tif));
+      if (buf) {
+        for (unsigned int row = 0; row<_height; row+=rowsperstrip) {
+          uint32 nrow = (row + rowsperstrip>_height?_height - row:rowsperstrip);
+          tstrip_t strip = TIFFComputeStrip(tif,row,0);
+          tsize_t i = 0;
+          for (unsigned int rr = 0; rr<nrow; ++rr)
+            for (unsigned int cc = 0; cc<_width; ++cc)
+              for (unsigned int vv = 0; vv<spp; ++vv)
+                buf[i++] = (t)(*this)(cc,row + rr,z,vv);
+          if (TIFFWriteEncodedStrip(tif,strip,buf,i*sizeof(t))<0)
+            throw CImgIOException(_cimg_instance
+                                  "save_tiff(): Invalid strip writing when saving file '%s'.",
+                                  cimg_instance,
+                                  filename?filename:"(FILE*)");
+        }
+        _TIFFfree(buf);
+      }
+      TIFFWriteDirectory(tif);
+      return (*this);
+    }
+
+    const CImg<T>& _save_tiff(TIFF *tif, const unsigned int directory, const unsigned int z,
+                              const unsigned int compression_type, const float *const voxel_size,
+                              const char *const description) const {
+      _cimg_save_tiff("bool",unsigned char,compression_type);
+      _cimg_save_tiff("unsigned char",unsigned char,compression_type);
+      _cimg_save_tiff("char",char,compression_type);
+      _cimg_save_tiff("unsigned short",unsigned short,compression_type);
+      _cimg_save_tiff("short",short,compression_type);
+      _cimg_save_tiff("unsigned int",unsigned int,compression_type);
+      _cimg_save_tiff("int",int,compression_type);
+      _cimg_save_tiff("unsigned int64",unsigned int,compression_type);
+      _cimg_save_tiff("int64",int,compression_type);
+      _cimg_save_tiff("float",float,compression_type);
+      _cimg_save_tiff("double",float,compression_type);
+      const char *const filename = TIFFFileName(tif);
+      throw CImgInstanceException(_cimg_instance
+                                  "save_tiff(): Unsupported pixel type '%s' for file '%s'.",
+                                  cimg_instance,
+                                  pixel_type(),filename?filename:"(FILE*)");
+      return *this;
+    }
+#endif
+
+    //! Save image as a MINC2 file.
+    /**
+       \param filename Filename, as a C-string.
+       \param imitate_file If non-zero, reference filename, as a C-string, to borrow header from.
+    **/
+    const CImg<T>& save_minc2(const char *const filename,
+                              const char *const imitate_file=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                   "save_minc2(): Specified filename is (null).",
+                                   cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifndef cimg_use_minc2
+     cimg::unused(imitate_file);
+     return save_other(filename);
+#else
+     minc::minc_1_writer wtr;
+     if (imitate_file)
+       wtr.open(filename, imitate_file);
+     else {
+       minc::minc_info di;
+       if(width()) di.push_back(minc::dim_info(width(),width()*0.5,-1,minc::dim_info::DIM_X));
+       if(height()) di.push_back(minc::dim_info(height(),height()*0.5,-1,minc::dim_info::DIM_Y));
+       if(depth()) di.push_back(minc::dim_info(depth(),depth()*0.5,-1,minc::dim_info::DIM_Z));
+       if(spectrum()) di.push_back(minc::dim_info(spectrum(),spectrum()*0.5,-1,minc::dim_info::DIM_TIME));
+       wtr.open(filename,di,1,NC_FLOAT,0);
+     }
+     if(typeid(T)==typeid(unsigned char))
+       wtr.setup_write_byte();
+     else if(typeid(T)==typeid(int))
+       wtr.setup_write_int();
+     else if(typeid(T)==typeid(double))
+       wtr.setup_write_double();
+     else
+       wtr.setup_write_float();
+     minc::save_standard_volume(wtr, this->_data);
+     return *this;
+#endif
+    }
+
+    //! Save image as an ANALYZE7.5 or NIFTI file.
+    /**
+      \param filename Filename, as a C-string.
+      \param voxel_size Pointer to 3 consecutive values that tell about the voxel sizes along the X,Y and Z dimensions.
+    **/
+    const CImg<T>& save_analyze(const char *const filename, const float *const voxel_size=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_analyze(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      std::FILE *file;
+      CImg<charT> header(348,1,1,1,0), hname(1024), iname(1024);
+      const char *const ext = cimg::split_filename(filename);
+      short datatype = -1;
+      if (!*ext) {
+        cimg_snprintf(hname,hname._width,"%s.hdr",filename);
+        cimg_snprintf(iname,iname._width,"%s.img",filename);
+      }
+      if (!cimg::strncasecmp(ext,"hdr",3)) {
+        std::strcpy(hname,filename);
+        std::strncpy(iname,filename,iname._width - 1);
+        cimg_sprintf(iname._data + std::strlen(iname) - 3,"img");
+      }
+      if (!cimg::strncasecmp(ext,"img",3)) {
+        std::strcpy(hname,filename);
+        std::strncpy(iname,filename,iname._width - 1);
+        cimg_sprintf(hname._data + std::strlen(iname) - 3,"hdr");
+      }
+      if (!cimg::strncasecmp(ext,"nii",3)) {
+        std::strncpy(hname,filename,hname._width - 1); *iname = 0;
+      }
+      int *const iheader = (int*)header._data;
+      *iheader = 348;
+      std::strcpy(header._data + 4,"CImg");
+      std::strcpy(header._data + 14," ");
+      ((short*)&(header[36]))[0] = 4096;
+      ((char*)&(header[38]))[0] = 114;
+      ((short*)&(header[40]))[0] = 4;
+      ((short*)&(header[40]))[1] = (short)_width;
+      ((short*)&(header[40]))[2] = (short)_height;
+      ((short*)&(header[40]))[3] = (short)_depth;
+      ((short*)&(header[40]))[4] = (short)_spectrum;
+      if (!cimg::strcasecmp(pixel_type(),"bool")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned char")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"char")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned short")) datatype = 4;
+      if (!cimg::strcasecmp(pixel_type(),"short")) datatype = 4;
+      if (!cimg::strcasecmp(pixel
