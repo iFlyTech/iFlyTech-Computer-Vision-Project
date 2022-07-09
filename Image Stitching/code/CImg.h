@@ -49225,4 +49225,206 @@ namespace cimg_library_suffixed {
             *(ptrd++) = (float)*(ptr_g++);
             *(ptrd++) = (float)*(ptr_b++);
           }
-          if (!cimg::endianness()) cimg::invert_endianness(buf._data,buf_siz
+          if (!cimg::endianness()) cimg::invert_endianness(buf._data,buf_size);
+          cimg::fwrite(buf._data,3*N,nfile);
+          to_write-=N;
+        }
+      }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a RGB file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_rgb(const char *const filename) const {
+      return _save_rgb(0,filename);
+    }
+
+    //! Save image as a RGB file \overloading.
+    const CImg<T>& save_rgb(std::FILE *const file) const {
+      return _save_rgb(file,0);
+    }
+
+    const CImg<T>& _save_rgb(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_rgb(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if (_spectrum!=3)
+        cimg::warn(_cimg_instance
+                   "save_rgb(): image instance has not exactly 3 channels, for file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const ulongT wh = (ulongT)_width*_height;
+      unsigned char *const buffer = new unsigned char[3*wh], *nbuffer = buffer;
+      const T
+        *ptr1 = data(0,0,0,0),
+        *ptr2 = _spectrum>1?data(0,0,0,1):0,
+        *ptr3 = _spectrum>2?data(0,0,0,2):0;
+      switch (_spectrum) {
+      case 1 : { // Scalar image
+        for (ulongT k = 0; k<wh; ++k) {
+          const unsigned char val = (unsigned char)*(ptr1++);
+          *(nbuffer++) = val;
+          *(nbuffer++) = val;
+          *(nbuffer++) = val;
+        }
+      } break;
+      case 2 : { // RG image
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = 0;
+        }
+      } break;
+      default : { // RGB image
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = (unsigned char)(*(ptr3++));
+        }
+      }
+      }
+      cimg::fwrite(buffer,3*wh,nfile);
+      if (!file) cimg::fclose(nfile);
+      delete[] buffer;
+      return *this;
+    }
+
+    //! Save image as a RGBA file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    const CImg<T>& save_rgba(const char *const filename) const {
+      return _save_rgba(0,filename);
+    }
+
+    //! Save image as a RGBA file \overloading.
+    const CImg<T>& save_rgba(std::FILE *const file) const {
+      return _save_rgba(file,0);
+    }
+
+    const CImg<T>& _save_rgba(std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_rgba(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if (_spectrum!=4)
+        cimg::warn(_cimg_instance
+                   "save_rgba(): image instance has not exactly 4 channels, for file '%s'.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const ulongT wh = (ulongT)_width*_height;
+      unsigned char *const buffer = new unsigned char[4*wh], *nbuffer = buffer;
+      const T
+        *ptr1 = data(0,0,0,0),
+        *ptr2 = _spectrum>1?data(0,0,0,1):0,
+        *ptr3 = _spectrum>2?data(0,0,0,2):0,
+        *ptr4 = _spectrum>3?data(0,0,0,3):0;
+      switch (_spectrum) {
+      case 1 : { // Scalar images
+        for (ulongT k = 0; k<wh; ++k) {
+          const unsigned char val = (unsigned char)*(ptr1++);
+          *(nbuffer++) = val;
+          *(nbuffer++) = val;
+          *(nbuffer++) = val;
+          *(nbuffer++) = 255;
+        }
+      } break;
+      case 2 : { // RG images
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = 0;
+          *(nbuffer++) = 255;
+        }
+      } break;
+      case 3 : { // RGB images
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = (unsigned char)(*(ptr3++));
+          *(nbuffer++) = 255;
+        }
+      } break;
+      default : { // RGBA images
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = (unsigned char)(*(ptr3++));
+          *(nbuffer++) = (unsigned char)(*(ptr4++));
+        }
+      }
+      }
+      cimg::fwrite(buffer,4*wh,nfile);
+      if (!file) cimg::fclose(nfile);
+      delete[] buffer;
+      return *this;
+    }
+
+    //! Save image as a TIFF file.
+    /**
+       \param filename Filename, as a C-string.
+       \param compression_type Type of data compression. Can be <tt>{ 0=None | 1=LZW | 2=JPEG }</tt>.
+       \note
+       - libtiff support is enabled by defining the precompilation
+        directive \c cimg_use_tif.
+       - When libtiff is enabled, 2D and 3D (multipage) several
+        channel per pixel are supported for
+        <tt>char,uchar,short,ushort,float</tt> and \c double pixel types.
+       - If \c cimg_use_tif is not defined at compile time the
+        function uses CImg<T>&save_other(const char*).
+     **/
+    const CImg<T>& save_tiff(const char *const filename, const unsigned int compression_type=0,
+                             const float *const voxel_size=0, const char *const description=0,
+                             const bool use_bigtiff=true) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_tiff(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifdef cimg_use_tiff
+      const bool
+        _use_bigtiff = use_bigtiff && sizeof(ulongT)>=8 && size()*sizeof(T)>=1UL<<31; // No bigtiff for small images.
+      TIFF *tif = TIFFOpen(filename,_use_bigtiff?"w8":"w4");
+      if (tif) {
+        cimg_forZ(*this,z) _save_tiff(tif,z,z,compression_type,voxel_size,description);
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimg_instance
+                                   "save_tiff(): Failed to open file '%s' for writing.",
+                                   cimg_instance,
+                                   filename);
+      return *this;
+#else
+      cimg::unused(compression_type,voxel_size,description,use_bigtiff);
+      return save_other(filename);
+#endif
+    }
+
+#ifdef cimg_use_tiff
+
+#define _cimg_save_tiff(types,typed,compression_type) if (!std::strcmp(types,pixel_type())) { \
+      const typed foo = (typed)0; return _save_tiff(tif,directory,z,foo,compression_type,voxel_size,description); }
+
+    // [internal] Save a plane into a tiff file
+    template<typename t>
+    const CImg<T>& _save_tiff(TIFF *tif, const unsigned int directory, const unsigned int z, const t& pixel_t,
+                              const unsigned int compression_type, const float *const voxel_size,
+                              const char *const description) const {
+      if (is_empty() || !tif || pixel_t) return *this;
+      const char *const filename = TIFFFileName(tif);
+      uint32 rowsperstrip = (uint32)-1;
+      uint16 spp = _spectrum, bpp = sizeof(t)*8, photometric;
+      if (spp==3 || spp==4) photometric = PHOTOMETRIC_RGB;
+      else photometric = PHOTOMETRIC_MINISBLACK;
+      TIFFSetDirectory
