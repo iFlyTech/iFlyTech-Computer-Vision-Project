@@ -49927,4 +49927,179 @@ namespace cimg_library_suffixed {
         throw CImgArgumentException(_cimg_instance
                                     "save_pandore(): Specified filename is (null).",
                                     cimg_instance);
-      if (is_empty()) { cimg::f
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      unsigned char header[36] = { 'P','A','N','D','O','R','E','0','4',0,0,0,
+                                   0,0,0,0,'C','I','m','g',0,0,0,0,0,
+                                   'N','o',' ','d','a','t','e',0,0,0,0 };
+      unsigned int nbdims, dims[5] = { 0 };
+      bool saved = false;
+      _cimg_save_pandore_case(1,1,1,"unsigned char",2);
+      _cimg_save_pandore_case(1,1,1,"char",3);
+      _cimg_save_pandore_case(1,1,1,"unsigned short",3);
+      _cimg_save_pandore_case(1,1,1,"short",3);
+      _cimg_save_pandore_case(1,1,1,"unsigned int",3);
+      _cimg_save_pandore_case(1,1,1,"int",3);
+      _cimg_save_pandore_case(1,1,1,"unsigned int64",3);
+      _cimg_save_pandore_case(1,1,1,"int64",3);
+      _cimg_save_pandore_case(1,1,1,"float",4);
+      _cimg_save_pandore_case(1,1,1,"double",4);
+
+      _cimg_save_pandore_case(0,1,1,"unsigned char",5);
+      _cimg_save_pandore_case(0,1,1,"char",6);
+      _cimg_save_pandore_case(0,1,1,"unsigned short",6);
+      _cimg_save_pandore_case(0,1,1,"short",6);
+      _cimg_save_pandore_case(0,1,1,"unsigned int",6);
+      _cimg_save_pandore_case(0,1,1,"int",6);
+      _cimg_save_pandore_case(0,1,1,"unsigned int64",6);
+      _cimg_save_pandore_case(0,1,1,"int64",6);
+      _cimg_save_pandore_case(0,1,1,"float",7);
+      _cimg_save_pandore_case(0,1,1,"double",7);
+
+      _cimg_save_pandore_case(0,0,1,"unsigned char",8);
+      _cimg_save_pandore_case(0,0,1,"char",9);
+      _cimg_save_pandore_case(0,0,1,"unsigned short",9);
+      _cimg_save_pandore_case(0,0,1,"short",9);
+      _cimg_save_pandore_case(0,0,1,"unsigned int",9);
+      _cimg_save_pandore_case(0,0,1,"int",9);
+      _cimg_save_pandore_case(0,0,1,"unsigned int64",9);
+      _cimg_save_pandore_case(0,0,1,"int64",9);
+      _cimg_save_pandore_case(0,0,1,"float",10);
+      _cimg_save_pandore_case(0,0,1,"double",10);
+
+      _cimg_save_pandore_case(0,1,3,"unsigned char",16);
+      _cimg_save_pandore_case(0,1,3,"char",17);
+      _cimg_save_pandore_case(0,1,3,"unsigned short",17);
+      _cimg_save_pandore_case(0,1,3,"short",17);
+      _cimg_save_pandore_case(0,1,3,"unsigned int",17);
+      _cimg_save_pandore_case(0,1,3,"int",17);
+      _cimg_save_pandore_case(0,1,3,"unsigned int64",17);
+      _cimg_save_pandore_case(0,1,3,"int64",17);
+      _cimg_save_pandore_case(0,1,3,"float",18);
+      _cimg_save_pandore_case(0,1,3,"double",18);
+
+      _cimg_save_pandore_case(0,0,3,"unsigned char",19);
+      _cimg_save_pandore_case(0,0,3,"char",20);
+      _cimg_save_pandore_case(0,0,3,"unsigned short",20);
+      _cimg_save_pandore_case(0,0,3,"short",20);
+      _cimg_save_pandore_case(0,0,3,"unsigned int",20);
+      _cimg_save_pandore_case(0,0,3,"int",20);
+      _cimg_save_pandore_case(0,0,3,"unsigned int64",20);
+      _cimg_save_pandore_case(0,0,3,"int64",20);
+      _cimg_save_pandore_case(0,0,3,"float",21);
+      _cimg_save_pandore_case(0,0,3,"double",21);
+
+      _cimg_save_pandore_case(1,1,0,"unsigned char",22);
+      _cimg_save_pandore_case(1,1,0,"char",23);
+      _cimg_save_pandore_case(1,1,0,"unsigned short",23);
+      _cimg_save_pandore_case(1,1,0,"short",23);
+      _cimg_save_pandore_case(1,1,0,"unsigned int",23);
+      _cimg_save_pandore_case(1,1,0,"int",23);
+      _cimg_save_pandore_case(1,1,0,"unsigned int64",23);
+      _cimg_save_pandore_case(1,1,0,"int64",23);
+      _cimg_save_pandore_case(1,1,0,"float",25);
+      _cimg_save_pandore_case(1,1,0,"double",25);
+
+      _cimg_save_pandore_case(0,1,0,"unsigned char",26);
+      _cimg_save_pandore_case(0,1,0,"char",27);
+      _cimg_save_pandore_case(0,1,0,"unsigned short",27);
+      _cimg_save_pandore_case(0,1,0,"short",27);
+      _cimg_save_pandore_case(0,1,0,"unsigned int",27);
+      _cimg_save_pandore_case(0,1,0,"int",27);
+      _cimg_save_pandore_case(0,1,0,"unsigned int64",27);
+      _cimg_save_pandore_case(0,1,0,"int64",27);
+      _cimg_save_pandore_case(0,1,0,"float",29);
+      _cimg_save_pandore_case(0,1,0,"double",29);
+
+      _cimg_save_pandore_case(0,0,0,"unsigned char",30);
+      _cimg_save_pandore_case(0,0,0,"char",31);
+      _cimg_save_pandore_case(0,0,0,"unsigned short",31);
+      _cimg_save_pandore_case(0,0,0,"short",31);
+      _cimg_save_pandore_case(0,0,0,"unsigned int",31);
+      _cimg_save_pandore_case(0,0,0,"int",31);
+      _cimg_save_pandore_case(0,0,0,"unsigned int64",31);
+      _cimg_save_pandore_case(0,0,0,"int64",31);
+      _cimg_save_pandore_case(0,0,0,"float",33);
+      _cimg_save_pandore_case(0,0,0,"double",33);
+
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a raw data file.
+    /**
+       \param filename Filename, as a C-string.
+       \param is_multiplexed Tells if the image channels are stored in a multiplexed way (\c true) or not (\c false).
+       \note The .raw format does not store the image dimensions in the output file,
+       so you have to keep track of them somewhere to be able to read the file correctly afterwards.
+    **/
+    const CImg<T>& save_raw(const char *const filename, const bool is_multiplexed=false) const {
+      return _save_raw(0,filename,is_multiplexed);
+    }
+
+    //! Save image as a raw data file \overloading.
+    /**
+       Same as save_raw(const char *,bool) const
+       with a file stream argument instead of a filename string.
+    **/
+    const CImg<T>& save_raw(std::FILE *const file, const bool is_multiplexed=false) const {
+      return _save_raw(file,0,is_multiplexed);
+    }
+
+    const CImg<T>& _save_raw(std::FILE *const file, const char *const filename, const bool is_multiplexed) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_raw(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      if (!is_multiplexed) cimg::fwrite(_data,size(),nfile);
+      else {
+        CImg<T> buf(_spectrum);
+        cimg_forXYZ(*this,x,y,z) {
+          cimg_forC(*this,c) buf[c] = (*this)(x,y,z,c);
+          cimg::fwrite(buf._data,_spectrum,nfile);
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as a .yuv video file.
+    /**
+       \param filename Filename, as a C-string.
+       \param is_rgb Tells if pixel values of the instance image are RGB-coded (\c true) or YUV-coded (\c false).
+       \note Each slice of the instance image is considered to be a single frame of the output video file.
+    **/
+    const CImg<T>& save_yuv(const char *const filename, const bool is_rgb=true) const {
+      get_split('z').save_yuv(filename,is_rgb);
+      return *this;
+    }
+
+    //! Save image as a .yuv video file \overloading.
+    /**
+       Same as save_yuv(const char*,bool) const
+       with a file stream argument instead of a filename string.
+    **/
+    const CImg<T>& save_yuv(std::FILE *const file, const bool is_rgb=true) const {
+      get_split('z').save_yuv(file,is_rgb);
+      return *this;
+    }
+
+    //! Save 3d object as an Object File Format (.off) file.
+    /**
+       \param filename Filename, as a C-string.
+       \param primitives List of 3d object primitives.
+       \param colors List of 3d object colors.
+       \note
+       - Instance image contains the vertices data of the 3d object.
+       - Textured, transparent or sphere-shaped primitives cannot be managed by the .off file format.
+       Such primitives will be lost or simplified during file saving.
+       - The .off file format is <a href="http://people.sc.fsu.edu/~jburkardt/html/off_format.html">described here</a>.
+    **/
+    template<typename tf, typename tc>
+    const CImg<T>& save_off(const CImgList<tf>& primitives, const CImgList<tc>& colors,
+                            const char *const filename) const {
+      return _save_off(primitives,colors,0,filename);
