@@ -49761,4 +49761,170 @@ namespace cimg_library_suffixed {
        \param filename Filename, as a C-string.
        \note The OpenEXR file format is <a href="http://en.wikipedia.org/wiki/OpenEXR">described here</a>.
     **/
-  
+    const CImg<T>& save_exr(const char *const filename) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_exr(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_exr(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+#ifndef cimg_use_openexr
+      return save_other(filename);
+#else
+      Imf::Rgba *const ptrd0 = new Imf::Rgba[(size_t)_width*_height], *ptrd = ptrd0, rgba;
+      switch (_spectrum) {
+      case 1 : { // Grayscale image.
+        for (const T *ptr_r = data(), *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = rgba.g = rgba.b = (half)(*(ptr_r++));
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      case 2 : { // RG image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e; ) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)0;
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      case 3 : { // RGB image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)(*(ptr_b++));
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      default : { // RGBA image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)(*(ptr_b++));
+          rgba.a = (half)(*(ptr_a++));
+          *(ptrd++) = rgba;
+        }
+      } break;
+      }
+      Imf::RgbaOutputFile outFile(filename,_width,_height,
+                                  _spectrum==1?Imf::WRITE_Y:_spectrum==2?Imf::WRITE_YA:_spectrum==3?
+                                  Imf::WRITE_RGB:Imf::WRITE_RGBA);
+      outFile.setFrameBuffer(ptrd0,1,_width);
+      outFile.writePixels(_height);
+      delete[] ptrd0;
+      return *this;
+#endif
+    }
+
+    //! Save image as a Pandore-5 file.
+    /**
+       \param filename Filename, as a C-string.
+       \param colorspace Colorspace data field in output file
+       (see <a href="http://www.greyc.ensicaen.fr/~regis/Pandore/#documentation">Pandore file specifications</a>
+       for more information).
+    **/
+    const CImg<T>& save_pandore(const char *const filename, const unsigned int colorspace=0) const {
+      return _save_pandore(0,filename,colorspace);
+    }
+
+    //! Save image as a Pandore-5 file \overloading.
+    /**
+        Same as save_pandore(const char *,unsigned int) const
+        with a file stream argument instead of a filename string.
+    **/
+    const CImg<T>& save_pandore(std::FILE *const file, const unsigned int colorspace=0) const {
+      return _save_pandore(file,0,colorspace);
+    }
+
+    unsigned int _save_pandore_header_length(unsigned int id, unsigned int *dims, const unsigned int colorspace) const {
+      unsigned int nbdims = 0;
+      if (id==2 || id==3 || id==4) {
+        dims[0] = 1; dims[1] = _width; nbdims = 2;
+      }
+      if (id==5 || id==6 || id==7) {
+        dims[0] = 1; dims[1] = _height; dims[2] = _width; nbdims=3;
+      }
+      if (id==8 || id==9 || id==10) {
+        dims[0] = _spectrum; dims[1] = _depth; dims[2] = _height; dims[3] = _width; nbdims = 4;
+      }
+      if (id==16 || id==17 || id==18) {
+        dims[0] = 3; dims[1] = _height; dims[2] = _width; dims[3] = colorspace; nbdims = 4;
+      }
+      if (id==19 || id==20 || id==21) {
+        dims[0] = 3; dims[1] = _depth; dims[2] = _height; dims[3] = _width; dims[4] = colorspace; nbdims = 5;
+      }
+      if (id==22 || id==23 || id==25) {
+        dims[0] = _spectrum; dims[1] = _width; nbdims = 2;
+      }
+      if (id==26 || id==27 || id==29) {
+        dims[0] = _spectrum; dims[1] = _height; dims[2] = _width; nbdims=3;
+      }
+      if (id==30 || id==31 || id==33) {
+        dims[0] = _spectrum; dims[1] = _depth; dims[2] = _height; dims[3] = _width; nbdims = 4;
+      }
+      return nbdims;
+    }
+
+    const CImg<T>& _save_pandore(std::FILE *const file, const char *const filename,
+                                 const unsigned int colorspace) const {
+
+#define __cimg_save_pandore_case(dtype) \
+       dtype *buffer = new dtype[size()]; \
+       const T *ptrs = _data; \
+       cimg_foroff(*this,off) *(buffer++) = (dtype)(*(ptrs++)); \
+       buffer-=size(); \
+       cimg::fwrite(buffer,size(),nfile); \
+       delete[] buffer
+
+#define _cimg_save_pandore_case(sy,sz,sv,stype,id) \
+      if (!saved && (sy?(sy==_height):true) && (sz?(sz==_depth):true) && \
+          (sv?(sv==_spectrum):true) && !std::strcmp(stype,pixel_type())) { \
+        unsigned int *iheader = (unsigned int*)(header + 12); \
+        nbdims = _save_pandore_header_length((*iheader=id),dims,colorspace); \
+        cimg::fwrite(header,36,nfile); \
+        if (sizeof(unsigned long)==4) { CImg<ulongT> ndims(5); \
+          for (int d = 0; d<5; ++d) ndims[d] = (unsigned long)dims[d]; cimg::fwrite(ndims._data,nbdims,nfile); } \
+        else if (sizeof(unsigned int)==4) { CImg<uintT> ndims(5); \
+          for (int d = 0; d<5; ++d) ndims[d] = (unsigned int)dims[d]; cimg::fwrite(ndims._data,nbdims,nfile); } \
+        else if (sizeof(unsigned short)==4) { CImg<ushortT> ndims(5); \
+          for (int d = 0; d<5; ++d) ndims[d] = (unsigned short)dims[d]; cimg::fwrite(ndims._data,nbdims,nfile); } \
+        else throw CImgIOException(_cimg_instance \
+                                   "save_pandore(): Unsupported datatype for file '%s'.",\
+                                   cimg_instance, \
+                                   filename?filename:"(FILE*)"); \
+        if (id==2 || id==5 || id==8 || id==16 || id==19 || id==22 || id==26 || id==30) { \
+          __cimg_save_pandore_case(unsigned char); \
+        } else if (id==3 || id==6 || id==9 || id==17 || id==20 || id==23 || id==27 || id==31) { \
+          if (sizeof(unsigned long)==4) { __cimg_save_pandore_case(unsigned long); } \
+          else if (sizeof(unsigned int)==4) { __cimg_save_pandore_case(unsigned int); } \
+          else if (sizeof(unsigned short)==4) { __cimg_save_pandore_case(unsigned short); } \
+          else throw CImgIOException(_cimg_instance \
+                                     "save_pandore(): Unsupported datatype for file '%s'.",\
+                                     cimg_instance, \
+                                     filename?filename:"(FILE*)"); \
+        } else if (id==4 || id==7 || id==10 || id==18 || id==21 || id==25 || id==29 || id==33) { \
+          if (sizeof(double)==4) { __cimg_save_pandore_case(double); } \
+          else if (sizeof(float)==4) { __cimg_save_pandore_case(float); } \
+          else throw CImgIOException(_cimg_instance \
+                                     "save_pandore(): Unsupported datatype for file '%s'.",\
+                                     cimg_instance, \
+                                     filename?filename:"(FILE*)"); \
+        } \
+        saved = true; \
+      }
+
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_pandore(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::f
