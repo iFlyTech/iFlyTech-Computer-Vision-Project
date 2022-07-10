@@ -49589,4 +49589,176 @@ namespace cimg_library_suffixed {
       if (!cimg::strcasecmp(pixel_type(),"char")) datatype = 2;
       if (!cimg::strcasecmp(pixel_type(),"unsigned short")) datatype = 4;
       if (!cimg::strcasecmp(pixel_type(),"short")) datatype = 4;
-      if (!cimg::strcasecmp(pixel
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"int")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int64")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"int64")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"float")) datatype = 16;
+      if (!cimg::strcasecmp(pixel_type(),"double")) datatype = 64;
+      if (datatype<0)
+        throw CImgIOException(_cimg_instance
+                              "save_analyze(): Unsupported pixel type '%s' for file '%s'.",
+                              cimg_instance,
+                              pixel_type(),filename);
+
+      ((short*)&(header[70]))[0] = datatype;
+      ((short*)&(header[72]))[0] = sizeof(T);
+      ((float*)&(header[112]))[0] = 1;
+      ((float*)&(header[76]))[0] = 0;
+      if (voxel_size) {
+        ((float*)&(header[76]))[1] = voxel_size[0];
+        ((float*)&(header[76]))[2] = voxel_size[1];
+        ((float*)&(header[76]))[3] = voxel_size[2];
+      } else ((float*)&(header[76]))[1] = ((float*)&(header[76]))[2] = ((float*)&(header[76]))[3] = 1;
+      file = cimg::fopen(hname,"wb");
+      cimg::fwrite(header._data,348,file);
+      if (*iname) { cimg::fclose(file); file = cimg::fopen(iname,"wb"); }
+      cimg::fwrite(_data,size(),file);
+      cimg::fclose(file);
+      return *this;
+    }
+
+    //! Save image as a .cimg file.
+    /**
+      \param filename Filename, as a C-string.
+      \param is_compressed Tells if the file contains compressed image data.
+    **/
+    const CImg<T>& save_cimg(const char *const filename, const bool is_compressed=false) const {
+      CImgList<T>(*this,true).save_cimg(filename,is_compressed);
+      return *this;
+    }
+
+    //! Save image as a .cimg file \overloading.
+    const CImg<T>& save_cimg(std::FILE *const file, const bool is_compressed=false) const {
+      CImgList<T>(*this,true).save_cimg(file,is_compressed);
+      return *this;
+    }
+
+    //! Save image as a sub-image into an existing .cimg file.
+    /**
+      \param filename Filename, as a C-string.
+      \param n0 Index of the image inside the file.
+      \param x0 X-coordinate of the sub-image location.
+      \param y0 Y-coordinate of the sub-image location.
+      \param z0 Z-coordinate of the sub-image location.
+      \param c0 C-coordinate of the sub-image location.
+    **/
+    const CImg<T>& save_cimg(const char *const filename,
+                             const unsigned int n0,
+                             const unsigned int x0, const unsigned int y0,
+                             const unsigned int z0, const unsigned int c0) const {
+      CImgList<T>(*this,true).save_cimg(filename,n0,x0,y0,z0,c0);
+      return *this;
+    }
+
+    //! Save image as a sub-image into an existing .cimg file \overloading.
+    const CImg<T>& save_cimg(std::FILE *const file,
+                             const unsigned int n0,
+                             const unsigned int x0, const unsigned int y0,
+                             const unsigned int z0, const unsigned int c0) const {
+      CImgList<T>(*this,true).save_cimg(file,n0,x0,y0,z0,c0);
+      return *this;
+    }
+
+    //! Save blank image as a .cimg file.
+    /**
+        \param filename Filename, as a C-string.
+        \param dx Width of the image.
+        \param dy Height of the image.
+        \param dz Depth of the image.
+        \param dc Number of channels of the image.
+        \note
+        - All pixel values of the saved image are set to \c 0.
+        - Use this method to save large images without having to instanciate and allocate them.
+    **/
+    static void save_empty_cimg(const char *const filename,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return CImgList<T>::save_empty_cimg(filename,1,dx,dy,dz,dc);
+    }
+
+    //! Save blank image as a .cimg file \overloading.
+    /**
+       Same as save_empty_cimg(const char *,unsigned int,unsigned int,unsigned int,unsigned int)
+       with a file stream argument instead of a filename string.
+    **/
+    static void save_empty_cimg(std::FILE *const file,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return CImgList<T>::save_empty_cimg(file,1,dx,dy,dz,dc);
+    }
+
+    //! Save image as an INRIMAGE-4 file.
+    /**
+      \param filename Filename, as a C-string.
+      \param voxel_size Pointer to 3 values specifying the voxel sizes along the X,Y and Z dimensions.
+    **/
+    const CImg<T>& save_inr(const char *const filename, const float *const voxel_size=0) const {
+      return _save_inr(0,filename,voxel_size);
+    }
+
+    //! Save image as an INRIMAGE-4 file \overloading.
+    const CImg<T>& save_inr(std::FILE *const file, const float *const voxel_size=0) const {
+      return _save_inr(file,0,voxel_size);
+    }
+
+    const CImg<T>& _save_inr(std::FILE *const file, const char *const filename, const float *const voxel_size) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_inr(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+      int inrpixsize = -1;
+      const char *inrtype = "unsigned fixed\nPIXSIZE=8 bits\nSCALE=2**0";
+      if (!cimg::strcasecmp(pixel_type(),"unsigned char")) {
+        inrtype = "unsigned fixed\nPIXSIZE=8 bits\nSCALE=2**0"; inrpixsize = 1;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"char")) {
+        inrtype = "fixed\nPIXSIZE=8 bits\nSCALE=2**0"; inrpixsize = 1;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"unsigned short")) {
+        inrtype = "unsigned fixed\nPIXSIZE=16 bits\nSCALE=2**0";inrpixsize = 2;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"short")) {
+        inrtype = "fixed\nPIXSIZE=16 bits\nSCALE=2**0"; inrpixsize = 2;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int")) {
+        inrtype = "unsigned fixed\nPIXSIZE=32 bits\nSCALE=2**0";inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"int")) {
+        inrtype = "fixed\nPIXSIZE=32 bits\nSCALE=2**0"; inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"float")) {
+        inrtype = "float\nPIXSIZE=32 bits"; inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"double")) {
+        inrtype = "float\nPIXSIZE=64 bits"; inrpixsize = 8;
+      }
+      if (inrpixsize<=0)
+        throw CImgIOException(_cimg_instance
+                              "save_inr(): Unsupported pixel type '%s' for file '%s'",
+                              cimg_instance,
+                              pixel_type(),filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      CImg<charT> header(257);
+      int err = cimg_snprintf(header,header._width,"#INRIMAGE-4#{\nXDIM=%u\nYDIM=%u\nZDIM=%u\nVDIM=%u\n",
+                              _width,_height,_depth,_spectrum);
+      if (voxel_size) err+=cimg_sprintf(header._data + err,"VX=%g\nVY=%g\nVZ=%g\n",
+                                        voxel_size[0],voxel_size[1],voxel_size[2]);
+      err+=cimg_sprintf(header._data + err,"TYPE=%s\nCPU=%s\n",inrtype,cimg::endianness()?"sun":"decm");
+      std::memset(header._data + err,'\n',252 - err);
+      std::memcpy(header._data + 252,"##}\n",4);
+      cimg::fwrite(header._data,256,nfile);
+      cimg_forXYZ(*this,x,y,z) cimg_forC(*this,c) cimg::fwrite(&((*this)(x,y,z,c)),1,nfile);
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as an OpenEXR file.
+    /**
+       \param filename Filename, as a C-string.
+       \note The OpenEXR file format is <a href="http://en.wikipedia.org/wiki/OpenEXR">described here</a>.
+    **/
+  
