@@ -50420,4 +50420,197 @@ namespace cimg_library_suffixed {
       std::FILE *file;
       do {
         cimg_snprintf(filename_tmp,filename_tmp._width,"%s.hdr",cimg::filenamerand());
-        if ((file=std::fopen(filena
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      save_analyze(filename_tmp);
+      cimg_snprintf(command,command._width,"%s -w -c dicom -o \"%s\" -f \"%s\"",
+                    cimg::medcon_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command);
+      std::remove(filename_tmp);
+      cimg::split_filename(filename_tmp,body);
+      cimg_snprintf(filename_tmp,filename_tmp._width,"%s.img",body._data);
+      std::remove(filename_tmp);
+
+      file = std::fopen(filename,"rb");
+      if (!file) {
+        cimg_snprintf(command,command._width,"m000-%s",filename);
+        file = std::fopen(command,"rb");
+        if (!file) {
+          cimg::fclose(cimg::fopen(filename,"r"));
+          throw CImgIOException(_cimg_instance
+                                "save_medcon_external(): Failed to save file '%s' with external command 'medcon'.",
+                                cimg_instance,
+                                filename);
+        }
+      }
+      cimg::fclose(file);
+      std::rename(command,filename);
+      return *this;
+    }
+
+    // Save image for non natively supported formats.
+    /**
+       \param filename Filename, as a C-string.
+       \param quality Image quality (expressed in percent), when the file format supports it.
+       \note
+       - The filename extension tells about the desired file format.
+       - This method tries to save the instance image as a file, using external tools from
+       <a href="http://www.imagemagick.org">ImageMagick</a> or
+       <a href="http://www.graphicsmagick.org">GraphicsMagick</a>.
+         At least one of these tool must be installed for the method to succeed.
+       - It is recommended to use the generic method save(const char*, int) const instead,
+         as it can handle some file formats natively.
+    **/
+    const CImg<T>& save_other(const char *const filename, const unsigned int quality=100) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_other(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_other(): File '%s', saving a volumetric image with an external call to "
+                   "ImageMagick or GraphicsMagick only writes the first image slice.",
+                   cimg_instance,filename);
+
+      const unsigned int omode = cimg::exception_mode();
+      bool is_saved = true;
+      cimg::exception_mode(0);
+      try { save_magick(filename); }
+      catch (CImgException&) {
+        try { save_imagemagick_external(filename,quality); }
+        catch (CImgException&) {
+          try { save_graphicsmagick_external(filename,quality); }
+          catch (CImgException&) {
+            is_saved = false;
+          }
+        }
+      }
+      cimg::exception_mode(omode);
+      if (!is_saved)
+        throw CImgIOException(_cimg_instance
+                              "save_other(): Failed to save file '%s'. Format is not natively supported, "
+                              "and no external commands succeeded.",
+                              cimg_instance,
+                              filename);
+      return *this;
+    }
+
+    //! Serialize a CImg<T> instance into a raw CImg<unsigned char> buffer.
+    /**
+       \param is_compressed tells if zlib compression must be used for serialization
+       (this requires 'cimg_use_zlib' been enabled).
+    **/
+    CImg<ucharT> get_serialize(const bool is_compressed=false) const {
+      return CImgList<T>(*this,true).get_serialize(is_compressed);
+    }
+
+    // [internal] Return a 40x38 color logo of a 'danger' item.
+    static CImg<T> _logo40x38() {
+      CImg<T> res(40,38,1,3);
+      const unsigned char *ptrs = cimg::logo40x38;
+      T *ptr1 = res.data(0,0,0,0), *ptr2 = res.data(0,0,0,1), *ptr3 = res.data(0,0,0,2);
+      for (ulongT off = 0; off<(ulongT)res._width*res._height;) {
+        const unsigned char n = *(ptrs++), r = *(ptrs++), g = *(ptrs++), b = *(ptrs++);
+        for (unsigned int l = 0; l<n; ++off, ++l) { *(ptr1++) = (T)r; *(ptr2++) = (T)g; *(ptr3++) = (T)b; }
+      }
+      return res;
+    }
+
+    //@}
+  };
+
+  /*
+   #-----------------------------------------
+   #
+   #
+   #
+   # Definition of the CImgList<T> structure
+   #
+   #
+   #
+   #------------------------------------------
+   */
+  //! Represent a list of images CImg<T>.
+  template<typename T>
+  struct CImgList {
+    unsigned int _width, _allocated_width;
+    CImg<T> *_data;
+
+    //! Simple iterator type, to loop through each image of a list.
+    /**
+       \note
+       - The \c CImgList<T>::iterator type is defined as a <tt>CImg<T>*</tt>.
+       - You may use it like this:
+       \code
+       CImgList<> list;   // Assuming this image list is not empty.
+       for (CImgList<>::iterator it = list.begin(); it<list.end(); ++it) (*it).mirror('x');
+       \endcode
+       - Using the loop macro \c cimglist_for is another (more concise) alternative:
+       \code
+       cimglist_for(list,l) list[l].mirror('x');
+       \endcode
+    **/
+    typedef CImg<T>* iterator;
+
+    //! Simple const iterator type, to loop through each image of a \c const list instance.
+    /**
+       \note
+       - The \c CImgList<T>::const_iterator type is defined to be a <tt>const CImg<T>*</tt>.
+       - Similar to CImgList<T>::iterator, but for constant list instances.
+    **/
+    typedef const CImg<T>* const_iterator;
+
+    //! Pixel value type.
+    /**
+       Refer to the pixels value type of the images in the list.
+       \note
+       - The \c CImgList<T>::value_type type of a \c CImgList<T> is defined to be a \c T.
+         It is then similar to CImg<T>::value_type.
+       - \c CImgList<T>::value_type is actually not used in %CImg methods. It has been mainly defined for
+         compatibility with STL naming conventions.
+    **/
+    typedef T value_type;
+
+    // Define common types related to template type T.
+    typedef typename cimg::superset<T,bool>::type Tbool;
+    typedef typename cimg::superset<T,unsigned char>::type Tuchar;
+    typedef typename cimg::superset<T,char>::type Tchar;
+    typedef typename cimg::superset<T,unsigned short>::type Tushort;
+    typedef typename cimg::superset<T,short>::type Tshort;
+    typedef typename cimg::superset<T,unsigned int>::type Tuint;
+    typedef typename cimg::superset<T,int>::type Tint;
+    typedef typename cimg::superset<T,cimg_ulong>::type Tulong;
+    typedef typename cimg::superset<T,cimg_long>::type Tlong;
+    typedef typename cimg::superset<T,float>::type Tfloat;
+    typedef typename cimg::superset<T,double>::type Tdouble;
+    typedef typename cimg::last<T,bool>::type boolT;
+    typedef typename cimg::last<T,unsigned char>::type ucharT;
+    typedef typename cimg::last<T,char>::type charT;
+    typedef typename cimg::last<T,unsigned short>::type ushortT;
+    typedef typename cimg::last<T,short>::type shortT;
+    typedef typename cimg::last<T,unsigned int>::type uintT;
+    typedef typename cimg::last<T,int>::type intT;
+    typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+    typedef typename cimg::last<T,cimg_long>::type longT;
+    typedef typename cimg::last<T,cimg_uint64>::type uint64T;
+    typedef typename cimg::last<T,cimg_int64>::type int64T;
+    typedef typename cimg::last<T,float>::type floatT;
+    typedef typename cimg::last<T,double>::type doubleT;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+#ifdef cimglist_plugin
+#include cimglist_plugin
+#endif
+#ifdef cimglist_plugin1
+#include cimglist_plugin1
+#endif
+#ifdef cimglist_plugin2
+#include c
