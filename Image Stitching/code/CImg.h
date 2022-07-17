@@ -50103,3 +50103,152 @@ namespace cimg_library_suffixed {
     const CImg<T>& save_off(const CImgList<tf>& primitives, const CImgList<tc>& colors,
                             const char *const filename) const {
       return _save_off(primitives,colors,0,filename);
+    }
+
+    //! Save 3d object as an Object File Format (.off) file \overloading.
+    /**
+       Same as save_off(const CImgList<tf>&,const CImgList<tc>&,const char*) const
+       with a file stream argument instead of a filename string.
+    **/
+    template<typename tf, typename tc>
+    const CImg<T>& save_off(const CImgList<tf>& primitives, const CImgList<tc>& colors,
+                            std::FILE *const file) const {
+      return _save_off(primitives,colors,file,0);
+    }
+
+    template<typename tf, typename tc>
+    const CImg<T>& _save_off(const CImgList<tf>& primitives, const CImgList<tc>& colors,
+                             std::FILE *const file, const char *const filename) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_off(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "save_off(): Empty instance, for file '%s'.",
+                                    cimg_instance,
+                                    filename?filename:"(FILE*)");
+
+      CImgList<T> opacities;
+      CImg<charT> error_message(1024);
+      if (!is_object3d(primitives,colors,opacities,true,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "save_off(): Invalid specified 3d object, for file '%s' (%s).",
+                                    cimg_instance,
+                                    filename?filename:"(FILE*)",error_message.data());
+
+      const CImg<tc> default_color(1,3,1,1,200);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"w");
+      unsigned int supported_primitives = 0;
+      cimglist_for(primitives,l) if (primitives[l].size()!=5) ++supported_primitives;
+      std::fprintf(nfile,"OFF\n%u %u %u\n",_width,supported_primitives,3*primitives._width);
+      cimg_forX(*this,i) std::fprintf(nfile,"%f %f %f\n",
+                                      (float)((*this)(i,0)),(float)((*this)(i,1)),(float)((*this)(i,2)));
+      cimglist_for(primitives,l) {
+        const CImg<tc>& color = l<colors.width()?colors[l]:default_color;
+        const unsigned int psiz = primitives[l].size(), csiz = color.size();
+        const float r = color[0]/255.0f, g = (csiz>1?color[1]:r)/255.0f, b = (csiz>2?color[2]:g)/255.0f;
+        switch (psiz) {
+        case 1 : std::fprintf(nfile,"1 %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),r,g,b); break;
+        case 2 : std::fprintf(nfile,"2 %u %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),(unsigned int)primitives(l,1),r,g,b); break;
+        case 3 : std::fprintf(nfile,"3 %u %u %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),(unsigned int)primitives(l,2),
+                              (unsigned int)primitives(l,1),r,g,b); break;
+        case 4 : std::fprintf(nfile,"4 %u %u %u %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),(unsigned int)primitives(l,3),
+                              (unsigned int)primitives(l,2),(unsigned int)primitives(l,1),r,g,b); break;
+        case 5 : std::fprintf(nfile,"2 %u %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),(unsigned int)primitives(l,1),r,g,b); break;
+        case 6 : {
+          const unsigned int xt = (unsigned int)primitives(l,2), yt = (unsigned int)primitives(l,3);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"2 %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        case 9 : {
+          const unsigned int xt = (unsigned int)primitives(l,3), yt = (unsigned int)primitives(l,4);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"3 %u %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,2),
+                       (unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        case 12 : {
+          const unsigned int xt = (unsigned int)primitives(l,4), yt = (unsigned int)primitives(l,5);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"4 %u %u %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,3),
+                       (unsigned int)primitives(l,2),(unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save volumetric image as a video, using the OpenCV library.
+    /**
+      \param filename Filename to write data to.
+      \param fps Number of frames per second.
+      \param codec Type of compression (See http://www.fourcc.org/codecs.php to see available codecs).
+      \param keep_open Tells if the video writer associated to the specified filename
+        must be kept open or not (to allow frames to be added in the same file afterwards).
+    **/
+    const CImg<T>& save_video(const char *const filename, const unsigned int fps=25,
+                              const char *codec=0, const bool keep_open=false) const {
+      if (is_empty()) { CImgList<T>().save_video(filename,fps,codec,keep_open); return *this; }
+      CImgList<T> list;
+      get_split('z').move_to(list);
+      list.save_video(filename,fps,codec,keep_open);
+      return *this;
+    }
+
+    //! Save volumetric image as a video, using ffmpeg external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \param fps Video framerate.
+       \param codec Video codec, as a C-string.
+       \param bitrate Video bitrate.
+       \note
+       - Each slice of the instance image is considered to be a single frame of the output video file.
+       - This method uses \c ffmpeg, an external executable binary provided by
+         <a href="http://www.ffmpeg.org">FFmpeg</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_ffmpeg_external(const char *const filename, const unsigned int fps=25,
+                                        const char *const codec=0, const unsigned int bitrate=2048) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_ffmpeg_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      CImgList<T> list;
+      get_split('z').move_to(list);
+      list.save_ffmpeg_external(filename,fps,codec,bitrate);
+      return *this;
+    }
+
+    //! Save image using gzip external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \note This method uses \c gzip, an external executable binary provided by
+         <a href="//http://www.gzip.org">gzip</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_gzip_external(const char *const filename) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_gzip_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if 
