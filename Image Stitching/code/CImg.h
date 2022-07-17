@@ -50251,4 +50251,173 @@ namespace cimg_library_suffixed {
         throw CImgArgumentException(_cimg_instance
                                     "save_gzip_external(): Specified filename is (null).",
                                     cimg_instance);
-      if 
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      save(filename_tmp);
+      cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                    cimg::gzip_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    CImg<charT>::string(filename)._system_strescape().data());
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimg_instance
+                              "save_gzip_external(): Failed to save file '%s' with external command 'gzip'.",
+                              cimg_instance,
+                              filename);
+
+      else cimg::fclose(file);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Save image using GraphicsMagick's external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \param quality Image quality (expressed in percent), when the file format supports it.
+       \note This method uses \c gm, an external executable binary provided by
+         <a href="http://www.graphicsmagick.org">GraphicsMagick</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_graphicsmagick_external(const char *const filename, const unsigned int quality=100) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_graphicsmagick_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_other(): File '%s', saving a volumetric image with an external call to "
+                   "GraphicsMagick only writes the first image slice.",
+                   cimg_instance,filename);
+
+#ifdef cimg_use_png
+#define _cimg_sge_ext1 "png"
+#define _cimg_sge_ext2 "png"
+#else
+#define _cimg_sge_ext1 "pgm"
+#define _cimg_sge_ext2 "ppm"
+#endif
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),
+                      _spectrum==1?_cimg_sge_ext1:_cimg_sge_ext2);
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+#ifdef cimg_use_png
+      save_png(filename_tmp);
+#else
+      save_pnm(filename_tmp);
+#endif
+      cimg_snprintf(command,command._width,"%s convert -quality %u \"%s\" \"%s\"",
+                    cimg::graphicsmagick_path(),quality,
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    CImg<charT>::string(filename)._system_strescape().data());
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimg_instance
+                              "save_graphicsmagick_external(): Failed to save file '%s' with external command 'gm'.",
+                              cimg_instance,
+                              filename);
+
+      if (file) cimg::fclose(file);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Save image using ImageMagick's external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \param quality Image quality (expressed in percent), when the file format supports it.
+       \note This method uses \c convert, an external executable binary provided by
+       <a href="http://www.imagemagick.org">ImageMagick</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_imagemagick_external(const char *const filename, const unsigned int quality=100) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_imagemagick_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_other(): File '%s', saving a volumetric image with an external call to "
+                   "ImageMagick only writes the first image slice.",
+                   cimg_instance,filename);
+#ifdef cimg_use_png
+#define _cimg_sie_ext1 "png"
+#define _cimg_sie_ext2 "png"
+#else
+#define _cimg_sie_ext1 "pgm"
+#define _cimg_sie_ext2 "ppm"
+#endif
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",cimg::temporary_path(),
+                      cimg_file_separator,cimg::filenamerand(),_spectrum==1?_cimg_sie_ext1:_cimg_sie_ext2);
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+#ifdef cimg_use_png
+      save_png(filename_tmp);
+#else
+      save_pnm(filename_tmp);
+#endif
+      cimg_snprintf(command,command._width,"%s -quality %u \"%s\" \"%s\"",
+                    cimg::imagemagick_path(),quality,
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    CImg<charT>::string(filename)._system_strescape().data());
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimg_instance
+                              "save_imagemagick_external(): Failed to save file '%s' with external command 'convert'.",
+                              cimg_instance,
+                              filename);
+
+      if (file) cimg::fclose(file);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Save image as a Dicom file.
+    /**
+       \param filename Filename, as a C-string.
+       \note This method uses \c medcon, an external executable binary provided by
+         <a href="http://xmedcon.sourceforge.net">(X)Medcon</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_medcon_external(const char *const filename) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_medcon_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      std::FILE *file;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s.hdr",cimg::filenamerand());
+        if ((file=std::fopen(filena
