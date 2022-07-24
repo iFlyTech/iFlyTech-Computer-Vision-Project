@@ -50971,4 +50971,184 @@ namespace cimg_library_suffixed {
     //! Destructor \inplace.
     /**
        \see CImgList().
-  
+    **/
+    CImgList<T>& assign() {
+      delete[] _data;
+      _width = _allocated_width = 0;
+      _data = 0;
+      return *this;
+    }
+
+    //! Destructor \inplace.
+    /**
+       Equivalent to assign().
+       \note Only here for compatibility with STL naming conventions.
+    **/
+    CImgList<T>& clear() {
+      return assign();
+    }
+
+    //! Construct list containing empty images \inplace.
+    /**
+       \see CImgList(unsigned int).
+    **/
+    CImgList<T>& assign(const unsigned int n) {
+      if (!n) return assign();
+      if (_allocated_width<n || _allocated_width>(n<<2)) {
+        delete[] _data;
+        _data = new CImg<T>[_allocated_width=cimg::max(16UL,cimg::nearest_pow2(n))];
+      }
+      _width = n;
+      return *this;
+    }
+
+    //! Construct list containing images of specified size \inplace.
+    /**
+       \see CImgList(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int).
+    **/
+    CImgList<T>& assign(const unsigned int n, const unsigned int width, const unsigned int height=1,
+                        const unsigned int depth=1, const unsigned int spectrum=1) {
+      assign(n);
+      cimglist_apply(*this,assign)(width,height,depth,spectrum);
+      return *this;
+    }
+
+    //! Construct list containing images of specified size, and initialize pixel values \inplace.
+    /**
+       \see CImgList(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, const T).
+    **/
+    CImgList<T>& assign(const unsigned int n, const unsigned int width, const unsigned int height,
+                        const unsigned int depth, const unsigned int spectrum, const T& val) {
+      assign(n);
+      cimglist_apply(*this,assign)(width,height,depth,spectrum,val);
+      return *this;
+    }
+
+    //! Construct list with images of specified size, and initialize pixel values from a sequence of integers \inplace.
+    /**
+       \see CImgList(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, const int, const int, ...).
+    **/
+    CImgList<T>& assign(const unsigned int n, const unsigned int width, const unsigned int height,
+                        const unsigned int depth, const unsigned int spectrum, const int val0, const int val1, ...) {
+      _CImgList_stdarg(int);
+      return *this;
+    }
+
+    //! Construct list with images of specified size, and initialize pixel values from a sequence of doubles \inplace.
+    /**
+       \see CImgList(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, const double, const double, ...).
+    **/
+    CImgList<T>& assign(const unsigned int n, const unsigned int width, const unsigned int height,
+                        const unsigned int depth, const unsigned int spectrum,
+                        const double val0, const double val1, ...) {
+      _CImgList_stdarg(double);
+      return *this;
+    }
+
+    //! Construct list containing copies of an input image \inplace.
+    /**
+       \see CImgList(unsigned int, const CImg<t>&, bool).
+    **/
+    template<typename t>
+    CImgList<T>& assign(const unsigned int n, const CImg<t>& img, const bool is_shared=false) {
+      assign(n);
+      cimglist_apply(*this,assign)(img,is_shared);
+      return *this;
+    }
+
+    //! Construct list from one image \inplace.
+    /**
+       \see CImgList(const CImg<t>&, bool).
+    **/
+    template<typename t>
+    CImgList<T>& assign(const CImg<t>& img, const bool is_shared=false) {
+      assign(1);
+      _data[0].assign(img,is_shared);
+      return *this;
+    }
+
+    //! Construct list from two images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const bool is_shared=false) {
+      assign(2);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared);
+      return *this;
+    }
+
+    //! Construct list from three images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const bool is_shared=false) {
+      assign(3);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      return *this;
+    }
+
+    //! Construct list from four images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const bool is_shared=false) {
+      assign(4);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared);
+      return *this;
+    }
+
+    //! Construct list from five images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const bool is_shared=false) {
+      assign(5);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared);
+      return *this;
+    }
+
+    //! Construct list from six images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const bool is_shared=false) {
+      assign(6);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      return *this;
+    }
+
+    //! Construct list from seven images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6, typename t7>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const CImg<t7>& img7, const bool is_shared=false) {
+      assign(7);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      _data[6].assign(img7,is_shared);
+      return *this;
+    }
+
+    //! Construct list from eight images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6, typename t7, typename t8>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const CImg<t7>& img7, const CImg<t8>& img8,
+                        const bool is_shared=false) {
+      assign(8);
+      _data[0].assign(img1,is_shared); _data[1].
