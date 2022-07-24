@@ -51151,4 +51151,229 @@ namespace cimg_library_suffixed {
                         const CImg<t5>& img5, const CImg<t6>& img6, const CImg<t7>& img7, const CImg<t8>& img8,
                         const bool is_shared=false) {
       assign(8);
-      _data[0].assign(img1,is_shared); _data[1].
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      _data[6].assign(img7,is_shared); _data[7].assign(img8,is_shared);
+      return *this;
+    }
+
+    //! Construct list as a copy of an existing list and force the shared state of the list elements \inplace.
+    /**
+      \see CImgList(const CImgList<t>&, bool is_shared).
+    **/
+    template<typename t>
+    CImgList<T>& assign(const CImgList<t>& list, const bool is_shared=false) {
+      cimg::unused(is_shared);
+      assign(list._width);
+      cimglist_for(*this,l) _data[l].assign(list[l],false);
+      return *this;
+    }
+
+    //! Construct list as a copy of an existing list and force shared state of elements \inplace \specialization.
+    CImgList<T>& assign(const CImgList<T>& list, const bool is_shared=false) {
+      if (this==&list) return *this;
+      CImgList<T> res(list._width);
+      cimglist_for(res,l) res[l].assign(list[l],is_shared);
+      return res.move_to(*this);
+    }
+
+    //! Construct list by reading the content of a file \inplace.
+    /**
+      \see CImgList(const char *const).
+    **/
+    CImgList<T>& assign(const char *const filename) {
+      return load(filename);
+    }
+
+    //! Construct list from the content of a display window \inplace.
+    /**
+      \see CImgList(const CImgDisplay&).
+    **/
+    CImgList<T>& assign(const CImgDisplay &disp) {
+      return assign(CImg<T>(disp));
+    }
+
+    //! Transfer the content of the list instance to another list.
+    /**
+       \param list Destination list.
+       \note When returning, the current list instance is empty and the initial content of \c list is destroyed.
+    **/
+    template<typename t>
+    CImgList<t>& move_to(CImgList<t>& list) {
+      list.assign(_width);
+      bool is_one_shared_element = false;
+      cimglist_for(*this,l) is_one_shared_element|=_data[l]._is_shared;
+      if (is_one_shared_element) cimglist_for(*this,l) list[l].assign(_data[l]);
+      else cimglist_for(*this,l) _data[l].move_to(list[l]);
+      assign();
+      return list;
+    }
+
+    //! Transfer the content of the list instance at a specified position in another list.
+    /**
+       \param list Destination list.
+       \param pos Index of the insertion in the list.
+       \note When returning, the list instance is empty and the initial content of \c list is preserved
+       (only images indexes may be modified).
+     **/
+    template<typename t>
+    CImgList<t>& move_to(CImgList<t>& list, const unsigned int pos) {
+      if (is_empty()) return list;
+      const unsigned int npos = pos>list._width?list._width:pos;
+      list.insert(_width,npos);
+      bool is_one_shared_element = false;
+      cimglist_for(*this,l) is_one_shared_element|=_data[l]._is_shared;
+      if (is_one_shared_element) cimglist_for(*this,l) list[npos + l].assign(_data[l]);
+      else cimglist_for(*this,l) _data[l].move_to(list[npos + l]);
+      assign();
+      return list;
+    }
+
+    //! Swap all fields between two list instances.
+    /**
+       \param list List to swap fields with.
+       \note Can be used to exchange the content of two lists in a fast way.
+    **/
+    CImgList<T>& swap(CImgList<T>& list) {
+      cimg::swap(_width,list._width,_allocated_width,list._allocated_width);
+      cimg::swap(_data,list._data);
+      return list;
+    }
+
+    //! Return a reference to an empty list.
+    /**
+      \note Can be used to define default values in a function taking a CImgList<T> as an argument.
+      \code
+      void f(const CImgList<char>& list=CImgList<char>::empty());
+      \endcode
+    **/
+    static CImgList<T>& empty() {
+      static CImgList<T> _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty list \const.
+    static const CImgList<T>& const_empty() {
+      static const CImgList<T> _empty;
+      return _empty;
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Overloaded Operators
+    //@{
+    //------------------------------------------
+
+    //! Return a reference to one image element of the list.
+    /**
+       \param pos Indice of the image element.
+    **/
+    CImg<T>& operator()(const unsigned int pos) {
+#if cimg_verbosity>=3
+      if (pos>=_width) {
+        cimg::warn(_cimglist_instance
+                   "operator(): Invalid image request, at position [%u].",
+                   cimglist_instance,
+                   pos);
+        return *_data;
+      }
+#endif
+      return _data[pos];
+    }
+
+    //! Return a reference to one image of the list.
+    /**
+       \param pos Indice of the image element.
+    **/
+    const CImg<T>& operator()(const unsigned int pos) const {
+      return const_cast<CImgList<T>*>(this)->operator()(pos);
+    }
+
+    //! Return a reference to one pixel value of one image of the list.
+    /**
+       \param pos Indice of the image element.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list(n,x,y,z,c)</tt> is equivalent to <tt>list[n](x,y,z,c)</tt>.
+    **/
+    T& operator()(const unsigned int pos, const unsigned int x, const unsigned int y=0,
+                  const unsigned int z=0, const unsigned int c=0) {
+      return (*this)[pos](x,y,z,c);
+    }
+
+    //! Return a reference to one pixel value of one image of the list \const.
+    const T& operator()(const unsigned int pos, const unsigned int x, const unsigned int y=0,
+                        const unsigned int z=0, const unsigned int c=0) const {
+      return (*this)[pos](x,y,z,c);
+    }
+
+    //! Return pointer to the first image of the list.
+    /**
+       \note Images in a list are stored as a buffer of \c CImg<T>.
+    **/
+    operator CImg<T>*() {
+      return _data;
+    }
+
+    //! Return pointer to the first image of the list \const.
+    operator const CImg<T>*() const {
+      return _data;
+    }
+
+    //! Construct list from one image \inplace.
+    /**
+        \param img Input image to copy in the constructed list.
+        \note <tt>list = img;</tt> is equivalent to <tt>list.assign(img);</tt>.
+    **/
+    template<typename t>
+    CImgList<T>& operator=(const CImg<t>& img) {
+      return assign(img);
+    }
+
+    //! Construct list from another list.
+    /**
+       \param list Input list to copy.
+       \note <tt>list1 = list2</tt> is equivalent to <tt>list1.assign(list2);</tt>.
+    **/
+    template<typename t>
+    CImgList<T>& operator=(const CImgList<t>& list) {
+      return assign(list);
+    }
+
+    //! Construct list from another list \specialization.
+    CImgList<T>& operator=(const CImgList<T>& list) {
+      return assign(list);
+    }
+
+    //! Construct list by reading the content of a file \inplace.
+    /**
+       \see CImgList(const char *const).
+    **/
+    CImgList<T>& operator=(const char *const filename) {
+      return assign(filename);
+    }
+
+    //! Construct list from the content of a display window \inplace.
+    /**
+        \see CImgList(const CImgDisplay&).
+    **/
+    CImgList<T>& operator=(const CImgDisplay& disp) {
+      return assign(disp);
+    }
+
+    //! Return a non-shared copy of a list.
+    /**
+        \note <tt>+list</tt> is equivalent to <tt>CImgList<T>(list,false)</tt>.
+          It forces the copy to have non-shared elements.
+    **/
+    CImgList<T> operator+() const {
+      return CImgList<T>(*this,false);
+    }
+
+    //! Return a copy of the list instance, where image \c img has been inserted at the end.
+    /**
+       \param img Image inserted at the end of the instance copy.
+       \note Define a convenient way t
