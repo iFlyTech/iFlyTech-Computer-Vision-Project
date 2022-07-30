@@ -51376,4 +51376,235 @@ namespace cimg_library_suffixed {
     //! Return a copy of the list instance, where image \c img has been inserted at the end.
     /**
        \param img Image inserted at the end of the instance copy.
-       \note Define a convenient way t
+       \note Define a convenient way to create temporary lists of images, as in the following code:
+       \code
+       (img1,img2,img3,img4).display("My four images");
+       \endcode
+    **/
+    template<typename t>
+    CImgList<T>& operator,(const CImg<t>& img) {
+      return insert(img);
+    }
+
+    //! Return a copy of the list instance, where image \c img has been inserted at the end \const.
+    template<typename t>
+    CImgList<T> operator,(const CImg<t>& img) const {
+      return (+*this).insert(img);
+    }
+
+    //! Return a copy of the list instance, where all elements of input list \c list have been inserted at the end.
+    /**
+       \param list List inserted at the end of the instance copy.
+    **/
+    template<typename t>
+    CImgList<T>& operator,(const CImgList<t>& list) {
+      return insert(list);
+    }
+
+    //! Return a copy of the list instance, where all elements of input \c list have been inserted at the end \const.
+    template<typename t>
+    CImgList<T>& operator,(const CImgList<t>& list) const {
+      return (+*this).insert(list);
+    }
+
+    //! Return image corresponding to the appending of all images of the instance list along specified axis.
+    /**
+      \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \note <tt>list>'x'</tt> is equivalent to <tt>list.get_append('x')</tt>.
+    **/
+    CImg<T> operator>(const char axis) const {
+      return get_append(axis,0);
+    }
+
+    //! Return list corresponding to the splitting of all images of the instance list along specified axis.
+    /**
+      \param axis Axis used for image splitting.
+      \note <tt>list<'x'</tt> is equivalent to <tt>list.get_split('x')</tt>.
+    **/
+    CImgList<T> operator<(const char axis) const {
+      return get_split(axis);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //-------------------------------------
+
+    //! Return the type of image pixel values as a C string.
+    /**
+       Return a \c char* string containing the usual type name of the image pixel values
+       (i.e. a stringified version of the template parameter \c T).
+       \note
+       - The returned string may contain spaces (as in \c "unsigned char").
+       - If the pixel type \c T does not correspond to a registered type, the string <tt>"unknown"</tt> is returned.
+    **/
+    static const char* pixel_type() {
+      return cimg::type<T>::string();
+    }
+
+    //! Return the size of the list, i.e. the number of images contained in it.
+    /**
+      \note Similar to size() but returns result as a (signed) integer.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return the size of the list, i.e. the number of images contained in it.
+    /**
+      \note Similar to width() but returns result as an unsigned integer.
+    **/
+    unsigned int size() const {
+      return _width;
+    }
+
+    //! Return pointer to the first image of the list.
+    /**
+       \note Images in a list are stored as a buffer of \c CImg<T>.
+    **/
+    CImg<T> *data() {
+      return _data;
+    }
+
+    //! Return pointer to the first image of the list \const.
+    const CImg<T> *data() const {
+      return _data;
+    }
+
+    //! Return pointer to the pos-th image of the list.
+    /**
+       \param pos Indice of the image element to access.
+       \note <tt>list.data(n);</tt> is equivalent to <tt>list.data + n;</tt>.
+    **/
+#if cimg_verbosity>=3
+    CImg<T> *data(const unsigned int pos) {
+      if (pos>=size())
+        cimg::warn(_cimglist_instance
+                   "data(): Invalid pointer request, at position [%u].",
+                   cimglist_instance,
+                   pos);
+      return _data + pos;
+    }
+
+    const CImg<T> *data(const unsigned int l) const {
+      return const_cast<CImgList<T>*>(this)->data(l);
+    }
+#else
+    CImg<T> *data(const unsigned int l) {
+      return _data + l;
+    }
+
+    //! Return pointer to the pos-th image of the list \const.
+    const CImg<T> *data(const unsigned int l) const {
+      return _data + l;
+    }
+#endif
+
+    //! Return iterator to the first image of the list.
+    /**
+    **/
+    iterator begin() {
+      return _data;
+    }
+
+    //! Return iterator to the first image of the list \const.
+    const_iterator begin() const {
+      return _data;
+    }
+
+    //! Return iterator to one position after the last image of the list.
+    /**
+    **/
+    iterator end() {
+      return _data + _width;
+    }
+
+    //! Return iterator to one position after the last image of the list \const.
+    const_iterator end() const {
+      return _data + _width;
+    }
+
+    //! Return reference to the first image of the list.
+    /**
+    **/
+    CImg<T>& front() {
+      return *_data;
+    }
+
+    //! Return reference to the first image of the list \const.
+    const CImg<T>& front() const {
+      return *_data;
+    }
+
+    //! Return a reference to the last image of the list.
+    /**
+    **/
+    const CImg<T>& back() const {
+      return *(_data + _width - 1);
+    }
+
+    //! Return a reference to the last image of the list \const.
+    CImg<T>& back() {
+      return *(_data + _width - 1);
+    }
+
+    //! Return pos-th image of the list.
+    /**
+       \param pos Indice of the image element to access.
+    **/
+    CImg<T>& at(const int pos) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "at(): Empty instance.",
+                                    cimglist_instance);
+
+      return _data[pos<0?0:pos>=(int)_width?(int)_width - 1:pos];
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions.
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+       \note <tt>list.atNXYZC(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZC(x,y,z,c);</tt>.
+    **/
+    T& atNXYZC(const int pos, const int x, const int y, const int z, const int c, const T& out_value) {
+      return (pos<0 || pos>=(int)_width)?(cimg::temporary(out_value)=out_value):_data[pos].atXYZC(x,y,z,c,out_value);
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions \const.
+    T atNXYZC(const int pos, const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (pos<0 || pos>=(int)_width)?out_value:_data[pos].atXYZC(x,y,z,c,out_value);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions.
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list.atNXYZC(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZC(x,y,z,c);</tt>.
+    **/
+    T& atNXYZC(const int pos, const int x, const int y, const int z, const int c) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZC(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZC(pos,x,y,z,c);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions \const.
+    T atNXYZC(const int pos, const int x, const int y, const int z, const int c) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZC(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZ
