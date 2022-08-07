@@ -51762,4 +51762,179 @@ namespace cimg_library_suffixed {
                                     "atNX(): Empty instance.",
                                     cimglist_instance);
 
-      return _atNX(pos
+      return _atNX(pos,x,y,z,c);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions for the 2 first coordinates (\c pos, \c x) \const.
+    T atNX(const int pos, const int x, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNX(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNX(pos,x,y,z,c);
+    }
+
+    T& _atNX(const int pos, const int x, const int y=0, const int z=0, const int c=0) {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atX(x,y,z,c);
+    }
+
+    T _atNX(const int pos, const int x, const int y=0, const int z=0, const int c=0) const {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atX(x,y,z,c);
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions for the first coordinate (\c pos).
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+       \note <tt>list.atNXYZ(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZ(x,y,z,c);</tt>.
+    **/
+    T& atN(const int pos, const int x, const int y, const int z, const int c, const T& out_value) {
+      return (pos<0 || pos>=(int)_width)?(cimg::temporary(out_value)=out_value):(*this)(pos,x,y,z,c);
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions for the first coordinate (\c pos) \const.
+    T atN(const int pos, const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (pos<0 || pos>=(int)_width)?out_value:(*this)(pos,x,y,z,c);
+    }
+
+    //! Return pixel value with Neumann boundary conditions for the first coordinate (\c pos).
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list.atNXYZ(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZ(x,y,z,c);</tt>.
+    **/
+    T& atN(const int pos, const int x=0, const int y=0, const int z=0, const int c=0) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atN(): Empty instance.",
+                                    cimglist_instance);
+      return _atN(pos,x,y,z,c);
+    }
+
+    //! Return pixel value with Neumann boundary conditions for the first coordinate (\c pos) \const.
+    T atN(const int pos, const int x=0, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atN(): Empty instance.",
+                                    cimglist_instance);
+      return _atN(pos,x,y,z,c);
+    }
+
+    T& _atN(const int pos, const int x=0, const int y=0, const int z=0, const int c=0) {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)](x,y,z,c);
+    }
+
+    T _atN(const int pos, const int x=0, const int y=0, const int z=0, const int c=0) const {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)](x,y,z,c);
+    }
+
+    //! Return a C-string containing the values of all images in the instance list.
+    /**
+       \param separator Character separator set between consecutive pixel values.
+       \param max_size Maximum size of the returned string.
+       \note The result is returne as a <tt>CImg<char></tt> image whose pixel buffer contains the desired C-string.
+    **/
+    CImg<charT> value_string(const char separator=',', const unsigned int max_size=0) const {
+      if (is_empty()) return CImg<ucharT>(1,1,1,1,0);
+      CImgList<charT> items;
+      for (unsigned int l = 0; l<_width - 1; ++l) {
+        CImg<charT> item = _data[l].value_string(separator,0);
+        item.back() = separator;
+        item.move_to(items);
+      }
+      _data[_width - 1].value_string(separator,0).move_to(items);
+      CImg<charT> res; (items>'x').move_to(res);
+      if (max_size) { res.crop(0,max_size); res(max_size) = 0; }
+      return res;
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Checking
+    //@{
+    //-------------------------------------
+
+    //! Return \c true if list is empty.
+    /**
+    **/
+    bool is_empty() const {
+      return (!_data || !_width);
+    }
+
+    //! Test if number of image elements is equal to specified value.
+    /**
+        \param size_n Number of image elements to test.
+    **/
+    bool is_sameN(const unsigned int size_n) const {
+      return _width==size_n;
+    }
+
+    //! Test if number of image elements is equal between two images lists.
+    /**
+        \param list Input list to compare with.
+    **/
+    template<typename t>
+    bool is_sameN(const CImgList<t>& list) const {
+      return is_sameN(list._width);
+    }
+
+    // Define useful functions to check list dimensions.
+    // (cannot be documented because macro-generated).
+#define _cimglist_def_is_same1(axis) \
+    bool is_same##axis(const unsigned int val) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis(val); return res; \
+    } \
+    bool is_sameN##axis(const unsigned int n, const unsigned int val) const { \
+      return is_sameN(n) && is_same##axis(val); \
+    } \
+
+#define _cimglist_def_is_same2(axis1,axis2) \
+    bool is_same##axis1##axis2(const unsigned int val1, const unsigned int val2) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis1##axis2(val1,val2); return res; \
+    } \
+    bool is_sameN##axis1##axis2(const unsigned int n, const unsigned int val1, const unsigned int val2) const { \
+      return is_sameN(n) && is_same##axis1##axis2(val1,val2); \
+    } \
+
+#define _cimglist_def_is_same3(axis1,axis2,axis3) \
+    bool is_same##axis1##axis2##axis3(const unsigned int val1, const unsigned int val2, \
+                                      const unsigned int val3) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis1##axis2##axis3(val1,val2,val3); \
+      return res; \
+    } \
+    bool is_sameN##axis1##axis2##axis3(const unsigned int n, const unsigned int val1, \
+                                       const unsigned int val2, const unsigned int val3) const { \
+      return is_sameN(n) && is_same##axis1##axis2##axis3(val1,val2,val3); \
+    } \
+
+#define _cimglist_def_is_same(axis) \
+    template<typename t> bool is_same##axis(const CImg<t>& img) const { \
+      bool res = true; for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis(img); return res; \
+    } \
+    template<typename t> bool is_same##axis(const CImgList<t>& list) const { \
+      const unsigned int lmin = cimg::min(_width,list._width); \
+      bool res = true; for (unsigned int l = 0; l<lmin && res; ++l) res = _data[l].is_same##axis(list[l]); return res; \
+    } \
+    template<typename t> bool is_sameN##axis(const unsigned int n, const CImg<t>& img) const { \
+      return (is_sameN(n) && is_same##axis(img)); \
+    } \
+    template<typename t> bool is_sameN##axis(const CImgList<t>& list) const { \
+      return (is_sameN(list) && is_same##axis(list)); \
+    }
+
+    _cimglist_def_is_same(XY)
+    _cimglist_def_is_same(XZ)
+    _cimglist_def_is_same(XC)
+    _cimglist_
