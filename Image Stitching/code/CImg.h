@@ -51937,4 +51937,215 @@ namespace cimg_library_suffixed {
     _cimglist_def_is_same(XY)
     _cimglist_def_is_same(XZ)
     _cimglist_def_is_same(XC)
-    _cimglist_
+    _cimglist_def_is_same(YZ)
+    _cimglist_def_is_same(YC)
+    _cimglist_def_is_same(XYZ)
+    _cimglist_def_is_same(XYC)
+    _cimglist_def_is_same(YZC)
+    _cimglist_def_is_same(XYZC)
+    _cimglist_def_is_same1(X)
+    _cimglist_def_is_same1(Y)
+    _cimglist_def_is_same1(Z)
+    _cimglist_def_is_same1(C)
+    _cimglist_def_is_same2(X,Y)
+    _cimglist_def_is_same2(X,Z)
+    _cimglist_def_is_same2(X,C)
+    _cimglist_def_is_same2(Y,Z)
+    _cimglist_def_is_same2(Y,C)
+    _cimglist_def_is_same2(Z,C)
+    _cimglist_def_is_same3(X,Y,Z)
+    _cimglist_def_is_same3(X,Y,C)
+    _cimglist_def_is_same3(X,Z,C)
+    _cimglist_def_is_same3(Y,Z,C)
+
+    //! Test if dimensions of each image of the list match specified arguments.
+    /**
+      \param dx Checked image width.
+      \param dy Checked image height.
+      \param dz Checked image depth.
+      \param dc Checked image spectrum.
+    **/
+    bool is_sameXYZC(const unsigned int dx, const unsigned int dy,
+                     const unsigned int dz, const unsigned int dc) const {
+      bool res = true;
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_sameXYZC(dx,dy,dz,dc);
+      return res;
+    }
+
+    //! Test if list dimensions match specified arguments.
+    /**
+       \param n Number of images in the list.
+       \param dx Checked image width.
+       \param dy Checked image height.
+       \param dz Checked image depth.
+       \param dc Checked image spectrum.
+    **/
+    bool is_sameNXYZC(const unsigned int n,
+                      const unsigned int dx, const unsigned int dy,
+                      const unsigned int dz, const unsigned int dc) const {
+      return is_sameN(n) && is_sameXYZC(dx,dy,dz,dc);
+    }
+
+    //! Test if list contains one particular pixel location.
+    /**
+       \param n Index of the image whom checked pixel value belong to.
+       \param x X-coordinate of the checked pixel value.
+       \param y Y-coordinate of the checked pixel value.
+       \param z Z-coordinate of the checked pixel value.
+       \param c C-coordinate of the checked pixel value.
+    **/
+    bool containsNXYZC(const int n, const int x=0, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty()) return false;
+      return n>=0 && n<(int)_width && x>=0 && x<_data[n].width() && y>=0 && y<_data[n].height() &&
+        z>=0 && z<_data[n].depth() && c>=0 && c<_data[n].spectrum();
+    }
+
+    //! Test if list contains image with specified indice.
+    /**
+       \param n Index of the checked image.
+    **/
+    bool containsN(const int n) const {
+      if (is_empty()) return false;
+      return n>=0 && n<(int)_width;
+    }
+
+    //! Test if one image of the list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \param[out] c C-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y,z,c).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y, t& z, t& c) const {
+      if (is_empty()) return false;
+      cimglist_for(*this,l) if (_data[l].contains(pixel,x,y,z,c)) { n = (t)l; return true; }
+      return false;
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y,z).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y, t& z) const {
+      t c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y) const {
+      t z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x) const {
+      t y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \note If true, set coordinates (n).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n) const {
+      t x, y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+    **/
+    bool contains(const T& pixel) const {
+      unsigned int n, x, y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if the list contains the image 'img'.
+    /**
+       \param img Reference to image to test.
+       \param[out] n Index of image in the list, if test succeeds.
+       \note If true, returns the position (n) of the image in the list.
+    **/
+    template<typename t>
+    bool contains(const CImg<T>& img, t& n) const {
+      if (is_empty()) return false;
+      const CImg<T> *const ptr = &img;
+      cimglist_for(*this,i) if (_data + i==ptr) { n = (t)i; return true; }
+      return false;
+    }
+
+    //! Test if the list contains the image img.
+    /**
+       \param img Reference to image to test.
+    **/
+    bool contains(const CImg<T>& img) const {
+      unsigned int n;
+      return contains(img,n);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Mathematical Functions
+    //@{
+    //-------------------------------------
+
+    //! Return a reference to the minimum pixel value of the instance list.
+    /**
+    **/
+    T& min() {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_min = _data->_data;
+      T min_value = *ptr_min;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      }
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list \const.
+    const T& min() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_min = _data->_data;
+      T min_value = *ptr_min;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      }
+      retur
