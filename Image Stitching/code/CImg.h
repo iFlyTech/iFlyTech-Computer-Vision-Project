@@ -52148,4 +52148,192 @@ namespace cimg_library_suffixed {
         const CImg<T>& img = _data[l];
         cimg_for(img,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
       }
-      retur
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value of the instance list.
+    /**
+    **/
+    T& max() {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_max = _data->_data;
+      T max_value = *ptr_max;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      }
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value of the instance list \const.
+    const T& max() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_max = _data->_data;
+      T max_value = *ptr_max;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      }
+      return *ptr_max;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the maximum vvalue as well.
+    /**
+       \param[out] max_val Value of the maximum value found.
+    **/
+    template<typename t>
+    T& min_max(t& max_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min_max(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_min = _data->_data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val<min_value) { min_value = val; ptr_min = ptrs; }
+          if (val>max_value) max_value = val;
+        }
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the maximum vvalue as well \const.
+    /**
+       \param[out] max_val Value of the maximum value found.
+    **/
+    template<typename t>
+    const T& min_max(t& max_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min_max(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_min = _data->_data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val<min_value) { min_value = val; ptr_min = ptrs; }
+          if (val>max_value) max_value = val;
+        }
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the minimum value as well.
+    /**
+       \param[out] min_val Value of the minimum value found.
+    **/
+    template<typename t>
+    T& max_min(t& min_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max_min(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_max = _data->_data;
+      T min_value = *ptr_max, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val>max_value) { max_value = val; ptr_max = ptrs; }
+          if (val<min_value) min_value = val;
+        }
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the minimum value as well \const.
+    template<typename t>
+    const T& max_min(t& min_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max_min(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_max = _data->_data;
+      T min_value = *ptr_max, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val>max_value) { max_value = val; ptr_max = ptrs; }
+          if (val<min_value) min_value = val;
+        }
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name List Manipulation
+    //@{
+    //---------------------------
+
+    //! Insert a copy of the image \c img into the current image list, at position \c pos.
+    /**
+        \param img Image to insert a copy to the list.
+        \param pos Index of the insertion.
+        \param is_shared Tells if the inserted image is a shared copy of \c img or not.
+    **/
+    template<typename t>
+    CImgList<T>& insert(const CImg<t>& img, const unsigned int pos=~0U, const bool is_shared=false) {
+      const unsigned int npos = pos==~0U?_width:pos;
+      if (npos>_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "insert(): Invalid insertion request of specified image (%u,%u,%u,%u,%p) "
+                                    "at position %u.",
+                                    cimglist_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data,npos);
+      if (is_shared)
+        throw CImgArgumentException(_cimglist_instance
+                                    "insert(): Invalid insertion request of specified shared image "
+                                    "CImg<%s>(%u,%u,%u,%u,%p) at position %u (pixel types are different).",
+                                    cimglist_instance,
+                                    img.pixel_type(),img._width,img._height,img._depth,img._spectrum,img._data,npos);
+
+      CImg<T> *const new_data = (++_width>_allocated_width)?new CImg<T>[_allocated_width?(_allocated_width<<=1):
+                                                                        (_allocated_width=16)]:0;
+      if (!_data) { // Insert new element into empty list.
+        _data = new_data;
+        *_data = img;
+      } else {
+        if (new_data) { // Insert with re-allocation.
+          if (npos) std::memcpy(new_data,_data,sizeof(CImg<T>)*npos);
+          if (npos!=_width - 1) std::memcpy(new_data + npos + 1,_data + npos,sizeof(CImg<T>)*(_width - 1 - npos));
+          std::memset(_data,0,sizeof(CImg<T>)*(_width - 1));
+          delete[] _data;
+          _data = new_data;
+        } else if (npos!=_width - 1) // Insert without re-allocation.
+          std::memmove(_data + npos + 1,_data + npos,sizeof(CImg<T>)*(_width - 1 - npos));
+        _data[npos]._width = _data[npos]._height = _data[npos]._depth = _data[npos]._spectrum = 0;
+        _data[npos]._data = 0;
+        _data[npos] = img;
+      }
+      return *this;
+    }
+
+    //! Insert a copy of the image \c img into the current image list, at position \c pos \specialization.
+    CImgList<T>& insert(const CImg<T>& img, const unsigned int pos=~0U, const bool is_shared=false) {
+      const unsigned int npos = pos==~0U?_width:pos;
+      if (npos>_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "insert(): Invalid insertion request of specified image (%u,%u,%u,%u,%p) "
+                                    "at position %u.",
+                                    cimglist_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data,npos);
+      CImg<T> *const new_data = (++_width>_allocated_width)?new CImg<T>[_allocated_width?(_allocated_width<<=1):
+                                                                        (_allocated
