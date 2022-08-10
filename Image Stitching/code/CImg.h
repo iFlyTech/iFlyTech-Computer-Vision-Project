@@ -52510,4 +52510,214 @@ namespace cimg_library_suffixed {
           while (_allocated_width>16 && _width<(_allocated_width>>1)) _allocated_width>>=1;
           CImg<T> *const new_data = new CImg<T>[_allocated_width];
           if (npos1) std::memcpy(new_data,_data,sizeof(CImg<T>)*npos1);
-          if (npos1!=_wid
+          if (npos1!=_width) std::memcpy(new_data + npos1,_data + npos2 + 1,sizeof(CImg<T>)*(_width - npos1));
+          if (_width!=_allocated_width) std::memset(new_data + _width,0,sizeof(CImg<T>)*(_allocated_width - _width));
+          std::memset(_data,0,sizeof(CImg<T>)*(_width + nb));
+          delete[] _data;
+          _data = new_data;
+        }
+      }
+      return *this;
+    }
+
+    //! Remove all images between from indexes \newinstance.
+    CImgList<T> get_remove(const unsigned int pos1, const unsigned int pos2) const {
+      return (+*this).remove(pos1,pos2);
+    }
+
+    //! Remove image at index \c pos from the image list.
+    /**
+      \param pos Index of the image to remove.
+    **/
+    CImgList<T>& remove(const unsigned int pos) {
+      return remove(pos,pos);
+    }
+
+    //! Remove image at index \c pos from the image list \newinstance.
+    CImgList<T> get_remove(const unsigned int pos) const {
+      return (+*this).remove(pos);
+    }
+
+    //! Remove last image.
+    /**
+    **/
+    CImgList<T>& remove() {
+      return remove(_width - 1);
+    }
+
+    //! Remove last image \newinstance.
+    CImgList<T> get_remove() const {
+      return (+*this).remove();
+    }
+
+    //! Reverse list order.
+    CImgList<T>& reverse() {
+      for (unsigned int l = 0; l<_width/2; ++l) (*this)[l].swap((*this)[_width - 1 - l]);
+      return *this;
+    }
+
+    //! Reverse list order \newinstance.
+    CImgList<T> get_reverse() const {
+      return (+*this).reverse();
+    }
+
+    //! Return a sublist.
+    /**
+      \param pos0 Starting index of the sublist.
+      \param pos1 Ending index of the sublist.
+    **/
+    CImgList<T>& images(const unsigned int pos0, const unsigned int pos1) {
+      return get_images(pos0,pos1).move_to(*this);
+    }
+
+    //! Return a sublist \newinstance.
+    CImgList<T> get_images(const unsigned int pos0, const unsigned int pos1) const {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l]);
+      return res;
+    }
+
+    //! Return a shared sublist.
+    /**
+      \param pos0 Starting index of the sublist.
+      \param pos1 Ending index of the sublist.
+    **/
+    CImgList<T> get_shared_images(const unsigned int pos0, const unsigned int pos1) {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "get_shared_images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l],_data[pos0 + l]?true:false);
+      return res;
+    }
+
+    //! Return a shared sublist \newinstance.
+    const CImgList<T> get_shared_images(const unsigned int pos0, const unsigned int pos1) const {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "get_shared_images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l],_data[pos0 + l]?true:false);
+      return res;
+    }
+
+    //! Return a single image which is the appending of all images of the current CImgList instance.
+    /**
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Appending alignment.
+    **/
+    CImg<T> get_append(const char axis, const float align=0) const {
+      if (is_empty()) return CImg<T>();
+      if (_width==1) return +((*this)[0]);
+      unsigned int dx = 0, dy = 0, dz = 0, dc = 0, pos = 0;
+      CImg<T> res;
+      switch (cimg::uncase(axis)) {
+      case 'x' : { // Along the X-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx+=img._width;
+            dy = cimg::max(dy,img._height);
+            dz = cimg::max(dz,img._depth);
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image(pos,
+                                    (int)(align*(dy - img._height)),
+                                    (int)(align*(dz - img._depth)),
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._width;
+          }
+      } break;
+      case 'y' : { // Along the Y-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy+=img._height;
+            dz = cimg::max(dz,img._depth);
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    pos,
+                                    (int)(align*(dz - img._depth)),
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._height;
+          }
+      } break;
+      case 'z' : { // Along the Z-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy = cimg::max(dy,img._height);
+            dz+=img._depth;
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    (int)(align*(dy - img._height)),
+                                    pos,
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._depth;
+          }
+      } break;
+      default : { // Along the C-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy = cimg::max(dy,img._height);
+            dz = cimg::max(dz,img._depth);
+            dc+=img._spectrum;
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    (int)(align*(dy - img._height)),
+                                    (int)(align*(dz - img._depth)),
+                                    pos,
+                                    img);
+            pos+=img._spectrum;
+          }
+      }
+      }
+      return res;
+    }
+
+    //! Return a list where each image has been split along the specified axis.
+    /**
+        \param axis Axis to split images along.
+        \param nb Number of spliting parts for each image.
+    **/
+    CImgList<T>& split(const char axis, const int nb=-1) {
+      return get_split(axis,nb).move_to(*this);
+    }
+
+    //! Return a list where each image has been split along the specified axis \newinstance.
+    CImgList<T> get_split(const char axis, const int nb=-1) const {
+      CImgList<T> r
