@@ -53060,4 +53060,196 @@ namespace cimg_library_suffixed {
     /**
      \param filename Filename to read data from.
     **/
-    CImgList<T>& load(const char *
+    CImgList<T>& load(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load(): Specified filename is (null).",
+                                    cimglist_instance);
+
+      if (!cimg::strncasecmp(filename,"http://",7) || !cimg::strncasecmp(filename,"https://",8)) {
+        CImg<charT> filename_local(256);
+        load(cimg::load_network(filename,filename_local));
+        std::remove(filename_local);
+        return *this;
+      }
+
+      const bool is_stdin = *filename=='-' && (!filename[1] || filename[1]=='.');
+      const char *const ext = cimg::split_filename(filename);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+#ifdef cimglist_load_plugin
+        cimglist_load_plugin(filename);
+#endif
+#ifdef cimglist_load_plugin1
+        cimglist_load_plugin1(filename);
+#endif
+#ifdef cimglist_load_plugin2
+        cimglist_load_plugin2(filename);
+#endif
+#ifdef cimglist_load_plugin3
+        cimglist_load_plugin3(filename);
+#endif
+#ifdef cimglist_load_plugin4
+        cimglist_load_plugin4(filename);
+#endif
+#ifdef cimglist_load_plugin5
+        cimglist_load_plugin5(filename);
+#endif
+#ifdef cimglist_load_plugin6
+        cimglist_load_plugin6(filename);
+#endif
+#ifdef cimglist_load_plugin7
+        cimglist_load_plugin7(filename);
+#endif
+#ifdef cimglist_load_plugin8
+        cimglist_load_plugin8(filename);
+#endif
+        if (!cimg::strcasecmp(ext,"tif") ||
+            !cimg::strcasecmp(ext,"tiff")) load_tiff(filename);
+        else if (!cimg::strcasecmp(ext,"gif")) load_gif_external(filename);
+        else if (!cimg::strcasecmp(ext,"cimg") ||
+                 !cimg::strcasecmp(ext,"cimgz") ||
+                 !*ext) load_cimg(filename);
+        else if (!cimg::strcasecmp(ext,"rec") ||
+                 !cimg::strcasecmp(ext,"par")) load_parrec(filename);
+        else if (!cimg::strcasecmp(ext,"avi") ||
+                 !cimg::strcasecmp(ext,"mov") ||
+                 !cimg::strcasecmp(ext,"asf") ||
+                 !cimg::strcasecmp(ext,"divx") ||
+                 !cimg::strcasecmp(ext,"flv") ||
+                 !cimg::strcasecmp(ext,"mpg") ||
+                 !cimg::strcasecmp(ext,"m1v") ||
+                 !cimg::strcasecmp(ext,"m2v") ||
+                 !cimg::strcasecmp(ext,"m4v") ||
+                 !cimg::strcasecmp(ext,"mjp") ||
+                 !cimg::strcasecmp(ext,"mp4") ||
+                 !cimg::strcasecmp(ext,"mkv") ||
+                 !cimg::strcasecmp(ext,"mpe") ||
+                 !cimg::strcasecmp(ext,"movie") ||
+                 !cimg::strcasecmp(ext,"ogm") ||
+                 !cimg::strcasecmp(ext,"ogg") ||
+                 !cimg::strcasecmp(ext,"ogv") ||
+                 !cimg::strcasecmp(ext,"qt") ||
+                 !cimg::strcasecmp(ext,"rm") ||
+                 !cimg::strcasecmp(ext,"vob") ||
+                 !cimg::strcasecmp(ext,"wmv") ||
+                 !cimg::strcasecmp(ext,"xvid") ||
+                 !cimg::strcasecmp(ext,"mpeg")) load_video(filename);
+        else if (!cimg::strcasecmp(ext,"gz")) load_gzip_external(filename);
+        else throw CImgIOException("CImgList<%s>::load()",
+                                   pixel_type());
+      } catch (CImgIOException&) {
+        std::FILE *file = 0;
+        if (!is_stdin) try {
+            file = cimg::fopen(filename,"rb");
+          } catch (CImgIOException&) {
+            cimg::exception_mode(omode);
+            throw CImgIOException(_cimglist_instance
+                                  "load(): Failed to open file '%s'.",
+                                  cimglist_instance,
+                                  filename);
+          }
+
+        try {
+          if (!is_stdin) {
+            const char *const f_type = cimg::ftype(file,filename);
+            std::fclose(file);
+            if (!cimg::strcasecmp(f_type,"gif")) load_gif_external(filename);
+            else if (!cimg::strcasecmp(f_type,"tif")) load_tiff(filename);
+            else throw CImgIOException("CImgList<%s>::load()",
+                                       pixel_type());
+          } else throw CImgIOException("CImgList<%s>::load()",
+                                       pixel_type());
+        } catch (CImgIOException&) {
+          assign(1);
+          try {
+            _data->load(filename);
+          } catch (CImgIOException&) {
+            cimg::exception_mode(omode);
+          throw CImgIOException(_cimglist_instance
+                                "load(): Failed to recognize format of file '%s'.",
+                                cimglist_instance,
+                                filename);
+          }
+        }
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Load a list from a file \newinstance.
+    static CImgList<T> get_load(const char *const filename) {
+      return CImgList<T>().load(filename);
+    }
+
+    //! Load a list from a .cimg file.
+    /**
+      \param filename Filename to read data from.
+    **/
+    CImgList<T>& load_cimg(const char *const filename) {
+      return _load_cimg(0,filename);
+    }
+
+    //! Load a list from a .cimg file \newinstance.
+    static CImgList<T> get_load_cimg(const char *const filename) {
+      return CImgList<T>().load_cimg(filename);
+    }
+
+    //! Load a list from a .cimg file.
+    /**
+      \param file File to read data from.
+    **/
+    CImgList<T>& load_cimg(std::FILE *const file) {
+      return _load_cimg(file,0);
+    }
+
+    //! Load a list from a .cimg file \newinstance.
+    static CImgList<T> get_load_cimg(std::FILE *const file) {
+      return CImgList<T>().load_cimg(file);
+    }
+
+    CImgList<T>& _load_cimg(std::FILE *const file, const char *const filename) {
+#ifdef cimg_use_zlib
+#define _cimgz_load_cimg_case(Tss) { \
+   Bytef *const cbuf = new Bytef[csiz]; \
+   cimg::fread(cbuf,csiz,nfile); \
+   raw.assign(W,H,D,C); \
+   uLongf destlen = (ulongT)raw.size()*sizeof(Tss); \
+   uncompress((Bytef*)raw._data,&destlen,cbuf,csiz); \
+   delete[] cbuf; \
+   if (endian!=cimg::endianness()) cimg::invert_endianness(raw._data,raw.size()); \
+   raw.move_to(img); \
+}
+#else
+#define _cimgz_load_cimg_case(Tss) \
+   throw CImgIOException(_cimglist_instance \
+                         "load_cimg(): Unable to load compressed data from file '%s' unless zlib is enabled.", \
+                         cimglist_instance, \
+                         filename?filename:"(FILE*)");
+#endif
+
+#define _cimg_load_cimg_case(Ts,Tss) \
+      if (!loaded && !cimg::strcasecmp(Ts,str_pixeltype)) { \
+        for (unsigned int l = 0; l<N; ++l) { \
+          j = 0; while ((i=std::fgetc(nfile))!='\n' && i>=0 && j<255) tmp[j++] = (char)i; tmp[j] = 0; \
+          W = H = D = C = 0; csiz = 0; \
+          if ((err = cimg_sscanf(tmp,"%u %u %u %u #%lu",&W,&H,&D,&C,&csiz))<4) \
+            throw CImgIOException(_cimglist_instance \
+                                  "load_cimg(): Invalid specified size (%u,%u,%u,%u) of image %u in file '%s'.", \
+                                  cimglist_instance, \
+                                  W,H,D,C,l,filename?filename:("(FILE*)")); \
+          if (W*H*D*C>0) { \
+            CImg<Tss> raw; \
+            CImg<T> &img = _data[l]; \
+            if (err==5) _cimgz_load_cimg_case(Tss) \
+            else { \
+              img.assign(W,H,D,C); \
+              T *ptrd = img._data; \
+              for (ulongT to_read = img.size(); to_read; ) { \
+                raw.assign((unsigned int)cimg::min(to_read,cimg_iobuffer)); \
+                cimg::fread(raw._data,raw._width,nfile); \
+                if (endian!=cimg::endianness()) cimg::invert_endianness(raw._data,raw.size()); \
+                const Tss *ptrs = raw._data; \
+                for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++); \
+         
