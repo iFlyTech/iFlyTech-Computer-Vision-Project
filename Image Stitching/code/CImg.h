@@ -52905,4 +52905,159 @@ namespace cimg_library_suffixed {
                 (old_normalization==3 && cimg::type<T>::string()!=cimg::type<unsigned char>::string())?
                 CImg<ucharT>(img2d.get_normalize(0,255)):
                 CImg<ucharT>(img2d);
-              if (re
+              if (res._spectrum>3) res.channels(0,2);
+              const unsigned int w = CImgDisplay::_fitscreen(res._width,res._height,1,128,-85,false);
+              res.resize(cimg::max(32U,w*disp._width/max_width),y - y0,1,res._spectrum==1?3:-100);
+              positions(ind,0) = positions(ind,2) = (int)(align*(visu0.width() - res.width()));
+              positions(ind,1) = positions(ind,3) = (int)y0;
+              positions(ind,2)+=res._width - 1;
+              positions(ind,3)+=res._height;
+              visu0.draw_image(positions(ind,0),positions(ind,1),res);
+            }
+          if (axis=='x') --positions(ind,2); else --positions(ind,3);
+          update_display = true;
+        }
+
+        if (!visu || oindice0!=indice0 || oindice1!=indice1) {
+          if (indice0>=0 && indice1>=0) {
+            visu.assign(visu0,false);
+            const int indm = cimg::min(indice0,indice1), indM = cimg::max(indice0,indice1);
+            for (int ind = indm; ind<=indM; ++ind) if (positions(ind,0)>=0) {
+                visu.draw_rectangle(positions(ind,0),positions(ind,1),positions(ind,2),positions(ind,3),
+                                    background_color,0.2f);
+                if ((axis=='x' && positions(ind,2) - positions(ind,0)>=8) ||
+                    (axis!='x' && positions(ind,3) - positions(ind,1)>=8))
+                  visu.draw_rectangle(positions(ind,0),positions(ind,1),positions(ind,2),positions(ind,3),
+                                      foreground_color,0.9f,0xAAAAAAAA);
+              }
+            const int yt = (int)text_down?visu.height() - 13:0;
+            if (is_clicked) visu.draw_text(0,yt," Images #%u - #%u, Size = %u",
+                                           foreground_color,background_color,0.7f,13,
+                                           orig + indm,orig + indM,indM - indm + 1);
+            else visu.draw_text(0,yt," Image #%u (%u,%u,%u,%u)",foreground_color,background_color,0.7f,13,
+                                orig + indice0,
+                                _data[indice0]._width,
+                                _data[indice0]._height,
+                                _data[indice0]._depth,
+                                _data[indice0]._spectrum);
+            update_display = true;
+          } else visu.assign();
+        }
+        if (!visu) { visu.assign(visu0,true); update_display = true; }
+        if (update_display) { visu.display(disp); update_display = false; }
+        disp.wait();
+
+        // Manage user events.
+        const int xm = disp.mouse_x(), ym = disp.mouse_y();
+        int indice = -1;
+
+        if (xm>=0) {
+          indice = (int)indices(axis=='x'?xm:ym);
+          if (disp.button()&1) {
+            if (!is_clicked) { is_clicked = true; oindice0 = indice0; indice0 = indice; }
+            oindice1 = indice1; indice1 = indice;
+            if (!feature_type) is_selected = true;
+          } else {
+            if (!is_clicked) { oindice0 = oindice1 = indice0; indice0 = indice1 = indice; }
+            else is_selected = true;
+          }
+        } else {
+          if (is_clicked) {
+            if (!(disp.button()&1)) { is_clicked = is_selected = false; indice0 = indice1 = -1; }
+            else indice1 = -1;
+          } else indice0 = indice1 = -1;
+        }
+
+        if (disp.button()&4) { is_clicked = is_selected = false; indice0 = indice1 = -1; }
+        if (disp.button()&2 && exit_on_rightbutton) { is_selected = true; indice1 = indice0 = -1; }
+        if (disp.wheel() && exit_on_wheel) is_selected = true;
+
+        CImg<charT> filename(32);
+        switch (key = disp.key()) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT :
+#endif
+        case 0 : case cimg::keyCTRLLEFT : key = 0; break;
+        case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                     CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(axis=='x'?sum_width:max_width,axis=='x'?max_height:sum_height,1),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.resize(disp.screen_width(),disp.screen_height(),false).toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            if (visu0) {
+              (+visu0).draw_text(0,0," Saving snapshot... ",
+                                 foreground_color,background_color,0.7f,13).display(disp);
+              visu0.save(filename);
+              (+visu0).draw_text(0,0," Snapshot '%s' saved. ",
+                                 foreground_color,background_color,0.7f,13,filename._data).display(disp);
+            }
+            disp.set_key(key,false).wait(); key = 0;
+          } break;
+        case cimg::keyO :
+          if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu0).draw_text(0,0," Saving instance... ",
+                               foreground_color,background_color,0.7f,13).display(disp);
+            save(filename);
+            (+visu0).draw_text(0,0," Instance '%s' saved. ",
+                               foreground_color,background_color,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false).wait(); key = 0;
+          } break;
+        }
+        if (disp.is_resized()) { disp.resize(false); visu0.assign(); }
+        if (ym>=0 && ym<13) { if (!text_down) { visu.assign(); text_down = true; }}
+        else if (ym>=visu.height() - 13) { if(text_down) { visu.assign(); text_down = false; }}
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      CImg<intT> res(1,2,1,1,-1);
+      if (is_selected) {
+        if (feature_type) res.fill(cimg::min(indice0,indice1),cimg::max(indice0,indice1));
+        else res.fill(indice0);
+      }
+      if (!(disp.button()&2)) disp.set_button();
+      disp._normalization = old_normalization;
+      disp._is_resized = old_is_resized;
+      disp.set_key(key);
+      return res;
+    }
+
+    //! Load a list from a file.
+    /**
+     \param filename Filename to read data from.
+    **/
+    CImgList<T>& load(const char *
