@@ -52720,4 +52720,189 @@ namespace cimg_library_suffixed {
 
     //! Return a list where each image has been split along the specified axis \newinstance.
     CImgList<T> get_split(const char axis, const int nb=-1) const {
-      CImgList<T> r
+      CImgList<T> res;
+      cimglist_for(*this,l) _data[l].get_split(axis,nb).move_to(res,~0U);
+      return res;
+    }
+
+    //! Insert image at the end of the list.
+    /**
+      \param img Image to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_back(const CImg<t>& img) {
+      return insert(img);
+    }
+
+    //! Insert image at the front of the list.
+    /**
+      \param img Image to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_front(const CImg<t>& img) {
+      return insert(img,0);
+    }
+
+    //! Insert list at the end of the current list.
+    /**
+      \param list List to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_back(const CImgList<t>& list) {
+      return insert(list);
+    }
+
+    //! Insert list at the front of the current list.
+    /**
+      \param list List to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_front(const CImgList<t>& list) {
+      return insert(list,0);
+    }
+
+    //! Remove last image.
+    /**
+    **/
+    CImgList<T>& pop_back() {
+      return remove(_width - 1);
+    }
+
+    //! Remove first image.
+    /**
+    **/
+    CImgList<T>& pop_front() {
+      return remove(0);
+    }
+
+    //! Remove image pointed by iterator.
+    /**
+      \param iter Iterator pointing to the image to remove.
+    **/
+    CImgList<T>& erase(const iterator iter) {
+      return remove(iter - _data);
+    }
+
+    //@}
+    //----------------------------------
+    //
+    //! \name Data Input
+    //@{
+    //----------------------------------
+
+    //! Display a simple interactive interface to select images or sublists.
+    /**
+       \param disp Window instance to display selection and user interface.
+       \param feature_type Can be \c false to select a single image, or \c true to select a sublist.
+       \param axis Axis along whom images are appended for visualization.
+       \param align Alignment setting when images have not all the same size.
+       \return A one-column vector containing the selected image indexes.
+    **/
+    CImg<intT> get_select(CImgDisplay &disp, const bool feature_type=true,
+                          const char axis='x', const float align=0,
+                          const bool exit_on_anykey=false) const {
+      return _get_select(disp,0,feature_type,axis,align,exit_on_anykey,0,false,false,false);
+    }
+
+    //! Display a simple interactive interface to select images or sublists.
+    /**
+       \param title Title of a new window used to display selection and user interface.
+       \param feature_type Can be \c false to select a single image, or \c true to select a sublist.
+       \param axis Axis along whom images are appended for visualization.
+       \param align Alignment setting when images have not all the same size.
+       \return A one-column vector containing the selected image indexes.
+    **/
+    CImg<intT> get_select(const char *const title, const bool feature_type=true,
+                          const char axis='x', const float align=0,
+                          const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _get_select(disp,title,feature_type,axis,align,exit_on_anykey,0,false,false,false);
+    }
+
+    CImg<intT> _get_select(CImgDisplay &disp, const char *const title, const bool feature_type,
+                           const char axis, const float align, const bool exit_on_anykey,
+                           const unsigned int orig, const bool resize_disp,
+                           const bool exit_on_rightbutton, const bool exit_on_wheel) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "select(): Empty instance.",
+                                    cimglist_instance);
+
+      // Create image correspondence table and get list dimensions for visualization.
+      CImgList<uintT> _indices;
+      unsigned int max_width = 0, max_height = 0, sum_width = 0, sum_height = 0;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        const unsigned int
+          w = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,false),
+          h = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,true);
+        if (w>max_width) max_width = w;
+        if (h>max_height) max_height = h;
+        sum_width+=w; sum_height+=h;
+        if (axis=='x') CImg<uintT>(w,1,1,1,(unsigned int)l).move_to(_indices);
+        else CImg<uintT>(h,1,1,1,(unsigned int)l).move_to(_indices);
+      }
+      const CImg<uintT> indices0 = _indices>'x';
+
+      // Create display window.
+      if (!disp) {
+        if (axis=='x') disp.assign(cimg_fitscreen(sum_width,max_height,1),title?title:0,1);
+        else disp.assign(cimg_fitscreen(max_width,sum_height,1),title?title:0,1);
+        if (!title) disp.set_title("CImgList<%s> (%u)",pixel_type(),_width);
+      } else if (title) disp.set_title("%s",title);
+      if (resize_disp) {
+        if (axis=='x') disp.resize(cimg_fitscreen(sum_width,max_height,1),false);
+        else disp.resize(cimg_fitscreen(max_width,sum_height,1),false);
+      }
+
+      const unsigned int old_normalization = disp.normalization();
+      bool old_is_resized = disp.is_resized();
+      disp._normalization = 0;
+      disp.show().set_key(0);
+      static const unsigned char foreground_color[] = { 255,255,255 }, background_color[] = { 0,0,0 };
+
+      // Enter event loop.
+      CImg<ucharT> visu0, visu;
+      CImg<uintT> indices;
+      CImg<intT> positions(_width,4,1,1,-1);
+      int oindice0 = -1, oindice1 = -1, indice0 = -1, indice1 = -1;
+      bool is_clicked = false, is_selected = false, text_down = false, update_display = true;
+      unsigned int key = 0;
+
+      while (!is_selected && !disp.is_closed() && !key) {
+
+        // Create background image.
+        if (!visu0) {
+          visu0.assign(disp._width,disp._height,1,3,0); visu.assign();
+          (indices0.get_resize(axis=='x'?visu0._width:visu0._height,1)).move_to(indices);
+          unsigned int ind = 0;
+          if (axis=='x') for (unsigned int x = 0; x<visu0._width; ) {
+              const unsigned int x0 = x;
+              ind = indices[x];
+              while (x<indices._width && indices[x++]==ind) {}
+              const CImg<T>
+                onexone(1,1,1,1,0),
+                &src = _data[ind]?_data[ind]:onexone;
+              CImg<ucharT> res;
+              src.__get_select(disp,old_normalization,(src._width - 1)/2,(src._height - 1)/2,(src._depth - 1)/2).
+                move_to(res);
+              const unsigned int h = CImgDisplay::_fitscreen(res._width,res._height,1,128,-85,true);
+              res.resize(x - x0,cimg::max(32U,h*disp._height/max_height),1,res._spectrum==1?3:-100);
+              positions(ind,0) = positions(ind,2) = (int)x0;
+              positions(ind,1) = positions(ind,3) = (int)(align*(visu0.height() - res.height()));
+              positions(ind,2)+=res._width;
+              positions(ind,3)+=res._height - 1;
+              visu0.draw_image(positions(ind,0),positions(ind,1),res);
+            } else for (unsigned int y = 0; y<visu0._height; ) {
+              const unsigned int y0 = y;
+              ind = indices[y];
+              while (y<visu0._height && indices[++y]==ind) {}
+              const CImg<T> &src = _data[ind];
+              const CImg<Tuchar>
+                img2d = src._depth>1?src.get_projections2d((src._width - 1)/2,(src._height - 1)/2,(src._depth - 1)/2):
+                cimg::type<Tuchar>::string()==cimg::type<T>::string()?src.get_shared():src;
+              CImg<ucharT> res = old_normalization==1 ||
+                (old_normalization==3 && cimg::type<T>::string()!=cimg::type<unsigned char>::string())?
+                CImg<ucharT>(img2d.get_normalize(0,255)):
+                CImg<ucharT>(img2d);
+              if (re
