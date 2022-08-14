@@ -53252,4 +53252,151 @@ namespace cimg_library_suffixed {
                 if (endian!=cimg::endianness()) cimg::invert_endianness(raw._data,raw.size()); \
                 const Tss *ptrs = raw._data; \
                 for (ulongT off = (ulongT)raw._width; off; --off) *(ptrd++) = (T)*(ptrs++); \
-         
+                to_read-=raw._width; \
+              } \
+            } \
+          } \
+        } \
+        loaded = true; \
+      }
+
+      if (!filename && !file)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_cimg(): Specified filename is (null).",
+                                    cimglist_instance);
+
+      const ulongT cimg_iobuffer = (ulongT)24*1024*1024;
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      bool loaded = false, endian = cimg::endianness();
+      CImg<charT> tmp(256), str_pixeltype(256), str_endian(256);
+      *tmp = *str_pixeltype = *str_endian = 0;
+      unsigned int j, N = 0, W, H, D, C;
+      ulongT csiz;
+      int i, err;
+      do {
+        j = 0; while ((i=std::fgetc(nfile))!='\n' && i>=0 && j<255) tmp[j++] = (char)i; tmp[j] = 0;
+      } while (*tmp=='#' && i>=0);
+      err = cimg_sscanf(tmp,"%u%*c%255[A-Za-z64_]%*c%255[sA-Za-z_ ]",
+                        &N,str_pixeltype._data,str_endian._data);
+      if (err<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "load_cimg(): CImg header not found in file '%s'.",
+                              cimglist_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (!cimg::strncasecmp("little",str_endian,6)) endian = false;
+      else if (!cimg::strncasecmp("big",str_endian,3)) endian = true;
+      assign(N);
+      _cimg_load_cimg_case("bool",bool);
+      _cimg_load_cimg_case("unsigned_char",unsigned char);
+      _cimg_load_cimg_case("uchar",unsigned char);
+      _cimg_load_cimg_case("char",char);
+      _cimg_load_cimg_case("unsigned_short",unsigned short);
+      _cimg_load_cimg_case("ushort",unsigned short);
+      _cimg_load_cimg_case("short",short);
+      _cimg_load_cimg_case("unsigned_int",unsigned int);
+      _cimg_load_cimg_case("uint",unsigned int);
+      _cimg_load_cimg_case("int",int);
+      _cimg_load_cimg_case("unsigned_long",ulongT);
+      _cimg_load_cimg_case("ulong",ulongT);
+      _cimg_load_cimg_case("long",longT);
+      _cimg_load_cimg_case("unsigned_int64",uint64T);
+      _cimg_load_cimg_case("uint64",uint64T);
+      _cimg_load_cimg_case("int64",int64T);
+      _cimg_load_cimg_case("float",float);
+      _cimg_load_cimg_case("double",double);
+
+      if (!loaded) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "load_cimg(): Unsupported pixel type '%s' for file '%s'.",
+                              cimglist_instance,
+                              str_pixeltype._data,filename?filename:"(FILE*)");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load a sublist list from a (non compressed) .cimg file.
+    /**
+      \param filename Filename to read data from.
+      \param n0 Starting index of images to read (~0U for max).
+      \param n1 Ending index of images to read (~0U for max).
+      \param x0 Starting X-coordinates of image regions to read.
+      \param y0 Starting Y-coordinates of image regions to read.
+      \param z0 Starting Z-coordinates of image regions to read.
+      \param c0 Starting C-coordinates of image regions to read.
+      \param x1 Ending X-coordinates of image regions to read (~0U for max).
+      \param y1 Ending Y-coordinates of image regions to read (~0U for max).
+      \param z1 Ending Z-coordinates of image regions to read (~0U for max).
+      \param c1 Ending C-coordinates of image regions to read (~0U for max).
+    **/
+    CImgList<T>& load_cimg(const char *const filename,
+                           const unsigned int n0, const unsigned int n1,
+                           const unsigned int x0, const unsigned int y0,
+                           const unsigned int z0, const unsigned int c0,
+                           const unsigned int x1, const unsigned int y1,
+                           const unsigned int z1, const unsigned int c1) {
+      return _load_cimg(0,filename,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+    }
+
+    //! Load a sublist list from a (non compressed) .cimg file \newinstance.
+    static CImgList<T> get_load_cimg(const char *const filename,
+                                     const unsigned int n0, const unsigned int n1,
+                                     const unsigned int x0, const unsigned int y0,
+                                     const unsigned int z0, const unsigned int c0,
+                                     const unsigned int x1, const unsigned int y1,
+                                     const unsigned int z1, const unsigned int c1) {
+      return CImgList<T>().load_cimg(filename,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+    }
+
+    //! Load a sub-image list from a (non compressed) .cimg file \overloading.
+    CImgList<T>& load_cimg(std::FILE *const file,
+                           const unsigned int n0, const unsigned int n1,
+                           const unsigned int x0, const unsigned int y0,
+                           const unsigned int z0, const unsigned int c0,
+                           const unsigned int x1, const unsigned int y1,
+                           const unsigned int z1, const unsigned int c1) {
+      return _load_cimg(file,0,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+    }
+
+    //! Load a sub-image list from a (non compressed) .cimg file \newinstance.
+    static CImgList<T> get_load_cimg(std::FILE *const file,
+                                     const unsigned int n0, const unsigned int n1,
+                                     const unsigned int x0, const unsigned int y0,
+                                     const unsigned int z0, const unsigned int c0,
+                                     const unsigned int x1, const unsigned int y1,
+                                     const unsigned int z1, const unsigned int c1) {
+      return CImgList<T>().load_cimg(file,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+    }
+
+    CImgList<T>& _load_cimg(std::FILE *const file, const char *const filename,
+                            const unsigned int n0, const unsigned int n1,
+                            const unsigned int x0, const unsigned int y0,
+                            const unsigned int z0, const unsigned int c0,
+                            const unsigned int x1, const unsigned int y1,
+                            const unsigned int z1, const unsigned int c1) {
+#define _cimg_load_cimg_case2(Ts,Tss) \
+      if (!loaded && !cimg::strcasecmp(Ts,str_pixeltype)) { \
+        for (unsigned int l = 0; l<=nn1; ++l) { \
+          j = 0; while ((i=std::fgetc(nfile))!='\n' && i>=0) tmp[j++] = (char)i; tmp[j] = 0; \
+          W = H = D = C = 0; \
+          if (cimg_sscanf(tmp,"%u %u %u %u",&W,&H,&D,&C)!=4) \
+            throw CImgIOException(_cimglist_instance \
+                                  "load_cimg(): Invalid specified size (%u,%u,%u,%u) of image %u in file '%s'", \
+                                  cimglist_instance, \
+                                  W,H,D,C,l,filename?filename:"(FILE*)"); \
+          if (W*H*D*C>0) { \
+            if (l<nn0 || nx0>=W || ny0>=H || nz0>=D || nc0>=C) cimg::fseek(nfile,W*H*D*C*sizeof(Tss),SEEK_CUR); \
+            else { \
+              const unsigned int \
+                _nx1 = nx1==~0U?W - 1:nx1, \
+                _ny1 = ny1==~0U?H - 1:ny1, \
+                _nz1 = nz1==~0U?D - 1:nz1, \
+                _nc1 = nc1==~0U?C - 1:nc1; \
+              if (_nx1>=W || _ny1>=H || _nz1>=D || _nc1>=C) \
+                throw CImgArgumentException(_cimglist_instance \
+                                            "load_cimg(): Invalid specified coordinates " \
+                                            "[%u](%u,%u,%u,%u) -> [%u](%u,%u,%u,%u) " \
+                                            "because image [%u] in file '%s' has size (%u,%u,
