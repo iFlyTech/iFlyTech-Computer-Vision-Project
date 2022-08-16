@@ -53399,4 +53399,155 @@ namespace cimg_library_suffixed {
                 throw CImgArgumentException(_cimglist_instance \
                                             "load_cimg(): Invalid specified coordinates " \
                                             "[%u](%u,%u,%u,%u) -> [%u](%u,%u,%u,%u) " \
-                                            "because image [%u] in file '%s' has size (%u,%u,
+                                            "because image [%u] in file '%s' has size (%u,%u,%u,%u).", \
+                                            cimglist_instance, \
+                                            n0,x0,y0,z0,c0,n1,x1,y1,z1,c1,l,filename?filename:"(FILE*)",W,H,D,C); \
+              CImg<Tss> raw(1 + _nx1 - nx0); \
+              CImg<T> &img = _data[l - nn0]; \
+              img.assign(1 + _nx1 - nx0,1 + _ny1 - ny0,1 + _nz1 - nz0,1 + _nc1 - nc0); \
+              T *ptrd = img._data; \
+              ulongT skipvb = nc0*W*H*D*sizeof(Tss); \
+              if (skipvb) cimg::fseek(nfile,skipvb,SEEK_CUR); \
+              for (unsigned int c = 1 + _nc1 - nc0; c; --c) { \
+                const ulongT skipzb = nz0*W*H*sizeof(Tss); \
+                if (skipzb) cimg::fseek(nfile,skipzb,SEEK_CUR); \
+                for (unsigned int z = 1 + _nz1 - nz0; z; --z) { \
+                  const ulongT skipyb = ny0*W*sizeof(Tss); \
+                  if (skipyb) cimg::fseek(nfile,skipyb,SEEK_CUR); \
+                  for (unsigned int y = 1 + _ny1 - ny0; y; --y) { \
+                    const ulongT skipxb = nx0*sizeof(Tss); \
+                    if (skipxb) cimg::fseek(nfile,skipxb,SEEK_CUR); \
+                    cimg::fread(raw._data,raw._width,nfile); \
+                    if (endian!=cimg::endianness()) cimg::invert_endianness(raw._data,raw._width); \
+                    const Tss *ptrs = raw._data; \
+                    for (unsigned int off = raw._width; off; --off) *(ptrd++) = (T)*(ptrs++); \
+                    const ulongT skipxe = (W - 1 - _nx1)*sizeof(Tss); \
+                    if (skipxe) cimg::fseek(nfile,skipxe,SEEK_CUR); \
+                  } \
+                  const ulongT skipye = (H - 1 - _ny1)*W*sizeof(Tss); \
+                  if (skipye) cimg::fseek(nfile,skipye,SEEK_CUR); \
+                } \
+                const ulongT skipze = (D - 1 - _nz1)*W*H*sizeof(Tss); \
+                if (skipze) cimg::fseek(nfile,skipze,SEEK_CUR); \
+              } \
+              const ulongT skipve = (C - 1 - _nc1)*W*H*D*sizeof(Tss); \
+              if (skipve) cimg::fseek(nfile,skipve,SEEK_CUR); \
+            } \
+          } \
+        } \
+        loaded = true; \
+      }
+
+      if (!filename && !file)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_cimg(): Specified filename is (null).",
+                                    cimglist_instance);
+      unsigned int
+        nn0 = cimg::min(n0,n1), nn1 = cimg::max(n0,n1),
+        nx0 = cimg::min(x0,x1), nx1 = cimg::max(x0,x1),
+        ny0 = cimg::min(y0,y1), ny1 = cimg::max(y0,y1),
+        nz0 = cimg::min(z0,z1), nz1 = cimg::max(z0,z1),
+        nc0 = cimg::min(c0,c1), nc1 = cimg::max(c0,c1);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      bool loaded = false, endian = cimg::endianness();
+      CImg<charT> tmp(256), str_pixeltype(256), str_endian(256);
+      *tmp = *str_pixeltype = *str_endian = 0;
+      unsigned int j, N, W, H, D, C;
+      int i, err;
+      j = 0; while ((i=std::fgetc(nfile))!='\n' && i!=EOF && j<256) tmp[j++] = (char)i; tmp[j] = 0;
+      err = cimg_sscanf(tmp,"%u%*c%255[A-Za-z64_]%*c%255[sA-Za-z_ ]",
+                        &N,str_pixeltype._data,str_endian._data);
+      if (err<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "load_cimg(): CImg header not found in file '%s'.",
+                              cimglist_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (!cimg::strncasecmp("little",str_endian,6)) endian = false;
+      else if (!cimg::strncasecmp("big",str_endian,3)) endian = true;
+      nn1 = n1==~0U?N - 1:n1;
+      if (nn1>=N)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_cimg(): Invalid specified coordinates [%u](%u,%u,%u,%u) -> [%u](%u,%u,%u,%u) "
+                                    "because file '%s' contains only %u images.",
+                                    cimglist_instance,
+                                    n0,x0,y0,z0,c0,n1,x1,y1,z1,c1,filename?filename:"(FILE*)",N);
+      assign(1 + nn1 - n0);
+      _cimg_load_cimg_case2("bool",bool);
+      _cimg_load_cimg_case2("unsigned_char",unsigned char);
+      _cimg_load_cimg_case2("uchar",unsigned char);
+      _cimg_load_cimg_case2("char",char);
+      _cimg_load_cimg_case2("unsigned_short",unsigned short);
+      _cimg_load_cimg_case2("ushort",unsigned short);
+      _cimg_load_cimg_case2("short",short);
+      _cimg_load_cimg_case2("unsigned_int",unsigned int);
+      _cimg_load_cimg_case2("uint",unsigned int);
+      _cimg_load_cimg_case2("int",int);
+      _cimg_load_cimg_case2("unsigned_long",ulongT);
+      _cimg_load_cimg_case2("ulong",ulongT);
+      _cimg_load_cimg_case2("long",longT);
+      _cimg_load_cimg_case2("unsigned_int64",uint64T);
+      _cimg_load_cimg_case2("uint64",uint64T);
+      _cimg_load_cimg_case2("int64",int64T);
+      _cimg_load_cimg_case2("float",float);
+      _cimg_load_cimg_case2("double",double);
+      if (!loaded) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "load_cimg(): Unsupported pixel type '%s' for file '%s'.",
+                              cimglist_instance,
+                              str_pixeltype._data,filename?filename:"(FILE*)");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load a list from a PAR/REC (Philips) file.
+    /**
+      \param filename Filename to read data from.
+    **/
+    CImgList<T>& load_parrec(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_parrec(): Specified filename is (null).",
+                                    cimglist_instance);
+
+      CImg<charT> body(1024), filenamepar(1024), filenamerec(1024);
+      *body = *filenamepar = *filenamerec = 0;
+      const char *const ext = cimg::split_filename(filename,body);
+      if (!std::strcmp(ext,"par")) {
+        std::strncpy(filenamepar,filename,filenamepar._width - 1);
+        cimg_snprintf(filenamerec,filenamerec._width,"%s.rec",body._data);
+      }
+      if (!std::strcmp(ext,"PAR")) {
+        std::strncpy(filenamepar,filename,filenamepar._width - 1);
+        cimg_snprintf(filenamerec,filenamerec._width,"%s.REC",body._data);
+      }
+      if (!std::strcmp(ext,"rec")) {
+        std::strncpy(filenamerec,filename,filenamerec._width - 1);
+        cimg_snprintf(filenamepar,filenamepar._width,"%s.par",body._data);
+      }
+      if (!std::strcmp(ext,"REC")) {
+        std::strncpy(filenamerec,filename,filenamerec._width - 1);
+        cimg_snprintf(filenamepar,filenamepar._width,"%s.PAR",body._data);
+      }
+      std::FILE *file = cimg::fopen(filenamepar,"r");
+
+      // Parse header file
+      CImgList<floatT> st_slices;
+      CImgList<uintT> st_global;
+      CImg<charT> line(256); *line = 0;
+      int err;
+      do { err = std::fscanf(file,"%255[^\n]%*c",line._data); } while (err!=EOF && (*line=='#' || *line=='.'));
+      do {
+        unsigned int sn,size_x,size_y,pixsize;
+        float rs,ri,ss;
+        err = std::fscanf(file,"%u%*u%*u%*u%*u%*u%*u%u%*u%u%u%g%g%g%*[^\n]",&sn,&pixsize,&size_x,&size_y,&ri,&rs,&ss);
+        if (err==7) {
+          CImg<floatT>::vector((float)sn,(float)pixsize,(float)size_x,(float)size_y,ri,rs,ss,0).move_to(st_slices);
+          unsigned int i; for (i = 0; i<st_global._width && sn<=st_global[i][2]; ++i) {}
+          if (i==st_global._width) CImg<uintT>::vector(size_x,size_y,sn).move_to(st_global);
+          else {
+            CImg<uintT> &vec =
