@@ -53550,4 +53550,163 @@ namespace cimg_library_suffixed {
           unsigned int i; for (i = 0; i<st_global._width && sn<=st_global[i][2]; ++i) {}
           if (i==st_global._width) CImg<uintT>::vector(size_x,size_y,sn).move_to(st_global);
           else {
-            CImg<uintT> &vec =
+            CImg<uintT> &vec = st_global[i];
+            if (size_x>vec[0]) vec[0] = size_x;
+            if (size_y>vec[1]) vec[1] = size_y;
+            vec[2] = sn;
+          }
+          st_slices[st_slices._width - 1][7] = (float)i;
+        }
+      } while (err==7);
+
+      // Read data
+      std::FILE *file2 = cimg::fopen(filenamerec,"rb");
+      cimglist_for(st_global,l) {
+        const CImg<uintT>& vec = st_global[l];
+        CImg<T>(vec[0],vec[1],vec[2]).move_to(*this);
+      }
+
+      cimglist_for(st_slices,l) {
+        const CImg<floatT>& vec = st_slices[l];
+        const unsigned int
+          sn = (unsigned int)vec[0] - 1,
+          pixsize = (unsigned int)vec[1],
+          size_x = (unsigned int)vec[2],
+          size_y = (unsigned int)vec[3],
+          imn = (unsigned int)vec[7];
+        const float ri = vec[4], rs = vec[5], ss = vec[6];
+        switch (pixsize) {
+        case 8 : {
+          CImg<ucharT> buf(size_x,size_y);
+          cimg::fread(buf._data,size_x*size_y,file2);
+          if (cimg::endianness()) cimg::invert_endianness(buf._data,size_x*size_y);
+          CImg<T>& img = (*this)[imn];
+          cimg_forXY(img,x,y) img(x,y,sn) = (T)(( buf(x,y)*rs + ri )/(rs*ss));
+        } break;
+        case 16 : {
+          CImg<ushortT> buf(size_x,size_y);
+          cimg::fread(buf._data,size_x*size_y,file2);
+          if (cimg::endianness()) cimg::invert_endianness(buf._data,size_x*size_y);
+          CImg<T>& img = (*this)[imn];
+          cimg_forXY(img,x,y) img(x,y,sn) = (T)(( buf(x,y)*rs + ri )/(rs*ss));
+        } break;
+        case 32 : {
+          CImg<uintT> buf(size_x,size_y);
+          cimg::fread(buf._data,size_x*size_y,file2);
+          if (cimg::endianness()) cimg::invert_endianness(buf._data,size_x*size_y);
+          CImg<T>& img = (*this)[imn];
+          cimg_forXY(img,x,y) img(x,y,sn) = (T)(( buf(x,y)*rs + ri )/(rs*ss));
+        } break;
+        default :
+          cimg::fclose(file);
+          cimg::fclose(file2);
+          throw CImgIOException(_cimglist_instance
+                                "load_parrec(): Unsupported %d-bits pixel type for file '%s'.",
+                                cimglist_instance,
+                                pixsize,filename);
+        }
+      }
+      cimg::fclose(file);
+      cimg::fclose(file2);
+      if (!_width)
+        throw CImgIOException(_cimglist_instance
+                              "load_parrec(): Failed to recognize valid PAR-REC data in file '%s'.",
+                              cimglist_instance,
+                              filename);
+      return *this;
+    }
+
+    //! Load a list from a PAR/REC (Philips) file \newinstance.
+    static CImgList<T> get_load_parrec(const char *const filename) {
+      return CImgList<T>().load_parrec(filename);
+    }
+
+    //! Load a list from a YUV image sequence file.
+    /**
+        \param filename Filename to read data from.
+        \param size_x Width of the images.
+        \param size_y Height of the images.
+        \param first_frame Index of first image frame to read.
+        \param last_frame Index of last image frame to read.
+        \param step_frame Step applied between each frame.
+        \param yuv2rgb Apply YUV to RGB transformation during reading.
+    **/
+    CImgList<T>& load_yuv(const char *const filename,
+                          const unsigned int size_x, const unsigned int size_y,
+                          const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                          const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return _load_yuv(0,filename,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    //! Load a list from a YUV image sequence file \newinstance.
+    static CImgList<T> get_load_yuv(const char *const filename,
+                                    const unsigned int size_x, const unsigned int size_y=1,
+                                    const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                    const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return CImgList<T>().load_yuv(filename,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    //! Load a list from an image sequence YUV file \overloading.
+    CImgList<T>& load_yuv(std::FILE *const file,
+                          const unsigned int size_x, const unsigned int size_y,
+                          const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                          const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return _load_yuv(file,0,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    //! Load a list from an image sequence YUV file \newinstance.
+    static CImgList<T> get_load_yuv(std::FILE *const file,
+                                    const unsigned int size_x, const unsigned int size_y=1,
+                                    const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                    const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return CImgList<T>().load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    CImgList<T>& _load_yuv(std::FILE *const file, const char *const filename,
+                           const unsigned int size_x, const unsigned int size_y,
+                           const unsigned int first_frame, const unsigned int last_frame,
+                           const unsigned int step_frame, const bool yuv2rgb) {
+      if (!filename && !file)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (size_x%2 || size_y%2)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Invalid odd XY dimensions %ux%u in file '%s'.",
+                                    cimglist_instance,
+                                    size_x,size_y,filename?filename:"(FILE*)");
+      if (!size_x || !size_y)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Invalid sequence size (%u,%u) in file '%s'.",
+                                    cimglist_instance,
+                                    size_x,size_y,filename?filename:"(FILE*)");
+
+      const unsigned int
+        nfirst_frame = first_frame<last_frame?first_frame:last_frame,
+        nlast_frame = first_frame<last_frame?last_frame:first_frame,
+        nstep_frame = step_frame?step_frame:1;
+
+      CImg<ucharT> tmp(size_x,size_y,1,3), UV(size_x/2,size_y/2,1,2);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      bool stop_flag = false;
+      int err;
+      if (nfirst_frame) {
+        err = cimg::fseek(nfile,nfirst_frame*(size_x*size_y + size_x*size_y/2),SEEK_CUR);
+        if (err) {
+          if (!file) cimg::fclose(nfile);
+          throw CImgIOException(_cimglist_instance
+                                "load_yuv(): File '%s' doesn't contain frame number %u.",
+                                cimglist_instance,
+                                filename?filename:"(FILE*)",nfirst_frame);
+        }
+      }
+      unsigned int frame;
+      for (frame = nfirst_frame; !stop_flag && frame<=nlast_frame; frame+=nstep_frame) {
+        tmp.fill(0);
+        // *TRY* to read the luminance part, do not replace by cimg::fread!
+        err = (int)std::fread((void*)(tmp._data),1,(ulongT)tmp._width*tmp._height,nfile);
+        if (err!=(int)(tmp._width*tmp._height)) {
+          stop_flag = true;
+          if (err>0)
+            cimg::warn(_cimglist_instance
+                       "load_yuv(): File
