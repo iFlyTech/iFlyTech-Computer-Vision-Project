@@ -54199,4 +54199,155 @@ namespace cimg_library_suffixed {
       if (!title) cimg_snprintf(_title,_title._width,"CImgList<%s>",pixel_type());
       std::fprintf(cimg::output(),"%s%s%s%s: %sthis%s = %p, %ssize%s = %u/%u [%u %s], %sdata%s = (CImg<%s>*)%p",
                    cimg::t_magenta,cimg::t_bold,title?title:_title._data,cimg::t_normal,
-            
+                   cimg::t_bold,cimg::t_normal,(void*)this,
+                   cimg::t_bold,cimg::t_normal,_width,_allocated_width,
+                   mdisp==0?msiz:(mdisp==1?(msiz>>10):(msiz>>20)),
+                   mdisp==0?"b":(mdisp==1?"Kio":"Mio"),
+                   cimg::t_bold,cimg::t_normal,pixel_type(),(void*)begin());
+      if (_data) std::fprintf(cimg::output(),"..%p.\n",(void*)((char*)end() - 1));
+      else std::fprintf(cimg::output(),".\n");
+
+      char tmp[16] = { 0 };
+      cimglist_for(*this,ll) {
+        cimg_snprintf(tmp,sizeof(tmp),"[%d]",ll);
+        std::fprintf(cimg::output(),"  ");
+        _data[ll].print(tmp,display_stats);
+        if (ll==3 && width()>8) { ll = width() - 5; std::fprintf(cimg::output(),"  ...\n"); }
+      }
+      std::fflush(cimg::output());
+      return *this;
+    }
+
+    //! Display the current CImgList instance in an existing CImgDisplay window (by reference).
+    /**
+       \param disp Reference to an existing CImgDisplay instance, where the current image list will be displayed.
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Appending alignmenet.
+       \note This function displays the list images of the current CImgList instance into an existing
+         CImgDisplay window.
+       Images of the list are appended in a single temporarly image for visualization purposes.
+       The function returns immediately.
+    **/
+    const CImgList<T>& display(CImgDisplay &disp, const char axis='x', const float align=0) const {
+      disp.display(*this,axis,align);
+      return *this;
+    }
+
+    //! Display the current CImgList instance in a new display window.
+    /**
+        \param disp Display window.
+        \param display_info Tells if image information are displayed on the standard output.
+       \param axis Alignment axis for images viewing.
+       \param align Apending alignment.
+       \note This function opens a new window with a specific title and displays the list images of the
+         current CImgList instance into it.
+       Images of the list are appended in a single temporarly image for visualization purposes.
+       The function returns when a key is pressed or the display window is closed by the user.
+    **/
+    const CImgList<T>& display(CImgDisplay &disp, const bool display_info,
+                               const char axis='x', const float align=0,
+                               unsigned int *const XYZ=0, const bool exit_on_anykey=false) const {
+      bool is_exit = false;
+      return _display(disp,0,display_info,axis,align,XYZ,exit_on_anykey,0,true,is_exit);
+    }
+
+    //! Display the current CImgList instance in a new display window.
+    /**
+      \param title Title of the opening display window.
+      \param display_info Tells if list information must be written on standard output.
+      \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    const CImgList<T>& display(const char *const title=0, const bool display_info=true,
+                               const char axis='x', const float align=0,
+                               unsigned int *const XYZ=0, const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      bool is_exit = false;
+      return _display(disp,title,display_info,axis,align,XYZ,exit_on_anykey,0,true,is_exit);
+    }
+
+    const CImgList<T>& _display(CImgDisplay &disp, const char *const title, const bool display_info,
+                                const char axis, const float align, unsigned int *const XYZ,
+                                const bool exit_on_anykey, const unsigned int orig, const bool is_first_call,
+                                bool &is_exit) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "display(): Empty instance.",
+                                    cimglist_instance);
+      if (!disp) {
+        if (axis=='x') {
+          unsigned int sum_width = 0, max_height = 0;
+          cimglist_for(*this,l) {
+            const CImg<T> &img = _data[l];
+            const unsigned int
+              w = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,false),
+              h = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,true);
+            sum_width+=w;
+            if (h>max_height) max_height = h;
+          }
+          disp.assign(cimg_fitscreen(sum_width,max_height,1),title?title:0,1);
+        } else {
+          unsigned int max_width = 0, sum_height = 0;
+          cimglist_for(*this,l) {
+            const CImg<T> &img = _data[l];
+            const unsigned int
+              w = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,false),
+              h = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,true);
+            if (w>max_width) max_width = w;
+            sum_height+=h;
+          }
+          disp.assign(cimg_fitscreen(max_width,sum_height,1),title?title:0,1);
+        }
+        if (!title) disp.set_title("CImgList<%s> (%u)",pixel_type(),_width);
+      } else if (title) disp.set_title("%s",title);
+      const CImg<char> dtitle = CImg<char>::string(disp.title());
+      if (display_info) print(disp.title());
+      disp.show().flush();
+
+      if (_width==1) {
+        const unsigned int dw = disp._width, dh = disp._height;
+        if (!is_first_call)
+          disp.resize(cimg_fitscreen(_data[0]._width,_data[0]._height,_data[0]._depth),false).
+            set_title("%s (%ux%ux%ux%u)",
+                      dtitle.data(),_data[0]._width,_data[0]._height,_data[0]._depth,_data[0]._spectrum);
+        _data[0]._display(disp,0,false,XYZ,exit_on_anykey,!is_first_call);
+        if (disp.key()) is_exit = true;
+        disp.resize(cimg_fitscreen(dw,dh,1),false).set_title("%s",dtitle.data());
+      } else {
+        bool disp_resize = !is_first_call;
+        while (!disp.is_closed() && !is_exit) {
+          const CImg<intT> s = _get_select(disp,0,true,axis,align,exit_on_anykey,orig,disp_resize,!is_first_call,true);
+          disp_resize = true;
+          if (s[0]<0) { // No selections done.
+            if (disp.button()&2) { disp.flush(); break; }
+            is_exit = true;
+          } else if (disp.wheel()) { // Zoom in/out.
+            const int wheel = disp.wheel();
+            disp.set_wheel();
+            if (!is_first_call && wheel<0) break;
+            if (wheel>0 && _width>=4) {
+              const unsigned int
+                delta = cimg::max(1U,(unsigned int)cimg::round(0.3*_width)),
+                ind0 = (unsigned int)cimg::max(0,s[0] - (int)delta),
+                ind1 = (unsigned int)cimg::min(width() - 1,s[0] + (int)delta);
+              if ((ind0!=0 || ind1!=_width - 1) && ind1 - ind0>=3)
+                get_shared_images(ind0,ind1)._display(disp,0,false,axis,align,XYZ,exit_on_anykey,
+                                                      orig + ind0,false,is_exit);
+            }
+          } else if (s[0]!=0 || s[1]!=width() - 1)
+            get_shared_images(s[0],s[1])._display(disp,0,false,axis,align,XYZ,exit_on_anykey,
+                                                  orig + s[0],false,is_exit);
+        }
+      }
+      return *this;
+    }
+
+    //! Save list into a file.
+    /**
+      \param filename Filename to write data to.
+      \param number When positive, represents an index added to the filename. Otherwise, no number is added.
+      \param digits Number of digits used for adding the number to the filename.
+    **/
+    const CImgList<T>& save(const char *const filename, const int number=-1, const unsigned int digits=6) const {
+      if (!filename)
+        throw CImgArgumen
