@@ -54350,4 +54350,187 @@ namespace cimg_library_suffixed {
     **/
     const CImgList<T>& save(const char *const filename, const int number=-1, const unsigned int digits=6) const {
       if (!filename)
-        throw CImgArgumen
+        throw CImgArgumentException(_cimglist_instance
+                                    "save(): Specified filename is (null).",
+                                    cimglist_instance);
+      // Do not test for empty instances, since .cimg format is able to manage empty instances.
+      const bool is_stdout = *filename=='-' && (!filename[1] || filename[1]=='.');
+      const char *const ext = cimg::split_filename(filename);
+      CImg<charT> nfilename(1024);
+      const char *const fn = is_stdout?filename:number>=0?cimg::number_filename(filename,number,digits,nfilename):
+        filename;
+
+#ifdef cimglist_save_plugin
+      cimglist_save_plugin(fn);
+#endif
+#ifdef cimglist_save_plugin1
+      cimglist_save_plugin1(fn);
+#endif
+#ifdef cimglist_save_plugin2
+      cimglist_save_plugin2(fn);
+#endif
+#ifdef cimglist_save_plugin3
+      cimglist_save_plugin3(fn);
+#endif
+#ifdef cimglist_save_plugin4
+      cimglist_save_plugin4(fn);
+#endif
+#ifdef cimglist_save_plugin5
+      cimglist_save_plugin5(fn);
+#endif
+#ifdef cimglist_save_plugin6
+      cimglist_save_plugin6(fn);
+#endif
+#ifdef cimglist_save_plugin7
+      cimglist_save_plugin7(fn);
+#endif
+#ifdef cimglist_save_plugin8
+      cimglist_save_plugin8(fn);
+#endif
+      if (!cimg::strcasecmp(ext,"cimgz")) return save_cimg(fn,true);
+      else if (!cimg::strcasecmp(ext,"cimg") || !*ext) return save_cimg(fn,false);
+      else if (!cimg::strcasecmp(ext,"yuv")) return save_yuv(fn,true);
+      else if (!cimg::strcasecmp(ext,"avi") ||
+               !cimg::strcasecmp(ext,"mov") ||
+               !cimg::strcasecmp(ext,"asf") ||
+               !cimg::strcasecmp(ext,"divx") ||
+               !cimg::strcasecmp(ext,"flv") ||
+               !cimg::strcasecmp(ext,"mpg") ||
+               !cimg::strcasecmp(ext,"m1v") ||
+               !cimg::strcasecmp(ext,"m2v") ||
+               !cimg::strcasecmp(ext,"m4v") ||
+               !cimg::strcasecmp(ext,"mjp") ||
+               !cimg::strcasecmp(ext,"mp4") ||
+               !cimg::strcasecmp(ext,"mkv") ||
+               !cimg::strcasecmp(ext,"mpe") ||
+               !cimg::strcasecmp(ext,"movie") ||
+               !cimg::strcasecmp(ext,"ogm") ||
+               !cimg::strcasecmp(ext,"ogg") ||
+               !cimg::strcasecmp(ext,"ogv") ||
+               !cimg::strcasecmp(ext,"qt") ||
+               !cimg::strcasecmp(ext,"rm") ||
+               !cimg::strcasecmp(ext,"vob") ||
+               !cimg::strcasecmp(ext,"wmv") ||
+               !cimg::strcasecmp(ext,"xvid") ||
+               !cimg::strcasecmp(ext,"mpeg")) return save_video(fn);
+#ifdef cimg_use_tiff
+      else if (!cimg::strcasecmp(ext,"tif") ||
+          !cimg::strcasecmp(ext,"tiff")) return save_tiff(fn);
+#endif
+      else if (!cimg::strcasecmp(ext,"gz")) return save_gzip_external(fn);
+      else {
+        if (_width==1) _data[0].save(fn,-1);
+        else cimglist_for(*this,l) { _data[l].save(fn,is_stdout?-1:l); if (is_stdout) std::fputc(EOF,stdout); }
+      }
+      return *this;
+    }
+
+    //! Tell if an image list can be saved as one single file.
+    /**
+       \param filename Filename, as a C-string.
+       \return \c true if the file format supports multiple images, \c false otherwise.
+    **/
+    static bool is_saveable(const char *const filename) {
+      const char *const ext = cimg::split_filename(filename);
+      if (!cimg::strcasecmp(ext,"cimgz") ||
+#ifdef cimg_use_tiff
+          !cimg::strcasecmp(ext,"tif") ||
+          !cimg::strcasecmp(ext,"tiff") ||
+#endif
+          !cimg::strcasecmp(ext,"yuv") ||
+          !cimg::strcasecmp(ext,"avi") ||
+          !cimg::strcasecmp(ext,"mov") ||
+          !cimg::strcasecmp(ext,"asf") ||
+          !cimg::strcasecmp(ext,"divx") ||
+          !cimg::strcasecmp(ext,"flv") ||
+          !cimg::strcasecmp(ext,"mpg") ||
+          !cimg::strcasecmp(ext,"m1v") ||
+          !cimg::strcasecmp(ext,"m2v") ||
+          !cimg::strcasecmp(ext,"m4v") ||
+          !cimg::strcasecmp(ext,"mjp") ||
+          !cimg::strcasecmp(ext,"mp4") ||
+          !cimg::strcasecmp(ext,"mkv") ||
+          !cimg::strcasecmp(ext,"mpe") ||
+          !cimg::strcasecmp(ext,"movie") ||
+          !cimg::strcasecmp(ext,"ogm") ||
+          !cimg::strcasecmp(ext,"ogg") ||
+          !cimg::strcasecmp(ext,"ogv") ||
+          !cimg::strcasecmp(ext,"qt") ||
+          !cimg::strcasecmp(ext,"rm") ||
+          !cimg::strcasecmp(ext,"vob") ||
+          !cimg::strcasecmp(ext,"wmv") ||
+          !cimg::strcasecmp(ext,"xvid") ||
+          !cimg::strcasecmp(ext,"mpeg")) return true;
+      return false;
+    }
+
+    //! Save image sequence as a GIF animated file.
+    /**
+       \param filename Filename to write data to.
+       \param fps Number of desired frames per second.
+       \param nb_loops Number of loops (\c 0 for infinite looping).
+    **/
+    const CImgList<T>& save_gif_external(const char *const filename, const float fps=25,
+                                         const unsigned int nb_loops=0) {
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      CImgList<charT> filenames;
+      std::FILE *file = 0;
+
+#ifdef cimg_use_png
+#define _cimg_save_gif_ext "png"
+#else
+#define _cimg_save_gif_ext "ppm"
+#endif
+
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_000001." _cimg_save_gif_ext,filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimglist_for(*this,l) {
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%.6u." _cimg_save_gif_ext,filename_tmp._data,l + 1);
+        CImg<charT>::string(filename_tmp2).move_to(filenames);
+        if (_data[l]._depth>1 || _data[l]._spectrum!=3) _data[l].get_resize(-100,-100,1,3).save(filename_tmp2);
+        else _data[l].save(filename_tmp2);
+      }
+
+#if cimg_OS!=2
+      cimg_snprintf(command,command._width,"%s -delay %u -loop %u",
+                    cimg::imagemagick_path(),(unsigned int)cimg::max(0.0f,cimg::round(100/fps)),nb_loops);
+      CImg<ucharT>::string(command).move_to(filenames,0);
+      cimg_snprintf(command,command._width,"\"%s\" >/dev/null 2>&1",
+                    CImg<charT>::string(filename)._system_strescape().data());
+      CImg<ucharT>::string(command).move_to(filenames);
+#else
+      cimg_snprintf(command,command._width,"\"%s -delay %u -loop %u",
+                    cimg::imagemagick_path(),(unsigned int)cimg::max(0.0f,cimg::round(100/fps)),nb_loops);
+      CImg<ucharT>::string(command).move_to(filenames,0);
+      cimg_snprintf(command,command._width,"\"%s\"\" >NUL 2>&1",
+                    CImg<charT>::string(filename)._system_strescape().data());
+      CImg<ucharT>::string(command).move_to(filenames);
+#endif
+      CImg<charT> _command = filenames>'x';
+      cimg_for(_command,p,char) if (!*p) *p = ' ';
+      _command.back() = 0;
+
+      cimg::system(_command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimglist_instance
+                              "save_gif_external(): Failed to save file '%s' with external command 'convert'.",
+                              cimglist_instance,
+                              filename);
+      else cimg::fclose(file);
+      cimglist_for_in(*this,1,filenames._width - 1,l) std::remove(filenames[l]);
+      return *this;
+    }
+
+    const CImgList<T>& _save_yuv(std::FILE *const file, const char *const filename, const bool is_rgb) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_yuv(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if ((*this)[0].width()%2 || (*this)[0].height()%2)
+        throw CImgInstanceException(_cimglist_instan
