@@ -54030,4 +54030,173 @@ namespace cimg_library_suffixed {
           CImg<T> img;
           try { img.load_png(filename_tmp2); }
           catch (CImgException&) { stop_flag = true; }
-          
+          if (img) { img.move_to(*this); std::remove(filename_tmp2); }
+        }
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Load gif file, using ImageMagick or GraphicsMagick's external tools \newinstance.
+    static CImgList<T> get_load_gif_external(const char *const filename) {
+      return CImgList<T>().load_gif_external(filename);
+    }
+
+    //! Load a gzipped list, using external tool 'gunzip'.
+    /**
+      \param filename Filename to read data from.
+    **/
+    CImgList<T>& load_gzip_external(const char *const filename) {
+      if (!filename)
+        throw CImgIOException(_cimglist_instance
+                              "load_gzip_external(): Specified filename is (null).",
+                              cimglist_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file = 0;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                    cimg::gunzip_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command);
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimglist_instance
+                              "load_gzip_external(): Failed to open file '%s'.",
+                              cimglist_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load a gzipped list, using external tool 'gunzip' \newinstance.
+    static CImgList<T> get_load_gzip_external(const char *const filename) {
+      return CImgList<T>().load_gzip_external(filename);
+    }
+
+    //! Load a 3d object from a .OFF file.
+    /**
+      \param filename Filename to read data from.
+      \param[out] primitives At return, contains the list of 3d object primitives.
+      \param[out] colors At return, contains the list of 3d object colors.
+      \return List of 3d object vertices.
+    **/
+    template<typename tf, typename tc>
+    CImgList<T>& load_off(const char *const filename,
+                          CImgList<tf>& primitives, CImgList<tc>& colors) {
+      return get_load_off(filename,primitives,colors).move_to(*this);
+    }
+
+    //! Load a 3d object from a .OFF file \newinstance.
+    template<typename tf, typename tc>
+      static CImgList<T> get_load_off(const char *const filename,
+                                      CImgList<tf>& primitives, CImgList<tc>& colors) {
+      return CImg<T>().load_off(filename,primitives,colors)<'x';
+    }
+
+    //! Load images from a TIFF file.
+    /**
+        \param filename Filename to read data from.
+        \param first_frame Index of first image frame to read.
+        \param last_frame Index of last image frame to read.
+        \param step_frame Step applied between each frame.
+    **/
+    CImgList<T>& load_tiff(const char *const filename,
+                           const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                           const unsigned int step_frame=1,
+                           float *const voxel_size=0,
+                           CImg<charT> *const description=0) {
+      const unsigned int
+        nfirst_frame = first_frame<last_frame?first_frame:last_frame,
+        nstep_frame = step_frame?step_frame:1;
+      unsigned int nlast_frame = first_frame<last_frame?last_frame:first_frame;
+#ifndef cimg_use_tiff
+      cimg::unused(voxel_size,description);
+      if (nfirst_frame || nlast_frame!=~0U || nstep_frame!=1)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_tiff(): Unable to load sub-images from file '%s' unless libtiff is enabled.",
+                                    cimglist_instance,
+                                    filename);
+
+      return assign(CImg<T>::get_load_tiff(filename));
+#else
+      TIFF *tif = TIFFOpen(filename,"r");
+      if (tif) {
+        unsigned int nb_images = 0;
+        do ++nb_images; while (TIFFReadDirectory(tif));
+        if (nfirst_frame>=nb_images || (nlast_frame!=~0U && nlast_frame>=nb_images))
+          cimg::warn(_cimglist_instance
+                     "load_tiff(): Invalid specified frame range is [%u,%u] (step %u) since "
+                     "file '%s' contains %u image(s).",
+                     cimglist_instance,
+                     nfirst_frame,nlast_frame,nstep_frame,filename,nb_images);
+
+        if (nfirst_frame>=nb_images) return assign();
+        if (nlast_frame>=nb_images) nlast_frame = nb_images - 1;
+        assign(1 + (nlast_frame - nfirst_frame)/nstep_frame);
+        TIFFSetDirectory(tif,0);
+#if cimg_verbosity>=3
+        TIFFSetWarningHandler(0);
+        TIFFSetErrorHandler(0);
+#endif
+        cimglist_for(*this,l) _data[l]._load_tiff(tif,nfirst_frame + l*nstep_frame,voxel_size,description);
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimglist_instance
+                                   "load_tiff(): Failed to open file '%s'.",
+                                   cimglist_instance,
+                                   filename);
+      return *this;
+#endif
+    }
+
+    //! Load a multi-page TIFF file \newinstance.
+    static CImgList<T> get_load_tiff(const char *const filename,
+                                     const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                     const unsigned int step_frame=1,
+                                     float *const voxel_size=0,
+                                     CImg<charT> *const description=0) {
+      return CImgList<T>().load_tiff(filename,first_frame,last_frame,step_frame,voxel_size,description);
+    }
+
+    //@}
+    //----------------------------------
+    //
+    //! \name Data Output
+    //@{
+    //----------------------------------
+
+    //! Print information about the list on the standard output.
+    /**
+      \param title Label set to the information displayed.
+      \param display_stats Tells if image statistics must be computed and displayed.
+    **/
+    const CImgList<T>& print(const char *const title=0, const bool display_stats=true) const {
+      unsigned int msiz = 0;
+      cimglist_for(*this,l) msiz+=_data[l].size();
+      msiz*=sizeof(T);
+      const unsigned int mdisp = msiz<8*1024?0U:msiz<8*1024*1024?1U:2U;
+      CImg<charT> _title(64);
+      if (!title) cimg_snprintf(_title,_title._width,"CImgList<%s>",pixel_type());
+      std::fprintf(cimg::output(),"%s%s%s%s: %sthis%s = %p, %ssize%s = %u/%u [%u %s], %sdata%s = (CImg<%s>*)%p",
+                   cimg::t_magenta,cimg::t_bold,title?title:_title._data,cimg::t_normal,
+            
