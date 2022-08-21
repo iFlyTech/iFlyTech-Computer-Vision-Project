@@ -54858,4 +54858,168 @@ namespace cimg_library_suffixed {
       ulongT siz = 0;
       cimglist_for(*this,l) siz+=_data[l].size();
       const bool _use_bigtiff = use_bigtiff && sizeof(siz)>=8 && siz*sizeof(T)>=1UL<<31; // No bigtiff for small images.
-      TIFF *tif = TIFFOpen(filename,_use_bigtiff?
+      TIFF *tif = TIFFOpen(filename,_use_bigtiff?"w8":"w4");
+      if (tif) {
+        for (unsigned int dir = 0, l = 0; l<_width; ++l) {
+          const CImg<T>& img = (*this)[l];
+          cimg_forZ(img,z) img._save_tiff(tif,dir++,z,compression_type,voxel_size,description);
+        }
+        TIFFClose(tif);
+      } else
+        throw CImgIOException(_cimglist_instance
+                              "save_tiff(): Failed to open stream for file '%s'.",
+                              cimglist_instance,
+                              filename);
+#endif
+      return *this;
+    }
+
+    //! Save list as a gzipped file, using external tool 'gzip'.
+    /**
+      \param filename Filename to write data to.
+    **/
+    const CImgList<T>& save_gzip_external(const char *const filename) const {
+      if (!filename)
+        throw CImgIOException(_cimglist_instance
+                              "save_gzip_external(): Specified filename is (null).",
+                              cimglist_instance);
+
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+
+      if (is_saveable(body)) {
+        save(filename_tmp);
+        cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                      cimg::gzip_path(),
+                      CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                      CImg<charT>::string(filename)._system_strescape().data());
+        cimg::system(command);
+        file = std::fopen(filename,"rb");
+        if (!file)
+          throw CImgIOException(_cimglist_instance
+                                "save_gzip_external(): Failed to save file '%s' with external command 'gzip'.",
+                                cimglist_instance,
+                                filename);
+        else cimg::fclose(file);
+        std::remove(filename_tmp);
+      } else {
+        CImg<charT> nfilename(1024);
+        cimglist_for(*this,l) {
+          cimg::number_filename(body,l,6,nfilename);
+          if (*ext) cimg_sprintf(nfilename._data + std::strlen(nfilename),".%s",ext);
+          _data[l].save_gzip_external(nfilename);
+        }
+      }
+      return *this;
+    }
+
+    //! Save image sequence, using the OpenCV library.
+    /**
+       \param filename Filename to write data to.
+       \param fps Number of frames per second.
+       \param codec Type of compression (See http://www.fourcc.org/codecs.php to see available codecs).
+       \param keep_open Tells if the video writer associated to the specified filename
+       must be kept open or not (to allow frames to be added in the same file afterwards).
+    **/
+    const CImgList<T>& save_video(const char *const filename, const unsigned int fps=25,
+                                  const char *codec=0, const bool keep_open=false) const {
+#ifndef cimg_use_opencv
+      cimg::unused(codec,keep_open);
+      return save_ffmpeg_external(filename,fps);
+#else
+      static CvVideoWriter *writers[32] = { 0 };
+      static CImgList<charT> filenames(32);
+      static CImg<intT> sizes(32,2,1,1,0);
+      static int last_used_index = -1;
+
+      // Detect if a video writer already exists for the specified filename.
+      cimg::mutex(9);
+      int index = -1;
+      if (filename) {
+        if (last_used_index>=0 && !std::strcmp(filename,filenames[last_used_index])) {
+          index = last_used_index;
+        } else cimglist_for(filenames,l) if (filenames[l] && !std::strcmp(filename,filenames[l])) {
+            index = l; break;
+          }
+      } else index = last_used_index;
+      cimg::mutex(9,0);
+
+      // Find empty slot for capturing video stream.
+      if (index<0) {
+        if (!filename)
+          throw CImgArgumentException(_cimglist_instance
+                                      "save_video(): No already open video writer found. You must specify a "
+                                      "non-(null) filename argument for the first call.",
+                                      cimglist_instance);
+        else { cimg::mutex(9); cimglist_for(filenames,l) if (!filenames[l]) { index = l; break; } cimg::mutex(9,0); }
+        if (index<0)
+          throw CImgIOException(_cimglist_instance
+                                "save_video(): File '%s', no video writer slots available. "
+                                "You have to release some of your previously opened videos.",
+                                cimglist_instance,filename);
+        if (is_empty())
+          throw CImgInstanceException(_cimglist_instance
+                                      "save_video(): Instance list is empty.",
+                                      cimglist_instance);
+        const unsigned int W = _data?_data[0]._width:0, H = _data?_data[0]._height:0;
+        if (!W || !H)
+          throw CImgInstanceException(_cimglist_instance
+                                      "save_video(): Frame [0] is an empty image.",
+                                      cimglist_instance);
+
+#define _cimg_docase(x) ((x)>='a'&&(x)<='z'?(x) + 'A' - 'a':(x))
+        const char
+          *const _codec = codec && *codec?codec:"mp4v",
+          codec0 = _cimg_docase(_codec[0]),
+          codec1 = _codec[0]?_cimg_docase(_codec[1]):0,
+          codec2 = _codec[1]?_cimg_docase(_codec[2]):0,
+          codec3 = _codec[2]?_cimg_docase(_codec[3]):0;
+        cimg::mutex(9);
+        writers[index] = cvCreateVideoWriter(filename,CV_FOURCC(codec0,codec1,codec2,codec3),
+                                             fps,cvSize(W,H));
+        CImg<charT>::string(filename).move_to(filenames[index]);
+        sizes(index,0) = W; sizes(index,1) = H;
+        cimg::mutex(9,0);
+        if (!writers[index])
+          throw CImgIOException(_cimglist_instance
+                                "save_video(): File '%s', unable to initialize video writer with codec '%c%c%c%c'.",
+                                cimglist_instance,filename,
+                                codec0,codec1,codec2,codec3);
+      }
+
+      if (!is_empty()) {
+        const unsigned int W = sizes(index,0), H = sizes(index,1);
+        cimg::mutex(9);
+        IplImage *ipl = cvCreateImage(cvSize(W,H),8,3);
+        cimglist_for(*this,l) {
+          CImg<T> &src = _data[l];
+          if (src.is_empty())
+            cimg::warn(_cimglist_instance
+                       "save_video(): Skip empty frame %d for file '%s'.",
+                       cimglist_instance,l,filename);
+          if (src._depth>1 || src._spectrum>3)
+            cimg::warn(_cimglist_instance
+                       "save_video(): Frame %u has incompatible dimension (%u,%u,%u,%u). "
+                       "Some image data may be ignored when writing frame into video file '%s'.",
+                       cimglist_instance,l,src._width,src._height,src._depth,src._spectrum,filename);
+          if (src._width==W && src._height==H && src._spectrum==3) {
+            const T *ptr_r = src.data(0,0,0,0), *ptr_g = src.data(0,0,0,1), *ptr_b = src.data(0,0,0,2);
+            char *ptrd = ipl->imageData;
+   
