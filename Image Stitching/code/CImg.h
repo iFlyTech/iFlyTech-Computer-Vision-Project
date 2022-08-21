@@ -54697,4 +54697,165 @@ namespace cimg_library_suffixed {
               if (skipve) cimg::fseek(nfile,skipve,SEEK_CUR); \
             } \
           } \
-   
+        } \
+        saved = true; \
+      }
+
+      if (!file && !filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_cimg(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "save_cimg(): Empty instance, for file '%s'.",
+                                    cimglist_instance,
+                                    filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb+");
+      bool saved = false, endian = cimg::endianness();
+      CImg<charT> tmp(256), str_pixeltype(256), str_endian(256);
+      *tmp = *str_pixeltype = *str_endian = 0;
+      unsigned int j, N, W, H, D, C;
+      int i, err;
+      j = 0; while ((i=std::fgetc(nfile))!='\n' && i!=EOF && j<256) tmp[j++] = (char)i; tmp[j] = 0;
+      err = cimg_sscanf(tmp,"%u%*c%255[A-Za-z64_]%*c%255[sA-Za-z_ ]",&N,str_pixeltype._data,str_endian._data);
+      if (err<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "save_cimg(): CImg header not found in file '%s'.",
+                              cimglist_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (!cimg::strncasecmp("little",str_endian,6)) endian = false;
+      else if (!cimg::strncasecmp("big",str_endian,3)) endian = true;
+      const unsigned int lmax = cimg::min(N,n0 + _width);
+      _cimg_save_cimg_case("bool",bool);
+      _cimg_save_cimg_case("unsigned_char",unsigned char);
+      _cimg_save_cimg_case("uchar",unsigned char);
+      _cimg_save_cimg_case("char",char);
+      _cimg_save_cimg_case("unsigned_short",unsigned short);
+      _cimg_save_cimg_case("ushort",unsigned short);
+      _cimg_save_cimg_case("short",short);
+      _cimg_save_cimg_case("unsigned_int",unsigned int);
+      _cimg_save_cimg_case("uint",unsigned int);
+      _cimg_save_cimg_case("int",int);
+      _cimg_save_cimg_case("unsigned_int64",uint64T);
+      _cimg_save_cimg_case("uint64",uint64T);
+      _cimg_save_cimg_case("int64",int64T);
+      _cimg_save_cimg_case("float",float);
+      _cimg_save_cimg_case("double",double);
+      if (!saved) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimglist_instance
+                              "save_cimg(): Unsupported data type '%s' for file '%s'.",
+                              cimglist_instance,
+                              filename?filename:"(FILE*)",str_pixeltype._data);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Insert the image instance into into an existing .cimg file, at specified coordinates.
+    /**
+      \param filename Filename to write data to.
+      \param n0 Starting index of images to write.
+      \param x0 Starting X-coordinates of image regions to write.
+      \param y0 Starting Y-coordinates of image regions to write.
+      \param z0 Starting Z-coordinates of image regions to write.
+      \param c0 Starting C-coordinates of image regions to write.
+    **/
+    const CImgList<T>& save_cimg(const char *const filename,
+                                 const unsigned int n0,
+                                 const unsigned int x0, const unsigned int y0,
+                                 const unsigned int z0, const unsigned int c0) const {
+      return _save_cimg(0,filename,n0,x0,y0,z0,c0);
+    }
+
+    //! Insert the image instance into into an existing .cimg file, at specified coordinates.
+    /**
+      \param file File to write data to.
+      \param n0 Starting index of images to write.
+      \param x0 Starting X-coordinates of image regions to write.
+      \param y0 Starting Y-coordinates of image regions to write.
+      \param z0 Starting Z-coordinates of image regions to write.
+      \param c0 Starting C-coordinates of image regions to write.
+    **/
+    const CImgList<T>& save_cimg(std::FILE *const file,
+                                 const unsigned int n0,
+                                 const unsigned int x0, const unsigned int y0,
+                                 const unsigned int z0, const unsigned int c0) const {
+      return _save_cimg(file,0,n0,x0,y0,z0,c0);
+    }
+
+    static void _save_empty_cimg(std::FILE *const file, const char *const filename,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy,
+                                const unsigned int dz, const unsigned int dc) {
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const ulongT siz = (ulongT)dx*dy*dz*dc*sizeof(T);
+      std::fprintf(nfile,"%u %s\n",nb,pixel_type());
+      for (unsigned int i=nb; i; --i) {
+        std::fprintf(nfile,"%u %u %u %u\n",dx,dy,dz,dc);
+        for (ulongT off = siz; off; --off) std::fputc(0,nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+    }
+
+    //! Save empty (non-compressed) .cimg file with specified dimensions.
+    /**
+        \param filename Filename to write data to.
+        \param nb Number of images to write.
+        \param dx Width of images in the written file.
+        \param dy Height of images in the written file.
+        \param dz Depth of images in the written file.
+        \param dc Spectrum of images in the written file.
+    **/
+    static void save_empty_cimg(const char *const filename,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return _save_empty_cimg(0,filename,nb,dx,dy,dz,dc);
+    }
+
+    //! Save empty .cimg file with specified dimensions.
+    /**
+        \param file File to write data to.
+        \param nb Number of images to write.
+        \param dx Width of images in the written file.
+        \param dy Height of images in the written file.
+        \param dz Depth of images in the written file.
+        \param dc Spectrum of images in the written file.
+    **/
+    static void save_empty_cimg(std::FILE *const file,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return _save_empty_cimg(file,0,nb,dx,dy,dz,dc);
+    }
+
+    //! Save list as a TIFF file.
+    /**
+      \param filename Filename to write data to.
+      \param compression_type Compression mode used to write data.
+    **/
+    const CImgList<T>& save_tiff(const char *const filename, const unsigned int compression_type=0,
+                                 const float *const voxel_size=0, const char *const description=0,
+                                 const bool use_bigtiff=true) const {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_tiff(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifndef cimg_use_tiff
+      if (_width==1) _data[0].save_tiff(filename,compression_type,voxel_size,description,use_bigtiff);
+      else cimglist_for(*this,l) {
+          CImg<charT> nfilename(1024);
+          cimg::number_filename(filename,l,6,nfilename);
+          _data[l].save_tiff(nfilename,compression_type,voxel_size,description,use_bigtiff);
+        }
+#else
+      ulongT siz = 0;
+      cimglist_for(*this,l) siz+=_data[l].size();
+      const bool _use_bigtiff = use_bigtiff && sizeof(siz)>=8 && siz*sizeof(T)>=1UL<<31; // No bigtiff for small images.
+      TIFF *tif = TIFFOpen(filename,_use_bigtiff?
