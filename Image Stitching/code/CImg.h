@@ -55022,4 +55022,172 @@ namespace cimg_library_suffixed {
           if (src._width==W && src._height==H && src._spectrum==3) {
             const T *ptr_r = src.data(0,0,0,0), *ptr_g = src.data(0,0,0,1), *ptr_b = src.data(0,0,0,2);
             char *ptrd = ipl->imageData;
-   
+            cimg_forXY(src,x,y) {
+              *(ptrd++) = (char)*(ptr_b++); *(ptrd++) = (char)*(ptr_g++); *(ptrd++) = (char)*(ptr_r++);
+            }
+          } else {
+            CImg<unsigned char> _src(src,false);
+            _src.channels(0,cimg::min(_src._spectrum - 1,2U)).resize(W,H);
+            _src.resize(W,H,1,3,_src._spectrum==1?1:0);
+            const unsigned char *ptr_r = _src.data(0,0,0,0), *ptr_g = _src.data(0,0,0,1), *ptr_b = _src.data(0,0,0,2);
+            char *ptrd = ipl->imageData;
+            cimg_forXY(_src,x,y) {
+              *(ptrd++) = (char)*(ptr_b++); *(ptrd++) = (char)*(ptr_g++); *(ptrd++) = (char)*(ptr_r++);
+            }
+          }
+          cvWriteFrame(writers[index],ipl);
+        }
+        cvReleaseImage(&ipl);
+        cimg::mutex(9,0);
+      }
+
+      cimg::mutex(9);
+      if (!keep_open) {
+        cvReleaseVideoWriter(&writers[index]);
+        writers[index] = 0;
+        filenames[index].assign();
+        sizes(index,0) = sizes(index,1) = 0;
+        last_used_index = -1;
+      } else last_used_index = index;
+      cimg::mutex(9,0);
+
+      return *this;
+#endif
+    }
+
+    //! Save image sequence, using the external tool 'ffmpeg'.
+    /**
+      \param filename Filename to write data to.
+      \param fps Number of frames per second.
+      \param codec Type of compression.
+      \param bitrate Output bitrate
+    **/
+    const CImgList<T>& save_ffmpeg_external(const char *const filename, const unsigned int fps=25,
+                                            const char *const codec=0, const unsigned int bitrate=2048) const {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_ffmpeg_external(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      const char
+        *const ext = cimg::split_filename(filename),
+        *const _codec = codec?codec:!cimg::strcasecmp(ext,"flv")?"flv":"mpeg2video";
+
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      CImgList<charT> filenames;
+      std::FILE *file = 0;
+      cimglist_for(*this,l) if (!_data[l].is_sameXYZ(_data[0]))
+        throw CImgInstanceException(_cimglist_instance
+                                    "save_ffmpeg_external(): Invalid instance dimensions for file '%s'.",
+                                    cimglist_instance,
+                                    filename);
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_000001.ppm",filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimglist_for(*this,l) {
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%.6u.ppm",filename_tmp._data,l + 1);
+        CImg<charT>::string(filename_tmp2).move_to(filenames);
+        if (_data[l]._depth>1 || _data[l]._spectrum!=3) _data[l].get_resize(-100,-100,1,3).save_pnm(filename_tmp2);
+        else _data[l].save_pnm(filename_tmp2);
+      }
+#if cimg_OS!=2
+      cimg_snprintf(command,command._width,"%s -i \"%s_%%6d.ppm\" -vcodec %s -b %uk -r %u -y \"%s\" >/dev/null 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    _codec,bitrate,fps,
+                    CImg<charT>::string(filename)._system_strescape().data());
+#else
+      cimg_snprintf(command,command._width,"\"%s -i \"%s_%%6d.ppm\" -vcodec %s -b %uk -r %u -y \"%s\"\" >NUL 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    _codec,bitrate,fps,
+                    CImg<charT>::string(filename)._system_strescape().data());
+#endif
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimglist_instance
+                              "save_ffmpeg_external(): Failed to save file '%s' with external command 'ffmpeg'.",
+                              cimglist_instance,
+                              filename);
+      else cimg::fclose(file);
+      cimglist_for(*this,l) std::remove(filenames[l]);
+      return *this;
+    }
+
+    //! Serialize a CImgList<T> instance into a raw CImg<unsigned char> buffer.
+    /**
+       \param is_compressed tells if zlib compression must be used for serialization
+       (this requires 'cimg_use_zlib' been enabled).
+    **/
+    CImg<ucharT> get_serialize(const bool is_compressed=false) const {
+#ifndef cimg_use_zlib
+      if (is_compressed)
+        cimg::warn(_cimglist_instance
+                   "get_serialize(): Unable to compress data unless zlib is enabled, "
+                   "storing them uncompressed.",
+                   cimglist_instance);
+#endif
+      CImgList<ucharT> stream;
+      CImg<charT> tmpstr(128);
+      const char *const ptype = pixel_type(), *const etype = cimg::endianness()?"big":"little";
+      if (std::strstr(ptype,"unsigned")==ptype)
+        cimg_snprintf(tmpstr,tmpstr._width,"%u unsigned_%s %s_endian\n",_width,ptype + 9,etype);
+      else
+        cimg_snprintf(tmpstr,tmpstr._width,"%u %s %s_endian\n",_width,ptype,etype);
+      CImg<ucharT>::string(tmpstr,false).move_to(stream);
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_snprintf(tmpstr,tmpstr._width,"%u %u %u %u",img._width,img._height,img._depth,img._spectrum);
+        CImg<ucharT>::string(tmpstr,false).move_to(stream);
+        if (img._data) {
+          CImg<T> tmp;
+          if (cimg::endianness()) { tmp = img; cimg::invert_endianness(tmp._data,tmp.size()); }
+          const CImg<T>& ref = cimg::endianness()?tmp:img;
+          bool failed_to_compress = true;
+          if (is_compressed) {
+#ifdef cimg_use_zlib
+            const ulongT siz = sizeof(T)*ref.size();
+            uLongf csiz = (ulongT)compressBound(siz);
+            Bytef *const cbuf = new Bytef[csiz];
+            if (compress(cbuf,&csiz,(Bytef*)ref._data,siz))
+              cimg::warn(_cimglist_instance
+                         "get_serialize(): Failed to save compressed data, saving them uncompressed.",
+                         cimglist_instance);
+            else {
+              cimg_snprintf(tmpstr,tmpstr._width," #%lu\n",csiz);
+              CImg<ucharT>::string(tmpstr,false).move_to(stream);
+              CImg<ucharT>(cbuf,csiz).move_to(stream);
+              delete[] cbuf;
+              failed_to_compress = false;
+            }
+#endif
+          }
+          if (failed_to_compress) { // Write in a non-compressed way.
+            CImg<charT>::string("\n",false).move_to(stream);
+            stream.insert(1);
+            stream.back().assign((unsigned char*)ref._data,ref.size()*sizeof(T),1,1,1,true);
+          }
+        } else CImg<charT>::string("\n",false).move_to(stream);
+      }
+      cimglist_apply(stream,unroll)('y');
+      return stream>'y';
+    }
+
+    //! Unserialize a CImg<unsigned char> serialized buffer into a CImgList<T> list.
+    template<typename t>
+    static CImgList<T> get_unserialize(const CImg<t>& buffer) {
+#ifdef cimg_use_zlib
+#define _cimgz_unserialize_case(Tss) { \
+        Bytef *cbuf = (Bytef*)stream; \
+        if (sizeof(t)!=1 || cimg::type<t>::string()==cimg::type<bool>::string()) { \
+          cbuf = new Bytef[csiz]; Bytef *_cbuf = cbuf; \
+          for (ulongT i = 0; i<csiz; ++i) *(_cbuf++) = (Bytef)*(stream++); \
+          is_bytef = false; \
+        } else { stream+=csiz; is_bytef = true; } \
+        CImg<Tss> raw(W,H,D,C); \
+        uLongf
