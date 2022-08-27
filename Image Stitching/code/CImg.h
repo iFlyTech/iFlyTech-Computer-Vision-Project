@@ -55903,4 +55903,220 @@ namespace cimg {
       s_path.assign(1024);
       bool path_found = false;
       std::FILE *file = 0;
-#if cimg_OS==
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\gunzip.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gunzip.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./gunzip");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gunzip");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c dcraw binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c dcraw binary.
+  **/
+  inline const char *dcraw_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\dcraw.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"dcraw.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./dcraw");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"dcraw");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c wget binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c wget binary.
+  **/
+  inline const char *wget_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\wget.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"wget.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./wget");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"wget");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c curl binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c curl binary.
+  **/
+  inline const char *curl_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\curl.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"curl.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./curl");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"curl");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  // [internal] Sorting function, used by cimg::files().
+  inline int _sort_files(const void* a, const void* b) {
+    const CImg<char> &sa = *(CImg<char>*)a, &sb = *(CImg<char>*)b;
+    return std::strcmp(sa._data,sb._data);
+  }
+
+  //! Return list of files/directories in specified directory.
+  /**
+     \param path Path to the directory. Set to 0 for current directory.
+     \param is_pattern Tell if specified path has a matching pattern in it.
+     \param mode Output type, can be primary { 0=files only | 1=folders only | 2=files + folders }.
+     \param include_path Tell if \c path must be included in resulting filenames.
+     \return A list of filenames.
+  **/
+  inline CImgList<char> files(const char *const path, const bool is_pattern=false,
+                              const unsigned int mode=2, const bool include_path=false) {
+    if (!path || !*path) return files("*",true,mode,include_path);
+    CImgList<char> res;
+
+    // If path is a valid folder name, ignore argument 'is_pattern'.
+    const bool _is_pattern = is_pattern && !cimg::is_directory(path);
+    bool is_root = false, is_current = false;
+    cimg::unused(is_root,is_current);
+
+    // Clean format of input path.
+    CImg<char> pattern, _path = CImg<char>::string(path);
+#if cimg_OS==2
+    for (char *ps = _path; *ps; ++ps) if (*ps=='\\') *ps='/';
+#endif
+    char *pd = _path;
+    for (char *ps = pd; *ps; ++ps) { if (*ps!='/' || *ps!=*(ps+1)) *(pd++) = *ps; }
+    *pd = 0;
+    unsigned int lp = (unsigned int)std::strlen(_path);
+    if (!_is_pattern && lp && _path[lp - 1]=='/') {
+      _path[lp - 1] = 0; --lp;
+#if cimg_OS!=2
+      is_root = !*_path;
+#endif
+    }
+
+    // Separate folder path and matching pattern.
+    if (_is_pattern) {
+      const unsigned int bpos = (unsigned int)(cimg::basename(_path,'/') - _path.data());
+      CImg<char>::string(_path).move_to(pattern);
+      if (bpos) {
+        _path[bpos - 1] = 0; // End 'path' at last slash.
+#if cimg_OS!=2
+        is_root = !*_path;
+#endif
+      } else { // No path to folder specified, assuming current folder.
+        is_current = true; *_path = 0;
+      }
+      lp = (unsigned int)std::strlen(_path);
+    }
+
+    // Windows version.
+#if cimg_OS==2
+    if (!_is_pattern) {
+      pattern.assign(lp + 3);
+      std::memcpy(pattern,_path,lp);
+      pattern[lp] = '/'; pattern[lp + 1] = '*'; pattern[lp + 2] = 0;
+    }
+    WIN32_FIND_DATAA file_data;
+    const HANDLE dir = FindFirstFileA(pattern.data(),&file_data);
+    if (dir==INVALID_HANDLE_VALUE) return CImgList<char>::const_empty();
+    do {
+      const char *const filename = file_data.cFileName;
+      if (*filename!='.' || (filename[1] && (filename[1]!='.' || filename[2]))) {
+        const unsigned int lf = (unsigned int)std::strlen(filename);
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!=0;
+        if ((!mode && !is_directory) || (mode==1 && is_directory) || mode>=2) {
+          if (include_path) {
+            CImg<char> full_filename((lp?lp+1:0) + lf + 1);
+            if (lp) { std::memcpy(full_filename,_path,lp); full_filename[lp] = '/'; }
+            std::memcpy(full_filename._data + (lp?lp + 1:0),filename,lf + 1);
+            full_filename.move_to(res);
+          } else CImg<char>(filename,lf + 1).move_to(res);
+        }
+      }
+    } while (FindNextFileA(dir,&file_data));
+    FindClose(dir);
+
+    // Unix version (posix).
+#else
+    DIR *const dir = opendir(is_root?"/":is_current?".":_path.data());
+    if (!dir) return CImgList<char>::const_empty();
+    struct dirent *ent;
+    while ((ent=readdir(dir))!=0) {
+      const char *const filename = ent->d_name;
+      if (*f
