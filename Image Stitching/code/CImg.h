@@ -55358,4 +55358,207 @@ namespace cimg_library_suffixed {
         }
       if (ind==~0U) { // No empty slots nor existing font in cache.
         std::memmove(fonts,fonts + 1,15*sizeof(CImgList<ucharT>));
-        std::memmove(is_varia
+        std::memmove(is_variable_widths,is_variable_widths + 1,15*sizeof(bool));
+        std::memset(fonts + (ind=15),0,sizeof(CImgList<ucharT>));  // Free a slot in cache for new font.
+      }
+      CImgList<ucharT> &font = fonts[ind];
+
+      // Render requested font.
+      if (!font) {
+        const unsigned int padding_x = font_height<33U?1U:font_height<53U?2U:font_height<103U?3U:4U;
+        is_variable_widths[ind] = is_variable_width;
+        font = base_font.get_split('x',256);
+        if (font_height!=font[0]._height)
+          cimglist_for(font,l)
+            font[l].resize(cimg::max(1U,font[l]._width*font_height/font[l]._height),font_height,-100,-100,
+                           font[0]._height>font_height?2:5);
+        if (is_variable_width) font.crop_font();
+        cimglist_for(font,l) font[l].resize(font[l]._width + padding_x,-100,1,1,0,0,0.5);
+        font.insert(256,0);
+        cimglist_for_in(font,0,255,l) font[l].assign(font[l + 256]._width,font[l + 256]._height,1,3,1);
+      }
+      cimg::mutex(11,0);
+      return font;
+    }
+
+    //! Compute a 1d Fast Fourier Transform, along specified axis.
+    /**
+       \param axis Axis along which the Fourier transform is computed.
+       \param invert Tells if the direct (\c false) or inverse transform (\c true) is computed.
+    **/
+    CImgList<T>& FFT(const char axis, const bool invert=false) {
+      if (is_empty()) return *this;
+      if (_width==1) insert(1);
+      if (_width>2)
+        cimg::warn(_cimglist_instance
+                   "FFT(): Instance has more than 2 images",
+                   cimglist_instance);
+
+      CImg<T>::FFT(_data[0],_data[1],axis,invert);
+      return *this;
+    }
+
+    //! Compute a 1-D Fast Fourier Transform, along specified axis \newinstance.
+    CImgList<Tfloat> get_FFT(const char axis, const bool invert=false) const {
+      return CImgList<Tfloat>(*this,false).FFT(axis,invert);
+    }
+
+    //! Compute a n-d Fast Fourier Transform.
+    /**
+      \param invert Tells if the direct (\c false) or inverse transform (\c true) is computed.
+    **/
+    CImgList<T>& FFT(const bool invert=false) {
+      if (is_empty()) return *this;
+      if (_width==1) insert(1);
+      if (_width>2)
+        cimg::warn(_cimglist_instance
+                   "FFT(): Instance has more than 2 images",
+                   cimglist_instance);
+
+      CImg<T>::FFT(_data[0],_data[1],invert);
+      return *this;
+    }
+
+    //! Compute a n-d Fast Fourier Transform \newinstance.
+    CImgList<Tfloat> get_FFT(const bool invert=false) const {
+      return CImgList<Tfloat>(*this,false).FFT(invert);
+    }
+
+    //! Reverse primitives orientations of a 3d object.
+    /**
+    **/
+    CImgList<T>& reverse_object3d() {
+      cimglist_for(*this,l) {
+        CImg<T>& p = _data[l];
+        switch (p.size()) {
+        case 2 : case 3: cimg::swap(p[0],p[1]); break;
+        case 6 : cimg::swap(p[0],p[1],p[2],p[4],p[3],p[5]); break;
+        case 9 : cimg::swap(p[0],p[1],p[3],p[5],p[4],p[6]); break;
+        case 4 : cimg::swap(p[0],p[1],p[2],p[3]); break;
+        case 12 : cimg::swap(p[0],p[1],p[2],p[3],p[4],p[6],p[5],p[7],p[8],p[10],p[9],p[11]); break;
+        }
+      }
+      return *this;
+    }
+
+    //! Reverse primitives orientations of a 3d object \newinstance.
+    CImgList<T> get_reverse_object3d() const {
+      return (+*this).reverse_object3d();
+    }
+
+    //@}
+  }; // struct CImgList<T> { ...
+
+  /*
+    #---------------------------------------------
+    #
+    # Completion of previously declared functions
+    #
+    #----------------------------------------------
+  */
+
+namespace cimg {
+
+  //! Get/set path to store temporary files.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path where temporary files can be saved.
+  **/
+  inline const char* temporary_path(const char *const user_path, const bool reinit_path) {
+#define _cimg_test_temporary_path(p)                                    \
+    if (!path_found) {                                                  \
+      cimg_snprintf(s_path,s_path.width(),"%s",p);                      \
+      cimg_snprintf(tmp,tmp._width,"%s%c%s",s_path.data(),cimg_file_separator,filename_tmp._data); \
+      if ((file=std::fopen(tmp,"wb"))!=0) { cimg::fclose(file); std::remove(tmp); path_found = true; } \
+    }
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      CImg<char> tmp(1024), filename_tmp(256);
+      std::FILE *file = 0;
+      cimg_snprintf(filename_tmp,filename_tmp._width,"%s.tmp",cimg::filenamerand());
+      char *tmpPath = std::getenv("TMP");
+      if (!tmpPath) { tmpPath = std::getenv("TEMP"); winformat_string(tmpPath); }
+      if (tmpPath) _cimg_test_temporary_path(tmpPath);
+#if cimg_OS==2
+      _cimg_test_temporary_path("C:\\WINNT\\Temp");
+      _cimg_test_temporary_path("C:\\WINDOWS\\Temp");
+      _cimg_test_temporary_path("C:\\Temp");
+      _cimg_test_temporary_path("C:");
+      _cimg_test_temporary_path("D:\\WINNT\\Temp");
+      _cimg_test_temporary_path("D:\\WINDOWS\\Temp");
+      _cimg_test_temporary_path("D:\\Temp");
+      _cimg_test_temporary_path("D:");
+#else
+      _cimg_test_temporary_path("/tmp");
+      _cimg_test_temporary_path("/var/tmp");
+#endif
+      if (!path_found) {
+        *s_path = 0;
+        std::strncpy(tmp,filename_tmp,tmp._width - 1);
+        if ((file=std::fopen(tmp,"wb"))!=0) { cimg::fclose(file); std::remove(tmp); path_found = true; }
+      }
+      if (!path_found) {
+        cimg::mutex(7,0);
+        throw CImgIOException("cimg::temporary_path(): Failed to locate path for writing temporary files.\n");
+      }
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the <i>Program Files/</i> directory (Windows only).
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the program files.
+  **/
+#if cimg_OS==2
+  inline const char* programfiles_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(MAX_PATH);
+      *s_path = 0;
+      // Note: in the following line, 0x26 = CSIDL_PROGRAM_FILES (not defined on every compiler).
+#if !defined(__INTEL_COMPILER)
+      if (!SHGetSpecialFolderPathA(0,s_path,0x0026,false)) {
+        const char *const pfPath = std::getenv("PROGRAMFILES");
+        if (pfPath) std::strncpy(s_path,pfPath,MAX_PATH - 1);
+        else std::strcpy(s_path,"C:\\PROGRA~1");
+      }
+#else
+      std::strcpy(s_path,"C:\\PROGRA~1");
+#endif
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+#endif
+
+  //! Get/set path to the ImageMagick's \c convert binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c convert binary.
+  **/
+  inline const char* imagemagick_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(
