@@ -56119,4 +56119,173 @@ namespace cimg {
     struct dirent *ent;
     while ((ent=readdir(dir))!=0) {
       const char *const filename = ent->d_name;
-      if (*f
+      if (*filename!='.' || (filename[1] && (filename[1]!='.' || filename[2]))) {
+        const unsigned int lf = (unsigned int)std::strlen(filename);
+        CImg<char> full_filename(lp + lf + 2);
+
+        if (!is_current) {
+          full_filename.assign(lp + lf + 2);
+          if (lp) std::memcpy(full_filename,_path,lp);
+          full_filename[lp] = '/';
+          std::memcpy(full_filename._data + lp + 1,filename,lf + 1);
+        } else full_filename.assign(filename,lf + 1);
+
+        struct stat st;
+        if (stat(full_filename,&st)==-1) continue;
+        const bool is_directory = (st.st_mode & S_IFDIR)!=0;
+        if ((!mode && !is_directory) || (mode==1 && is_directory) || mode==2) {
+          if (include_path) {
+            if (!_is_pattern || (_is_pattern && !fnmatch(pattern,full_filename,0)))
+              full_filename.move_to(res);
+          } else {
+            if (!_is_pattern || (_is_pattern && !fnmatch(pattern,full_filename,0)))
+              CImg<char>(filename,lf + 1).move_to(res);
+          }
+        }
+      }
+    }
+    closedir(dir);
+#endif
+
+    // Sort resulting list by lexicographic order.
+  if (res._width>=2) std::qsort(res._data,res._width,sizeof(CImg<char>),_sort_files);
+
+    return res;
+  }
+
+  //! Try to guess format from an image file.
+  /**
+     \param file Input file (can be \c 0 if \c filename is set).
+     \param filename Filename, as a C-string (can be \c 0 if \c file is set).
+     \return C-string containing the guessed file format, or \c 0 if nothing has been guessed.
+  **/
+  inline const char *ftype(std::FILE *const file, const char *const filename) {
+    if (!file && !filename)
+      throw CImgArgumentException("cimg::ftype(): Specified filename is (null).");
+    static const char
+      *const _pnm = "pnm",
+      *const _pfm = "pfm",
+      *const _bmp = "bmp",
+      *const _gif = "gif",
+      *const _jpg = "jpg",
+      *const _off = "off",
+      *const _pan = "pan",
+      *const _png = "png",
+      *const _tif = "tif",
+      *const _inr = "inr",
+      *const _dcm = "dcm";
+    const char *f_type = 0;
+    CImg<char> header;
+    const unsigned int omode = cimg::exception_mode();
+    cimg::exception_mode(0);
+    try {
+      header._load_raw(file,filename,512,1,1,1,false,false,0);
+      const unsigned char *const uheader = (unsigned char*)header._data;
+      if (!std::strncmp(header,"OFF\n",4)) f_type = _off; // OFF.
+      else if (!std::strncmp(header,"#INRIMAGE",9)) f_type = _inr; // INRIMAGE.
+      else if (!std::strncmp(header,"PANDORE",7)) f_type = _pan; // PANDORE.
+      else if (!std::strncmp(header.data() + 128,"DICM",4)) f_type = _dcm; // DICOM.
+      else if (uheader[0]==0xFF && uheader[1]==0xD8 && uheader[2]==0xFF) f_type = _jpg;  // JPEG.
+      else if (header[0]=='B' && header[1]=='M') f_type = _bmp;  // BMP.
+      else if (header[0]=='G' && header[1]=='I' && header[2]=='F' && header[3]=='8' && header[5]=='a' && // GIF.
+               (header[4]=='7' || header[4]=='9')) f_type = _gif;
+      else if (uheader[0]==0x89 && uheader[1]==0x50 && uheader[2]==0x4E && uheader[3]==0x47 &&  // PNG.
+               uheader[4]==0x0D && uheader[5]==0x0A && uheader[6]==0x1A && uheader[7]==0x0A) f_type = _png;
+      else if ((uheader[0]==0x49 && uheader[1]==0x49) || (uheader[0]==0x4D && uheader[1]==0x4D)) f_type = _tif; // TIFF.
+      else { // PNM or PFM.
+        CImgList<char> _header = header.get_split(CImg<char>::vector('\n'),0,false);
+        cimglist_for(_header,l) {
+          if (_header(l,0)=='#') continue;
+          if (_header[l]._height==2 && _header(l,0)=='P') {
+            const char c = _header(l,1);
+            if (c=='f' || c=='F') { f_type = _pfm; break; }
+            if (c>='1' && c<='9') { f_type = _pnm; break; }
+          }
+          f_type = 0; break;
+        }
+      }
+    } catch (CImgIOException&) { }
+    cimg::exception_mode(omode);
+    return f_type;
+  }
+
+  //! Load file from network as a local temporary file.
+  /**
+     \param filename Filename, as a C-string.
+     \param[out] filename_local C-string containing the path to a local copy of \c filename.
+     \param timeout Maximum time (in seconds) authorized for downloading the file from the URL.
+     \param try_fallback When using libcurl, tells using system calls as fallbacks in case of libcurl failure.
+     \return Value of \c filename_local.
+     \note Use the \c libcurl library, or the external binaries \c wget or \c curl to perform the download.
+  **/
+  inline char *load_network(const char *const url, char *const filename_local,
+                            const unsigned int timeout, const bool try_fallback,
+                            const char *const referer) {
+    if (!url)
+      throw CImgArgumentException("cimg::load_network(): Specified URL is (null).");
+    if (!filename_local)
+      throw CImgArgumentException("cimg::load_network(): Specified destination string is (null).");
+
+    const char *const __ext = cimg::split_filename(url), *const _ext = (*__ext && __ext>url)?__ext - 1:__ext;
+    CImg<char> ext = CImg<char>::string(_ext);
+    std::FILE *file = 0;
+    *filename_local = 0;
+    if (ext._width>16 || !cimg::strncasecmp(ext,"cgi",3)) *ext = 0;
+    else cimg::strwindows_reserved(ext);
+    do {
+      cimg_snprintf(filename_local,256,"%s%c%s%s",
+                    cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext._data);
+      if ((file=std::fopen(filename_local,"rb"))!=0) cimg::fclose(file);
+    } while (file);
+
+#ifdef cimg_use_curl
+    const unsigned int omode = cimg::exception_mode();
+    cimg::exception_mode(0);
+    try {
+      CURL *curl = 0;
+      CURLcode res;
+      curl = curl_easy_init();
+      if (curl) {
+        file = cimg::fopen(filename_local,"wb");
+        curl_easy_setopt(curl,CURLOPT_URL,url);
+        curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,0);
+        curl_easy_setopt(curl,CURLOPT_WRITEDATA,file);
+        curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,0L);
+        curl_easy_setopt(curl,CURLOPT_SSL_VERIFYHOST,0L);
+        curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
+        if (timeout) curl_easy_setopt(curl,CURLOPT_TIMEOUT,(long)timeout);
+        if (std::strchr(url,'?')) curl_easy_setopt(curl,CURLOPT_HTTPGET,1L);
+        if (referer) curl_easy_setopt(curl,CURLOPT_REFERER,referer);
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        cimg::fseek(file,0,SEEK_END); // Check if file size is 0.
+        const cimg_ulong siz = cimg::ftell(file);
+        cimg::fclose(file);
+        if (siz>0 && res==CURLE_OK) {
+          cimg::exception_mode(omode);
+          return filename_local;
+        } else std::remove(filename_local);
+      }
+    } catch (...) { }
+    cimg::exception_mode(omode);
+    if (!try_fallback) throw CImgIOException("cimg::load_network(): Failed to load file '%s' with libcurl.",url);
+#endif
+
+    CImg<char> command((unsigned int)std::strlen(url) + 64);
+    cimg::unused(try_fallback);
+
+    // Try with 'curl' first.
+    if (timeout) {
+      if (referer)
+        cimg_snprintf(command,command._width,"%s -e %s -m %u -f --silent --compressed -o \"%s\" \"%s\"",
+                      cimg::curl_path(),referer,timeout,filename_local,url);
+      else
+        cimg_snprintf(command,command._width,"%s -m %u -f --silent --compressed -o \"%s\" \"%s\"",
+                      cimg::curl_path(),timeout,filename_local,url);
+    } else {
+      if (referer)
+        cimg_snprintf(command,command._width,"%s -e %s -f --silent --compressed -o \"%s\" \"%s\"",
+                      cimg::curl_path(),referer,filename_local,url);
+      else
+        cimg_snprintf(command,command._width,"%s -f --silent --compressed -o \"%s\" \"%s\"",
+                      cimg::curl_path(),filename_local,url);
