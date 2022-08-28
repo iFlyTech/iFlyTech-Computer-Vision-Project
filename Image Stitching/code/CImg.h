@@ -56604,4 +56604,41 @@ namespace cimg {
   template<typename t>
   inline CImg<typename cimg::superset<double,t>::type> eval(const char *const expression, const CImg<t>& xyzc) {
     static const CImg<float> empty;
-    return empty.eval(expression,
+    return empty.eval(expression,xyzc);
+  }
+
+  // End of cimg:: namespace
+}
+
+  // End of cimg_library:: namespace
+}
+
+//! Short alias name.
+namespace cil = cimg_library_suffixed;
+
+#ifdef _cimg_redefine_False
+#define False 0
+#endif
+#ifdef _cimg_redefine_True
+#define True 1
+#endif
+#ifdef _cimg_redefine_None
+#define None 0
+#endif
+#ifdef _cimg_redefine_min
+#define min(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifdef _cimg_redefine_max
+#define max(a,b) (((a)>(b))?(a):(b))
+#endif
+#ifdef _cimg_redefine_PI
+#define PI 3.141592653589793238462643383
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+#endif
+// Local Variables:
+// mode: c++
+// End:
