@@ -56289,3 +56289,157 @@ namespace cimg {
       else
         cimg_snprintf(command,command._width,"%s -f --silent --compressed -o \"%s\" \"%s\"",
                       cimg::curl_path(),filename_local,url);
+    }
+    cimg::system(command);
+
+    if (!(file = std::fopen(filename_local,"rb"))) {
+
+      // Try with 'wget' otherwise.
+      if (timeout) {
+        if (referer)
+          cimg_snprintf(command,command._width,"%s --referer=%s -T %u -q -r -l 0 --no-cache -O \"%s\" \"%s\"",
+                        cimg::wget_path(),referer,timeout,filename_local,url);
+        else
+          cimg_snprintf(command,command._width,"%s -T %u -q -r -l 0 --no-cache -O \"%s\" \"%s\"",
+                        cimg::wget_path(),timeout,filename_local,url);
+      } else {
+        if (referer)
+          cimg_snprintf(command,command._width,"%s --referer=%s -q -r -l 0 --no-cache -O \"%s\" \"%s\"",
+                        cimg::wget_path(),referer,filename_local,url);
+        else
+          cimg_snprintf(command,command._width,"%s -q -r -l 0 --no-cache -O \"%s\" \"%s\"",
+                        cimg::wget_path(),filename_local,url);
+      }
+      cimg::system(command);
+
+      if (!(file = std::fopen(filename_local,"rb")))
+        throw CImgIOException("cimg::load_network(): Failed to load file '%s' with external commands "
+                              "'wget' or 'curl'.",url);
+      cimg::fclose(file);
+
+      // Try gunzip it.
+      cimg_snprintf(command,command._width,"%s.gz",filename_local);
+      std::rename(filename_local,command);
+      cimg_snprintf(command,command._width,"%s --quiet \"%s.gz\"",
+                    gunzip_path(),filename_local);
+      cimg::system(command);
+      file = std::fopen(filename_local,"rb");
+      if (!file) {
+        cimg_snprintf(command,command._width,"%s.gz",filename_local);
+        std::rename(command,filename_local);
+        file = std::fopen(filename_local,"rb");
+      }
+    }
+    cimg::fseek(file,0,SEEK_END); // Check if file size is 0.
+    if (std::ftell(file)<=0)
+      throw CImgIOException("cimg::load_network(): Failed to load URL '%s' with external commands "
+                            "'wget' or 'curl'.",url);
+    cimg::fclose(file);
+    return filename_local;
+  }
+
+  // Implement a tic/toc mechanism to display elapsed time of algorithms.
+  inline cimg_ulong tictoc(const bool is_tic) {
+    cimg::mutex(2);
+    static CImg<cimg_ulong> times(64);
+    static unsigned int pos = 0;
+    const cimg_ulong t1 = cimg::time();
+    if (is_tic) { // Tic.
+      times[pos++] = t1;
+      if (pos>=times._width)
+        throw CImgArgumentException("cimg::tic(): Too much calls to 'cimg::tic()' without calls to 'cimg::toc()'.");
+      cimg::mutex(2,0);
+      return t1;
+    }
+    // Toc.
+    if (!pos)
+      throw CImgArgumentException("cimg::toc(): No previous call to 'cimg::tic()' has been made.");
+    const cimg_ulong
+      t0 = times[--pos],
+      dt = t1>=t0?(t1 - t0):cimg::type<cimg_ulong>::max();
+    const unsigned int
+      edays = (unsigned int)(dt/86400000.0),
+      ehours = (unsigned int)((dt - edays*86400000.0)/3600000.0),
+      emin = (unsigned int)((dt - edays*86400000.0 - ehours*3600000.0)/60000.0),
+      esec = (unsigned int)((dt - edays*86400000.0 - ehours*3600000.0 - emin*60000.0)/1000.0),
+      ems = (unsigned int)(dt - edays*86400000.0 - ehours*3600000.0 - emin*60000.0 - esec*1000.0);
+    if (!edays && !ehours && !emin && !esec)
+      std::fprintf(cimg::output(),"%s[CImg]%*sElapsed time: %u ms%s\n",
+                   cimg::t_red,1 + 2*pos,"",ems,cimg::t_normal);
+    else {
+      if (!edays && !ehours && !emin)
+        std::fprintf(cimg::output(),"%s[CImg]%*sElapsed time: %u sec %u ms%s\n",
+                     cimg::t_red,1 + 2*pos,"",esec,ems,cimg::t_normal);
+      else {
+        if (!edays && !ehours)
+          std::fprintf(cimg::output(),"%s[CImg]%*sElapsed time: %u min %u sec %u ms%s\n",
+                       cimg::t_red,1 + 2*pos,"",emin,esec,ems,cimg::t_normal);
+        else{
+          if (!edays)
+            std::fprintf(cimg::output(),"%s[CImg]%*sElapsed time: %u hours %u min %u sec %u ms%s\n",
+                         cimg::t_red,1 + 2*pos,"",ehours,emin,esec,ems,cimg::t_normal);
+          else{
+            std::fprintf(cimg::output(),"%s[CImg]%*sElapsed time: %u days %u hours %u min %u sec %u ms%s\n",
+                         cimg::t_red,1 + 2*pos,"",edays,ehours,emin,esec,ems,cimg::t_normal);
+          }
+        }
+      }
+    }
+    cimg::mutex(2,0);
+    return dt;
+  }
+
+  // Return a temporary string describing the size of a memory buffer.
+  inline const char *strbuffersize(const cimg_ulong size) {
+    static CImg<char> res(256);
+    cimg::mutex(5);
+    if (size<1024LU) cimg_snprintf(res,res._width,"%lu byte%s",size,size>1?"s":"");
+    else if (size<1024*1024LU) { const float nsize = size/1024.0f; cimg_snprintf(res,res._width,"%.1f Kio",nsize); }
+    else if (size<1024*1024*1024LU) {
+      const float nsize = size/(1024*1024.0f); cimg_snprintf(res,res._width,"%.1f Mio",nsize);
+    } else { const float nsize = size/(1024*1024*1024.0f); cimg_snprintf(res,res._width,"%.1f Gio",nsize); }
+    cimg::mutex(5,0);
+    return res;
+  }
+
+  //! Display a simple dialog box, and wait for the user's response.
+  /**
+     \param title Title of the dialog window.
+     \param msg Main message displayed inside the dialog window.
+     \param button1_label Label of the 1st button.
+     \param button2_label Label of the 2nd button (\c 0 to hide button).
+     \param button3_label Label of the 3rd button (\c 0 to hide button).
+     \param button4_label Label of the 4th button (\c 0 to hide button).
+     \param button5_label Label of the 5th button (\c 0 to hide button).
+     \param button6_label Label of the 6th button (\c 0 to hide button).
+     \param logo Image logo displayed at the left of the main message.
+     \param is_centered Tells if the dialog window must be centered on the screen.
+     \return Indice of clicked button (from \c 0 to \c 5), or \c -1 if the dialog window has been closed by the user.
+     \note
+     - Up to 6 buttons can be defined in the dialog window.
+     - The function returns when a user clicked one of the button or closed the dialog window.
+     - If a button text is set to 0, the corresponding button (and the followings) will not appear in the dialog box.
+     At least one button must be specified.
+  **/
+  template<typename t>
+  inline int dialog(const char *const title, const char *const msg,
+                    const char *const button1_label, const char *const button2_label,
+                    const char *const button3_label, const char *const button4_label,
+                    const char *const button5_label, const char *const button6_label,
+                    const CImg<t>& logo, const bool is_centered=false) {
+#if cimg_display==0
+    cimg::unused(title,msg,button1_label,button2_label,button3_label,button4_label,button5_label,button6_label,
+                 logo._data,is_centered);
+    throw CImgIOException("cimg::dialog(): No display available.");
+#else
+    static const unsigned char
+      black[] = { 0,0,0 }, white[] = { 255,255,255 }, gray[] = { 200,200,200 }, gray2[] = { 150,150,150 };
+
+    // Create buttons and canvas graphics
+    CImgList<unsigned char> buttons, cbuttons, sbuttons;
+    if (button1_label) { CImg<unsigned char>().draw_text(0,0,button1_label,black,gray,1,13).move_to(buttons);
+      if (button2_label) { CImg<unsigned char>().draw_text(0,0,button2_label,black,gray,1,13).move_to(buttons);
+        if (button3_label) { CImg<unsigned char>().draw_text(0,0,button3_label,black,gray,1,13).move_to(buttons);
+          if (button4_label) { CImg<unsigned char>().draw_text(0,0,button4_label,black,gray,1,13).move_to(buttons);
+            if (button5_label) { CImg<unsigned char>().draw_text(0,0,button5_label,black,gray,1,13).move_to(buttons);
+              if (button6_label) { CImg<unsigned char>().draw_text(0,0,button6_l
