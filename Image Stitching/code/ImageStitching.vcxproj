@@ -148,4 +148,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    
+    <ClCompile Include="Blending.cpp" />
+    <ClCompile Include="Matching.cpp" />
+    <ClCompile Include="Sift.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Blending.h" />
+    <ClInclude Include="CImg.h" />
+    <ClInclude Include="Matching.h" />
+    <ClInclude Include="Sift.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
