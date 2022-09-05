@@ -38317,3 +38317,7741 @@ namespace cimg_library_suffixed {
           default :
             throw CImgArgumentException(_cimg_instance
                                         "haar(): Invalid specified axis '%c' "
+                                        "(should be { x | y | z }).",
+                                        cimg_instance,
+                                        axis);
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Compute Haar multiscale wavelet transform \overloading.
+    /**
+       \param invert Set inverse of direct transform.
+       \param nb_scales Number of scales used for the transform.
+    **/
+    CImg<T>& haar(const bool invert=false, const unsigned int nb_scales=1) {
+      return get_haar(invert,nb_scales).move_to(*this);
+    }
+
+    //! Compute Haar multiscale wavelet transform \newinstance.
+    CImg<Tfloat> get_haar(const bool invert=false, const unsigned int nb_scales=1) const {
+      CImg<Tfloat> res;
+      if (nb_scales==1) { // Single scale transform
+        if (_width>1) get_haar('x',invert,1).move_to(res);
+        if (_height>1) { if (res) res.haar('y',invert,1); else get_haar('y',invert,1).move_to(res); }
+        if (_depth>1) { if (res) res.haar('z',invert,1); else get_haar('z',invert,1).move_to(res); }
+        if (res) return res;
+      } else { // Multi-scale transform
+        if (invert) { // Inverse transform
+          res.assign(*this,false);
+          if (_width>1) {
+            if (_height>1) {
+              if (_depth>1) {
+                unsigned int w = _width, h = _height, d = _depth;
+                for (unsigned int s = 1; w && h && d && s<nb_scales; ++s) { w/=2; h/=2; d/=2; }
+                for (w = w?w:1, h = h?h:1, d = d?d:1; w<=_width && h<=_height && d<=_depth; w*=2, h*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,d - 1).get_haar(true,1));
+              } else {
+                unsigned int w = _width, h = _height;
+                for (unsigned int s = 1; w && h && s<nb_scales; ++s) { w/=2; h/=2; }
+                for (w = w?w:1, h = h?h:1; w<=_width && h<=_height; w*=2, h*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,0).get_haar(true,1));
+              }
+            } else {
+              if (_depth>1) {
+                unsigned int w = _width, d = _depth;
+                for (unsigned int s = 1; w && d && s<nb_scales; ++s) { w/=2; d/=2; }
+                for (w = w?w:1, d = d?d:1; w<=_width && d<=_depth; w*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,0,d - 1).get_haar(true,1));
+              } else {
+                unsigned int w = _width;
+                for (unsigned int s = 1; w && s<nb_scales; ++s) w/=2;
+                for (w = w?w:1; w<=_width; w*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,0,0).get_haar(true,1));
+              }
+            }
+          } else {
+            if (_height>1) {
+              if (_depth>1) {
+                unsigned int h = _height, d = _depth;
+                for (unsigned int s = 1; h && d && s<nb_scales; ++s) { h/=2; d/=2; }
+                for (h = h?h:1, d = d?d:1; h<=_height && d<=_depth; h*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,d - 1).get_haar(true,1));
+              } else {
+                unsigned int h = _height;
+                for (unsigned int s = 1; h && s<nb_scales; ++s) h/=2;
+                for (h = h?h:1; h<=_height; h*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,0).get_haar(true,1));
+              }
+            } else {
+              if (_depth>1) {
+                unsigned int d = _depth;
+                for (unsigned int s = 1; d && s<nb_scales; ++s) d/=2;
+                for (d = d?d:1; d<=_depth; d*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,0,d - 1).get_haar(true,1));
+              } else return *this;
+            }
+          }
+        } else { // Direct transform
+          res = get_haar(false,1);
+          if (_width>1) {
+            if (_height>1) {
+              if (_depth>1)
+                for (unsigned int s = 1, w = _width/2, h = _height/2, d = _depth/2; w && h && d && s<nb_scales;
+                     ++s, w/=2, h/=2, d/=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,d - 1).haar(false,1));
+              else for (unsigned int s = 1, w = _width/2, h = _height/2; w && h && s<nb_scales; ++s, w/=2, h/=2)
+                     res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,0).haar(false,1));
+            } else {
+              if (_depth>1) for (unsigned int s = 1, w = _width/2, d = _depth/2; w && d && s<nb_scales; ++s, w/=2, d/=2)
+                              res.draw_image(res.get_crop(0,0,0,w - 1,0,d - 1).haar(false,1));
+              else for (unsigned int s = 1, w = _width/2; w && s<nb_scales; ++s, w/=2)
+                     res.draw_image(res.get_crop(0,0,0,w - 1,0,0).haar(false,1));
+            }
+          } else {
+            if (_height>1) {
+              if (_depth>1)
+                for (unsigned int s = 1, h = _height/2, d = _depth/2; h && d && s<nb_scales; ++s, h/=2, d/=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,d - 1).haar(false,1));
+              else for (unsigned int s = 1, h = _height/2; h && s<nb_scales; ++s, h/=2)
+                     res.draw_image(res.get_crop(0,0,0,0,h - 1,0).haar(false,1));
+            } else {
+              if (_depth>1) for (unsigned int s = 1, d = _depth/2; d && s<nb_scales; ++s, d/=2)
+                              res.draw_image(res.get_crop(0,0,0,0,0,d - 1).haar(false,1));
+              else return *this;
+            }
+          }
+        }
+        return res;
+      }
+      return *this;
+    }
+
+    //! Compute 1d Fast Fourier Transform, along a specified axis.
+    /**
+       \param axis Axis along which the FFT is computed.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    CImgList<Tfloat> get_FFT(const char axis, const bool is_invert=false) const {
+      CImgList<Tfloat> res(*this,CImg<Tfloat>());
+      CImg<Tfloat>::FFT(res[0],res[1],axis,is_invert);
+      return res;
+    }
+
+    //! Compute n-d Fast Fourier Transform.
+    /*
+      \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    CImgList<Tfloat> get_FFT(const bool is_invert=false) const {
+      CImgList<Tfloat> res(*this,CImg<Tfloat>());
+      CImg<Tfloat>::FFT(res[0],res[1],is_invert);
+      return res;
+    }
+
+    //! Compute 1d Fast Fourier Transform, along a specified axis.
+    /**
+       \param[in,out] real Real part of the pixel values.
+       \param[in,out] imag Imaginary part of the pixel values.
+       \param axis Axis along which the FFT is computed.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    static void FFT(CImg<T>& real, CImg<T>& imag, const char axis, const bool is_invert=false) {
+      if (!real)
+        throw CImgInstanceException("CImg<%s>::FFT(): Specified real part is empty.",
+                                    pixel_type());
+
+      if (!imag) imag.assign(real._width,real._height,real._depth,real._spectrum,(T)0);
+      if (!real.is_sameXYZC(imag))
+        throw CImgInstanceException("CImg<%s>::FFT(): Specified real part (%u,%u,%u,%u,%p) and "
+                                    "imaginary part (%u,%u,%u,%u,%p) have different dimensions.",
+                                    pixel_type(),
+                                    real._width,real._height,real._depth,real._spectrum,real._data,
+                                    imag._width,imag._height,imag._depth,imag._spectrum,imag._data);
+#ifdef cimg_use_fftw3
+      cimg::mutex(12);
+      fftw_complex *data_in;
+      fftw_plan data_plan;
+
+      switch (cimg::lowercase(axis)) {
+      case 'x' : { // Fourier along X, using FFTW library.
+        data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*real._width);
+        if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                  "for computing FFT of image (%u,%u,%u,%u) along the X-axis.",
+                                                  pixel_type(),
+                                                  cimg::strbuffersize(sizeof(fftw_complex)*real._width),
+                                                  real._width,real._height,real._depth,real._spectrum);
+
+        data_plan = fftw_plan_dft_1d(real._width,data_in,data_in,is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+        cimg_forYZC(real,y,z,c) {
+          T *ptrr = real.data(0,y,z,c), *ptri = imag.data(0,y,z,c);
+          double *ptrd = (double*)data_in;
+          cimg_forX(real,x) { *(ptrd++) = (double)*(ptrr++); *(ptrd++) = (double)*(ptri++); }
+          fftw_execute(data_plan);
+          const unsigned int fact = real._width;
+          if (is_invert) cimg_forX(real,x) { *(--ptri) = (T)(*(--ptrd)/fact); *(--ptrr) = (T)(*(--ptrd)/fact); }
+          else cimg_forX(real,x) { *(--ptri) = (T)*(--ptrd); *(--ptrr) = (T)*(--ptrd); }
+        }
+      } break;
+      case 'y' : { // Fourier along Y, using FFTW library.
+        data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * real._height);
+        if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                  "for computing FFT of image (%u,%u,%u,%u) along the Y-axis.",
+                                                  pixel_type(),
+                                                  cimg::strbuffersize(sizeof(fftw_complex)*real._height),
+                                                  real._width,real._height,real._depth,real._spectrum);
+
+        data_plan = fftw_plan_dft_1d(real._height,data_in,data_in,is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+        const unsigned int off = real._width;
+        cimg_forXZC(real,x,z,c) {
+          T *ptrr = real.data(x,0,z,c), *ptri = imag.data(x,0,z,c);
+          double *ptrd = (double*)data_in;
+          cimg_forY(real,y) { *(ptrd++) = (double)*ptrr; *(ptrd++) = (double)*ptri; ptrr+=off; ptri+=off; }
+          fftw_execute(data_plan);
+          const unsigned int fact = real._height;
+          if (is_invert)
+            cimg_forY(real,y) { ptrr-=off; ptri-=off; *ptri = (T)(*(--ptrd)/fact); *ptrr = (T)(*(--ptrd)/fact); }
+          else cimg_forY(real,y) { ptrr-=off; ptri-=off; *ptri = (T)*(--ptrd); *ptrr = (T)*(--ptrd); }
+        }
+      } break;
+      case 'z' : { // Fourier along Z, using FFTW library.
+        data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * real._depth);
+        if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                  "for computing FFT of image (%u,%u,%u,%u) along the Z-axis.",
+                                                  pixel_type(),
+                                                  cimg::strbuffersize(sizeof(fftw_complex)*real._depth),
+                                                  real._width,real._height,real._depth,real._spectrum);
+
+        data_plan = fftw_plan_dft_1d(real._depth,data_in,data_in,is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+        const ulongT off = (ulongT)real._width*real._height;
+        cimg_forXYC(real,x,y,c) {
+          T *ptrr = real.data(x,y,0,c), *ptri = imag.data(x,y,0,c);
+          double *ptrd = (double*)data_in;
+          cimg_forZ(real,z) { *(ptrd++) = (double)*ptrr; *(ptrd++) = (double)*ptri; ptrr+=off; ptri+=off; }
+          fftw_execute(data_plan);
+          const unsigned int fact = real._depth;
+          if (is_invert)
+            cimg_forZ(real,z) { ptrr-=off; ptri-=off; *ptri = (T)(*(--ptrd)/fact); *ptrr = (T)(*(--ptrd)/fact); }
+          else cimg_forZ(real,z) { ptrr-=off; ptri-=off; *ptri = (T)*(--ptrd); *ptrr = (T)*(--ptrd); }
+        }
+      } break;
+      default :
+        throw CImgArgumentException("CImgList<%s>::FFT(): Invalid specified axis '%c' for real and imaginary parts "
+                                    "(%u,%u,%u,%u) "
+                                    "(should be { x | y | z }).",
+                                    pixel_type(),axis,
+                                    real._width,real._height,real._depth,real._spectrum);
+      }
+      fftw_destroy_plan(data_plan);
+      fftw_free(data_in);
+      cimg::mutex(12,0);
+#else
+      switch (cimg::lowercase(axis)) {
+      case 'x' : { // Fourier along X, using built-in functions.
+        const unsigned int N = real._width, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the X-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forYZC(real,y,z,c) {
+              cimg::swap(real(i,y,z,c),real(j,y,z,c));
+              cimg::swap(imag(i,y,z,c),imag(j,y,z,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(ri,y,z,c),real(rj,y,z,c));
+                cimg::swap(imag(ri,y,z,c),imag(rj,y,z,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = delta>>1;
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forYZC(real,y,z,c) {
+                T &ir = real(j,y,z,c), &ii = imag(j,y,z,c), &nir = real(nj,y,z,c), &nii = imag(nj,y,z,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      case 'y' : { // Fourier along Y, using built-in functions.
+        const unsigned int N = real._height, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the Y-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forXZC(real,x,z,c) {
+              cimg::swap(real(x,i,z,c),real(x,j,z,c));
+              cimg::swap(imag(x,i,z,c),imag(x,j,z,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(x,ri,z,c),real(x,rj,z,c));
+                cimg::swap(imag(x,ri,z,c),imag(x,rj,z,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = (delta>>1);
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forXZC(real,x,z,c) {
+                T &ir = real(x,j,z,c), &ii = imag(x,j,z,c), &nir = real(x,nj,z,c), &nii = imag(x,nj,z,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      case 'z' : { // Fourier along Z, using built-in functions.
+        const unsigned int N = real._depth, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the Z-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forXYC(real,x,y,c) {
+              cimg::swap(real(x,y,i,c),real(x,y,j,c));
+              cimg::swap(imag(x,y,i,c),imag(x,y,j,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(x,y,ri,c),real(x,y,rj,c));
+                cimg::swap(imag(x,y,ri,c),imag(x,y,rj,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = (delta>>1);
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forXYC(real,x,y,c) {
+                T &ir = real(x,y,j,c), &ii = imag(x,y,j,c), &nir = real(x,y,nj,c), &nii = imag(x,y,nj,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      default :
+        throw CImgArgumentException("CImgList<%s>::FFT(): Invalid specified axis '%c' for real and imaginary parts "
+                                    "(%u,%u,%u,%u) "
+                                    "(should be { x | y | z }).",
+                                    pixel_type(),axis,
+                                    real._width,real._height,real._depth,real._spectrum);
+      }
+#endif
+    }
+
+    //! Compute n-d Fast Fourier Transform.
+    /**
+       \param[in,out] real Real part of the pixel values.
+       \param[in,out] imag Imaginary part of the pixel values.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+       \param nb_threads Number of parallel threads used for the computation.
+         Use \c 0 to set this to the number of available cpus.
+    **/
+    static void FFT(CImg<T>& real, CImg<T>& imag, const bool is_invert=false, const unsigned int nb_threads=0) {
+      if (!real)
+        throw CImgInstanceException("CImgList<%s>::FFT(): Empty specified real part.",
+                                    pixel_type());
+
+      if (!imag) imag.assign(real._width,real._height,real._depth,real._spectrum,(T)0);
+      if (!real.is_sameXYZC(imag))
+        throw CImgInstanceException("CImgList<%s>::FFT(): Specified real part (%u,%u,%u,%u,%p) and "
+                                    "imaginary part (%u,%u,%u,%u,%p) have different dimensions.",
+                                    pixel_type(),
+                                    real._width,real._height,real._depth,real._spectrum,real._data,
+                                    imag._width,imag._height,imag._depth,imag._spectrum,imag._data);
+
+#ifdef cimg_use_fftw3
+      cimg::mutex(12);
+#ifndef cimg_use_fftw3_singlethread
+      const unsigned int _nb_threads = nb_threads?nb_threads:cimg::nb_cpus();
+      static int fftw_st = fftw_init_threads();
+      cimg::unused(fftw_st);
+      fftw_plan_with_nthreads(_nb_threads);
+#else
+      cimg::unused(nb_threads);
+#endif
+      fftw_complex *data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*real._width*real._height*real._depth);
+      if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                "for computing FFT of image (%u,%u,%u,%u).",
+                                                pixel_type(),
+                                                cimg::strbuffersize(sizeof(fftw_complex)*real._width*
+                                                                    real._height*real._depth*real._spectrum),
+                                                real._width,real._height,real._depth,real._spectrum);
+
+      fftw_plan data_plan;
+      const ulongT w = (ulongT)real._width, wh = w*real._height, whd = wh*real._depth;
+      data_plan = fftw_plan_dft_3d(real._width,real._height,real._depth,data_in,data_in,
+                                   is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+      cimg_forC(real,c) {
+        T *ptrr = real.data(0,0,0,c), *ptri = imag.data(0,0,0,c);
+        double *ptrd = (double*)data_in;
+        for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *(ptrd++) = (double)*ptrr; *(ptrd++) = (double)*ptri;
+            }
+        fftw_execute(data_plan);
+        ptrd = (double*)data_in;
+        ptrr = real.data(0,0,0,c);
+        ptri = imag.data(0,0,0,c);
+        if (!is_invert) for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)*(ptrd++); *ptri = (T)*(ptrd++);
+            }
+        else for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)(*(ptrd++)/whd); *ptri = (T)(*(ptrd++)/whd);
+            }
+      }
+      fftw_destroy_plan(data_plan);
+      fftw_free(data_in);
+#ifndef cimg_use_fftw3_singlethread
+      fftw_cleanup_threads();
+#endif
+      cimg::mutex(12,0);
+#else
+      cimg::unused(nb_threads);
+      if (real._depth>1) FFT(real,imag,'z',is_invert);
+      if (real._height>1) FFT(real,imag,'y',is_invert);
+      if (real._width>1) FFT(real,imag,'x',is_invert);
+#endif
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name 3d Objects Management
+    //@{
+    //-------------------------------------
+
+    //! Shift 3d object's vertices.
+    /**
+       \param tx X-coordinate of the 3d displacement vector.
+       \param ty Y-coordinate of the 3d displacement vector.
+       \param tz Z-coordinate of the 3d displacement vector.
+    **/
+    CImg<T>& shift_object3d(const float tx, const float ty=0, const float tz=0) {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      get_shared_row(0)+=tx; get_shared_row(1)+=ty; get_shared_row(2)+=tz;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices \newinstance.
+    CImg<Tfloat> get_shift_object3d(const float tx, const float ty=0, const float tz=0) const {
+      return CImg<Tfloat>(*this,false).shift_object3d(tx,ty,tz);
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered.
+    /**
+       \note The object center is computed as its barycenter.
+    **/
+    CImg<T>& shift_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      xcoords-=(xm + xM)/2; ycoords-=(ym + yM)/2; zcoords-=(zm + zM)/2;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered \newinstance.
+    CImg<Tfloat> get_shift_object3d() const {
+      return CImg<Tfloat>(*this,false).shift_object3d();
+    }
+
+    //! Resize 3d object.
+    /**
+       \param sx Width of the 3d object's bounding box.
+       \param sy Height of the 3d object's bounding box.
+       \param sz Depth of the 3d object's bounding box.
+    **/
+    CImg<T>& resize_object3d(const float sx, const float sy=-100, const float sz=-100) {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      if (xm<xM) { if (sx>0) xcoords*=sx/(xM-xm); else xcoords*=-sx/100; }
+      if (ym<yM) { if (sy>0) ycoords*=sy/(yM-ym); else ycoords*=-sy/100; }
+      if (zm<zM) { if (sz>0) zcoords*=sz/(zM-zm); else zcoords*=-sz/100; }
+      return *this;
+    }
+
+    //! Resize 3d object \newinstance.
+    CImg<Tfloat> get_resize_object3d(const float sx, const float sy=-100, const float sz=-100) const {
+      return CImg<Tfloat>(*this,false).resize_object3d(sx,sy,sz);
+    }
+
+    //! Resize 3d object to unit size.
+    CImg<T> resize_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      const float dx = xM - xm, dy = yM - ym, dz = zM - zm, dmax = cimg::max(dx,dy,dz);
+      if (dmax>0) { xcoords/=dmax; ycoords/=dmax; zcoords/=dmax; }
+      return *this;
+    }
+
+    //! Resize 3d object to unit size \newinstance.
+    CImg<Tfloat> get_resize_object3d() const {
+      return CImg<Tfloat>(*this,false).resize_object3d();
+    }
+
+    //! Merge two 3d objects together.
+    /**
+       \param[in,out] primitives Primitives data of the current 3d object.
+       \param obj_vertices Vertices data of the additional 3d object.
+       \param obj_primitives Primitives data of the additional 3d object.
+    **/
+    template<typename tf, typename tp, typename tff>
+    CImg<T>& append_object3d(CImgList<tf>& primitives, const CImg<tp>& obj_vertices,
+                             const CImgList<tff>& obj_primitives) {
+      if (!obj_vertices || !obj_primitives) return *this;
+      if (obj_vertices._height!=3 || obj_vertices._depth>1 || obj_vertices._spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Specified vertice image (%u,%u,%u,%u,%p) is not a "
+                                    "set of 3d vertices.",
+                                    cimg_instance,
+                                    obj_vertices._width,obj_vertices._height,
+                                    obj_vertices._depth,obj_vertices._spectrum,obj_vertices._data);
+
+      if (is_empty()) { primitives.assign(obj_primitives); return assign(obj_vertices); }
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      const unsigned int P = _width;
+      append(obj_vertices,'x');
+      const unsigned int N = primitives._width;
+      primitives.insert(obj_primitives);
+      for (unsigned int i = N; i<primitives._width; ++i) {
+        CImg<tf> &p = primitives[i];
+        switch (p.size()) {
+        case 1 : p[0]+=P; break; // Point.
+        case 5 : p[0]+=P; p[1]+=P; break; // Sphere.
+        case 2 : case 6 : p[0]+=P; p[1]+=P; break; // Segment.
+        case 3 : case 9 : p[0]+=P; p[1]+=P; p[2]+=P; break; // Triangle.
+        case 4 : case 12 : p[0]+=P; p[1]+=P; p[2]+=P; p[3]+=P; break; // Rectangle.
+        }
+      }
+      return *this;
+    }
+
+    //! Texturize primitives of a 3d object.
+    /**
+       \param[in,out] primitives Primitives data of the 3d object.
+       \param[in,out] colors Colors data of the 3d object.
+       \param texture Texture image to map to 3d object.
+       \param coords Texture-mapping coordinates.
+    **/
+    template<typename tp, typename tc, typename tt, typename tx>
+    const CImg<T>& texturize_object3d(CImgList<tp>& primitives, CImgList<tc>& colors,
+                                      const CImg<tt>& texture, const CImg<tx>& coords=CImg<tx>::const_empty()) const {
+      if (is_empty()) return *this;
+      if (_height!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "texturize_object3d(): image instance is not a set of 3d points.",
+                                    cimg_instance);
+      if (coords && (coords._width!=_width || coords._height!=2))
+        throw CImgArgumentException(_cimg_instance
+                                    "texturize_object3d(): Invalid specified texture coordinates (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    coords._width,coords._height,coords._depth,coords._spectrum,coords._data);
+      CImg<intT> _coords;
+      if (!coords) { // If no texture coordinates specified, do a default XY-projection.
+        _coords.assign(_width,2);
+        float
+          xmin, xmax = (float)get_shared_row(0).max_min(xmin),
+          ymin, ymax = (float)get_shared_row(1).max_min(ymin),
+          dx = xmax>xmin?xmax-xmin:1,
+          dy = ymax>ymin?ymax-ymin:1;
+        cimg_forX(*this,p) {
+          _coords(p,0) = (int)(((*this)(p,0) - xmin)*texture._width/dx);
+          _coords(p,1) = (int)(((*this)(p,1) - ymin)*texture._height/dy);
+        }
+      } else _coords = coords;
+
+      int texture_ind = -1;
+      cimglist_for(primitives,l) {
+        CImg<tp> &p = primitives[l];
+        const unsigned int siz = p.size();
+        switch (siz) {
+        case 1 : { // Point.
+          const unsigned int i0 = (unsigned int)p[0];
+          const int x0 = _coords(i0,0), y0 = _coords(i0,1);
+          texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                y0<=0?0:y0>=texture.height()?texture.height() - 1:y0).move_to(colors[l]);
+        } break;
+        case 2 : case 6 : { // Line.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,x0,y0,x1,y1).move_to(p);
+        } break;
+        case 3 : case 9 : { // Triangle.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,x0,y0,x1,y1,x2,y2).move_to(p);
+        } break;
+        case 4 : case 12 : { // Quadrangle.
+          const unsigned int
+            i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2], i3 = (unsigned int)p[3];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1),
+            x3 = _coords(i3,0), y3 = _coords(i3,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,i3,x0,y0,x1,y1,x2,y2,x3,y3).move_to(p);
+        } break;
+        }
+      }
+      return *this;
+    }
+
+    //! Generate a 3d elevation of the image instance.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param[out] colors The returned list of the 3d object colors.
+       \param elevation The input elevation map.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       CImgList<unsigned char> colors3d;
+       const CImg<float> points3d = img.get_elevation3d(faces3d,colors3d,img.get_norm()*0.2);
+       CImg<unsigned char>().display_object3d("Elevation3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_elevation3d.jpg
+    **/
+    template<typename tf, typename tc, typename te>
+    CImg<floatT> get_elevation3d(CImgList<tf>& primitives, CImgList<tc>& colors, const CImg<te>& elevation) const {
+      if (!is_sameXY(elevation) || elevation._depth>1 || elevation._spectrum>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "get_elevation3d(): Instance and specified elevation (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    elevation._width,elevation._height,elevation._depth,
+                                    elevation._spectrum,elevation._data);
+      if (is_empty()) return *this;
+      float m, M = (float)max_min(m);
+      if (M==m) ++M;
+      colors.assign();
+      const unsigned int size_x1 = _width - 1, size_y1 = _height - 1;
+      for (unsigned int y = 0; y<size_y1; ++y)
+        for (unsigned int x = 0; x<size_x1; ++x) {
+          const unsigned char
+            r = (unsigned char)(((*this)(x,y,0) - m)*255/(M-m)),
+            g = (unsigned char)(_spectrum>1?((*this)(x,y,1) - m)*255/(M-m):r),
+            b = (unsigned char)(_spectrum>2?((*this)(x,y,2) - m)*255/(M-m):_spectrum>1?0:r);
+          CImg<tc>::vector((tc)r,(tc)g,(tc)b).move_to(colors);
+        }
+      const typename CImg<te>::_functor2d_int func(elevation);
+      return elevation3d(primitives,func,0,0,_width - 1.0f,_height - 1.0f,_width,_height);
+    }
+
+    //! Generate the 3d projection planes of the image instance.
+    /**
+       \param[out] primitives Primitives data of the returned 3d object.
+       \param[out] colors Colors data of the returned 3d object.
+       \param x0 X-coordinate of the projection point.
+       \param y0 Y-coordinate of the projection point.
+       \param z0 Z-coordinate of the projection point.
+       \param normalize_colors Tells if the created textures have normalized colors.
+    **/
+    template<typename tf, typename tc>
+    CImg<floatT> get_projections3d(CImgList<tf>& primitives, CImgList<tc>& colors,
+                                   const unsigned int x0, const unsigned int y0, const unsigned int z0,
+                                   const bool normalize_colors=false) const {
+      float m = 0, M = 0, delta = 1;
+      if (normalize_colors) { m = (float)min_max(M); delta = 255/(m==M?1:M-m); }
+      const unsigned int
+        _x0 = (x0>=_width)?_width - 1:x0,
+        _y0 = (y0>=_height)?_height - 1:y0,
+        _z0 = (z0>=_depth)?_depth - 1:z0;
+      CImg<tc> img_xy, img_xz, img_yz;
+      if (normalize_colors) {
+        ((get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1)-=m)*=delta).move_to(img_xy);
+        ((get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_width,_depth,1,-100,-1).
+          move_to(img_xz);
+        ((get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_height,_depth,1,-100,-1).
+          move_to(img_yz);
+      } else {
+        get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1).move_to(img_xy);
+        get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1).resize(_width,_depth,1,-100,-1).move_to(img_xz);
+        get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).resize(_height,_depth,1,-100,-1).move_to(img_yz);
+      }
+      CImg<floatT> points(12,3,1,1,
+                          0,_width - 1,_width - 1,0,   0,_width - 1,_width - 1,0, _x0,_x0,_x0,_x0,
+                          0,0,_height - 1,_height - 1, _y0,_y0,_y0,_y0,       0,_height - 1,_height - 1,0,
+                          _z0,_z0,_z0,_z0,         0,0,_depth - 1,_depth - 1, 0,0,_depth - 1,_depth - 1);
+      primitives.assign();
+      CImg<tf>::vector(0,1,2,3,0,0,img_xy._width - 1,0,img_xy._width - 1,img_xy._height - 1,0,img_xy._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(4,5,6,7,0,0,img_xz._width - 1,0,img_xz._width - 1,img_xz._height - 1,0,img_xz._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(8,9,10,11,0,0,img_yz._width - 1,0,img_yz._width - 1,img_yz._height - 1,0,img_yz._height - 1).
+        move_to(primitives);
+      colors.assign();
+      img_xy.move_to(colors);
+      img_xz.move_to(colors);
+      img_yz.move_to(colors);
+      return points;
+    }
+
+    //! Generate a isoline of the image instance as a 3d object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param isovalue The returned list of the 3d object colors.
+       \param size_x The number of subdivisions along the X-axis.
+       \param size_y The number of subdisivions along the Y-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = img.get_isoline3d(faces3d,100);
+       CImg<unsigned char>().display_object3d("Isoline3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_isoline3d.jpg
+    **/
+    template<typename tf>
+    CImg<floatT> get_isoline3d(CImgList<tf>& primitives, const float isovalue,
+                               const int size_x=-100, const int size_y=-100) const {
+      if (_spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isoline3d(): Instance is not a scalar image.",
+                                    cimg_instance);
+      if (_depth>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isoline3d(): Instance is not a 2d image.",
+                                    cimg_instance);
+      primitives.assign();
+      if (is_empty()) return *this;
+      CImg<floatT> vertices;
+      if ((size_x==-100 && size_y==-100) || (size_x==width() && size_y==height())) {
+        const _functor2d_int func(*this);
+        vertices = isoline3d(primitives,func,isovalue,0,0,width() - 1.0f,height() - 1.0f,width(),height());
+      } else {
+        const _functor2d_float func(*this);
+        vertices = isoline3d(primitives,func,isovalue,0,0,width() - 1.0f,height() - 1.0f,size_x,size_y);
+      }
+      return vertices;
+    }
+
+    //! Generate an isosurface of the image instance as a 3d object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param isovalue The returned list of the 3d object colors.
+       \param size_x Number of subdivisions along the X-axis.
+       \param size_y Number of subdisivions along the Y-axis.
+       \param size_z Number of subdisivions along the Z-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img = CImg<unsigned char>("reference.jpg").resize(-100,-100,20);
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = img.get_isosurface3d(faces3d,100);
+       CImg<unsigned char>().display_object3d("Isosurface3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_isosurface3d.jpg
+    **/
+    template<typename tf>
+    CImg<floatT> get_isosurface3d(CImgList<tf>& primitives, const float isovalue,
+                                  const int size_x=-100, const int size_y=-100, const int size_z=-100) const {
+      if (_spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "get_isosurface3d(): Instance is not a scalar image.",
+                                    cimg_instance);
+      primitives.assign();
+      if (is_empty()) return *this;
+      CImg<floatT> vertices;
+      if ((size_x==-100 && size_y==-100 && size_z==-100) || (size_x==width() && size_y==height() && size_z==depth())) {
+        const _functor3d_int func(*this);
+        vertices = isosurface3d(primitives,func,isovalue,0,0,0,width() - 1.0f,height() - 1.0f,depth() - 1.0f,
+                                width(),height(),depth());
+      } else {
+        const _functor3d_float func(*this);
+        vertices = isosurface3d(primitives,func,isovalue,0,0,0,width() - 1.0f,height() - 1.0f,depth() - 1.0f,
+                                size_x,size_y,size_z);
+      }
+      return vertices;
+    }
+
+    //! Compute 3d elevation of a function as a 3d object.
+    /**
+       \param[out] primitives Primitives data of the resulting 3d object.
+       \param func Elevation function. Is of type <tt>float (*func)(const float x,const float y)</tt>.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param size_x Resolution of the function along the X-axis.
+       \param size_y Resolution of the function along the Y-axis.
+    **/
+    template<typename tf, typename tfunc>
+    static CImg<floatT> elevation3d(CImgList<tf>& primitives, const tfunc& func,
+                                    const float x0, const float y0, const float x1, const float y1,
+                                    const int size_x=256, const int size_y=256) {
+      const float
+        nx0 = x0<x1?x0:x1, ny0 = y0<y1?y0:y1,
+        nx1 = x0<x1?x1:x0, ny1 = y0<y1?y1:y0;
+      const unsigned int
+        _nsize_x = (unsigned int)(size_x>=0?size_x:(nx1-nx0)*-size_x/100),
+        nsize_x = _nsize_x?_nsize_x:1, nsize_x1 = nsize_x - 1,
+        _nsize_y = (unsigned int)(size_y>=0?size_y:(ny1-ny0)*-size_y/100),
+        nsize_y = _nsize_y?_nsize_y:1, nsize_y1 = nsize_y - 1;
+      if (nsize_x<2 || nsize_y<2)
+        throw CImgArgumentException("CImg<%s>::elevation3d(): Invalid specified size (%d,%d).",
+                                    pixel_type(),
+                                    nsize_x,nsize_y);
+
+      CImg<floatT> vertices(nsize_x*nsize_y,3);
+      floatT *ptr_x = vertices.data(0,0), *ptr_y = vertices.data(0,1), *ptr_z = vertices.data(0,2);
+      for (unsigned int y = 0; y<nsize_y; ++y) {
+        const float Y = ny0 + y*(ny1-ny0)/nsize_y1;
+        for (unsigned int x = 0; x<nsize_x; ++x) {
+          const float X = nx0 + x*(nx1-nx0)/nsize_x1;
+          *(ptr_x++) = (float)x;
+          *(ptr_y++) = (float)y;
+          *(ptr_z++) = (float)func(X,Y);
+        }
+      }
+      primitives.assign(nsize_x1*nsize_y1,1,4);
+      for (unsigned int p = 0, y = 0; y<nsize_y1; ++y) {
+        const unsigned int yw = y*nsize_x;
+        for (unsigned int x = 0; x<nsize_x1; ++x) {
+          const unsigned int xpyw = x + yw, xpyww = xpyw + nsize_x;
+          primitives[p++].fill(xpyw,xpyww,xpyww + 1,xpyw + 1);
+        }
+      }
+      return vertices;
+    }
+
+    //! Compute 3d elevation of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> elevation3d(CImgList<tf>& primitives, const char *const expression,
+                                    const float x0, const float y0, const float x1, const float y1,
+                                    const int size_x=256, const int size_y=256) {
+      const _functor2d_expr func(expression);
+      return elevation3d(primitives,func,x0,y0,x1,y1,size_x,size_y);
+    }
+
+    //! Compute 0-isolines of a function, as a 3d object.
+    /**
+       \param[out] primitives Primitives data of the resulting 3d object.
+       \param func Elevation function. Is of type <tt>float (*func)(const float x,const float y)</tt>.
+       \param isovalue Isovalue to extract from function.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param size_x Resolution of the function along the X-axis.
+       \param size_y Resolution of the function along the Y-axis.
+       \note Use the marching squares algorithm for extracting the isolines.
+     **/
+    template<typename tf, typename tfunc>
+    static CImg<floatT> isoline3d(CImgList<tf>& primitives, const tfunc& func, const float isovalue,
+                                  const float x0, const float y0, const float x1, const float y1,
+                                  const int size_x=256, const int size_y=256) {
+      static const unsigned int edges[16] = { 0x0, 0x9, 0x3, 0xa, 0x6, 0xf, 0x5, 0xc, 0xc,
+                                              0x5, 0xf, 0x6, 0xa, 0x3, 0x9, 0x0 };
+      static const int segments[16][4] = { { -1,-1,-1,-1 }, { 0,3,-1,-1 }, { 0,1,-1,-1 }, { 1,3,-1,-1 },
+                                           { 1,2,-1,-1 },   { 0,1,2,3 },   { 0,2,-1,-1 }, { 2,3,-1,-1 },
+                                           { 2,3,-1,-1 },   { 0,2,-1,-1},  { 0,3,1,2 },   { 1,2,-1,-1 },
+                                           { 1,3,-1,-1 },   { 0,1,-1,-1},  { 0,3,-1,-1},  { -1,-1,-1,-1 } };
+      const unsigned int
+        _nx = (unsigned int)(size_x>=0?size_x:cimg::round((x1-x0)*-size_x/100 + 1)),
+        _ny = (unsigned int)(size_y>=0?size_y:cimg::round((y1-y0)*-size_y/100 + 1)),
+        nx = _nx?_nx:1,
+        ny = _ny?_ny:1,
+        nxm1 = nx - 1,
+        nym1 = ny - 1;
+      primitives.assign();
+      if (!nxm1 || !nym1) return CImg<floatT>();
+      const float dx = (x1 - x0)/nxm1, dy = (y1 - y0)/nym1;
+      CImgList<floatT> vertices;
+      CImg<intT> indices1(nx,1,1,2,-1), indices2(nx,1,1,2);
+      CImg<floatT> values1(nx), values2(nx);
+      float X = x0, Y = y0, nX = X + dx, nY = Y + dy;
+
+      // Fill first line with values
+      cimg_forX(values1,x) { values1(x) = (float)func(X,Y); X+=dx; }
+
+      // Run the marching squares algorithm
+      for (unsigned int yi = 0, nyi = 1; yi<nym1; ++yi, ++nyi, Y=nY, nY+=dy) {
+        X = x0; nX = X + dx;
+        indices2.fill(-1);
+        for (unsigned int xi = 0, nxi = 1; xi<nxm1; ++xi, ++nxi, X=nX, nX+=dx) {
+
+          // Determine square configuration
+          const float
+            val0 = values1(xi),
+            val1 = values1(nxi),
+            val2 = values2(nxi) = (float)func(nX,nY),
+            val3 = values2(xi) = (float)func(X,nY);
+          const unsigned int
+            configuration = (val0<isovalue?1U:0U) | (val1<isovalue?2U:0U) |
+            (val2<isovalue?4U:0U) | (val3<isovalue?8U:0U),
+            edge = edges[configuration];
+
+          // Compute intersection vertices
+          if (edge) {
+            if ((edge&1) && indices1(xi,0)<0) {
+              const float Xi = X + (isovalue-val0)*dx/(val1-val0);
+              indices1(xi,0) = vertices.width();
+              CImg<floatT>::vector(Xi,Y,0).move_to(vertices);
+            }
+            if ((edge&2) && indices1(nxi,1)<0) {
+              const float Yi = Y + (isovalue-val1)*dy/(val2-val1);
+              indices1(nxi,1) = vertices.width();
+              CImg<floatT>::vector(nX,Yi,0).move_to(vertices);
+            }
+            if ((edge&4) && indices2(xi,0)<0) {
+              const float Xi = X + (isovalue-val3)*dx/(val2-val3);
+              indices2(xi,0) = vertices.width();
+              CImg<floatT>::vector(Xi,nY,0).move_to(vertices);
+            }
+            if ((edge&8) && indices1(xi,1)<0) {
+              const float Yi = Y + (isovalue-val0)*dy/(val3-val0);
+              indices1(xi,1) = vertices.width();
+              CImg<floatT>::vector(X,Yi,0).move_to(vertices);
+            }
+
+            // Create segments
+            for (const int *segment = segments[configuration]; *segment!=-1; ) {
+              const unsigned int p0 = (unsigned int)*(segment++), p1 = (unsigned int)*(segment++);
+              const tf
+                i0 = (tf)(_isoline3d_indice(p0,indices1,indices2,xi,nxi)),
+                i1 = (tf)(_isoline3d_indice(p1,indices1,indices2,xi,nxi));
+              CImg<tf>::vector(i0,i1).move_to(primitives);
+            }
+          }
+        }
+        values1.swap(values2);
+        indices1.swap(indices2);
+      }
+      return vertices>'x';
+    }
+
+    //! Compute isolines of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> isoline3d(CImgList<tf>& primitives, const char *const expression, const float isovalue,
+                                  const float x0, const float y0, const float x1, const float y1,
+                                  const int size_x=256, const int size_y=256) {
+      const _functor2d_expr func(expression);
+      return isoline3d(primitives,func,isovalue,x0,y0,x1,y1,size_x,size_y);
+    }
+
+    template<typename t>
+    static int _isoline3d_indice(const unsigned int edge, const CImg<t>& indices1, const CImg<t>& indices2,
+                                 const unsigned int x, const unsigned int nx) {
+      switch (edge) {
+      case 0 : return (int)indices1(x,0);
+      case 1 : return (int)indices1(nx,1);
+      case 2 : return (int)indices2(x,0);
+      case 3 : return (int)indices1(x,1);
+      }
+      return 0;
+    }
+
+    //! Compute isosurface of a function, as a 3d object.
+    /**
+       \param[out] primitives Primitives data of the resulting 3d object.
+       \param func Implicit function. Is of type <tt>float (*func)(const float x, const float y, const float z)</tt>.
+       \param isovalue Isovalue to extract.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point.
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param size_x Resolution of the elevation function along the X-axis.
+       \param size_y Resolution of the elevation function along the Y-axis.
+       \param size_z Resolution of the elevation function along the Z-axis.
+       \note Use the marching cubes algorithm for extracting the isosurface.
+     **/
+    template<typename tf, typename tfunc>
+    static CImg<floatT> isosurface3d(CImgList<tf>& primitives, const tfunc& func, const float isovalue,
+                                     const float x0, const float y0, const float z0,
+                                     const float x1, const float y1, const float z1,
+                                     const int size_x=32, const int size_y=32, const int size_z=32) {
+      static const unsigned int edges[256] = {
+        0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
+        0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c, 0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
+        0x230, 0x339, 0x33 , 0x13a, 0x636, 0x73f, 0x435, 0x53c, 0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
+        0x3a0, 0x2a9, 0x1a3, 0xaa , 0x7a6, 0x6af, 0x5a5, 0x4ac, 0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
+        0x460, 0x569, 0x663, 0x76a, 0x66 , 0x16f, 0x265, 0x36c, 0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
+        0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff , 0x3f5, 0x2fc, 0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
+        0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55 , 0x15c, 0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
+        0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc , 0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
+        0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc, 0xcc , 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+        0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c, 0x15c, 0x55 , 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+        0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc, 0x2fc, 0x3f5, 0xff , 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+        0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c, 0x36c, 0x265, 0x16f, 0x66 , 0x76a, 0x663, 0x569, 0x460,
+        0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac, 0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa , 0x1a3, 0x2a9, 0x3a0,
+        0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c, 0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33 , 0x339, 0x230,
+        0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c, 0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
+        0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c, 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
+      };
+
+      static const int triangles[256][16] = {
+        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 8, 3, 9, 8, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, 1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 2, 10, 0, 2, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 8, 3, 2, 10, 8, 10, 9, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 11, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 11, 2, 8, 11, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 9, 0, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 11, 2, 1, 9, 11, 9, 8, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 10, 1, 11, 10, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 10, 1, 0, 8, 10, 8, 11, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 9, 0, 3, 11, 9, 11, 10, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 8, 10, 10, 8, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 3, 0, 7, 3, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 9, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 1, 9, 4, 7, 1, 7, 3, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 4, 7, 3, 0, 4, 1, 2, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 2, 10, 9, 0, 2, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 10, 9, 2, 9, 7, 2, 7, 3, 7, 9, 4, -1, -1, -1, -1 },
+        { 8, 4, 7, 3, 11, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 4, 7, 11, 2, 4, 2, 0, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 0, 1, 8, 4, 7, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 7, 11, 9, 4, 11, 9, 11, 2, 9, 2, 1, -1, -1, -1, -1 },
+        { 3, 10, 1, 3, 11, 10, 7, 8, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 11, 10, 1, 4, 11, 1, 0, 4, 7, 11, 4, -1, -1, -1, -1 },
+        { 4, 7, 8, 9, 0, 11, 9, 11, 10, 11, 0, 3, -1, -1, -1, -1 },
+        { 4, 7, 11, 4, 11, 9, 9, 11, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 5, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 5, 4, 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 5, 4, 1, 5, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 5, 4, 8, 3, 5, 3, 1, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, 9, 5, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 8, 1, 2, 10, 4, 9, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 2, 10, 5, 4, 2, 4, 0, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 10, 5, 3, 2, 5, 3, 5, 4, 3, 4, 8, -1, -1, -1, -1 },
+        { 9, 5, 4, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 11, 2, 0, 8, 11, 4, 9, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 5, 4, 0, 1, 5, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 1, 5, 2, 5, 8, 2, 8, 11, 4, 8, 5, -1, -1, -1, -1 },
+        { 10, 3, 11, 10, 1, 3, 9, 5, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 5, 0, 8, 1, 8, 10, 1, 8, 11, 10, -1, -1, -1, -1 },
+        { 5, 4, 0, 5, 0, 11, 5, 11, 10, 11, 0, 3, -1, -1, -1, -1 },
+        { 5, 4, 8, 5, 8, 10, 10, 8, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 7, 8, 5, 7, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 3, 0, 9, 5, 3, 5, 7, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 7, 8, 0, 1, 7, 1, 5, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 5, 3, 3, 5, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 7, 8, 9, 5, 7, 10, 1, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 1, 2, 9, 5, 0, 5, 3, 0, 5, 7, 3, -1, -1, -1, -1 },
+        { 8, 0, 2, 8, 2, 5, 8, 5, 7, 10, 5, 2, -1, -1, -1, -1 },
+        { 2, 10, 5, 2, 5, 3, 3, 5, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 9, 5, 7, 8, 9, 3, 11, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 5, 7, 9, 7, 2, 9, 2, 0, 2, 7, 11, -1, -1, -1, -1 },
+        { 2, 3, 11, 0, 1, 8, 1, 7, 8, 1, 5, 7, -1, -1, -1, -1 },
+        { 11, 2, 1, 11, 1, 7, 7, 1, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 5, 8, 8, 5, 7, 10, 1, 3, 10, 3, 11, -1, -1, -1, -1 },
+        { 5, 7, 0, 5, 0, 9, 7, 11, 0, 1, 0, 10, 11, 10, 0, -1 },
+        { 11, 10, 0, 11, 0, 3, 10, 5, 0, 8, 0, 7, 5, 7, 0, -1 },
+        { 11, 10, 5, 7, 11, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 6, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 0, 1, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 8, 3, 1, 9, 8, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 6, 5, 2, 6, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 6, 5, 1, 2, 6, 3, 0, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 6, 5, 9, 0, 6, 0, 2, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 9, 8, 5, 8, 2, 5, 2, 6, 3, 2, 8, -1, -1, -1, -1 },
+        { 2, 3, 11, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 0, 8, 11, 2, 0, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 9, 2, 3, 11, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 10, 6, 1, 9, 2, 9, 11, 2, 9, 8, 11, -1, -1, -1, -1 },
+        { 6, 3, 11, 6, 5, 3, 5, 1, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 11, 0, 11, 5, 0, 5, 1, 5, 11, 6, -1, -1, -1, -1 },
+        { 3, 11, 6, 0, 3, 6, 0, 6, 5, 0, 5, 9, -1, -1, -1, -1 },
+        { 6, 5, 9, 6, 9, 11, 11, 9, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 10, 6, 4, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 3, 0, 4, 7, 3, 6, 5, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 9, 0, 5, 10, 6, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 6, 5, 1, 9, 7, 1, 7, 3, 7, 9, 4, -1, -1, -1, -1 },
+        { 6, 1, 2, 6, 5, 1, 4, 7, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 5, 5, 2, 6, 3, 0, 4, 3, 4, 7, -1, -1, -1, -1 },
+        { 8, 4, 7, 9, 0, 5, 0, 6, 5, 0, 2, 6, -1, -1, -1, -1 },
+        { 7, 3, 9, 7, 9, 4, 3, 2, 9, 5, 9, 6, 2, 6, 9, -1 },
+        { 3, 11, 2, 7, 8, 4, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 10, 6, 4, 7, 2, 4, 2, 0, 2, 7, 11, -1, -1, -1, -1 },
+        { 0, 1, 9, 4, 7, 8, 2, 3, 11, 5, 10, 6, -1, -1, -1, -1 },
+        { 9, 2, 1, 9, 11, 2, 9, 4, 11, 7, 11, 4, 5, 10, 6, -1 },
+        { 8, 4, 7, 3, 11, 5, 3, 5, 1, 5, 11, 6, -1, -1, -1, -1 },
+        { 5, 1, 11, 5, 11, 6, 1, 0, 11, 7, 11, 4, 0, 4, 11, -1 },
+        { 0, 5, 9, 0, 6, 5, 0, 3, 6, 11, 6, 3, 8, 4, 7, -1 },
+        { 6, 5, 9, 6, 9, 11, 4, 7, 9, 7, 11, 9, -1, -1, -1, -1 },
+        { 10, 4, 9, 6, 4, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 10, 6, 4, 9, 10, 0, 8, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 0, 1, 10, 6, 0, 6, 4, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 3, 1, 8, 1, 6, 8, 6, 4, 6, 1, 10, -1, -1, -1, -1 },
+        { 1, 4, 9, 1, 2, 4, 2, 6, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 8, 1, 2, 9, 2, 4, 9, 2, 6, 4, -1, -1, -1, -1 },
+        { 0, 2, 4, 4, 2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 3, 2, 8, 2, 4, 4, 2, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 4, 9, 10, 6, 4, 11, 2, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 2, 2, 8, 11, 4, 9, 10, 4, 10, 6, -1, -1, -1, -1 },
+        { 3, 11, 2, 0, 1, 6, 0, 6, 4, 6, 1, 10, -1, -1, -1, -1 },
+        { 6, 4, 1, 6, 1, 10, 4, 8, 1, 2, 1, 11, 8, 11, 1, -1 },
+        { 9, 6, 4, 9, 3, 6, 9, 1, 3, 11, 6, 3, -1, -1, -1, -1 },
+        { 8, 11, 1, 8, 1, 0, 11, 6, 1, 9, 1, 4, 6, 4, 1, -1 },
+        { 3, 11, 6, 3, 6, 0, 0, 6, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 6, 4, 8, 11, 6, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 10, 6, 7, 8, 10, 8, 9, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 7, 3, 0, 10, 7, 0, 9, 10, 6, 7, 10, -1, -1, -1, -1 },
+        { 10, 6, 7, 1, 10, 7, 1, 7, 8, 1, 8, 0, -1, -1, -1, -1 },
+        { 10, 6, 7, 10, 7, 1, 1, 7, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 6, 1, 6, 8, 1, 8, 9, 8, 6, 7, -1, -1, -1, -1 },
+        { 2, 6, 9, 2, 9, 1, 6, 7, 9, 0, 9, 3, 7, 3, 9, -1 },
+        { 7, 8, 0, 7, 0, 6, 6, 0, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 3, 2, 6, 7, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 3, 11, 10, 6, 8, 10, 8, 9, 8, 6, 7, -1, -1, -1, -1 },
+        { 2, 0, 7, 2, 7, 11, 0, 9, 7, 6, 7, 10, 9, 10, 7, -1 },
+        { 1, 8, 0, 1, 7, 8, 1, 10, 7, 6, 7, 10, 2, 3, 11, -1 },
+        { 11, 2, 1, 11, 1, 7, 10, 6, 1, 6, 7, 1, -1, -1, -1, -1 },
+        { 8, 9, 6, 8, 6, 7, 9, 1, 6, 11, 6, 3, 1, 3, 6, -1 },
+        { 0, 9, 1, 11, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 8, 0, 7, 0, 6, 3, 11, 0, 11, 6, 0, -1, -1, -1, -1 },
+        { 7, 11, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 6, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 8, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 9, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 1, 9, 8, 3, 1, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 1, 2, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, 3, 0, 8, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 9, 0, 2, 10, 9, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 6, 11, 7, 2, 10, 3, 10, 8, 3, 10, 9, 8, -1, -1, -1, -1 },
+        { 7, 2, 3, 6, 2, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 7, 0, 8, 7, 6, 0, 6, 2, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 7, 6, 2, 3, 7, 0, 1, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 6, 2, 1, 8, 6, 1, 9, 8, 8, 7, 6, -1, -1, -1, -1 },
+        { 10, 7, 6, 10, 1, 7, 1, 3, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 7, 6, 1, 7, 10, 1, 8, 7, 1, 0, 8, -1, -1, -1, -1 },
+        { 0, 3, 7, 0, 7, 10, 0, 10, 9, 6, 10, 7, -1, -1, -1, -1 },
+        { 7, 6, 10, 7, 10, 8, 8, 10, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 6, 8, 4, 11, 8, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 6, 11, 3, 0, 6, 0, 4, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 6, 11, 8, 4, 6, 9, 0, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 4, 6, 9, 6, 3, 9, 3, 1, 11, 3, 6, -1, -1, -1, -1 },
+        { 6, 8, 4, 6, 11, 8, 2, 10, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, 3, 0, 11, 0, 6, 11, 0, 4, 6, -1, -1, -1, -1 },
+        { 4, 11, 8, 4, 6, 11, 0, 2, 9, 2, 10, 9, -1, -1, -1, -1 },
+        { 10, 9, 3, 10, 3, 2, 9, 4, 3, 11, 3, 6, 4, 6, 3, -1 },
+        { 8, 2, 3, 8, 4, 2, 4, 6, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 4, 2, 4, 6, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 9, 0, 2, 3, 4, 2, 4, 6, 4, 3, 8, -1, -1, -1, -1 },
+        { 1, 9, 4, 1, 4, 2, 2, 4, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 1, 3, 8, 6, 1, 8, 4, 6, 6, 10, 1, -1, -1, -1, -1 },
+        { 10, 1, 0, 10, 0, 6, 6, 0, 4, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 6, 3, 4, 3, 8, 6, 10, 3, 0, 3, 9, 10, 9, 3, -1 },
+        { 10, 9, 4, 6, 10, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 5, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, 4, 9, 5, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 0, 1, 5, 4, 0, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 7, 6, 8, 3, 4, 3, 5, 4, 3, 1, 5, -1, -1, -1, -1 },
+        { 9, 5, 4, 10, 1, 2, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 6, 11, 7, 1, 2, 10, 0, 8, 3, 4, 9, 5, -1, -1, -1, -1 },
+        { 7, 6, 11, 5, 4, 10, 4, 2, 10, 4, 0, 2, -1, -1, -1, -1 },
+        { 3, 4, 8, 3, 5, 4, 3, 2, 5, 10, 5, 2, 11, 7, 6, -1 },
+        { 7, 2, 3, 7, 6, 2, 5, 4, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 5, 4, 0, 8, 6, 0, 6, 2, 6, 8, 7, -1, -1, -1, -1 },
+        { 3, 6, 2, 3, 7, 6, 1, 5, 0, 5, 4, 0, -1, -1, -1, -1 },
+        { 6, 2, 8, 6, 8, 7, 2, 1, 8, 4, 8, 5, 1, 5, 8, -1 },
+        { 9, 5, 4, 10, 1, 6, 1, 7, 6, 1, 3, 7, -1, -1, -1, -1 },
+        { 1, 6, 10, 1, 7, 6, 1, 0, 7, 8, 7, 0, 9, 5, 4, -1 },
+        { 4, 0, 10, 4, 10, 5, 0, 3, 10, 6, 10, 7, 3, 7, 10, -1 },
+        { 7, 6, 10, 7, 10, 8, 5, 4, 10, 4, 8, 10, -1, -1, -1, -1 },
+        { 6, 9, 5, 6, 11, 9, 11, 8, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 6, 11, 0, 6, 3, 0, 5, 6, 0, 9, 5, -1, -1, -1, -1 },
+        { 0, 11, 8, 0, 5, 11, 0, 1, 5, 5, 6, 11, -1, -1, -1, -1 },
+        { 6, 11, 3, 6, 3, 5, 5, 3, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 10, 9, 5, 11, 9, 11, 8, 11, 5, 6, -1, -1, -1, -1 },
+        { 0, 11, 3, 0, 6, 11, 0, 9, 6, 5, 6, 9, 1, 2, 10, -1 },
+        { 11, 8, 5, 11, 5, 6, 8, 0, 5, 10, 5, 2, 0, 2, 5, -1 },
+        { 6, 11, 3, 6, 3, 5, 2, 10, 3, 10, 5, 3, -1, -1, -1, -1 },
+        { 5, 8, 9, 5, 2, 8, 5, 6, 2, 3, 8, 2, -1, -1, -1, -1 },
+        { 9, 5, 6, 9, 6, 0, 0, 6, 2, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 5, 8, 1, 8, 0, 5, 6, 8, 3, 8, 2, 6, 2, 8, -1 },
+        { 1, 5, 6, 2, 1, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 3, 6, 1, 6, 10, 3, 8, 6, 5, 6, 9, 8, 9, 6, -1 },
+        { 10, 1, 0, 10, 0, 6, 9, 5, 0, 5, 6, 0, -1, -1, -1, -1 },
+        { 0, 3, 8, 5, 6, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 5, 10, 7, 5, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 5, 10, 11, 7, 5, 8, 3, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 11, 7, 5, 10, 11, 1, 9, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 10, 7, 5, 10, 11, 7, 9, 8, 1, 8, 3, 1, -1, -1, -1, -1 },
+        { 11, 1, 2, 11, 7, 1, 7, 5, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, 1, 2, 7, 1, 7, 5, 7, 2, 11, -1, -1, -1, -1 },
+        { 9, 7, 5, 9, 2, 7, 9, 0, 2, 2, 11, 7, -1, -1, -1, -1 },
+        { 7, 5, 2, 7, 2, 11, 5, 9, 2, 3, 2, 8, 9, 8, 2, -1 },
+        { 2, 5, 10, 2, 3, 5, 3, 7, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 2, 0, 8, 5, 2, 8, 7, 5, 10, 2, 5, -1, -1, -1, -1 },
+        { 9, 0, 1, 5, 10, 3, 5, 3, 7, 3, 10, 2, -1, -1, -1, -1 },
+        { 9, 8, 2, 9, 2, 1, 8, 7, 2, 10, 2, 5, 7, 5, 2, -1 },
+        { 1, 3, 5, 3, 7, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 7, 0, 7, 1, 1, 7, 5, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 0, 3, 9, 3, 5, 5, 3, 7, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 8, 7, 5, 9, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 8, 4, 5, 10, 8, 10, 11, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 5, 0, 4, 5, 11, 0, 5, 10, 11, 11, 3, 0, -1, -1, -1, -1 },
+        { 0, 1, 9, 8, 4, 10, 8, 10, 11, 10, 4, 5, -1, -1, -1, -1 },
+        { 10, 11, 4, 10, 4, 5, 11, 3, 4, 9, 4, 1, 3, 1, 4, -1 },
+        { 2, 5, 1, 2, 8, 5, 2, 11, 8, 4, 5, 8, -1, -1, -1, -1 },
+        { 0, 4, 11, 0, 11, 3, 4, 5, 11, 2, 11, 1, 5, 1, 11, -1 },
+        { 0, 2, 5, 0, 5, 9, 2, 11, 5, 4, 5, 8, 11, 8, 5, -1 },
+        { 9, 4, 5, 2, 11, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 5, 10, 3, 5, 2, 3, 4, 5, 3, 8, 4, -1, -1, -1, -1 },
+        { 5, 10, 2, 5, 2, 4, 4, 2, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 10, 2, 3, 5, 10, 3, 8, 5, 4, 5, 8, 0, 1, 9, -1 },
+        { 5, 10, 2, 5, 2, 4, 1, 9, 2, 9, 4, 2, -1, -1, -1, -1 },
+        { 8, 4, 5, 8, 5, 3, 3, 5, 1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 4, 5, 1, 0, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 8, 4, 5, 8, 5, 3, 9, 0, 5, 0, 3, 5, -1, -1, -1, -1 },
+        { 9, 4, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 11, 7, 4, 9, 11, 9, 10, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 8, 3, 4, 9, 7, 9, 11, 7, 9, 10, 11, -1, -1, -1, -1 },
+        { 1, 10, 11, 1, 11, 4, 1, 4, 0, 7, 4, 11, -1, -1, -1, -1 },
+        { 3, 1, 4, 3, 4, 8, 1, 10, 4, 7, 4, 11, 10, 11, 4, -1 },
+        { 4, 11, 7, 9, 11, 4, 9, 2, 11, 9, 1, 2, -1, -1, -1, -1 },
+        { 9, 7, 4, 9, 11, 7, 9, 1, 11, 2, 11, 1, 0, 8, 3, -1 },
+        { 11, 7, 4, 11, 4, 2, 2, 4, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 7, 4, 11, 4, 2, 8, 3, 4, 3, 2, 4, -1, -1, -1, -1 },
+        { 2, 9, 10, 2, 7, 9, 2, 3, 7, 7, 4, 9, -1, -1, -1, -1 },
+        { 9, 10, 7, 9, 7, 4, 10, 2, 7, 8, 7, 0, 2, 0, 7, -1 },
+        { 3, 7, 10, 3, 10, 2, 7, 4, 10, 1, 10, 0, 4, 0, 10, -1 },
+        { 1, 10, 2, 8, 7, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 1, 4, 1, 7, 7, 1, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 1, 4, 1, 7, 0, 8, 1, 8, 7, 1, -1, -1, -1, -1 },
+        { 4, 0, 3, 7, 4, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 8, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 10, 8, 10, 11, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 9, 3, 9, 11, 11, 9, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 10, 0, 10, 8, 8, 10, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 1, 10, 11, 3, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 11, 1, 11, 9, 9, 11, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 9, 3, 9, 11, 1, 2, 9, 2, 11, 9, -1, -1, -1, -1 },
+        { 0, 2, 11, 8, 0, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 2, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 3, 8, 2, 8, 10, 10, 8, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 10, 2, 0, 9, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 3, 8, 2, 8, 10, 0, 1, 8, 1, 10, 8, -1, -1, -1, -1 },
+        { 1, 10, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 3, 8, 9, 1, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+      };
+
+      const unsigned int
+        _nx = (unsigned int)(size_x>=0?size_x:cimg::round((x1-x0)*-size_x/100 + 1)),
+        _ny = (unsigned int)(size_y>=0?size_y:cimg::round((y1-y0)*-size_y/100 + 1)),
+        _nz = (unsigned int)(size_z>=0?size_z:cimg::round((z1-z0)*-size_z/100 + 1)),
+        nx = _nx?_nx:1,
+        ny = _ny?_ny:1,
+        nz = _nz?_nz:1,
+        nxm1 = nx - 1,
+        nym1 = ny - 1,
+        nzm1 = nz - 1;
+      primitives.assign();
+      if (!nxm1 || !nym1 || !nzm1) return CImg<floatT>();
+      const float dx = (x1 - x0)/nxm1, dy = (y1 - y0)/nym1, dz = (z1 - z0)/nzm1;
+      CImgList<floatT> vertices;
+      CImg<intT> indices1(nx,ny,1,3,-1), indices2(indices1);
+      CImg<floatT> values1(nx,ny), values2(nx,ny);
+      float X = 0, Y = 0, Z = 0, nX = 0, nY = 0, nZ = 0;
+
+      // Fill the first plane with function values
+      Y = y0;
+      cimg_forY(values1,y) {
+        X = x0;
+        cimg_forX(values1,x) { values1(x,y) = (float)func(X,Y,z0); X+=dx; }
+        Y+=dy;
+      }
+
+      // Run Marching Cubes algorithm
+      Z = z0; nZ = Z + dz;
+      for (unsigned int zi = 0; zi<nzm1; ++zi, Z = nZ, nZ+=dz) {
+        Y = y0; nY = Y + dy;
+        indices2.fill(-1);
+        for (unsigned int yi = 0, nyi = 1; yi<nym1; ++yi, ++nyi, Y = nY, nY+=dy) {
+          X = x0; nX = X + dx;
+          for (unsigned int xi = 0, nxi = 1; xi<nxm1; ++xi, ++nxi, X = nX, nX+=dx) {
+
+            // Determine cube configuration
+            const float
+              val0 = values1(xi,yi),
+              val1 = values1(nxi,yi),
+              val2 = values1(nxi,nyi),
+              val3 = values1(xi,nyi),
+              val4 = values2(xi,yi) = (float)func(X,Y,nZ),
+              val5 = values2(nxi,yi) = (float)func(nX,Y,nZ),
+              val6 = values2(nxi,nyi) = (float)func(nX,nY,nZ),
+              val7 = values2(xi,nyi) = (float)func(X,nY,nZ);
+
+            const unsigned int configuration =
+              (val0<isovalue?1U:0U)  | (val1<isovalue?2U:0U)  | (val2<isovalue?4U:0U)  | (val3<isovalue?8U:0U) |
+              (val4<isovalue?16U:0U) | (val5<isovalue?32U:0U) | (val6<isovalue?64U:0U) | (val7<isovalue?128U:0U),
+              edge = edges[configuration];
+
+            // Compute intersection vertices
+            if (edge) {
+              if ((edge&1) && indices1(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val0)*dx/(val1-val0);
+                indices1(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,Z).move_to(vertices);
+              }
+              if ((edge&2) && indices1(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val1)*dy/(val2-val1);
+                indices1(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,Z).move_to(vertices);
+              }
+              if ((edge&4) && indices1(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val3)*dx/(val2-val3);
+                indices1(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,Z).move_to(vertices);
+              }
+              if ((edge&8) && indices1(xi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val0)*dy/(val3-val0);
+                indices1(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,Z).move_to(vertices);
+              }
+              if ((edge&16) && indices2(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val4)*dx/(val5-val4);
+                indices2(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,nZ).move_to(vertices);
+              }
+              if ((edge&32) && indices2(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val5)*dy/(val6-val5);
+                indices2(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&64) && indices2(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val7)*dx/(val6-val7);
+                indices2(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,nZ).move_to(vertices);
+              }
+              if ((edge&128) && indices2(xi,yi,1)<0)  {
+                const float Yi = Y + (isovalue-val4)*dy/(val7-val4);
+                indices2(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&256) && indices1(xi,yi,2)<0) {
+                const float Zi = Z+ (isovalue-val0)*dz/(val4-val0);
+                indices1(xi,yi,2) = vertices.width();
+                CImg<floatT>::vector(X,Y,Zi).move_to(vertices);
+              }
+              if ((edge&512) && indices1(nxi,yi,2)<0)  {
+                const float Zi = Z + (isovalue-val1)*dz/(val5-val1);
+                indices1(nxi,yi,2) = vertices.width();
+                CImg<floatT>::vector(nX,Y,Zi).move_to(vertices);
+              }
+              if ((edge&1024) && indices1(nxi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val2)*dz/(val6-val2);
+                indices1(nxi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(nX,nY,Zi).move_to(vertices);
+              }
+              if ((edge&2048) && indices1(xi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val3)*dz/(val7-val3);
+                indices1(xi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(X,nY,Zi).move_to(vertices);
+              }
+
+              // Create triangles
+              for (const int *triangle = triangles[configuration]; *triangle!=-1; ) {
+                const unsigned int
+                  p0 = (unsigned int)*(triangle++),
+                  p1 = (unsigned int)*(triangle++),
+                  p2 = (unsigned int)*(triangle++);
+                const tf
+                  i0 = (tf)(_isosurface3d_indice(p0,indices1,indices2,xi,yi,nxi,nyi)),
+                  i1 = (tf)(_isosurface3d_indice(p1,indices1,indices2,xi,yi,nxi,nyi)),
+                  i2 = (tf)(_isosurface3d_indice(p2,indices1,indices2,xi,yi,nxi,nyi));
+                CImg<tf>::vector(i0,i2,i1).move_to(primitives);
+              }
+            }
+          }
+        }
+        cimg::swap(values1,values2);
+        cimg::swap(indices1,indices2);
+      }
+      return vertices>'x';
+    }
+
+    //! Compute isosurface of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> isosurface3d(CImgList<tf>& primitives, const char *const expression, const float isovalue,
+                                     const float x0, const float y0, const float z0,
+                                     const float x1, const float y1, const float z1,
+                                     const int dx=32, const int dy=32, const int dz=32) {
+      const _functor3d_expr func(expression);
+      return isosurface3d(primitives,func,isovalue,x0,y0,z0,x1,y1,z1,dx,dy,dz);
+    }
+
+    template<typename t>
+    static int _isosurface3d_indice(const unsigned int edge, const CImg<t>& indices1, const CImg<t>& indices2,
+                                    const unsigned int x, const unsigned int y,
+                                    const unsigned int nx, const unsigned int ny) {
+      switch (edge) {
+      case 0 : return indices1(x,y,0);
+      case 1 : return indices1(nx,y,1);
+      case 2 : return indices1(x,ny,0);
+      case 3 : return indices1(x,y,1);
+      case 4 : return indices2(x,y,0);
+      case 5 : return indices2(nx,y,1);
+      case 6 : return indices2(x,ny,0);
+      case 7 : return indices2(x,y,1);
+      case 8 : return indices1(x,y,2);
+      case 9 : return indices1(nx,y,2);
+      case 10 : return indices1(nx,ny,2);
+      case 11 : return indices1(x,ny,2);
+      }
+      return 0;
+    }
+
+    // Define functors for accessing image values (used in previous functions).
+    struct _functor2d_int {
+      const CImg<T>& ref;
+      _functor2d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref((int)x,(int)y);
+      }
+    };
+
+    struct _functor2d_float {
+      const CImg<T>& ref;
+      _functor2d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref._linear_atXY(x,y);
+      }
+    };
+
+    struct _functor2d_expr {
+      _cimg_math_parser *mp;
+      ~_functor2d_expr() { mp->end(); delete mp; }
+      _functor2d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y) const {
+        return (float)(*mp)(x,y,0,0);
+      }
+    };
+
+    struct _functor3d_int {
+      const CImg<T>& ref;
+      _functor3d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref((int)x,(int)y,(int)z);
+      }
+    };
+
+    struct _functor3d_float {
+      const CImg<T>& ref;
+      _functor3d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref._linear_atXYZ(x,y,z);
+      }
+    };
+
+    struct _functor3d_expr {
+      _cimg_math_parser *mp;
+      ~_functor3d_expr() { mp->end(); delete mp; }
+      _functor3d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y, const float z) const {
+        return (float)(*mp)(x,y,z,0);
+      }
+    };
+
+    struct _functor4d_int {
+      const CImg<T>& ref;
+      _functor4d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)ref((int)x,(int)y,(int)z,c);
+      }
+    };
+
+    //! Generate a 3d box object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param size_x The width of the box (dimension along the X-axis).
+       \param size_y The height of the box (dimension along the Y-axis).
+       \param size_z The depth of the box (dimension along the Z-axis).
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::box3d(faces3d,10,20,30);
+       CImg<unsigned char>().display_object3d("Box3d",points3d,faces3d);
+       \endcode
+       \image html ref_box3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> box3d(CImgList<tf>& primitives,
+                              const float size_x=200, const float size_y=100, const float size_z=100) {
+      primitives.assign(6,1,4,1,1, 0,3,2,1, 4,5,6,7, 0,1,5,4, 3,7,6,2, 0,4,7,3, 1,2,6,5);
+      return CImg<floatT>(8,3,1,1,
+                          0.,size_x,size_x,    0.,    0.,size_x,size_x,    0.,
+                          0.,    0.,size_y,size_y,    0.,    0.,size_y,size_y,
+                          0.,    0.,    0.,    0.,size_z,size_z,size_z,size_z);
+    }
+
+    //! Generate a 3d cone.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cone basis.
+       \param size_z The cone's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cone3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cone3d",points3d,faces3d);
+       \endcode
+       \image html ref_cone3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cone3d(CImgList<tf>& primitives,
+                               const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,size_z,
+                                0.,0.,0.);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0).move_to(vertices);
+      }
+      const unsigned int nbr = vertices._width - 2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + p, next = 2 + ((p + 1)%nbr);
+        CImg<tf>::vector(1,next,curr).move_to(primitives);
+        CImg<tf>::vector(0,curr,next).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d cylinder.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cylinder basis.
+       \param size_z The cylinder's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cylinder3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cylinder3d",points3d,faces3d);
+       \endcode
+       \image html ref_cylinder3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cylinder3d(CImgList<tf>& primitives,
+                                   const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,0.,
+                                0.,0.,size_z);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0.0f).move_to(vertices);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),size_z).move_to(vertices);
+      }
+      const unsigned int nbr = (vertices._width - 2)/2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + 2*p, next = 2 + (2*((p + 1)%nbr));
+        CImg<tf>::vector(0,next,curr).move_to(primitives);
+        CImg<tf>::vector(1,curr + 1,next + 1).move_to(primitives);
+        CImg<tf>::vector(curr,next,next + 1,curr + 1).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d torus.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius1 The large radius.
+       \param radius2 The small radius.
+       \param subdivisions1 The number of angular subdivisions for the large radius.
+       \param subdivisions2 The number of angular subdivisions for the small radius.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::torus3d(faces3d,20,4);
+       CImg<unsigned char>().display_object3d("Torus3d",points3d,faces3d);
+       \endcode
+       \image html ref_torus3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> torus3d(CImgList<tf>& primitives,
+                                const float radius1=100, const float radius2=30,
+                                const unsigned int subdivisions1=24, const unsigned int subdivisions2=12) {
+      primitives.assign();
+      if (!subdivisions1 || !subdivisions2) return CImg<floatT>();
+      CImgList<floatT> vertices;
+      for (unsigned int v = 0; v<subdivisions1; ++v) {
+        const float
+          beta = (float)(v*2*cimg::PI/subdivisions1),
+          xc = radius1*(float)std::cos(beta),
+          yc = radius1*(float)std::sin(beta);
+        for (unsigned int u = 0; u<subdivisions2; ++u) {
+          const float
+            alpha = (float)(u*2*cimg::PI/subdivisions2),
+            x = xc + radius2*(float)(std::cos(alpha)*std::cos(beta)),
+            y = yc + radius2*(float)(std::cos(alpha)*std::sin(beta)),
+            z = radius2*(float)std::sin(alpha);
+          CImg<floatT>::vector(x,y,z).move_to(vertices);
+        }
+      }
+      for (unsigned int vv = 0; vv<subdivisions1; ++vv) {
+        const unsigned int nv = (vv + 1)%subdivisions1;
+        for (unsigned int uu = 0; uu<subdivisions2; ++uu) {
+          const unsigned int nu = (uu + 1)%subdivisions2, svv = subdivisions2*vv, snv = subdivisions2*nv;
+          CImg<tf>::vector(svv + nu,svv + uu,snv + uu,snv + nu).move_to(primitives);
+        }
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d XY-plane.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param size_x The width of the plane (dimension along the X-axis).
+       \param size_y The height of the plane (dimensions along the Y-axis).
+       \param subdivisions_x The number of planar subdivisions along the X-axis.
+       \param subdivisions_y The number of planar subdivisions along the Y-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::plane3d(faces3d,100,50);
+       CImg<unsigned char>().display_object3d("Plane3d",points3d,faces3d);
+       \endcode
+       \image html ref_plane3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> plane3d(CImgList<tf>& primitives,
+                                const float size_x=100, const float size_y=100,
+                                const unsigned int subdivisions_x=10, const unsigned int subdivisions_y=10) {
+      primitives.assign();
+      if (!subdivisions_x || !subdivisions_y) return CImg<floatT>();
+      CImgList<floatT> vertices;
+      const unsigned int w = subdivisions_x + 1, h = subdivisions_y + 1;
+      const float fx = (float)size_x/w, fy = (float)size_y/h;
+      for (unsigned int y = 0; y<h; ++y) for (unsigned int x = 0; x<w; ++x)
+        CImg<floatT>::vector(fx*x,fy*y,0).move_to(vertices);
+      for (unsigned int y = 0; y<subdivisions_y; ++y) for (unsigned int x = 0; x<subdivisions_x; ++x) {
+        const int off1 = x + y*w, off2 = x + 1 + y*w, off3 = x + 1 + (y + 1)*w, off4 = x + (y + 1)*w;
+        CImg<tf>::vector(off1,off4,off3,off2).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d sphere.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the sphere (dimension along the X-axis).
+       \param subdivisions The number of recursive subdivisions from an initial icosahedron.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::sphere3d(faces3d,100,4);
+       CImg<unsigned char>().display_object3d("Sphere3d",points3d,faces3d);
+       \endcode
+       \image html ref_sphere3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> sphere3d(CImgList<tf>& primitives,
+                                 const float radius=50, const unsigned int subdivisions=3) {
+
+      // Create initial icosahedron
+      primitives.assign();
+      const double tmp = (1 + std::sqrt(5.0f))/2, a = 1.0/std::sqrt(1 + tmp*tmp), b = tmp*a;
+      CImgList<floatT> vertices(12,1,3,1,1, b,a,0.0, -b,a,0.0, -b,-a,0.0, b,-a,0.0, a,0.0,b, a,0.0,-b,
+                                -a,0.0,-b, -a,0.0,b, 0.0,b,a, 0.0,-b,a, 0.0,-b,-a, 0.0,b,-a);
+      primitives.assign(20,1,3,1,1, 4,8,7, 4,7,9, 5,6,11, 5,10,6, 0,4,3, 0,3,5, 2,7,1, 2,1,6,
+                        8,0,11, 8,11,1, 9,10,3, 9,2,10, 8,4,0, 11,0,5, 4,9,3,
+                        5,3,10, 7,8,1, 6,1,11, 7,2,9, 6,10,2);
+      // edge - length/2
+      float he = (float)a;
+
+      // Recurse subdivisions
+      for (unsigned int i = 0; i<subdivisions; ++i) {
+        const unsigned int L = primitives._width;
+        he/=2;
+        const float he2 = he*he;
+        for (unsigned int l = 0; l<L; ++l) {
+          const unsigned int
+            p0 = (unsigned int)primitives(0,0), p1 = (unsigned int)primitives(0,1), p2 = (unsigned int)primitives(0,2);
+          const float
+            x0 = vertices(p0,0), y0 = vertices(p0,1), z0 = vertices(p0,2),
+            x1 = vertices(p1,0), y1 = vertices(p1,1), z1 = vertices(p1,2),
+            x2 = vertices(p2,0), y2 = vertices(p2,1), z2 = vertices(p2,2),
+            tnx0 = (x0 + x1)/2, tny0 = (y0 + y1)/2, tnz0 = (z0 + z1)/2,
+            nn0 = cimg::hypot(tnx0,tny0,tnz0),
+            tnx1 = (x0 + x2)/2, tny1 = (y0 + y2)/2, tnz1 = (z0 + z2)/2,
+            nn1 = cimg::hypot(tnx1,tny1,tnz1),
+            tnx2 = (x1 + x2)/2, tny2 = (y1 + y2)/2, tnz2 = (z1 + z2)/2,
+            nn2 = cimg::hypot(tnx2,tny2,tnz2),
+            nx0 = tnx0/nn0, ny0 = tny0/nn0, nz0 = tnz0/nn0,
+            nx1 = tnx1/nn1, ny1 = tny1/nn1, nz1 = tnz1/nn1,
+            nx2 = tnx2/nn2, ny2 = tny2/nn2, nz2 = tnz2/nn2;
+          int i0 = -1, i1 = -1, i2 = -1;
+          cimglist_for(vertices,p) {
+            const float x = (float)vertices(p,0), y = (float)vertices(p,1), z = (float)vertices(p,2);
+            if (cimg::sqr(x-nx0) + cimg::sqr(y-ny0) + cimg::sqr(z-nz0)<he2) i0 = p;
+            if (cimg::sqr(x-nx1) + cimg::sqr(y-ny1) + cimg::sqr(z-nz1)<he2) i1 = p;
+            if (cimg::sqr(x-nx2) + cimg::sqr(y-ny2) + cimg::sqr(z-nz2)<he2) i2 = p;
+          }
+          if (i0<0) { CImg<floatT>::vector(nx0,ny0,nz0).move_to(vertices); i0 = vertices.width() - 1; }
+          if (i1<0) { CImg<floatT>::vector(nx1,ny1,nz1).move_to(vertices); i1 = vertices.width() - 1; }
+          if (i2<0) { CImg<floatT>::vector(nx2,ny2,nz2).move_to(vertices); i2 = vertices.width() - 1; }
+          primitives.remove(0);
+          CImg<tf>::vector(p0,i0,i1).move_to(primitives);
+          CImg<tf>::vector((tf)i0,(tf)p1,(tf)i2).move_to(primitives);
+          CImg<tf>::vector((tf)i1,(tf)i2,(tf)p2).move_to(primitives);
+          CImg<tf>::vector((tf)i1,(tf)i0,(tf)i2).move_to(primitives);
+        }
+      }
+      return (vertices>'x')*=radius;
+    }
+
+    //! Generate a 3d ellipsoid.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param tensor The tensor which gives the shape and size of the ellipsoid.
+       \param subdivisions The number of recursive subdivisions from an initial stretched icosahedron.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> tensor = CImg<float>::diagonal(10,7,3),
+                         points3d = CImg<float>::ellipsoid3d(faces3d,tensor,4);
+       CImg<unsigned char>().display_object3d("Ellipsoid3d",points3d,faces3d);
+       \endcode
+       \image html ref_ellipsoid3d.jpg
+    **/
+    template<typename tf, typename t>
+    static CImg<floatT> ellipsoid3d(CImgList<tf>& primitives,
+                                    const CImg<t>& tensor, const unsigned int subdivisions=3) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImg<floatT> S, V;
+      tensor.symmetric_eigen(S,V);
+      const float orient =
+        (V(0,1)*V(1,2) - V(0,2)*V(1,1))*V(2,0) +
+        (V(0,2)*V(1,0) - V(0,0)*V(1,2))*V(2,1) +
+        (V(0,0)*V(1,1) - V(0,1)*V(1,0))*V(2,2);
+      if (orient<0) { V(2,0) = -V(2,0); V(2,1) = -V(2,1); V(2,2) = -V(2,2); }
+      const float l0 = S[0], l1 = S[1], l2 = S[2];
+      CImg<floatT> vertices = sphere3d(primitives,1.0,subdivisions);
+      vertices.get_shared_row(0)*=l0;
+      vertices.get_shared_row(1)*=l1;
+      vertices.get_shared_row(2)*=l2;
+      return V*vertices;
+    }
+
+    //! Convert 3d object into a CImg3d representation.
+    /**
+       \param primitives Primitives data of the 3d object.
+       \param colors Colors data of the 3d object.
+       \param opacities Opacities data of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+    **/
+    template<typename tp, typename tc, typename to>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const CImgList<tc>& colors,
+                              const to& opacities,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp, typename tc>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const CImgList<tc>& colors,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,colors,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    CImg<T>& object3dtoCImg3d(const bool full_check=true) {
+      return get_object3dtoCImg3d(full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \newinstance.
+    template<typename tp, typename tc, typename to>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const CImgList<tc>& colors,
+                                      const to& opacities,
+                                      const bool full_check=true) const {
+      CImg<charT> error_message(1024);
+      if (!is_object3d(primitives,colors,opacities,full_check,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "object3dtoCImg3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,_width,primitives._width,error_message.data());
+      CImg<floatT> res(1,_size_object3dtoCImg3d(primitives,colors,opacities));
+      float *ptrd = res._data;
+
+      // Put magick number.
+      *(ptrd++) = 'C' + 0.5f; *(ptrd++) = 'I' + 0.5f; *(ptrd++) = 'm' + 0.5f;
+      *(ptrd++) = 'g' + 0.5f; *(ptrd++) = '3' + 0.5f; *(ptrd++) = 'd' + 0.5f;
+
+      // Put number of vertices and primitives.
+      *(ptrd++) = cimg::uint2float(_width);
+      *(ptrd++) = cimg::uint2float(primitives._width);
+
+      // Put vertex data.
+      if (is_empty() || !primitives) return res;
+      const T *ptrx = data(0,0), *ptry = data(0,1), *ptrz = data(0,2);
+      cimg_forX(*this,p) {
+        *(ptrd++) = (float)*(ptrx++);
+        *(ptrd++) = (float)*(ptry++);
+        *(ptrd++) = (float)*(ptrz++);
+      }
+
+      // Put primitive data.
+      cimglist_for(primitives,p) {
+        *(ptrd++) = (float)primitives[p].size();
+        const tp *ptrp = primitives[p]._data;
+        cimg_foroff(primitives[p],i) *(ptrd++) = cimg::uint2float((unsigned int)*(ptrp++));
+      }
+
+      // Put color/texture data.
+      const unsigned int csiz = std::min(colors._width,primitives._width);
+      for (int c = 0; c<(int)csiz; ++c) {
+        const CImg<tc>& color = colors[c];
+        const tc *ptrc = color._data;
+        if (color.size()==3) { *(ptrd++) = (float)*(ptrc++); *(ptrd++) = (float)*(ptrc++); *(ptrd++) = (float)*ptrc; }
+        else {
+          *(ptrd++) = -128.0f;
+          int shared_ind = -1;
+          if (color.is_shared()) for (int i = 0; i<c; ++i) if (ptrc==colors[i]._data) { shared_ind = i; break; }
+          if (shared_ind<0) {
+            *(ptrd++) = (float)color._width;
+            *(ptrd++) = (float)color._height;
+            *(ptrd++) = (float)color._spectrum;
+            cimg_foroff(color,l) *(ptrd++) = (float)*(ptrc++);
+          } else {
+            *(ptrd++) = (float)shared_ind;
+            *(ptrd++) = 0;
+            *(ptrd++) = 0;
+          }
+        }
+      }
+      const int csiz2 = primitives.width() - colors.width();
+      for (int c = 0; c<csiz2; ++c) { *(ptrd++) = 200.0f; *(ptrd++) = 200.0f; *(ptrd++) = 200.0f; }
+
+      // Put opacity data.
+      ptrd = _object3dtoCImg3d(opacities,ptrd);
+      const float *ptre = res.end();
+      while (ptrd<ptre) *(ptrd++) = 1.0f;
+      return res;
+    }
+
+    template<typename to>
+    float* _object3dtoCImg3d(const CImgList<to>& opacities, float *ptrd) const {
+      cimglist_for(opacities,o) {
+        const CImg<to>& opacity = opacities[o];
+        const to *ptro = opacity._data;
+        if (opacity.size()==1) *(ptrd++) = (float)*ptro;
+        else {
+          *(ptrd++) = -128.0f;
+          int shared_ind = -1;
+          if (opacity.is_shared()) for (int i = 0; i<o; ++i) if (ptro==opacities[i]._data) { shared_ind = i; break; }
+          if (shared_ind<0) {
+            *(ptrd++) = (float)opacity._width;
+            *(ptrd++) = (float)opacity._height;
+            *(ptrd++) = (float)opacity._spectrum;
+            cimg_foroff(opacity,l) *(ptrd++) = (float)*(ptro++);
+          } else {
+            *(ptrd++) = (float)shared_ind;
+            *(ptrd++) = 0;
+            *(ptrd++) = 0;
+          }
+        }
+      }
+      return ptrd;
+    }
+
+    template<typename to>
+    float* _object3dtoCImg3d(const CImg<to>& opacities, float *ptrd) const {
+      const to *ptro = opacities._data;
+      cimg_foroff(opacities,o) *(ptrd++) = (float)*(ptro++);
+      return ptrd;
+    }
+
+    template<typename tp, typename tc, typename to>
+    unsigned int _size_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                        const CImgList<tc>& colors,
+                                        const CImgList<to>& opacities) const {
+      unsigned int siz = 8U + 3*_width;
+      cimglist_for(primitives,p) siz+=primitives[p].size() + 1;
+      for (int c = std::min(primitives.width(),colors.width()) - 1; c>=0; --c) {
+        if (colors[c].is_shared()) siz+=4;
+        else { const unsigned int csiz = colors[c].size(); siz+=(csiz!=3)?4 + csiz:3; }
+      }
+      if (colors._width<primitives._width) siz+=3*(primitives._width - colors._width);
+      cimglist_for(opacities,o) {
+        if (opacities[o].is_shared()) siz+=4;
+        else { const unsigned int osiz = opacities[o].size(); siz+=(osiz!=1)?4 + osiz:1; }
+      }
+      siz+=primitives._width - opacities._width;
+      return siz;
+    }
+
+    template<typename tp, typename tc, typename to>
+    unsigned int _size_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                        const CImgList<tc>& colors,
+                                        const CImg<to>& opacities) const {
+      unsigned int siz = 8U + 3*_width;
+      cimglist_for(primitives,p) siz+=primitives[p].size() + 1;
+      for (int c = std::min(primitives.width(),colors.width()) - 1; c>=0; --c) {
+        const unsigned int csiz = colors[c].size(); siz+=(csiz!=3)?4 + csiz:3;
+      }
+      if (colors._width<primitives._width) siz+=3*(primitives._width - colors._width);
+      siz+=primitives.size();
+      cimg::unused(opacities);
+      return siz;
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp, typename tc>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const CImgList<tc>& colors,
+                                      const bool full_check=true) const {
+      CImgList<T> opacities;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const bool full_check=true) const {
+      CImgList<T> colors, opacities;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    CImg<floatT> get_object3dtoCImg3d(const bool full_check=true) const {
+      CImgList<T> opacities, colors;
+      CImgList<uintT> primitives(width(),1,1,1,1);
+      cimglist_for(primitives,p) primitives(p,0) = p;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert CImg3d representation into a 3d object.
+    /**
+       \param[out] primitives Primitives data of the 3d object.
+       \param[out] colors Colors data of the 3d object.
+       \param[out] opacities Opacities data of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+    **/
+    template<typename tp, typename tc, typename to>
+    CImg<T>& CImg3dtoobject3d(CImgList<tp>& primitives,
+                              CImgList<tc>& colors,
+                              CImgList<to>& opacities,
+                              const bool full_check=true) {
+      return get_CImg3dtoobject3d(primitives,colors,opacities,full_check).move_to(*this);
+    }
+
+    //! Convert CImg3d representation into a 3d object \newinstance.
+    template<typename tp, typename tc, typename to>
+    CImg<T> get_CImg3dtoobject3d(CImgList<tp>& primitives,
+                                 CImgList<tc>& colors,
+                                 CImgList<to>& opacities,
+                                 const bool full_check=true) const {
+      CImg<charT> error_message(1024);
+      if (!is_CImg3d(full_check,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "CImg3dtoobject3d(): image instance is not a CImg3d (%s).",
+                                    cimg_instance,error_message.data());
+      const T *ptrs = _data + 6;
+      const unsigned int
+        nb_points = cimg::float2uint((float)*(ptrs++)),
+        nb_primitives = cimg::float2uint((float)*(ptrs++));
+      const CImg<T> points = CImg<T>(ptrs,3,nb_points,1,1,true).get_transpose();
+      ptrs+=3*nb_points;
+      primitives.assign(nb_primitives);
+      cimglist_for(primitives,p) {
+        const unsigned int nb_inds = (unsigned int)*(ptrs++);
+        primitives[p].assign(1,nb_inds);
+        tp *ptrp = primitives[p]._data;
+        for (unsigned int i = 0; i<nb_inds; ++i) *(ptrp++) = (tp)cimg::float2uint((float)*(ptrs++));
+      }
+      colors.assign(nb_primitives);
+      cimglist_for(colors,c) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) colors[c].assign(colors[w],true);
+          else { colors[c].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else { colors[c].assign(ptrs,1,1,1,3,false); ptrs+=3; }
+      }
+      opacities.assign(nb_primitives);
+      cimglist_for(opacities,o) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) opacities[o].assign(opacities[w],true);
+          else { opacities[o].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else opacities[o].assign(1,1,1,1,*(ptrs++));
+      }
+      return points;
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name Drawing Functions
+    //@{
+    //---------------------------
+
+#define cimg_init_scanline(color,opacity) \
+    const float _sc_nopacity = cimg::abs((float)opacity), _sc_copacity = 1 - std::max((float)opacity,0.0f); \
+    const ulongT _sc_whd = (ulongT)_width*_height*_depth
+
+#define cimg_draw_scanline(x0,x1,y,color,opacity,brightness) \
+    _draw_scanline(x0,x1,y,color,opacity,brightness,_sc_nopacity,_sc_copacity,_sc_whd)
+
+    // [internal] The following _draw_scanline() routines are *non user-friendly functions*,
+    // used only for internal purpose.
+    // Pre-requisites: x0<=x1, y-coordinate is valid, col is valid.
+    template<typename tc>
+    CImg<T>& _draw_scanline(const int x0, const int x1, const int y,
+                            const tc *const color, const float opacity,
+                            const float brightness,
+                            const float nopacity, const float copacity, const ulongT whd) {
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const int nx0 = x0>0?x0:0, nx1 = x1<width()?x1:width() - 1, dx = nx1 - nx0;
+      if (dx>=0) {
+        const tc *col = color;
+        const ulongT off = whd - dx - 1;
+        T *ptrd = data(nx0,y);
+        if (opacity>=1) { // ** Opaque drawing **
+          if (brightness==1) { // Brightness==1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else if (brightness<1) { // Brightness<1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else { // Brightness>1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          }
+        } else { // ** Transparent drawing **
+          if (brightness==1) { // Brightness==1
+            cimg_forC(*this,c) {
+              const Tfloat val = *(col++)*nopacity;
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else if (brightness<=1) { // Brightness<1
+            cimg_forC(*this,c) {
+              const Tfloat val = *(col++)*brightness*nopacity;
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else { // Brightness>1
+            cimg_forC(*this,c) {
+              const Tfloat val = ((2-brightness)**(col++) + (brightness - 1)*maxval)*nopacity;
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 3d point.
+    /**
+       \param x0 X-coordinate of the point.
+       \param y0 Y-coordinate of the point.
+       \param z0 Z-coordinate of the point.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - To set pixel values without clipping needs, you should use the faster CImg::operator()() function.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,128,64 };
+       img.draw_point(50,50,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_point(const int x0, const int y0, const int z0,
+                        const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_point(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0>=0 && y0>=0 && z0>=0 && x0<width() && y0<height() && z0<depth()) {
+        const ulongT whd = (ulongT)_width*_height*_depth;
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        T *ptrd = data(x0,y0,z0,0);
+        const tc *col = color;
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(*(col++)*nopacity + *ptrd*copacity); ptrd+=whd; }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d point \simplification.
+    template<typename tc>
+    CImg<T>& draw_point(const int x0, const int y0,
+                        const tc *const color, const float opacity=1) {
+      return draw_point(x0,y0,0,color,opacity);
+    }
+
+    // Draw a points cloud.
+    /**
+       \param points Image of vertices coordinates.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_point(const CImg<t>& points,
+                        const tc *const color, const float opacity=1) {
+      if (is_empty() || !points) return *this;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_point(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+      case 2 : {
+        cimg_forX(points,i) draw_point((int)points(i,0),(int)points(i,1),color,opacity);
+      } break;
+      default : {
+        cimg_forX(points,i) draw_point((int)points(i,0),(int)points(i,1),(int)points(i,2),color,opacity);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d line.
+    /**
+       \param x0 X-coordinate of the starting line point.
+       \param y0 Y-coordinate of the starting line point.
+       \param x1 X-coordinate of the ending line point.
+       \param y1 Y-coordinate of the ending line point.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if a reinitialization of the hash state must be done.
+       \note
+       - Line routine uses Bresenham's algorithm.
+       - Set \p init_hatch = false to draw consecutive hatched segments without breaking the line pattern.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,128,64 };
+        img.draw_line(40,40,80,70,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_line(const int x0, const int y0,
+                       const int x1, const int y1,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Specified color is (null).",
+                                    cimg_instance);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1,
+        &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1,
+        &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) { yleft-=(int)((float)xleft*((float)yright - yleft)/((float)xright - xleft)); xleft = 0; }
+      if (xright>=width()) {
+        yright-=(int)(((float)xright - width())*((float)yright - yleft)/((float)xright - xleft));
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) { xup-=(int)((float)yup*((float)xdown - xup)/((float)ydown - yup)); yup = 0; }
+      if (ydown>=height()) {
+        xdown-=(int)(((float)ydown - height())*((float)xdown - xup)/((float)ydown - yup));
+        ydown = height() - 1;
+      }
+      T *ptrd0 = data(nx0,ny0);
+      int dx = xright - xleft, dy = ydown - yup;
+      const bool steep = dy>dx;
+      if (steep) cimg::swap(nx0,ny0,nx1,ny1,dx,dy);
+      const longT
+        offx = (longT)(nx0<nx1?1:-1)*(steep?width():1),
+        offy = (longT)(ny0<ny1?1:-1)*(steep?1:width());
+      const ulongT wh = (ulongT)_width*_height;
+      if (opacity>=1) {
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            T *ptrd = ptrd0; const tc* col = color;
+            cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=wh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          T *ptrd = ptrd0; const tc* col = color; cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=wh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            T *ptrd = ptrd0; const tc* col = color;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**(col++) + *ptrd*copacity); ptrd+=wh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          T *ptrd = ptrd0; const tc* col = color;
+          cimg_forC(*this,c) { *ptrd = (T)(nopacity**(col++) + *ptrd*copacity); ptrd+=wh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d line, with z-buffering.
+    /**
+       \param zbuffer Zbuffer image.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if a reinitialization of the hash state must be done.
+    **/
+    template<typename tz,typename tc>
+    CImg<T>& draw_line(CImg<tz>& zbuffer,
+                       const int x0, const int y0, const float z0,
+                       const int x1, const int y1, const float z1,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Specified color is (null).",
+                                    cimg_instance);
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1,
+        &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1,
+        &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0;
+      tzfloat
+        Z0 = 1/(tzfloat)z0, Z1 = 1/(tzfloat)z1, nz0 = Z0, nz1 = Z1, dz = Z1 - Z0,
+        &zleft = xdir?nz0:nz1,
+        &zright = xdir?nz1:nz0,
+        &zup = ydir?nz0:nz1,
+        &zdown = ydir?nz1:nz0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) {
+        const float D = (float)xright - xleft;
+        yleft-=(int)((float)xleft*((float)yright - yleft)/D);
+        zleft-=(tzfloat)xleft*(zright - zleft)/D;
+        xleft = 0;
+      }
+      if (xright>=width()) {
+        const float d = (float)xright - width(), D = (float)xright - xleft;
+        yright-=(int)(d*((float)yright - yleft)/D);
+        zright-=(tzfloat)d*(zright - zleft)/D;
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) {
+        const float D = (float)ydown - yup;
+        xup-=(int)((float)yup*((float)xdown - xup)/D);
+        zup-=(tzfloat)yup*(zdown - zup)/D;
+        yup = 0;
+      }
+      if (ydown>=height()) {
+        const float d = (float)ydown - height(), D = (float)ydown - yup;
+        xdown-=(int)(d*((float)xdown - xup)/D);
+        zdown-=(tzfloat)d*(zdown - zup)/D;
+        ydown = height() - 1;
+      }
+      T *ptrd0 = data(nx0,ny0);
+      tz *ptrz = zbuffer.data(nx0,ny0);
+      int dx = xright - xleft, dy = ydown - yup;
+      const bool steep = dy>dx;
+      if (steep) cimg::swap(nx0,ny0,nx1,ny1,dx,dy);
+      const longT
+        offx = (longT)(nx0<nx1?1:-1)*(steep?width():1),
+        offy = (longT)(ny0<ny1?1:-1)*(steep?1:width());
+      const ulongT
+        wh = (ulongT)_width*_height,
+        ndx = (ulongT)(dx>0?dx:1);
+      if (opacity>=1) {
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz && pattern&hatch) {
+            *ptrz = (tz)z;
+            T *ptrd = ptrd0; const tc *col = color;
+            cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=wh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz) {
+            *ptrz = (tz)z;
+            T *ptrd = ptrd0; const tc *col = color;
+            cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=wh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz && pattern&hatch) {
+            *ptrz = (tz)z;
+            T *ptrd = ptrd0; const tc *col = color;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**(col++) + *ptrd*copacity); ptrd+=wh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz) {
+            *ptrz = (tz)z;
+            T *ptrd = ptrd0; const tc *col = color;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**(col++) + *ptrd*copacity); ptrd+=wh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 3d line.
+    /**
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if a reinitialization of the hash state must be done.
+    **/
+    template<typename tc>
+    CImg<T>& draw_line(const int x0, const int y0, const int z0,
+                       const int x1, const int y1, const int z1,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Specified color is (null).",
+                                    cimg_instance);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      int nx0 = x0, ny0 = y0, nz0 = z0, nx1 = x1, ny1 = y1, nz1 = z1;
+      if (nx0>nx1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1);
+      if (nx1<0 || nx0>=width()) return *this;
+      if (nx0<0) {
+        const float D = 1.0f + nx1 - nx0;
+        ny0-=(int)((float)nx0*(1.0f + ny1 - ny0)/D);
+        nz0-=(int)((float)nx0*(1.0f + nz1 - nz0)/D);
+        nx0 = 0;
+      }
+      if (nx1>=width()) {
+        const float d = (float)nx1 - width(), D = 1.0f + nx1 - nx0;
+        ny1+=(int)(d*(1.0f + ny0 - ny1)/D);
+        nz1+=(int)(d*(1.0f + nz0 - nz1)/D);
+        nx1 = width() - 1;
+      }
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1);
+      if (ny1<0 || ny0>=height()) return *this;
+      if (ny0<0) {
+        const float D = 1.0f + ny1 - ny0;
+        nx0-=(int)((float)ny0*(1.0f + nx1 - nx0)/D);
+        nz0-=(int)((float)ny0*(1.0f + nz1 - nz0)/D);
+        ny0 = 0;
+      }
+      if (ny1>=height()) {
+        const float d = (float)ny1 - height(), D = 1.0f + ny1 - ny0;
+        nx1+=(int)(d*(1.0f + nx0 - nx1)/D);
+        nz1+=(int)(d*(1.0f + nz0 - nz1)/D);
+        ny1 = height() - 1;
+      }
+      if (nz0>nz1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1);
+      if (nz1<0 || nz0>=depth()) return *this;
+      if (nz0<0) {
+        const float D = 1.0f + nz1 - nz0;
+        nx0-=(int)((float)nz0*(1.0f + nx1 - nx0)/D);
+        ny0-=(int)((float)nz0*(1.0f + ny1 - ny0)/D);
+        nz0 = 0;
+      }
+      if (nz1>=depth()) {
+        const float d = (float)nz1 - depth(), D = 1.0f + nz1 - nz0;
+        nx1+=(int)(d*(1.0f + nx0 - nx1)/D);
+        ny1+=(int)(d*(1.0f + ny0 - ny1)/D);
+        nz1 = depth() - 1;
+      }
+      const unsigned int dmax = (unsigned int)cimg::max(cimg::abs(nx1 - nx0),cimg::abs(ny1 - ny0),nz1 - nz0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const float px = (nx1 - nx0)/(float)dmax, py = (ny1 - ny0)/(float)dmax, pz = (nz1 - nz0)/(float)dmax;
+      float x = (float)nx0, y = (float)ny0, z = (float)nz0;
+      if (opacity>=1) for (unsigned int t = 0; t<=dmax; ++t) {
+        if (!(~pattern) || (~pattern && pattern&hatch)) {
+          T* ptrd = data((unsigned int)x,(unsigned int)y,(unsigned int)z);
+          const tc *col = color; cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=whd; }
+        }
+        x+=px; y+=py; z+=pz; if (pattern) { hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1); }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        for (unsigned int t = 0; t<=dmax; ++t) {
+          if (!(~pattern) || (~pattern && pattern&hatch)) {
+            T* ptrd = data((unsigned int)x,(unsigned int)y,(unsigned int)z);
+            const tc *col = color; cimg_forC(*this,c) { *ptrd = (T)(*(col++)*nopacity + *ptrd*copacity); ptrd+=whd; }
+          }
+          x+=px; y+=py; z+=pz; if (pattern) { hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1); }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a textured 2d line.
+    /**
+       \param x0 X-coordinate of the starting line point.
+       \param y0 Y-coordinate of the starting line point.
+       \param x1 X-coordinate of the ending line point.
+       \param y1 Y-coordinate of the ending line point.
+       \param texture Texture image defining the pixel colors.
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if the hash variable must be reinitialized.
+       \note
+       - Line routine uses the well known Bresenham's algorithm.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0), texture("texture256x256.ppm");
+       const unsigned char color[] = { 255,128,64 };
+       img.draw_line(40,40,80,70,texture,0,0,255,255);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_line(const int x0, const int y0,
+                       const int x1, const int y1,
+                       const CImg<tc>& texture,
+                       const int tx0, const int ty0,
+                       const int tx1, const int ty1,
+                       const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture)) return draw_line(x0,y0,x1,y1,+texture,tx0,ty0,tx1,ty1,opacity,pattern,init_hatch);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        dtx = tx1-tx0, dty = ty1-ty0,
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        tnx0 = tx0, tnx1 = tx1, tny0 = ty0, tny1 = ty1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1, &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &txleft = xdir?tnx0:tnx1, &tyleft = xdir?tny0:tny1, &txright = xdir?tnx1:tnx0, &tyright = xdir?tny1:tny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1, &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0,
+        &txup = ydir?tnx0:tnx1, &tyup = ydir?tny0:tny1, &txdown = ydir?tnx1:tnx0, &tydown = ydir?tny1:tny0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) {
+        const float D = (float)xright - xleft;
+        yleft-=(int)((float)xleft*((float)yright - yleft)/D);
+        txleft-=(int)((float)xleft*((float)txright - txleft)/D);
+        tyleft-=(int)((float)xleft*((float)tyright - tyleft)/D);
+        xleft = 0;
+      }
+      if (xright>=width()) {
+        const float d = (float)xright - width(), D = (float)xright - xleft;
+        yright-=(int)(d*((float)yright - yleft)/D);
+        txright-=(int)(d*((float)txright - txleft)/D);
+        tyright-=(int)(d*((float)tyright - tyleft)/D);
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) {
+        const float D = (float)ydown - yup;
+        xup-=(int)((float)yup*((float)xdown - xup)/D);
+        txup-=(int)((float)yup*((float)txdown - txup)/D);
+        tyup-=(int)((float)yup*((float)tydown - tyup)/D);
+        yup = 0;
+      }
+      if (ydown>=height()) {
+        const float d = (float)ydown - height(), D = (float)ydown - yup;
+        xdown-=(int)(d*((float)xdown - xup)/D);
+        txdown-=(int)(d*((float)txdown - txup)/D);
+        tydown-=(int)(d*((float)tydown - tyup)/D);
+        ydown = height() - 1;
+      }
+      T *ptrd0 = data(nx0,ny0);
+      int dx = xright - xleft, dy = ydown - yup;
+      const bool steep = dy>dx;
+      if (steep) cimg::swap(nx0,ny0,nx1,ny1,dx,dy);
+      const longT
+        offx = (longT)(nx0<nx1?1:-1)*(steep?width():1),
+        offy = (longT)(ny0<ny1?1:-1)*(steep?1:width()),
+        ndx = (longT)(dx>0?dx:1);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height;
+
+      if (opacity>=1) {
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            T *ptrd = ptrd0;
+            const int tx = tx0 + x*dtx/ndx, ty = ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY(tx,ty);
+            cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          T *ptrd = ptrd0;
+          const int tx = tx0 + x*dtx/ndx, ty = ty0 + x*dty/ndx;
+          const tc *col = &texture._atXY(tx,ty);
+          cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          T *ptrd = ptrd0;
+          if (pattern&hatch) {
+            const int tx = tx0 + x*dtx/ndx, ty = ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY(tx,ty);
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          T *ptrd = ptrd0;
+          const int tx = tx0 + x*dtx/ndx, ty = ty0 + x*dty/ndx;
+          const tc *col = &texture._atXY(tx,ty);
+          cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a textured 2d line, with perspective correction.
+    /**
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param texture Texture image defining the pixel colors.
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if the hash variable must be reinitialized.
+    **/
+    template<typename tc>
+    CImg<T>& draw_line(const int x0, const int y0, const float z0,
+                       const int x1, const int y1, const float z1,
+                       const CImg<tc>& texture,
+                       const int tx0, const int ty0,
+                       const int tx1, const int ty1,
+                       const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() && z0<=0 && z1<=0) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_line(x0,y0,z0,x1,y1,z1,+texture,tx0,ty0,tx1,ty1,opacity,pattern,init_hatch);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1,
+        &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1,
+        &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0;
+      float
+        Tx0 = tx0/z0, Tx1 = tx1/z1,
+        Ty0 = ty0/z0, Ty1 = ty1/z1,
+        Z0 = 1/z0, Z1 = 1/z1,
+        dz = Z1 - Z0, dtx = Tx1 - Tx0, dty = Ty1 - Ty0,
+        tnx0 = Tx0, tnx1 = Tx1, tny0 = Ty0, tny1 = Ty1, nz0 = Z0, nz1 = Z1,
+        &zleft = xdir?nz0:nz1, &txleft = xdir?tnx0:tnx1, &tyleft = xdir?tny0:tny1,
+        &zright = xdir?nz1:nz0, &txright = xdir?tnx1:tnx0, &tyright = xdir?tny1:tny0,
+        &zup = ydir?nz0:nz1, &txup = ydir?tnx0:tnx1, &tyup = ydir?tny0:tny1,
+        &zdown = ydir?nz1:nz0, &txdown = ydir?tnx1:tnx0, &tydown = ydir?tny1:tny0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) {
+        const float D = (float)xright - xleft;
+        yleft-=(int)((float)xleft*((float)yright - yleft)/D);
+        zleft-=(float)xleft*(zright - zleft)/D;
+        txleft-=(float)xleft*(txright - txleft)/D;
+        tyleft-=(float)xleft*(tyright - tyleft)/D;
+        xleft = 0;
+      }
+      if (xright>=width()) {
+        const float d = (float)xright - width(), D = (float)xright - xleft;
+        yright-=(int)(d*((float)yright - yleft)/D);
+        zright-=d*(zright - zleft)/D;
+        txright-=d*(txright - txleft)/D;
+        tyright-=d*(tyright - tyleft)/D;
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) {
+        const float D = (float)ydown - yup;
+        xup-=(int)((float)yup*((float)xdown - xup)/D);
+        zup-=(float)yup*(zdown - zup)/D;
+        txup-=(float)yup*(txdown - txup)/D;
+        tyup-=(float)yup*(tydown - tyup)/D;
+        yup = 0;
+      }
+      if (ydown>=height()) {
+        const float d = (float)ydown - height(), D = (float)ydown - yup;
+        xdown-=(int)(d*((float)xdown - xup)/D);
+        zdown-=d*(zdown - zup)/D;
+        txdown-=d*(txdown - txup)/D;
+        tydown-=d*(tydown - tyup)/D;
+        ydown = height() - 1;
+      }
+      T *ptrd0 = data(nx0,ny0);
+      int dx = xright - xleft, dy = ydown - yup;
+      const bool steep = dy>dx;
+      if (steep) cimg::swap(nx0,ny0,nx1,ny1,dx,dy);
+      const longT
+        offx = (longT)(nx0<nx1?1:-1)*(steep?width():1),
+        offy = (longT)(ny0<ny1?1:-1)*(steep?1:width()),
+        ndx = (longT)(dx>0?dx:1);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height;
+
+      if (opacity>=1) {
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            const float z = Z0 + x*dz/ndx, tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const float z = Z0 + x*dz/ndx, tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+          const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+          T *ptrd = ptrd0;
+          cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            const float z = Z0 + x*dz/ndx, tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const float z = Z0 + x*dz/ndx, tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+          const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+          T *ptrd = ptrd0;
+          cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          ptrd0+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a textured 2d line, with perspective correction and z-buffering.
+    /**
+       \param zbuffer Z-buffer image.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param texture Texture image defining the pixel colors.
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if the hash variable must be reinitialized.
+    **/
+    template<typename tz, typename tc>
+    CImg<T>& draw_line(CImg<tz>& zbuffer,
+                       const int x0, const int y0, const float z0,
+                       const int x1, const int y1, const float z1,
+                       const CImg<tc>& texture,
+                       const int tx0, const int ty0,
+                       const int tx1, const int ty1,
+                       const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0) return *this;
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_line(zbuffer,x0,y0,z0,x1,y1,z1,+texture,tx0,ty0,tx1,ty1,opacity,pattern,init_hatch);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1,
+        &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1,
+        &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0;
+      float
+        Tx0 = tx0/z0, Tx1 = tx1/z1,
+        Ty0 = ty0/z0, Ty1 = ty1/z1,
+        dtx = Tx1 - Tx0, dty = Ty1 - Ty0,
+        tnx0 = Tx0, tnx1 = Tx1, tny0 = Ty0, tny1 = Ty1,
+        &txleft = xdir?tnx0:tnx1, &tyleft = xdir?tny0:tny1,
+        &txright = xdir?tnx1:tnx0, &tyright = xdir?tny1:tny0,
+        &txup = ydir?tnx0:tnx1, &tyup = ydir?tny0:tny1,
+        &txdown = ydir?tnx1:tnx0, &tydown = ydir?tny1:tny0;
+      tzfloat
+        Z0 = 1/(tzfloat)z0, Z1 = 1/(tzfloat)z1,
+        dz = Z1 - Z0,  nz0 = Z0, nz1 = Z1,
+        &zleft = xdir?nz0:nz1,
+        &zright = xdir?nz1:nz0,
+        &zup = ydir?nz0:nz1,
+        &zdown = ydir?nz1:nz0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) {
+        const float D = (float)xright - xleft;
+        yleft-=(int)((float)xleft*((float)yright - yleft)/D);
+        zleft-=(float)xleft*(zright - zleft)/D;
+        txleft-=(float)xleft*(txright - txleft)/D;
+        tyleft-=(float)xleft*(tyright - tyleft)/D;
+        xleft = 0;
+      }
+      if (xright>=width()) {
+        const float d = (float)xright - width(), D = (float)xright - xleft;
+        yright-=(int)(d*((float)yright - yleft)/D);
+        zright-=d*(zright - zleft)/D;
+        txright-=d*(txright - txleft)/D;
+        tyright-=d*(tyright - tyleft)/D;
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) {
+        const float D = (float)ydown - yup;
+        xup-=(int)((float)yup*((float)xdown - xup)/D);
+        zup-=yup*(zdown - zup)/D;
+        txup-=yup*(txdown - txup)/D;
+        tyup-=yup*(tydown - tyup)/D;
+        yup = 0;
+      }
+      if (ydown>=height()) {
+        const float d = (float)ydown - height(), D = (float)ydown - yup;
+        xdown-=(int)(d*((float)xdown - xup)/D);
+        zdown-=d*(zdown - zup)/D;
+        txdown-=d*(txdown - txup)/D;
+        tydown-=d*(tydown - tyup)/D;
+        ydown = height() - 1;
+      }
+      T *ptrd0 = data(nx0,ny0);
+      tz *ptrz = zbuffer.data(nx0,ny0);
+      int dx = xright - xleft, dy = ydown - yup;
+      const bool steep = dy>dx;
+      if (steep) cimg::swap(nx0,ny0,nx1,ny1,dx,dy);
+      const longT
+        offx = (longT)(nx0<nx1?1:-1)*(steep?width():1),
+        offy = (longT)(ny0<ny1?1:-1)*(steep?1:width()),
+        ndx = (longT)(dx>0?dx:1);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height;
+
+      if (opacity>=1) {
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            const tzfloat z = Z0 + x*dz/ndx;
+            if (z>=(tzfloat)*ptrz) {
+              *ptrz = (tz)z;
+              const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+              const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+              T *ptrd = ptrd0;
+              cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+            }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz) {
+            *ptrz = (tz)z;
+            const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            const tzfloat z = Z0 + x*dz/ndx;
+            if (z>=(tzfloat)*ptrz) {
+              *ptrz = (tz)z;
+              const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+              const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+              T *ptrd = ptrd0;
+              cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+            }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz) {
+            *ptrz = (tz)z;
+            const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a set of consecutive lines.
+    /**
+       \param points Coordinates of vertices, stored as a list of vectors.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If set to true, init hatch motif.
+       \note
+       - This function uses several call to the single CImg::draw_line() procedure,
+       depending on the vectors size in \p points.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_line(const CImg<t>& points,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || points._width<2) return *this;
+      bool ninit_hatch = init_hatch;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+
+      case 2 : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1);
+        int ox = x0, oy = y0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1);
+          draw_line(ox,oy,x,y,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y;
+        }
+      } break;
+      default : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1), z0 = (int)points(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1), z = (int)points(i,2);
+          draw_line(ox,oy,oz,x,y,z,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z;
+        }
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d arrow.
+    /**
+       \param x0 X-coordinate of the starting arrow point (tail).
+       \param y0 Y-coordinate of the starting arrow point (tail).
+       \param x1 X-coordinate of the ending arrow point (head).
+       \param y1 Y-coordinate of the ending arrow point (head).
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param angle Aperture angle of the arrow head.
+       \param length Length of the arrow head. If negative, describes a percentage of the arrow length.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_arrow(const int x0, const int y0,
+                        const int x1, const int y1,
+                        const tc *const color, const float opacity=1,
+                        const float angle=30, const float length=-10,
+                        const unsigned int pattern=~0U) {
+      if (is_empty()) return *this;
+      const float u = (float)(x0 - x1), v = (float)(y0 - y1), sq = u*u + v*v,
+        deg = (float)(angle*cimg::PI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
+        l = (length>=0)?length:-length*(float)std::sqrt(sq)/100;
+      if (sq>0) {
+        const float
+            cl = (float)std::cos(ang - deg), sl = (float)std::sin(ang - deg),
+            cr = (float)std::cos(ang + deg), sr = (float)std::sin(ang + deg);
+        const int
+          xl = x1 + (int)(l*cl), yl = y1 + (int)(l*sl),
+          xr = x1 + (int)(l*cr), yr = y1 + (int)(l*sr),
+          xc = x1 + (int)((l + 1)*(cl + cr))/2, yc = y1 + (int)((l + 1)*(sl + sr))/2;
+        draw_line(x0,y0,xc,yc,color,opacity,pattern).draw_triangle(x1,y1,xl,yl,xr,yr,color,opacity);
+      } else draw_point(x0,y0,color,opacity);
+      return *this;
+    }
+
+    //! Draw a 2d spline.
+    /**
+       \param x0 X-coordinate of the starting curve point
+       \param y0 Y-coordinate of the starting curve point
+       \param u0 X-coordinate of the starting velocity
+       \param v0 Y-coordinate of the starting velocity
+       \param x1 X-coordinate of the ending curve point
+       \param y1 Y-coordinate of the ending curve point
+       \param u1 X-coordinate of the ending velocity
+       \param v1 Y-coordinate of the ending velocity
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param precision Curve drawing precision.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If \c true, init hatch motif.
+       \note
+       - The curve is a 2d cubic Bezier spline, from the set of specified starting/ending points
+       and corresponding velocity vectors.
+       - The spline is drawn as a serie of connected segments. The \p precision parameter sets the
+       average number of pixels in each drawn segment.
+       - A cubic Bezier curve is sometimes defined by a set of 4 points { (\p x0,\p y0), (\p xa,\p ya),
+         (\p xb,\p yb), (\p x1,\p y1) } where (\p x0,\p y0) is the starting point, (\p x1,\p y1) is the ending point
+         and (\p xa,\p ya), (\p xb,\p yb) are two
+       \e control points.
+       The starting and ending velocities (\p u0,\p v0) and (\p u1,\p v1) can be deduced easily from
+       the control points as
+       \p u0 = (\p xa - \p x0), \p v0 = (\p ya - \p y0), \p u1 = (\p x1 - \p xb) and \p v1 = (\p y1 - \p yb).
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,255,255 };
+       img.draw_spline(30,30,0,100,90,40,0,-100,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
+                         const int x1, const int y1, const float u1, const float v1,
+                         const tc *const color, const float opacity=1,
+                         const float precision=0.25, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0==x1 && y0==y1) return draw_point(x0,y0,color,opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        _precision = 1/(cimg::hypot((float)x0 - x1,(float)y0 - y1)*(precision>0?precision:1));
+      int ox = x0, oy = y0;
+      for (float t = 0; t<1; t+=_precision) {
+        const float t2 = t*t, t3 = t2*t;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t + y0);
+        draw_line(ox,oy,nx,ny,color,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny;
+      }
+      return draw_line(ox,oy,x1,y1,color,opacity,pattern,false);
+    }
+
+    //! Draw a 3d spline \overloading.
+    /**
+       \note
+       - Similar to CImg::draw_spline() for a 3d spline in a volumetric image.
+    **/
+    template<typename tc>
+    CImg<T>& draw_spline(const int x0, const int y0, const int z0, const float u0, const float v0, const float w0,
+                         const int x1, const int y1, const int z1, const float u1, const float v1, const float w1,
+                         const tc *const color, const float opacity=1,
+                         const float precision=4, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0==x1 && y0==y1 && z0==z1) return draw_point(x0,y0,z0,color,opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        az = w0 + w1 + 2*(z0 - z1),
+        bz = 3*(z1 - z0) - 2*w0 - w1,
+        _precision = 1/(cimg::hypot((float)x0 - x1,(float)y0 - y1)*(precision>0?precision:1));
+      int ox = x0, oy = y0, oz = z0;
+      for (float t = 0; t<1; t+=_precision) {
+        const float t2 = t*t, t3 = t2*t;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t + y0),
+          nz = (int)(az*t3 + bz*t2 + w0*t + z0);
+        draw_line(ox,oy,oz,nx,ny,nz,color,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny; oz = nz;
+      }
+      return draw_line(ox,oy,oz,x1,y1,z1,color,opacity,pattern,false);
+    }
+
+    //! Draw a textured 2d spline.
+    /**
+       \param x0 X-coordinate of the starting curve point
+       \param y0 Y-coordinate of the starting curve point
+       \param u0 X-coordinate of the starting velocity
+       \param v0 Y-coordinate of the starting velocity
+       \param x1 X-coordinate of the ending curve point
+       \param y1 Y-coordinate of the ending curve point
+       \param u1 X-coordinate of the ending velocity
+       \param v1 Y-coordinate of the ending velocity
+       \param texture Texture image defining line pixel colors.
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param precision Curve drawing precision.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch if \c true, reinit hatch motif.
+    **/
+    template<typename t>
+    CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
+                         const int x1, const int y1, const float u1, const float v1,
+                         const CImg<t>& texture,
+                         const int tx0, const int ty0, const int tx1, const int ty1,
+                         const float opacity=1,
+                         const float precision=4, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_empty()) return *this;
+      if (is_overlapped(texture))
+        return draw_spline(x0,y0,u0,v0,x1,y1,u1,v1,+texture,tx0,ty0,tx1,ty1,precision,opacity,pattern,init_hatch);
+      if (x0==x1 && y0==y1)
+        return draw_point(x0,y0,texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                                      y0<=0?0:y0>=texture.height()?texture.height() - 1:y0),opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        _precision = 1/(cimg::hypot((float)x0 - x1,(float)y0 - y1)*(precision>0?precision:1));
+      int ox = x0, oy = y0, otx = tx0, oty = ty0;
+      for (float t1 = 0; t1<1; t1+=_precision) {
+        const float t2 = t1*t1, t3 = t2*t1;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t1 + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t1 + y0),
+          ntx = tx0 + (int)((tx1 - tx0)*t1),
+          nty = ty0 + (int)((ty1 - ty0)*t1);
+        draw_line(ox,oy,nx,ny,texture,otx,oty,ntx,nty,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny; otx = ntx; oty = nty;
+      }
+      return draw_line(ox,oy,x1,y1,texture,otx,oty,tx1,ty1,opacity,pattern,false);
+    }
+
+    //! Draw a set of consecutive splines.
+    /**
+       \param points Vertices data.
+       \param tangents Tangents data.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param is_closed_set Tells if the drawn spline set is closed.
+       \param precision Precision of the drawing.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If \c true, init hatch motif.
+    **/
+    template<typename tp, typename tt, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points, const CImg<tt>& tangents,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || !tangents || points._width<2 || tangents._width<2) return *this;
+      bool ninit_hatch = init_hatch;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+
+      case 2 : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1);
+        int ox = x0, oy = y0;
+        float ou = u0, ov = v0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1);
+          draw_spline(ox,oy,ou,ov,x,y,u,v,color,precision,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; ou = u; ov = v;
+        }
+        if (is_closed_set) draw_spline(ox,oy,ou,ov,x0,y0,u0,v0,color,precision,opacity,pattern,false);
+      } break;
+      default : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1), z0 = (int)points(0,2);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1), w0 = (float)tangents(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        float ou = u0, ov = v0, ow = w0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1), z = (int)points(i,2);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1), w = (float)tangents(i,2);
+          draw_spline(ox,oy,oz,ou,ov,ow,x,y,z,u,v,w,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z; ou = u; ov = v; ow = w;
+        }
+        if (is_closed_set) draw_spline(ox,oy,oz,ou,ov,ow,x0,y0,z0,u0,v0,w0,color,precision,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a set of consecutive splines \overloading.
+    /**
+       Similar to previous function, with the point tangents automatically estimated from the given points set.
+    **/
+    template<typename tp, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || points._width<2) return *this;
+      CImg<Tfloat> tangents;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+      case 2 : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            u0 = x - x0,
+            v0 = y - y0,
+            n0 = 1e-8f + cimg::hypot(u0,v0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            n1 = 1e-8f + cimg::hypot(u1,v1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            n = 1e-8f + cimg::hypot(u,v),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+        }
+      } break;
+      default : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            z = (float)points(p,2),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            z0 = (float)points(p0,2),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            z1 = (float)points(p1,2),
+            u0 = x - x0,
+            v0 = y - y0,
+            w0 = z - z0,
+            n0 = 1e-8f + cimg::hypot(u0,v0,w0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            w1 = z1 - z,
+            n1 = 1e-8f + cimg::hypot(u1,v1,w1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            w = w0/n0 + w1/n1,
+            n = 1e-8f + cimg::hypot(u,v,w),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+          tangents(p,2) = (Tfloat)(fact*w/n);
+        }
+      }
+      }
+      return draw_spline(points,tangents,color,opacity,is_closed_set,precision,pattern,init_hatch);
+    }
+
+    // Inner macro for drawing triangles.
+#define _cimg_for_triangle1(img,xl,xr,y,x0,y0,x1,y1,x2,y2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               _sxn=1, \
+               _sxr=1, \
+               _sxl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter = (_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                           _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                           _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                           std::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, \
+               _errr = _dyr/2, \
+               _errl = _dyl/2, \
+               _rxn = _dyn?(x2-x1)/_dyn:0, \
+               _rxr = _dyr?(x2-x0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1-x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               xl+=(y!=y1)?_rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0): \
+                           (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1-xl))
+
+#define _cimg_for_triangle2(img,xl,cl,xr,cr,y,x0,y0,c0,x1,y1,c1,x2,y2,c2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               cr = y0>=0?c0:(c0 - y0*(c2 - c0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               cl = y1>=0?(y0>=0?(y0==y1?c1:c0):(c0 - y0*(c1 - c0)/(y1 - y0))):(c1 - y1*(c2 - c1)/(y2 - y1)), \
+               _sxn=1, _scn=1, \
+               _sxr=1, _scr=1, \
+               _sxl=1, _scl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dcn = c2>c1?c2-c1:(_scn=-1,c1 - c2), \
+               _dcr = c2>c0?c2-c0:(_scr=-1,c0 - c2), \
+               _dcl = c1>c0?c1-c0:(_scl=-1,c0 - c1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dcn-=_dyn?_dyn*(_dcn/_dyn):0, \
+                          _dcr-=_dyr?_dyr*(_dcr/_dyr):0, \
+                          _dcl-=_dyl?_dyl*(_dcl/_dyl):0, \
+                          std::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errcn = _errn, \
+               _errr = _dyr/2, _errcr = _errr, \
+               _errl = _dyl/2, _errcl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rcn = _dyn?(c2 - c1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rcr = _dyr?(c2 - c0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1-x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rcl = (y0!=y1 && y1>0)?(_dyl?(c1-c0)/_dyl:0): \
+                                       (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               cr+=_rcr+((_errcr-=_dcr)<0?_errcr+=_dyr,_scr:0), \
+               xl+=(y!=y1)?(cl+=_rcl+((_errcl-=_dcl)<0?(_errcl+=_dyl,_scl):0), \
+                           _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcl=_rcn, cl=c1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1-xl))
+
+#define _cimg_for_triangle3(img,xl,txl,tyl,xr,txr,tyr,y,x0,y0,tx0,ty0,x1,y1,tx1,ty1,x2,y2,tx2,ty2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               _sxn=1, _stxn=1, _styn=1, \
+               _sxr=1, _stxr=1, _styr=1, \
+               _sxl=1, _stxl=1, _styl=1, \
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          std::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errtxn = _errn, _errtyn = _errn, \
+               _errr = _dyr/2, _errtxr = _errr, _errtyr = _errr, \
+               _errl = _dyl/2, _errtxl = _errl, _errtyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                       (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                       (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               xl+=(y!=y1)?(txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                           _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1,\
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+#define _cimg_for_triangle4(img,xl,cl,txl,tyl,xr,cr,txr,tyr,y,x0,y0,c0,tx0,ty0,x1,y1,c1,tx1,ty1,x2,y2,c2,tx2,ty2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               cr = y0>=0?c0:(c0 - y0*(c2 - c0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               cl = y1>=0?(y0>=0?(y0==y1?c1:c0):(c0 - y0*(c1 - c0)/(y1 - y0))):(c1 - y1*(c2 - c1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               _sxn=1, _scn=1, _stxn=1, _styn=1, \
+               _sxr=1, _scr=1, _stxr=1, _styr=1, \
+               _sxl=1, _scl=1, _stxl=1, _styl=1, \
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), \
+               _dcn = c2>c1?c2 - c1:(_scn=-1,c1 - c2), \
+               _dcr = c2>c0?c2 - c0:(_scr=-1,c0 - c2), \
+               _dcl = c1>c0?c1 - c0:(_scl=-1,c0 - c1), \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dyn = y2 - y1, \
+               _dyr = y2 - y0, \
+               _dyl = y1 - y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dcn-=_dyn?_dyn*(_dcn/_dyn):0, \
+                          _dcr-=_dyr?_dyr*(_dcr/_dyr):0, \
+                          _dcl-=_dyl?_dyl*(_dcl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          std::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errcn = _errn, _errtxn = _errn, _errtyn = _errn, \
+               _errr = _dyr/2, _errcr = _errr, _errtxr = _errr, _errtyr = _errr, \
+               _errl = _dyl/2, _errcl = _errl, _errtxl = _errl, _errtyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rcn = _dyn?(c2 - c1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rcr = _dyr?(c2 - c0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rcl = (y0!=y1 && y1>0)?(_dyl?(c1 - c0)/_dyl:0): \
+                                       (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcn ), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                        (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                        (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               cr+=_rcr+((_errcr-=_dcr)<0?_errcr+=_dyr,_scr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               xl+=(y!=y1)?(cl+=_rcl+((_errcl-=_dcl)<0?(_errcl+=_dyl,_scl):0), \
+                            txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                            _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errcl=_errcn, _dcl=_dcn, _dyl=_dyn, _scl=_scn, _rcl=_rcn, cl=c1, \
+                _errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+#define _cimg_for_triangle5(img,xl,txl,tyl,lxl,lyl,xr,txr,tyr,lxr,lyr,y,x0,y0,\
+                            tx0,ty0,lx0,ly0,x1,y1,tx1,ty1,lx1,ly1,x2,y2,tx2,ty2,lx2,ly2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               txr = y0>=0?tx0:(tx0 - y0*(tx2 - tx0)/(y2 - y0)), \
+               tyr = y0>=0?ty0:(ty0 - y0*(ty2 - ty0)/(y2 - y0)), \
+               lxr = y0>=0?lx0:(lx0 - y0*(lx2 - lx0)/(y2 - y0)), \
+               lyr = y0>=0?ly0:(ly0 - y0*(ly2 - ly0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               txl = y1>=0?(y0>=0?(y0==y1?tx1:tx0):(tx0 - y0*(tx1 - tx0)/(y1 - y0))):(tx1 - y1*(tx2 - tx1)/(y2 - y1)), \
+               tyl = y1>=0?(y0>=0?(y0==y1?ty1:ty0):(ty0 - y0*(ty1 - ty0)/(y1 - y0))):(ty1 - y1*(ty2 - ty1)/(y2 - y1)), \
+               lxl = y1>=0?(y0>=0?(y0==y1?lx1:lx0):(lx0 - y0*(lx1 - lx0)/(y1 - y0))):(lx1 - y1*(lx2 - lx1)/(y2 - y1)), \
+               lyl = y1>=0?(y0>=0?(y0==y1?ly1:ly0):(ly0 - y0*(ly1 - ly0)/(y1 - y0))):(ly1 - y1*(ly2 - ly1)/(y2 - y1)), \
+               _sxn=1, _stxn=1, _styn=1, _slxn=1, _slyn=1, \
+               _sxr=1, _stxr=1, _styr=1, _slxr=1, _slyr=1, \
+               _sxl=1, _stxl=1, _styl=1, _slxl=1, _slyl=1, \
+               _dxn = x2>x1?x2 - x1:(_sxn=-1,x1 - x2), _dyn = y2 - y1, \
+               _dxr = x2>x0?x2 - x0:(_sxr=-1,x0 - x2), _dyr = y2 - y0, \
+               _dxl = x1>x0?x1 - x0:(_sxl=-1,x0 - x1), _dyl = y1 - y0, \
+               _dtxn = tx2>tx1?tx2 - tx1:(_stxn=-1,tx1 - tx2), \
+               _dtxr = tx2>tx0?tx2 - tx0:(_stxr=-1,tx0 - tx2), \
+               _dtxl = tx1>tx0?tx1 - tx0:(_stxl=-1,tx0 - tx1), \
+               _dtyn = ty2>ty1?ty2 - ty1:(_styn=-1,ty1 - ty2), \
+               _dtyr = ty2>ty0?ty2 - ty0:(_styr=-1,ty0 - ty2), \
+               _dtyl = ty1>ty0?ty1 - ty0:(_styl=-1,ty0 - ty1), \
+               _dlxn = lx2>lx1?lx2 - lx1:(_slxn=-1,lx1 - lx2), \
+               _dlxr = lx2>lx0?lx2 - lx0:(_slxr=-1,lx0 - lx2), \
+               _dlxl = lx1>lx0?lx1 - lx0:(_slxl=-1,lx0 - lx1), \
+               _dlyn = ly2>ly1?ly2 - ly1:(_slyn=-1,ly1 - ly2), \
+               _dlyr = ly2>ly0?ly2 - ly0:(_slyr=-1,ly0 - ly2), \
+               _dlyl = ly1>ly0?ly1 - ly0:(_slyl=-1,ly0 - ly1), \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                          _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                          _dtxn-=_dyn?_dyn*(_dtxn/_dyn):0, \
+                          _dtxr-=_dyr?_dyr*(_dtxr/_dyr):0, \
+                          _dtxl-=_dyl?_dyl*(_dtxl/_dyl):0, \
+                          _dtyn-=_dyn?_dyn*(_dtyn/_dyn):0, \
+                          _dtyr-=_dyr?_dyr*(_dtyr/_dyr):0, \
+                          _dtyl-=_dyl?_dyl*(_dtyl/_dyl):0, \
+                          _dlxn-=_dyn?_dyn*(_dlxn/_dyn):0, \
+                          _dlxr-=_dyr?_dyr*(_dlxr/_dyr):0, \
+                          _dlxl-=_dyl?_dyl*(_dlxl/_dyl):0, \
+                          _dlyn-=_dyn?_dyn*(_dlyn/_dyn):0, \
+                          _dlyr-=_dyr?_dyr*(_dlyr/_dyr):0, \
+                          _dlyl-=_dyl?_dyl*(_dlyl/_dyl):0, \
+                          std::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, _errtxn = _errn, _errtyn = _errn, _errlxn = _errn, _errlyn = _errn, \
+               _errr = _dyr/2, _errtxr = _errr, _errtyr = _errr, _errlxr = _errr, _errlyr = _errr, \
+               _errl = _dyl/2, _errtxl = _errl, _errtyl = _errl, _errlxl = _errl, _errlyl = _errl, \
+               _rxn = _dyn?(x2 - x1)/_dyn:0, \
+               _rtxn = _dyn?(tx2 - tx1)/_dyn:0, \
+               _rtyn = _dyn?(ty2 - ty1)/_dyn:0, \
+               _rlxn = _dyn?(lx2 - lx1)/_dyn:0, \
+               _rlyn = _dyn?(ly2 - ly1)/_dyn:0, \
+               _rxr = _dyr?(x2 - x0)/_dyr:0, \
+               _rtxr = _dyr?(tx2 - tx0)/_dyr:0, \
+               _rtyr = _dyr?(ty2 - ty0)/_dyr:0, \
+               _rlxr = _dyr?(lx2 - lx0)/_dyr:0, \
+               _rlyr = _dyr?(ly2 - ly0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1 - x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn), \
+               _rtxl = (y0!=y1 && y1>0)?(_dyl?(tx1 - tx0)/_dyl:0): \
+                                        (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxn ), \
+               _rtyl = (y0!=y1 && y1>0)?(_dyl?(ty1 - ty0)/_dyl:0): \
+                                        (_errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyn ), \
+               _rlxl = (y0!=y1 && y1>0)?(_dyl?(lx1 - lx0)/_dyl:0): \
+                                        (_errlxl=_errlxn, _dlxl=_dlxn, _dyl=_dyn, _slxl=_slxn, _rlxn ), \
+               _rlyl = (y0!=y1 && y1>0)?(_dyl?(ly1 - ly0)/_dyl:0): \
+                                        (_errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyn ); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               lxr+=_rlxr+((_errlxr-=_dlxr)<0?_errlxr+=_dyr,_slxr:0), \
+               lyr+=_rlyr+((_errlyr-=_dlyr)<0?_errlyr+=_dyr,_slyr:0), \
+               xl+=(y!=y1)?(txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                            lxl+=_rlxl+((_errlxl-=_dlxl)<0?(_errlxl+=_dyl,_slxl):0), \
+                            lyl+=_rlyl+((_errlyl-=_dlyl)<0?(_errlyl+=_dyl,_slyl):0), \
+                            _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1, \
+                _errlxl=_errlxn, _dlxl=_dlxn, _dyl=_dyn, _slxl=_slxn, _rlxl=_rlxn, lxl=lx1, \
+                _errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyl=_rlyn, lyl=ly1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+    // [internal] Draw a filled triangle.
+    template<typename tc>
+    CImg<T>& _draw_triangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const int x2, const int y2,
+                            const tc *const color, const float opacity,
+                            const float brightness) {
+      cimg_init_scanline(color,opacity);
+      const float nbrightness = cimg::cut(brightness,0,2);
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2);
+      if (ny0<height() && ny2>=0) {
+        if ((nx1 - nx0)*(ny2 - ny0) - (nx2 - nx0)*(ny1 - ny0)<0)
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xl,xr,y,color,opacity,nbrightness);
+        else
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xr,xl,y,color,opacity,nbrightness);
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      _draw_triangle(x0,y0,x1,y1,x2,y2,color,opacity,1);
+      return *this;
+    }
+
+    //! Draw a outlined 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color, const float opacity,
+                           const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      draw_line(x0,y0,x1,y1,color,opacity,pattern,true).
+        draw_line(x1,y1,x2,y2,color,opacity,pattern,false).
+        draw_line(x2,y2,x0,y0,color,opacity,pattern,false);
+      return *this;
+    }
+
+    //! Draw a filled 2d triangle, with z-buffering.
+    /**
+       \param zbuffer Z-buffer image.
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param z0 Z-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param z1 Z-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param z2 Z-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param brightness Brightness factor.
+    **/
+    template<typename tz, typename tc>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const tc *const color, const float opacity=1,
+                           const float brightness=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f),
+        nbrightness = cimg::cut(brightness,0,2);
+      const longT whd = (longT)width()*height()*depth(), offx = spectrum()*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle1(*this,xleft0,xright0,y,nx0,ny0,nx1,ny1,nx2,ny2) {
+        if (y==ny1) { zl = nz1; pzl = pzn; }
+        int xleft = xleft0, xright = xright0;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright);
+        const int dx = xright - xleft;
+        const tzfloat pentez = (zright - zleft)/dx;
+        if (xleft<0 && dx) zleft-=xleft*(zright - zleft)/dx;
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        tz *ptrz = xleft<=xright?zbuffer.data(xleft,y):0;
+        if (opacity>=1) {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color; cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=whd; }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color; cimg_forC(*this,c) { *ptrd = (T)(nbrightness*(*col++)); ptrd+=whd; }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) { *ptrd = (T)((2 - nbrightness)**(col++) + (nbrightness - 1)*maxval); ptrd+=whd; }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          }
+        } else {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color; cimg_forC(*this,c) { *ptrd = (T)(nopacity**(col++) + *ptrd*copacity); ptrd+=whd; }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) { *ptrd = (T)(nopacity*nbrightness**(col++) + *ptrd*copacity); ptrd+=whd; }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) {
+                const T val = (T)((2 - nbrightness)**(col++) + (nbrightness - 1)*maxval);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+          }
+        }
+        zr+=pzr; zl+=pzl;
+      }
+      return *this;
+    }
+
+    //! Draw a Gouraud-shaded 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param brightness0 Brightness factor of the first vertex (in [0,2]).
+       \param brightness1 brightness factor of the second vertex (in [0,2]).
+       \param brightness2 brightness factor of the third vertex (in [0,2]).
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color,
+                           const float brightness0,
+                           const float brightness1,
+                           const float brightness2,
+                           const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const longT whd = (longT)width()*height()*depth(), offx = spectrum()*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
+        int xleft = xleft0, xright = xright0, cleft = cleft0, cright = cright0;
+        if (xright<xleft) cimg::swap(xleft,xright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        int errc = dx>>1;
+        if (xleft<0 && dx) cleft-=xleft*(cright - cleft)/dx;
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const tc *col = color;
+          cimg_forC(*this,c) {
+            *ptrd = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+            ptrd+=whd;
+          }
+          ptrd-=offx;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+        } else for (int x = xleft; x<=xright; ++x) {
+          const tc *col = color;
+          cimg_forC(*this,c) {
+            const T val = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd;
+          }
+          ptrd-=offx;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a Gouraud-shaded 2d triangle, with z-buffering \overloading.
+    template<typename tz, typename tc>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const tc *const color,
+                           const float brightness0,
+                           const float brightness1,
+                           const float brightness2,
+                           const float opacity=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const longT whd = (longT)width()*height()*depth(), offx = spectrum()*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nz0,nz2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nz1,nz2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
+        if (y==ny1) { zl = nz1; pzl = pzn; }
+        int xleft = xleft0, xright = xright0, cleft = cleft0, cright = cright0;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errc = dx>>1;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          zleft-=xleft*(zright - zleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T *ptrd = data(xleft,y);
+        tz *ptrz = xleft<=xright?zbuffer.data(xleft,y):0;
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) {
+                *ptrd = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+                ptrd+=whd;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) {
+                const T val = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          }
+        zr+=pzr; zl+=pzl;
+      }
+      return *this;
+    }
+
+    //! Draw a color-interpolated 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param color1 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the first vertex.
+       \param color2 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the seconf vertex.
+       \param color3 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the third vertex.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tc1, typename tc2, typename tc3>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc1 *const color1,
+                           const tc2 *const color2,
+                           const tc3 *const color3,
+                           const float opacity=1) {
+      const unsigned char one = 1;
+      cimg_forC(*this,c)
+        get_shared_channel(c).draw_triangle(x0,y0,x1,y1,x2,y2,&one,color1[c],color2[c],color3[c],opacity);
+      return *this;
+    }
+
+    //! Draw a textured 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param texture Texture image used to fill the triangle.
+       \param tx0 X-coordinate of the first vertex in the texture image.
+       \param ty0 Y-coordinate of the first vertex in the texture image.
+       \param tx1 X-coordinate of the second vertex in the texture image.
+       \param ty1 Y-coordinate of the second vertex in the texture image.
+       \param tx2 X-coordinate of the third vertex in the texture image.
+       \param ty2 Y-coordinate of the third vertex in the texture image.
+       \param opacity Drawing opacity.
+       \param brightness Brightness factor of the drawing (in [0,2]).
+    **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float opacity=1,
+                           const float brightness=1) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,opacity,brightness);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f),
+        nbrightness = cimg::cut(brightness,0,2);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        ntx0 = tx0, nty0 = ty0, ntx1 = tx1, nty1 = ty1, ntx2 = tx2, nty2 = ty2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2);
+      if (ny0>=height() || ny2<0) return *this;
+      _cimg_for_triangle3(*this,xleft0,txleft0,tyleft0,xright0,txright0,tyright0,y,
+                          nx0,ny0,ntx0,nty0,nx1,ny1,ntx1,nty1,nx2,ny2,ntx2,nty2) {
+        int
+          xleft = xleft0, xright = xright0,
+          txleft = txleft0, txright = txright0,
+          tyleft = tyleft0, tyright = tyright0;
+        if (xright<xleft) cimg::swap(xleft,xright,txleft,txright,tyleft,tyright);
+        const int
+          dx = xright - xleft,
+          dtx = txright>txleft?txright - txleft:txleft - txright,
+          dty = tyright>tyleft?tyright - tyleft:tyleft - tyright,
+          rtx = dx?(txright - txleft)/dx:0,
+          rty = dx?(tyright - tyleft)/dx:0,
+          stx = txright>txleft?1:-1,
+          sty = tyright>tyleft?1:-1,
+          ndtx = dtx - (dx?dx*(dtx/dx):0),
+          ndty = dty - (dx?dx*(dty/dx):0);
+        int errtx = dx>>1, errty = errtx;
+        if (xleft<0 && dx) {
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              *ptrd = (T)*col;
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nbrightness**col);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          } else for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              *ptrd = (T)((2 - nbrightness)**(col++) + (nbrightness - 1)*maxval);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          }
+        } else {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nopacity**col + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nopacity*nbrightness**col + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          } else for (int x = xleft; x<=xright; ++x) {
+            const tc *col = &texture._atXY(txleft,tyleft);
+            cimg_forC(*this,c) {
+              const T val = (T)((2 - nbrightness)**(col++) + (nbrightness - 1)*maxval);
+              *ptrd = (T)(nopacity*val + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx;
+            txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+            tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d textured triangle, with perspective correction.
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float opacity=1,
+                           const float brightness=1) {
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,opacity,brightness);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f),
+        nbrightness = cimg::cut(brightness,0,2);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2,
+        nz0 = 1/z0, nz1 = 1/z1, nz2 = 1/z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1))),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      _cimg_for_triangle1(*this,xleft0,xright0,y,nx0,ny0,nx1,ny1,nx2,ny2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int xleft = xleft0, xright = xright0;
+        float
+          zleft = zl, zright = zr,
+          txleft = txl, txright = txr,
+          tyleft = tyl, tyright = tyr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright);
+        const int dx = xright - xleft;
+        const float
+          pentez = (zright - zleft)/dx,
+          pentetx = (txright - txleft)/dx,
+          pentety = (tyright - tyleft)/dx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              *ptrd = (T)*col;
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          } else if (nbrightness<1) for (int x=xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nbrightness**col);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          } else for (int x = xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              *ptrd = (T)((2 - nbrightness)**col + (nbrightness - 1)*maxval);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          }
+        } else {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nopacity**col + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              *ptrd = (T)(nopacity*nbrightness**col + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          } else for (int x = xleft; x<=xright; ++x) {
+            const float invz = 1/zleft;
+            const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+            cimg_forC(*this,c) {
+              const T val = (T)((2 - nbrightness)**col + (nbrightness - 1)*maxval);
+              *ptrd = (T)(nopacity*val + *ptrd*copacity);
+              ptrd+=whd; col+=twh;
+            }
+            ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          }
+        }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured 2d triangle, with perspective correction and z-buffering.
+    template<typename tz, typename tc>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float opacity=1,
+                           const float brightness=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,opacity,brightness);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f),
+        nbrightness = cimg::cut(brightness,0,2);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle1(*this,xleft0,xright0,y,nx0,ny0,nx1,ny1,nx2,ny2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int xleft = xleft0, xright = xright0;
+        float txleft = txl, txright = txr, tyleft = tyl, tyright = tyr;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright);
+        const int dx = xright - xleft;
+        const float pentetx = (txright - txleft)/dx, pentety = (tyright - tyleft)/dx;
+        const tzfloat pentez = (zright - zleft)/dx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T *ptrd = data(xleft,y,0,0);
+        tz *ptrz = zbuffer.data(xleft,y);
+        if (opacity>=1) {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  *ptrd = (T)*col;
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  *ptrd = (T)(nbrightness**col);
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  *ptrd = (T)((2 - nbrightness)**col + (nbrightness - 1)*maxval);
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            }
+        } else {
+          if (nbrightness==1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  *ptrd = (T)(nopacity**col + *ptrd*copacity);
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            } else if (nbrightness<1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  *ptrd = (T)(nopacity*nbrightness**col + *ptrd*copacity);
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+              if (zleft>=(tzfloat)*ptrz) {
+                *ptrz = (tz)zleft;
+                const tzfloat invz = 1/zleft;
+                const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+                cimg_forC(*this,c) {
+                  const T val = (T)((2 - nbrightness)**col + (nbrightness - 1)*maxval);
+                  *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                  ptrd+=whd; col+=twh;
+                }
+                ptrd-=offx;
+              }
+              zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            }
+        }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a Phong-shaded 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param light Light image.
+       \param lx0 X-coordinate of the first vertex in the light image.
+       \param ly0 Y-coordinate of the first vertex in the light image.
+       \param lx1 X-coordinate of the second vertex in the light image.
+       \param ly1 Y-coordinate of the second vertex in the light image.
+       \param lx2 X-coordinate of the third vertex in the light image.
+       \param ly2 Y-coordinate of the third vertex in the light image.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc, typename tl>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (is_overlapped(light)) return draw_triangle(x0,y0,x1,y1,x2,y2,color,+light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd - 1;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nlx0,nlx1,nly0,nly1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nlx0,nlx2,nly0,nly2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nlx1,nlx2,nly1,nly2);
+      if (ny0>=height() || ny2<0) return *this;
+      _cimg_for_triangle3(*this,xleft0,lxleft0,lyleft0,xright0,lxright0,lyright0,y,
+                          nx0,ny0,nlx0,nly0,nx1,ny1,nlx1,nly1,nx2,ny2,nlx2,nly2) {
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0;
+        if (xright<xleft) cimg::swap(xleft,xright,lxleft,lxright,lyleft,lyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0);
+        int errlx = dx>>1, errly = errlx;
+        if (xleft<0 && dx) {
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const tc *col = color;
+          const tl *lig = &light._atXY(lxleft,lyleft);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            *ptrd = (T)(l<1?l**(col++):((2 - l)**(col++) + (l - 1)*maxval));
+            ptrd+=whd; lig+=lwh;
+          }
+          ptrd-=offx;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+        } else  for (int x = xleft; x<=xright; ++x) {
+          const tc *col = color;
+          const tl *lig = &light._atXY(lxleft,lyleft);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            const T val = (T)(l<1?l**(col++):((2 - l)**(col++) + (l - 1)*maxval));
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd; lig+=lwh;
+          }
+          ptrd-=offx;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a Phong-shaded 2d triangle, with z-buffering.
+    template<typename tz, typename tc, typename tl>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const tc *const color,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      if (is_overlapped(light)) return draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,color,
+                                                     +light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nlx0,nlx1,nly0,nly1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nlx0,nlx2,nly0,nly2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nlx1,nlx2,nly1,nly2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle3(*this,xleft0,lxleft0,lyleft0,xright0,lxright0,lyright0,y,
+                          nx0,ny0,nlx0,nly0,nx1,ny1,nlx1,nly1,nx2,ny2,nlx2,nly2) {
+        if (y==ny1) { zl = nz1; pzl = pzn; }
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,lxleft,lxright,lyleft,lyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0);
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errlx = dx>>1, errly = errlx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T *ptrd = data(xleft,y,0,0);
+        tz *ptrz = xleft<=xright?zbuffer.data(xleft,y):0;
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                const tc cval = *(col++);
+                *ptrd = (T)(l<1?l*cval:(2 - l)*cval + (l - 1)*maxval);
+                ptrd+=whd; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                const tc cval = *(col++);
+                const T val = (T)(l<1?l*cval:(2 - l)*cval + (l - 1)*maxval);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          }
+        zr+=pzr; zl+=pzl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured Gouraud-shaded 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param texture Texture image used to fill the triangle.
+       \param tx0 X-coordinate of the first vertex in the texture image.
+       \param ty0 Y-coordinate of the first vertex in the texture image.
+       \param tx1 X-coordinate of the second vertex in the texture image.
+       \param ty1 Y-coordinate of the second vertex in the texture image.
+       \param tx2 X-coordinate of the third vertex in the texture image.
+       \param ty2 Y-coordinate of the third vertex in the texture image.
+       \param brightness0 Brightness factor of the first vertex.
+       \param brightness1 Brightness factor of the second vertex.
+       \param brightness2 Brightness factor of the third vertex.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float brightness0,
+                           const float brightness1,
+                           const float brightness2,
+                           const float opacity=1) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,
+                             brightness0,brightness1,brightness2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        ntx0 = tx0, nty0 = ty0, ntx1 = tx1, nty1 = ty1, ntx2 = tx2, nty2 = ty2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      _cimg_for_triangle4(*this,xleft0,cleft0,txleft0,tyleft0,xright0,cright0,txright0,tyright0,y,
+                          nx0,ny0,nc0,ntx0,nty0,nx1,ny1,nc1,ntx1,nty1,nx2,ny2,nc2,ntx2,nty2) {
+        int
+          xleft = xleft0, xright = xright0,
+          cleft = cleft0, cright = cright0,
+          txleft = txleft0, txright = txright0,
+          tyleft = tyleft0, tyright = tyright0;
+        if (xright<xleft) cimg::swap(xleft,xright,cleft,cright,txleft,txright,tyleft,tyright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          dtx = txright>txleft?txright - txleft:txleft - txright,
+          dty = tyright>tyleft?tyright - tyleft:tyleft - tyright,
+          rc = dx?(cright - cleft)/dx:0,
+          rtx = dx?(txright - txleft)/dx:0,
+          rty = dx?(tyright - tyleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          stx = txright>txleft?1:-1,
+          sty = tyright>tyleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0),
+          ndtx = dtx - (dx?dx*(dtx/dx):0),
+          ndty = dty - (dx?dx*(dty/dx):0);
+        int errc = dx>>1, errtx = errc, errty = errc;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const tc *col = &texture._atXY(txleft,tyleft);
+          cimg_forC(*this,c) {
+            *ptrd = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+            ptrd+=whd; col+=twh;
+          }
+          ptrd-=offx;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+          tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+        } else for (int x = xleft; x<=xright; ++x) {
+          const tc *col = &texture._atXY(txleft,tyleft);
+          cimg_forC(*this,c) {
+            const T val = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd; col+=twh;
+          }
+          ptrd-=offx;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+          tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a textured Gouraud-shaded 2d triangle, with perspective correction \overloading.
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float brightness0,
+                           const float brightness1,
+                           const float brightness2,
+                           const float opacity=1) {
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture)) return draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,
+                                                       brightness0,brightness1,brightness2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2,
+        nz0 = 1/z0, nz1 = 1/z1, nz2 = 1/z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nz0,nz1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nz0,nz2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nz1,nz2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1))),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int
+          xleft = xleft0, xright = xright0,
+          cleft = cleft0, cright = cright0;
+        float
+          zleft = zl, zright = zr,
+          txleft = txl, txright = txr,
+          tyleft = tyl, tyright = tyr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        const float
+          pentez = (zright - zleft)/dx,
+          pentetx = (txright - txleft)/dx,
+          pentety = (tyright - tyleft)/dx;
+        int errc = dx>>1;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          zleft-=xleft*(zright - zleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const float invz = 1/zleft;
+          const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+          cimg_forC(*this,c) {
+            *ptrd = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+            ptrd+=whd; col+=twh;
+          }
+          ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+        } else for (int x = xleft; x<=xright; ++x) {
+          const float invz = 1/zleft;
+          const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+          cimg_forC(*this,c) {
+            const T val = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd; col+=twh;
+          }
+          ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+        }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured Gouraud-shaded 2d triangle, with perspective correction and z-buffering \overloading.
+    template<typename tz, typename tc>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float brightness0,
+                           const float brightness1,
+                           const float brightness2,
+                           const float opacity=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,
+                                                       brightness0,brightness1,brightness2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nz0,nz1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nz0,nz2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nz1,nz2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int xleft = xleft0, xright = xright0, cleft = cleft0, cright = cright0;
+        float txleft = txl, txright = txr, tyleft = tyl, tyright = tyr;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        float pentetx = (txright - txleft)/dx, pentety = (tyright - tyleft)/dx;
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errc = dx>>1;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          zleft-=xleft*(zright - zleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y);
+        tz *ptrz = zbuffer.data(xleft,y);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              cimg_forC(*this,c) {
+                *ptrd = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+                ptrd+=whd; col+=twh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              cimg_forC(*this,c) {
+                const T val = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; col+=twh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured Phong-shaded 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param texture Texture image used to fill the triangle.
+       \param tx0 X-coordinate of the first vertex in the texture image.
+       \param ty0 Y-coordinate of the first vertex in the texture image.
+       \param tx1 X-coordinate of the second vertex in the texture image.
+       \param ty1 Y-coordinate of the second vertex in the texture image.
+       \param tx2 X-coordinate of the third vertex in the texture image.
+       \param ty2 Y-coordinate of the third vertex in the texture image.
+       \param light Light image.
+       \param lx0 X-coordinate of the first vertex in the light image.
+       \param ly0 Y-coordinate of the first vertex in the light image.
+       \param lx1 X-coordinate of the second vertex in the light image.
+       \param ly1 Y-coordinate of the second vertex in the light image.
+       \param lx2 X-coordinate of the third vertex in the light image.
+       \param ly2 Y-coordinate of the third vertex in the light image.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc, typename tl>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      if (is_overlapped(light))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,texture,tx0,ty0,tx1,ty1,tx2,ty2,+light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        ntx0 = tx0, nty0 = ty0, ntx1 = tx1, nty1 = ty1, ntx2 = tx2, nty2 = ty2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nlx0,nlx1,nly0,nly1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nlx0,nlx2,nly0,nly2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nlx1,nlx2,nly1,nly2);
+      if (ny0>=height() || ny2<0) return *this;
+      const bool is_bump = texture._spectrum>=_spectrum + 2;
+      const ulongT obx = twh*_spectrum, oby = twh*(_spectrum + 1);
+
+      _cimg_for_triangle5(*this,xleft0,lxleft0,lyleft0,txleft0,tyleft0,xright0,lxright0,lyright0,txright0,tyright0,y,
+                          nx0,ny0,nlx0,nly0,ntx0,nty0,nx1,ny1,nlx1,nly1,ntx1,nty1,nx2,ny2,nlx2,nly2,ntx2,nty2) {
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0,
+          txleft = txleft0, txright = txright0,
+          tyleft = tyleft0, tyright = tyright0;
+        if (xright<xleft) cimg::swap(xleft,xright,lxleft,lxright,lyleft,lyright,txleft,txright,tyleft,tyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          dtx = txright>txleft?txright - txleft:txleft - txright,
+          dty = tyright>tyleft?tyright - tyleft:tyleft - tyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          rtx = dx?(txright - txleft)/dx:0,
+          rty = dx?(tyright - tyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          stx = txright>txleft?1:-1,
+          sty = tyright>tyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0),
+          ndtx = dtx - (dx?dx*(dtx/dx):0),
+          ndty = dty - (dx?dx*(dty/dx):0);
+        int errlx = dx>>1, errly = errlx, errtx = errlx, errty = errlx;
+        if (xleft<0 && dx) {
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const tc *col = &texture._atXY(txleft,tyleft);
+          const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+          const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            *ptrd = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+            ptrd+=whd; col+=twh; lig+=lwh;
+          }
+          ptrd-=offx;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+          tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+        } else for (int x = xleft; x<=xright; ++x) {
+          const tc *col = &texture._atXY(txleft,tyleft);
+          const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+          const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            const T val = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd; col+=twh; lig+=lwh;
+          }
+          ptrd-=offx;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          txleft+=rtx+((errtx-=ndtx)<0?errtx+=dx,stx:0);
+          tyleft+=rty+((errty-=ndty)<0?errty+=dx,sty:0);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a textured Phong-shaded 2d triangle, with perspective correction.
+    template<typename tc, typename tl>
+    CImg<T>& draw_triangle(const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,
+                             light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      if (is_overlapped(light))
+        return draw_triangle(x0,y0,z0,x1,y1,z1,x2,y2,z2,texture,tx0,ty0,tx1,ty1,tx2,ty2,
+                             +light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2,
+        nz0 = 1/z0, nz1 = 1/z1, nz2 = 1/z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nlx0,nlx1,nly0,nly1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nlx0,nlx2,nly0,nly2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nlx1,nlx2,nly1,nly2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1))),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      const bool is_bump = texture._spectrum>=_spectrum + 2;
+      const ulongT obx = twh*_spectrum, oby = twh*(_spectrum + 1);
+
+      _cimg_for_triangle3(*this,xleft0,lxleft0,lyleft0,xright0,lxright0,lyright0,y,
+                          nx0,ny0,nlx0,nly0,nx1,ny1,nlx1,nly1,nx2,ny2,nlx2,nly2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0;
+        float
+          zleft = zl, zright = zr,
+          txleft = txl, txright = txr,
+          tyleft = tyl, tyright = tyr;
+        if (xright<xleft)
+          cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,lxleft,lxright,lyleft,lyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0);
+        const float
+          pentez = (zright - zleft)/dx,
+          pentetx = (txright - txleft)/dx,
+          pentety = (tyright - tyleft)/dx;
+        int errlx = dx>>1, errly = errlx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y,0,0);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x) {
+          const float invz = 1/zleft;
+          const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+          const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+          const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            *ptrd = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+            ptrd+=whd; col+=twh; lig+=lwh;
+          }
+          ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+        } else for (int x = xleft; x<=xright; ++x) {
+          const float invz = 1/zleft;
+          const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+          const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+          const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+          cimg_forC(*this,c) {
+            const tl l = *lig;
+            const T val = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+            *ptrd = (T)(nopacity*val + *ptrd*copacity);
+            ptrd+=whd; col+=twh; lig+=lwh;
+          }
+          ptrd-=offx; zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+          lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+          lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+        }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured Phong-shaded 2d triangle, with perspective correction and z-buffering.
+    template<typename tz, typename tc, typename tl>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (is_overlapped(texture))
+        return draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,
+                             +texture,tx0,ty0,tx1,ty1,tx2,ty2,light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      if (is_overlapped(light))
+        return draw_triangle(zbuffer,x0,y0,z0,x1,y1,z1,x2,y2,z2,
+                             texture,tx0,ty0,tx1,ty1,tx2,ty2,+light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)std::min(cimg::type<T>::max(),(T)cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      float
+        ntx0 = tx0/z0, nty0 = ty0/z0,
+        ntx1 = tx1/z1, nty1 = ty1/z1,
+        ntx2 = tx2/z2, nty2 = ty2/z2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nlx0,nlx1,nly0,nly1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nlx0,nlx2,nly0,nly2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nlx1,nlx2,nly1,nly2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      float
+        ptxl = (ntx1 - ntx0)/(ny1 - ny0),
+        ptxr = (ntx2 - ntx0)/(ny2 - ny0),
+        ptxn = (ntx2 - ntx1)/(ny2 - ny1),
+        ptyl = (nty1 - nty0)/(ny1 - ny0),
+        ptyr = (nty2 - nty0)/(ny2 - ny0),
+        ptyn = (nty2 - nty1)/(ny2 - ny1),
+        txr = ny0>=0?ntx0:(ntx0 - ny0*(ntx2 - ntx0)/(ny2 - ny0)),
+        tyr = ny0>=0?nty0:(nty0 - ny0*(nty2 - nty0)/(ny2 - ny0)),
+        txl = ny1>=0?(ny0>=0?ntx0:(ntx0 - ny0*(ntx1 - ntx0)/(ny1 - ny0))):
+          (ptxl=ptxn,(ntx1 - ny1*(ntx2 - ntx1)/(ny2 - ny1))),
+        tyl = ny1>=0?(ny0>=0?nty0:(nty0 - ny0*(nty1 - nty0)/(ny1 - ny0))):
+          (ptyl=ptyn,(nty1 - ny1*(nty2 - nty1)/(ny2 - ny1)));
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      const bool is_bump = texture._spectrum>=_spectrum + 2;
+      const ulongT obx = twh*_spectrum, oby = twh*(_spectrum + 1);
+
+      _cimg_for_triangle3(*this,xleft0,lxleft0,lyleft0,xright0,lxright0,lyright0,y,
+                          nx0,ny0,nlx0,nly0,nx1,ny1,nlx1,nly1,nx2,ny2,nlx2,nly2) {
+        if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0;
+        float txleft = txl, txright = txr, tyleft = tyl, tyright = tyr;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft)
+          cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,lxleft,lxright,lyleft,lyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          ndlx = dlx - (dx?dx*(dlx/dx):0),
+          ndly = dly - (dx?dx*(dly/dx):0);
+        float pentetx = (txright - txleft)/dx, pentety = (tyright - tyleft)/dx;
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errlx = dx>>1, errly = errlx;
+        if (xleft<0 && dx) {
+          zleft-=xleft*(zright - zleft)/dx;
+          lxleft-=xleft*(lxright - lxleft)/dx;
+          lyleft-=xleft*(lyright - lyleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y);
+        tz *ptrz = zbuffer.data(xleft,y);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+              const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                *ptrd = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              const int bx = is_bump?128 - (int)col[obx]:0, by = is_bump?128 - (int)col[oby]:0;
+              const tl *lig = &light._atXY(lxleft + bx,lyleft + by);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                const T val = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 4d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param c0 C-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param c1 C-coordinate of the lower-right rectangle corner.
+       \param val Scalar value used to fill the rectangle area.
+       \param opacity Drawing opacity.
+    **/
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0, const int c0,
+                            const int x1, const int y1, const int z1, const int c1,
+                            const T val, const float opacity=1) {
+      if (is_empty()) return *this;
+      const int
+        nx0 = x0<x1?x0:x1, nx1 = x0^x1^nx0,
+        ny0 = y0<y1?y0:y1, ny1 = y0^y1^ny0,
+        nz0 = z0<z1?z0:z1, nz1 = z0^z1^nz0,
+        nc0 = c0<c1?c0:c1, nc1 = c0^c1^nc0;
+      const int
+        lX = (1 + nx1 - nx0) + (nx1>=width()?width() - 1 - nx1:0) + (nx0<0?nx0:0),
+        lY = (1 + ny1 - ny0) + (ny1>=height()?height() - 1 - ny1:0) + (ny0<0?ny0:0),
+        lZ = (1 + nz1 - nz0) + (nz1>=depth()?depth() - 1 - nz1:0) + (nz0<0?nz0:0),
+        lC = (1 + nc1 - nc0) + (nc1>=spectrum()?spectrum() - 1 - nc1:0) + (nc0<0?nc0:0);
+      const ulongT
+        offX = (ulongT)_width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      T *ptrd = data(nx0<0?0:nx0,ny0<0?0:ny0,nz0<0?0:nz0,nc0<0?0:nc0);
+      if (lX>0 && lY>0 && lZ>0 && lC>0)
+        for (int v = 0; v<lC; ++v) {
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              if (opacity>=1) {
+                if (sizeof(T)!=1) { for (int x = 0; x<lX; ++x) *(ptrd++) = val; ptrd+=offX; }
+                else { std::memset(ptrd,(int)val,lX); ptrd+=_width; }
+              } else { for (int x = 0; x<lX; ++x) { *ptrd = (T)(nopacity*val + *ptrd*copacity); ++ptrd; } ptrd+=offX; }
+            }
+            ptrd+=offY;
+          }
+          ptrd+=offZ;
+        }
+      return *this;
+    }
+
+    //! Draw a filled 3d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_rectangle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_forC(*this,c) draw_rectangle(x0,y0,z0,c,x1,y1,z1,c,(T)color[c],opacity);
+      return *this;
+    }
+
+    //! Draw an outlined 3d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      return draw_line(x0,y0,z0,x1,y0,z0,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y1,z0,color,opacity,pattern,false).
+        draw_line(x1,y1,z0,x0,y1,z0,color,opacity,pattern,false).
+        draw_line(x0,y1,z0,x0,y0,z0,color,opacity,pattern,false).
+        draw_line(x0,y0,z1,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z1,x1,y1,z1,color,opacity,pattern,false).
+        draw_line(x1,y1,z1,x0,y1,z1,color,opacity,pattern,false).
+        draw_line(x0,y1,z1,x0,y0,z1,color,opacity,pattern,false).
+        draw_line(x0,y0,z0,x0,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y1,z0,x1,y1,z1,color,opacity,pattern,true).
+        draw_line(x0,y1,z0,x0,y1,z1,color,opacity,pattern,true);
+    }
+
+    //! Draw a filled 2d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity=1) {
+      return draw_rectangle(x0,y0,0,x1,y1,_depth - 1,color,opacity);
+    }
+
+    //! Draw a outlined 2d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (y0==y1) return draw_line(x0,y0,x1,y0,color,opacity,pattern,true);
+      if (x0==x1) return draw_line(x0,y0,x0,y1,color,opacity,pattern,true);
+      const int
+        nx0 = x0<x1?x0:x1, nx1 = x0^x1^nx0,
+        ny0 = y0<y1?y0:y1, ny1 = y0^y1^ny0;
+      if (ny1==ny0 + 1) return draw_line(nx0,ny0,nx1,ny0,color,opacity,pattern,true).
+                      draw_line(nx1,ny1,nx0,ny1,color,opacity,pattern,false);
+      return draw_line(nx0,ny0,nx1,ny0,color,opacity,pattern,true).
+        draw_line(nx1,ny0 + 1,nx1,ny1 - 1,color,opacity,pattern,false).
+        draw_line(nx1,ny1,nx0,ny1,color,opacity,pattern,false).
+        draw_line(nx0,ny1 - 1,nx0,ny0 + 1,color,opacity,pattern,false);
+    }
+
+    //! Draw a filled 2d polygon.
+    /**
+       \param points Set of polygon vertices.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tp, typename tc>
+    CImg<T>& draw_polygon(const CImg<tp>& points,
+                          const tc *const color, const float opacity=1) {
+      if (is_empty() || !points) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_polygon(): Specified color is (null).",
+                                    cimg_instance);
+      if (points._width==1) return draw_point((int)points(0,0),(int)points(0,1),color,opacity);
+      if (points._width==2) return draw_line((int)points(0,0),(int)points(0,1),
+                                             (int)points(1,0),(int)points(1,1),color,opacity);
+      if (points._width==3) return draw_triangle((int)points(0,0),(int)points(0,1),
+                                                 (int)points(1,0),(int)points(1,1),
+                                                 (int)points(2,0),(int)points(2,1),color,opacity);
+      cimg_init_scanline(color,opacity);
+      int
+        xmin = 0, ymin = 0,
+        xmax = points.get_shared_row(0).max_min(xmin),
+        ymax = points.get_shared_row(1).max_min(ymin);
+      if (xmax<0 || xmin>=width() || ymax<0 || ymin>=height()) return *this;
+      if (ymin==ymax) return draw_line(xmin,ymin,xmax,ymax,color,opacity);
+
+      ymin = std::max(0,ymin);
+      ymax = std::min(height() - 1,ymax);
+      CImg<intT> Xs(points._width,ymax - ymin + 1);
+      CImg<uintT> count(Xs._height,1,1,1,0);
+      unsigned int n = 0, nn = 1;
+      bool go_on = true;
+
+      while (go_on) {
+        unsigned int an = (nn + 1)%points._width;
+        const int
+          x0 = (int)points(n,0),
+          y0 = (int)points(n,1);
+        if (points(nn,1)==y0) while (points(an,1)==y0) { nn = an; (an+=1)%=points._width; }
+        const int
+          x1 = (int)points(nn,0),
+          y1 = (int)points(nn,1);
+        unsigned int tn = an;
+        while (points(tn,1)==y1) (tn+=1)%=points._width;
+
+        if (y0!=y1) {
+          const int
+            y2 = (int)points(tn,1),
+            x01 = x1 - x0, y01 = y1 - y0, y12 = y2 - y1,
+            dy = cimg::sign(y01),
+            tmax = std::max(1,cimg::abs(y01)),
+            tend = tmax - (dy==cimg::sign(y12));
+          unsigned int y = (unsigned int)y0 - ymin;
+          for (int t = 0; t<=tend; ++t, y+=dy)
+            if (y<Xs._height) Xs(count[y]++,y) = x0 + t*x01/tmax;
+        }
+
+        go_on = nn>n;
+        n = nn;
+        nn = an;
+      }
+
+      cimg_pragma_openmp(parallel for cimg_openmp_if(Xs._height>32))
+      cimg_forY(Xs,y) {
+        const CImg<intT> Xsy = Xs.get_shared_points(0,count[y] - 1,y).sort();
+        int px = width();
+        for (unsigned int n = 0; n<Xsy._width; n+=2) {
+          int x0 = Xsy[n];
+          const int x1 = Xsy[n + 1];
+          x0+=x0==px;
+          cimg_draw_scanline(x0,x1,y + ymin,color,opacity,1);
+          px = x1;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a outlined 2d polygon \overloading.
+    template<typename t, typename tc>
+    CImg<T>& draw_polygon(const CImg<t>& points,
+                          const tc *const color, const float opacity, const unsigned int pattern) {
+      if (is_empty() || !points || points._width<3) return *this;
+      bool ninit_hatch = true;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_polygon(): Invalid specified point set.",
+                                    cimg_instance);
+      case 2 : { // 2d version.
+        CImg<intT> npoints(points._width,2);
+        int x = npoints(0,0) = (int)points(0,0), y = npoints(0,1) = (int)points(0,1);
+        unsigned int nb_points = 1;
+        for (unsigned int p = 1; p<points._width; ++p) {
+          const int nx = (int)points(p,0), ny = (int)points(p,1);
+          if (nx!=x || ny!=y) { npoints(nb_points,0) = nx; npoints(nb_points++,1) = ny; x = nx; y = ny; }
+        }
+        const int x0 = (int)npoints(0,0), y0 = (int)npoints(0,1);
+        int ox = x0, oy = y0;
+        for (unsigned int i = 1; i<nb_points; ++i) {
+          const int x = (int)npoints(i,0), y = (int)npoints(i,1);
+          draw_line(ox,oy,x,y,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y;
+        }
+        draw_line(ox,oy,x0,y0,color,opacity,pattern,false);
+      } break;
+      default : { // 3d version.
+        CImg<intT> npoints(points._width,3);
+        int
+          x = npoints(0,0) = (int)points(0,0),
+          y = npoints(0,1) = (int)points(0,1),
+          z = npoints(0,2) = (int)points(0,2);
+        unsigned int nb_points = 1;
+        for (unsigned int p = 1; p<points._width; ++p) {
+          const int nx = (int)points(p,0), ny = (int)points(p,1), nz = (int)points(p,2);
+          if (nx!=x || ny!=y || nz!=z) {
+            npoints(nb_points,0) = nx; npoints(nb_points,1) = ny; npoints(nb_points++,2) = nz;
+            x = nx; y = ny; z = nz;
+          }
+        }
+        const int x0 = (int)npoints(0,0), y0 = (int)npoints(0,1), z0 = (int)npoints(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        for (unsigned int i = 1; i<nb_points; ++i) {
+          const int x = (int)npoints(i,0), y = (int)npoints(i,1), z = (int)npoints(i,2);
+          draw_line(ox,oy,oz,x,y,z,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z;
+        }
+        draw_line(ox,oy,oz,x0,y0,z0,color,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity=1) {
+      return _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,0U);
+    }
+
+    //! Draw a filled 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+                          const tc *const color, const float opacity=1) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity);
+    }
+
+    //! Draw an outlined 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity, const unsigned int pattern) {
+      if (pattern) _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,pattern);
+      return *this;
+    }
+
+    //! Draw an outlined 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+                          const tc *const color, const float opacity,
+                          const unsigned int pattern) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity,pattern);
+    }
+
+    template<typename tc>
+    CImg<T>& _draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                           const tc *const color, const float opacity,
+                           const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_ellipse(): Specified color is (null).",
+                                    cimg_instance);
+      if (r1<=0 || r2<=0) return draw_point(x0,y0,color,opacity);
+      if (r1==r2 && (float)(int)r1==r1) {
+        if (pattern) return draw_circle(x0,y0,(int)cimg::round(r1),color,opacity,pattern);
+        else return draw_circle(x0,y0,(int)cimg::round(r1),color,opacity);
+      }
+      cimg_init_scanline(color,opacity);
+      const float
+        nr1 = cimg::abs(r1) - 0.5, nr2 = cimg::abs(r2) - 0.5,
+        nangle = (float)(angle*cimg::PI/180),
+        u = (float)std::cos(nangle),
+        v = (float)std::sin(nangle),
+        rmax = std::max(nr1,nr2),
+        l1 = (float)std::pow(rmax/(nr1>0?nr1:1e-6),2),
+        l2 = (float)std::pow(rmax/(nr2>0?nr2:1e-6),2),
+        a = l1*u*u + l2*v*v,
+        b = u*v*(l1 - l2),
+        c = l1*v*v + l2*u*u;
+      const int
+        yb = (int)cimg::round(std::sqrt(a*rmax*rmax/(a*c - b*b))),
+        tymin = y0 - yb - 1,
+        tymax = y0 + yb + 1,
+        ymin = tymin<0?0:tymin,
+        ymax = tymax>=height()?height() - 1:tymax;
+      int oxmin = 0, oxmax = 0;
+      bool first_line = true;
+      for (int y = ymin; y<=ymax; ++y) {
+        const float
+          Y = y - y0 + (y<y0?0.5f:-0.5f),
+          delta = b*b*Y*Y - a*(c*Y*Y - rmax*rmax),
+          sdelta = delta>0?(float)std::sqrt(delta)/a:0.0f,
+          bY = b*Y/a,
+          fxmin = x0 - 0.5f - bY - sdelta,
+          fxmax = x0 + 0.5f - bY + sdelta;
+        const int xmin = (int)cimg::round(fxmin), xmax = (int)cimg::round(fxmax);
+        if (!pattern) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+        else {
+          if (first_line) {
+            if (y0 - yb>=0) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+            else draw_point(xmin,y,color,opacity).draw_point(xmax,y,color,opacity);
+            first_line = false;
+          } else {
+            if (xmin<oxmin) cimg_draw_scanline(xmin,oxmin - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmin + (oxmin==xmin?0:1),xmin,y,color,opacity,1);
+            if (xmax<oxmax) cimg_draw_scanline(xmax,oxmax - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmax + (oxmax==xmax?0:1),xmax,y,color,opacity,1);
+            if (y==tymax) cimg_draw_scanline(xmin + 1,xmax - 1,y,color,opacity,1);
+          }
+        }
+        oxmin = xmin; oxmax = xmax;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d circle.
+    /**
+       \param x0 X-coordinate of the circle center.
+       \param y0 Y-coordinate of the circle center.
+       \param radius  Circle radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - Circle version of the Bresenham's algorithm is used.
+    **/
+    template<typename tc>
+    CImg<T>& draw_circle(const int x0, const int y0, int radius,
+                         const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_circle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_init_scanline(color,opacity);
+      if (radius<0 || x0 - radius>=width() || y0 + radius<0 || y0 - radius>=height()) return *this;
+      if (y0>=0 && y0<height()) cimg_draw_scanline(x0 - radius,x0 + radius,y0,color,opacity,1);
+      for (int f = 1 - radius, ddFx = 0, ddFy = -(radius<<1), x = 0, y = radius; x<y; ) {
+        if (f>=0) {
+          const int x1 = x0 - x, x2 = x0 + x, y1 = y0 - y, y2 = y0 + y;
+          if (y1>=0 && y1<height()) cimg_draw_scanline(x1,x2,y1,color,opacity,1);
+          if (y2>=0 && y2<height()) cimg_draw_scanline(x1,x2,y2,color,opacity,1);
+          f+=(ddFy+=2); --y;
+        }
+        const bool no_diag = y!=(x++);
+        ++(f+=(ddFx+=2));
+        const int x1 = x0 - y, x2 = x0 + y, y1 = y0 - x, y2 = y0 + x;
+        if (no_diag) {
+          if (y1>=0 && y1<height()) cimg_draw_scanline(x1,x2,y1,color,opacity,1);
+          if (y2>=0 && y2<height()) cimg_draw_scanline(x1,x2,y2,color,opacity,1);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an outlined 2d circle.
+    /**
+       \param x0 X-coordinate of the circle center.
+       \param y0 Y-coordinate of the circle center.
+       \param radius Circle radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_circle(const int x0, const int y0, int radius,
+                         const tc *const color, const float opacity,
+                         const unsigned int pattern) {
+      cimg::unused(pattern);
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_circle(): Specified color is (null).",
+                                    cimg_instance);
+      if (radius<0 || x0 - radius>=width() || y0 + radius<0 || y0 - radius>=height()) return *this;
+      if (!radius) return draw_point(x0,y0,color,opacity);
+      draw_point(x0 - radius,y0,color,opacity).draw_point(x0 + radius,y0,color,opacity).
+        draw_point(x0,y0 - radius,color,opacity).draw_point(x0,y0 + radius,color,opacity);
+      if (radius==1) return *this;
+      for (int f = 1 - radius, ddFx = 0, ddFy = -(radius<<1), x = 0, y = radius; x<y; ) {
+        if (f>=0) { f+=(ddFy+=2); --y; }
+        ++x; ++(f+=(ddFx+=2));
+        if (x!=y + 1) {
+          const int x1 = x0 - y, x2 = x0 + y, y1 = y0 - x, y2 = y0 + x,
+            x3 = x0 - x, x4 = x0 + x, y3 = y0 - y, y4 = y0 + y;
+          draw_point(x1,y1,color,opacity).draw_point(x1,y2,color,opacity).
+            draw_point(x2,y1,color,opacity).draw_point(x2,y2,color,opacity);
+          if (x!=y)
+            draw_point(x3,y3,color,opacity).draw_point(x4,y4,color,opacity).
+              draw_point(x4,y3,color,opacity).draw_point(x3,y4,color,opacity);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an image.
+    /**
+       \param sprite Sprite image.
+       \param x0 X-coordinate of the sprite position.
+       \param y0 Y-coordinate of the sprite position.
+       \param z0 Z-coordinate of the sprite position.
+       \param c0 C-coordinate of the sprite position.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0, const int c0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      if (is_empty() || !sprite) return *this;
+      if (is_overlapped(sprite)) return draw_image(x0,y0,z0,c0,+sprite,opacity);
+      if (x0==0 && y0==0 && z0==0 && c0==0 && is_sameXYZC(sprite) && opacity>=1 && !is_shared())
+        return assign(sprite,false);
+      const bool bx = (x0<0), by = (y0<0), bz = (z0<0), bc = (c0<0);
+      const int
+        lX = sprite.width() - (x0 + sprite.width()>width()?x0 + sprite.width() - width():0) + (bx?x0:0),
+        lY = sprite.height() - (y0 + sprite.height()>height()?y0 + sprite.height() - height():0) + (by?y0:0),
+        lZ = sprite.depth() - (z0 + sprite.depth()>depth()?z0 + sprite.depth() - depth():0) + (bz?z0:0),
+        lC = sprite.spectrum() - (c0 + sprite.spectrum()>spectrum()?c0 + sprite.spectrum() - spectrum():0) + (bc?c0:0);
+      const t
+        *ptrs = sprite._data +
+        (bx?-x0:0) +
+        (by?-y0*(ulongT)sprite.width():0) +
+        (bz?-z0*(ulongT)sprite.width()*sprite.height():0) +
+        (bc?-c0*(ulongT)sprite.width()*sprite.height()*sprite.depth():0);
+      const ulongT
+        offX = (ulongT)_width - lX,
+        soffX = (ulongT)sprite._width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        soffY = (ulongT)sprite._width*(sprite._height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ),
+        soffZ = (ulongT)sprite._width*sprite._height*(sprite._depth - lZ);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      if (lX>0 && lY>0 && lZ>0 && lC>0) {
+        T *ptrd = data(x0<0?0:x0,y0<0?0:y0,z0<0?0:z0,c0<0?0:c0);
+        for (int v = 0; v<lC; ++v) {
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              if (opacity>=1) for (int x = 0; x<lX; ++x) *(ptrd++) = (T)*(ptrs++);
+              else for (int x = 0; x<lX; ++x) { *ptrd = (T)(nopacity*(*(ptrs++)) + *ptrd*copacity); ++ptrd; }
+              ptrd+=offX; ptrs+=soffX;
+            }
+            ptrd+=offY; ptrs+=soffY;
+          }
+          ptrd+=offZ; ptrs+=soffZ;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an image \specialization.
+    CImg<T>& draw_image(const int x0, const int y0, const int z0, const int c0,
+                        const CImg<T>& sprite, const float opacity=1) {
+      if (is_empty() || !sprite) return *this;
+      if (is_overlapped(sprite)) return draw_image(x0,y0,z0,c0,+sprite,opacity);
+      if (x0==0 && y0==0 && z0==0 && c0==0 && is_sameXYZC(sprite) && opacity>=1 && !is_shared())
+        return assign(sprite,false);
+      const bool bx = (x0<0), by = (y0<0), bz = (z0<0), bc = (c0<0);
+      const int
+        lX = sprite.width() - (x0 + sprite.width()>width()?x0 + sprite.width() - width():0) + (bx?x0:0),
+        lY = sprite.height() - (y0 + sprite.height()>height()?y0 + sprite.height() - height():0) + (by?y0:0),
+        lZ = sprite.depth() - (z0 + sprite.depth()>depth()?z0 + sprite.depth() - depth():0) + (bz?z0:0),
+        lC = sprite.spectrum() - (c0 + sprite.spectrum()>spectrum()?c0 + sprite.spectrum() - spectrum():0) + (bc?c0:0);
+      const T
+        *ptrs = sprite._data +
+        (bx?-x0:0) +
+        (by?-y0*(ulongT)sprite.width():0) +
+        (bz?-z0*(ulongT)sprite.width()*sprite.height():0) +
+        (bc?-c0*(ulongT)sprite.width()*sprite.height()*sprite.depth():0);
+      const ulongT
+        offX = (ulongT)_width - lX,
+        soffX = (ulongT)sprite._width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        soffY = (ulongT)sprite._width*(sprite._height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ),
+        soffZ = (ulongT)sprite._width*sprite._height*(sprite._depth - lZ),
+        slX = lX*sizeof(T);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      if (lX>0 && lY>0 && lZ>0 && lC>0) {
+        T *ptrd = data(x0<0?0:x0,y0<0?0:y0,z0<0?0:z0,c0<0?0:c0);
+        for (int v = 0; v<lC; ++v) {
+          for (int z = 0; z<lZ; ++z) {
+            if (opacity>=1)
+              for (int y = 0; y<lY; ++y) { std::memcpy(ptrd,ptrs,slX); ptrd+=_width; ptrs+=sprite._width; }
+            else for (int y = 0; y<lY; ++y) {
+                for (int x = 0; x<lX; ++x) { *ptrd = (T)(nopacity*(*(ptrs++)) + *ptrd*copacity); ++ptrd; }
+                ptrd+=offX; ptrs+=soffX;
+              }
+            ptrd+=offY; ptrs+=soffY;
+          }
+          ptrd+=offZ; ptrs+=soffZ;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(x0,y0,z0,0,sprite,opacity);
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const int x0, const int y0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(x0,y0,0,sprite,opacity);
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const int x0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(x0,0,sprite,opacity);
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(0,sprite,opacity);
+    }
+
+    //! Draw a masked image.
+    /**
+       \param sprite Sprite image.
+       \param mask Mask image.
+       \param x0 X-coordinate of the sprite position in the image instance.
+       \param y0 Y-coordinate of the sprite position in the image instance.
+       \param z0 Z-coordinate of the sprite position in the image instance.
+       \param c0 C-coordinate of the sprite position in the image instance.
+       \param mask_max_value Maximum pixel value of the mask image \c mask.
+       \param opacity Drawing opacity.
+       \note
+       - Pixel values of \c mask set the opacity of the corresponding pixels in \c sprite.
+       - Dimensions along x,y and z of \p sprite and \p mask must be the same.
+    **/
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0, const int c0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      if (is_empty() || !sprite || !mask) return *this;
+      if (is_overlapped(sprite)) return draw_image(x0,y0,z0,c0,+sprite,mask,opacity,mask_max_value);
+      if (is_overlapped(mask)) return draw_image(x0,y0,z0,c0,sprite,+mask,opacity,mask_max_value);
+      if (mask._width!=sprite._width || mask._height!=sprite._height || mask._depth!=sprite._depth)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_image(): Sprite (%u,%u,%u,%u,%p) and mask (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    sprite._width,sprite._height,sprite._depth,sprite._spectrum,sprite._data,
+                                    mask._width,mask._height,mask._depth,mask._spectrum,mask._data);
+
+      const bool bx = (x0<0), by = (y0<0), bz = (z0<0), bc = (c0<0);
+      const int
+        lX = sprite.width() - (x0 + sprite.width()>width()?x0 + sprite.width() - width():0) + (bx?x0:0),
+        lY = sprite.height() - (y0 + sprite.height()>height()?y0 + sprite.height() - height():0) + (by?y0:0),
+        lZ = sprite.depth() - (z0 + sprite.depth()>depth()?z0 + sprite.depth() - depth():0) + (bz?z0:0),
+        lC = sprite.spectrum() - (c0 + sprite.spectrum()>spectrum()?c0 + sprite.spectrum() - spectrum():0) + (bc?c0:0);
+      const ulongT
+        coff = (bx?-x0:0) +
+        (by?-y0*(ulongT)mask.width():0) +
+        (bz?-z0*(ulongT)mask.width()*mask.height():0) +
+        (bc?-c0*(ulongT)mask.width()*mask.height()*mask.depth():0),
+        ssize = (ulongT)mask.width()*mask.height()*mask.depth()*mask.spectrum();
+      const ti *ptrs = sprite._data + coff;
+      const tm *ptrm = mask._data + coff;
+      const ulongT
+        offX = (ulongT)_width - lX,
+        soffX = (ulongT)sprite._width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        soffY = (ulongT)sprite._width*(sprite._height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ),
+        soffZ = (ulongT)sprite._width*sprite._height*(sprite._depth - lZ);
+      if (lX>0 && lY>0 && lZ>0 && lC>0) {
+        T *ptrd = data(x0<0?0:x0,y0<0?0:y0,z0<0?0:z0,c0<0?0:c0);
+        for (int c = 0; c<lC; ++c) {
+          ptrm = mask._data + (ptrm - mask._data)%ssize;
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              for (int x = 0; x<lX; ++x) {
+                const float mopacity = (float)(*(ptrm++)*opacity),
+                  nopacity = cimg::abs(mopacity), copacity = mask_max_value - std::max(mopacity,0.0f);
+                *ptrd = (T)((nopacity*(*(ptrs++)) + *ptrd*copacity)/mask_max_value);
+                ++ptrd;
+              }
+              ptrd+=offX; ptrs+=soffX; ptrm+=soffX;
+            }
+            ptrd+=offY; ptrs+=soffY; ptrm+=soffY;
+          }
+          ptrd+=offZ; ptrs+=soffZ; ptrm+=soffZ;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a masked image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,y0,z0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,y0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw an image.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a text string.
+    /**
+       \param x0 X-coordinate of the text in the image instance.
+       \param y0 Y-coordinate of the text in the image instance.
+       \param text Format of the text ('printf'-style format string).
+       \param foreground_color Pointer to \c spectrum() consecutive values, defining the foreground drawing color.
+       \param background_color Pointer to \c spectrum() consecutive values, defining the background drawing color.
+       \param opacity Drawing opacity.
+       \param font Font used for drawing text.
+    **/
+    template<typename tc1, typename tc2, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc1 *const foreground_color, const tc2 *const background_color,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,foreground_color,background_color,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \note A transparent background is used for the text.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc *const foreground_color, const int,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,foreground_color,(tc*)0,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \note A transparent foreground is used for the text.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const int, const tc *const background_color,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,(tc*)0,background_color,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \param x0 X-coordinate of the text in the image instance.
+       \param y0 Y-coordinate of the text in the image instance.
+       \param text Format of the text ('printf'-style format string).
+       \param foreground_color Array of spectrum() values of type \c T,
+         defining the foreground color (0 means 'transparent').
+       \param background_color Array of spectrum() values of type \c T,
+         defining the background color (0 means 'transparent').
+       \param opacity Drawing opacity.
+       \param font_height Height of the text font (exact match for 13,23,53,103, interpolated otherwise).
+    **/
+    template<typename tc1, typename tc2>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc1 *const foreground_color, const tc2 *const background_color,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      const CImgList<ucharT>& font = CImgList<ucharT>::font(font_height,true);
+      _draw_text(x0,y0,tmp,foreground_color,background_color,opacity,font,true);
+      return *this;
+    }
+
+    //! Draw a text string \overloading.
+    template<typename tc>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc *const foreground_color, const int background_color=0,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      cimg::unused(background_color);
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return draw_text(x0,y0,"%s",foreground_color,(const tc*)0,opacity,font_height,tmp._data);
+    }
+
+    //! Draw a text string \overloading.
+    template<typename tc>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const int, const tc *const background_color,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return draw_text(x0,y0,"%s",(tc*)0,background_color,opacity,font_height,tmp._data);
+    }
+
+    template<typename tc1, typename tc2, typename t>
+    CImg<T>& _draw_text(const int x0, const int y0,
+                        const char *const text,
+                        const tc1 *const foreground_color, const tc2 *const background_color,
+                        const float opacity, const CImgList<t>& font,
+                        const bool is_native_font) {
+      if (!text) return *this;
+      if (!font)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_text(): Empty specified font.",
+                                    cimg_instance);
+
+      const unsigned int text_length = (unsigned int)std::strlen(text);
+      const bool _is_empty = is_empty();
+      if (_is_empty) {
+        // If needed, pre-compute necessary size of the image
+        int x = 0, y = 0, w = 0;
+        unsigned char c = 0;
+        for (unsigned int i = 0; i<text_length; ++i) {
+          c = (unsigned char)text[i];
+          switch (c) {
+          case '\n' : y+=font[0]._height; if (x>w) w = x; x = 0; break;
+          case '\t' : x+=4*font[' ']._width; break;
+          default : if (c<font._width) x+=font[c]._width;
+          }
+        }
+        if (x!=0 || c=='\n') {
+          if (x>w) w=x;
+          y+=font[0]._height;
+        }
+        assign(x0 + w,y0 + y,1,is_native_font?1:font[0]._spectrum,(T)0);
+      }
+
+      int x = x0, y = y0;
+      for (unsigned int i = 0; i<text_length; ++i) {
+        const unsigned char c = (unsigned char)text[i];
+        switch (c) {
+        case '\n' : y+=font[0]._height; x = x0; break;
+        case '\t' : x+=4*font[' ']._width; break;
+        default : if (c<font._width) {
+            CImg<T> letter = font[c];
+            if (letter) {
+              if (is_native_font && _spectrum>letter._spectrum) letter.resize(-100,-100,1,_spectrum,0,2);
+              const unsigned int cmin = std::min(_spectrum,letter._spectrum);
+              if (foreground_color)
+                for (unsigned int c = 0; c<cmin; ++c)
+                  if (foreground_color[c]!=1) letter.get_shared_channel(c)*=foreground_color[c];
+              if (c + 256<font.width()) { // Letter has mask.
+                if (background_color)
+                  for (unsigned int c = 0; c<cmin; ++c)
+                    draw_rectangle(x,y,0,c,x + letter._width - 1,y + letter._height - 1,0,c,
+                                   background_color[c],opacity);
+                draw_image(x,y,letter,font[c + 256],opacity,255.0f);
+              } else draw_image(x,y,letter,opacity); // Letter has no mask.
+              x+=letter._width;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d vector field.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Drawing opacity.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const t2 *const color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      return draw_quiver(flow,CImg<t2>(color,_spectrum,1,1,1,true),opacity,sampling,factor,is_arrow,pattern);
+    }
+
+    //! Draw a 2d vector field, using a field of colors.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Opacity of the drawing.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const CImg<t2>& color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      if (is_empty()) return *this;
+      if (!flow || flow._spectrum!=2)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_quiver(): Invalid dimensions of specified flow (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    flow._width,flow._height,flow._depth,flow._spectrum,flow._data);
+      if (sampling<=0)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_quiver(): Invalid sampling value %g "
+                                    "(should be >0)",
+                                    cimg_instance,
+                                    sampling);
+      const bool colorfield = (color._width==flow._width && color._height==flow._height &&
+                               color._depth==1 && color._spectrum==_spectrum);
+      if (is_overlapped(flow)) return draw_quiver(+flow,color,opacity,sampling,factor,is_arrow,pattern);
+      float vmax,fact;
+      if (factor<=0) {
+        float m, M = (float)flow.get_norm(2).max_min(m);
+        vmax = (float)std::max(cimg::abs(m),cimg::abs(M));
+        if (!vmax) vmax = 1;
+        fact = -factor;
+      } else { fact = factor; vmax = 1; }
+
+      for (unsigned int y = sampling/2; y<_height; y+=sampling)
+        for (unsigned int x = sampling/2; x<_width; x+=sampling) {
+          const unsigned int X = x*flow._width/_width, Y = y*flow._height/_height;
+          float u = (float)flow(X,Y,0,0)*fact/vmax, v = (float)flow(X,Y,0,1)*fact/vmax;
+          if (is_arrow) {
+            const int xx = (int)(x + u), yy = (int)(y + v);
+            if (colorfield) draw_arrow(x,y,xx,yy,color.get_vector_at(X,Y)._data,opacity,45,sampling/5.0f,pattern);
+            else draw_arrow(x,y,xx,yy,color._data,opacity,45,sampling/5.0f,pattern);
+          } else {
+            if (colorfield)
+              draw_line((int)(x - 0.5*u),(int)(y - 0.5*v),(int)(x + 0.5*u),(int)(y + 0.5*v),
+                        color.get_vector_at(X,Y)._data,opacity,pattern);
+            else draw_line((int)(x - 0.5*u),(int)(y - 0.5*v),(int)(x + 0.5*u),(int)(y + 0.5*v),
+                           color._data,opacity,pattern);
+          }
+        }
+      return *this;
+    }
+
+    //! Draw a labeled horizontal axis.
+    /**
+       \param values_x Values along the horizontal axis.
+       \param y Y-coordinate of the horizontal axis in the image instance.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern Drawing pattern.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_axis(const CImg<t>& values_x, const int y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const unsigned int font_height=13,
+                       const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      const int yt = (y + 3 + font_height)<_height?y + 3:y - 2 - (int)font_height;
+      const int siz = (int)values_x.size() - 1;
+      CImg<charT> txt(32);
+      CImg<T> label;
+      if (siz<=0) { // Degenerated case.
+        draw_line(0,y,_width - 1,y,color,opacity,pattern);
+        if (!siz) {
+          cimg_snprintf(txt,txt._width,"%g",(double)*values_x);
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            _xt = (width() - label.width())/2,
+            xt = _xt<3?3:_xt + label.width()>=width() - 2?width() - 3 - label.width():_xt;
+          draw_point(width()/2,y - 1,color,opacity).draw_point(width()/2,y + 1,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      } else { // Regular case.
+        if (values_x[0]<values_x[siz]) draw_arrow(0,y,_width - 1,y,color,opacity,30,5,pattern);
+        else draw_arrow(_width - 1,y,0,y,color,opacity,30,5,pattern);
+        cimg_foroff(values_x,x) {
+          cimg_snprintf(txt,txt._width,"%g",(double)values_x(x));
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            xi = (int)(x*(_width - 1)/siz),
+            _xt = xi - label.width()/2,
+            xt = _xt<3?3:_xt + label.width()>=width() - 2?width() - 3 - label.width():_xt;
+          draw_point(xi,y - 1,color,opacity).draw_point(xi,y + 1,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a labeled vertical axis.
+    /**
+       \param x X-coordinate of the vertical axis in the image instance.
+       \param values_y Values along the Y-axis.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern Drawing pattern.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_axis(const int x, const CImg<t>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const unsigned int font_height=13,
+                       const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      int siz = (int)values_y.size() - 1;
+      CImg<charT> txt(32);
+      CImg<T> label;
+      if (siz<=0) { // Degenerated case.
+        draw_line(x,0,x,_height - 1,color,opacity,pattern);
+        if (!siz) {
+          cimg_snprintf(txt,txt._width,"%g",(double)*values_y);
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            _yt = (height() - label.height())/2,
+            yt = _yt<0?0:_yt + label.height()>=height()?height() - 1-label.height():_yt,
+            _xt = x - 2 - label.width(),
+            xt = _xt>=0?_xt:x + 3;
+          draw_point(x - 1,height()/2,color,opacity).draw_point(x + 1,height()/2,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      } else { // Regular case.
+        if (values_y[0]<values_y[siz]) draw_arrow(x,0,x,_height - 1,color,opacity,30,5,pattern);
+        else draw_arrow(x,_height - 1,x,0,color,opacity,30,5,pattern);
+        cimg_foroff(values_y,y) {
+          cimg_snprintf(txt,txt._width,"%g",(double)values_y(y));
+          label.assign().draw_text(0,0,txt,color,(tc*)0,opacity,font_height);
+          const int
+            yi = (int)(y*(_height - 1)/siz),
+            _yt = yi - label.height()/2,
+            yt = _yt<0?0:_yt + label.height()>=height()?height() - 1-label.height():_yt,
+            _xt = x - 2 - label.width(),
+            xt = _xt>=0?_xt:x + 3;
+          draw_point(x - 1,yi,color,opacity).draw_point(x + 1,yi,color,opacity);
+          if (allow_zero || *txt!='0' || txt[1]!=0)
+            draw_text(xt,yt,txt,color,(tc*)0,opacity,font_height);
+        }
+      }
+      return *this;
+    }
+
+    //! Draw labeled horizontal and vertical axes.
+    /**
+       \param values_x Values along the X-axis.
+       \param values_y Values along the Y-axis.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern_x Drawing pattern for the X-axis.
+       \param pattern_y Drawing pattern for the Y-axis.
+       \param font_height Height of the labels (exact match for 13,23,53,103, interpolated otherwise).
+       \param allow_zero Enable/disable the drawing of label '0' if found.
+    **/
+    template<typename tx, typename ty, typename tc>
+    CImg<T>& draw_axes(const CImg<tx>& values_x, const CImg<ty>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13, const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      const CImg<tx> nvalues_x(values_x._data,values_x.size(),1,1,1,true);
+      const int sizx = (int)values_x.size() - 1, wm1 = width() - 1;
+      if (sizx>=0) {
+        float ox = (float)*nvalues_x;
+        for (unsigned int x = sizx?1U:0U; x<_width; ++x) {
+          const float nx = (float)nvalues_x._linear_atX((float)x*sizx/wm1);
+          if (nx*ox<=0) { draw_axis(nx==0?x:x - 1,values_y,color,opacity,pattern_y,font_height,allow_zero); break; }
+          ox = nx;
+        }
+      }
+      const CImg<ty> nvalues_y(values_y._data,values_y.size(),1,1,1,true);
+      const int sizy = (int)values_y.size() - 1, hm1 = height() - 1;
+      if (sizy>0) {
+        float oy = (float)nvalues_y[0];
+        for (unsigned int y = sizy?1U:0U; y<_height; ++y) {
+          const float ny = (float)nvalues_y._linear_atX((float)y*sizy/hm1);
+          if (ny*oy<=0) { draw_axis(values_x,ny==0?y:y - 1,color,opacity,pattern_x,font_height,allow_zero); break; }
+          oy = ny;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw labeled horizontal and vertical axes \overloading.
+    template<typename tc>
+    CImg<T>& draw_axes(const float x0, const float x1, const float y0, const float y1,
+                       const tc *const color, const float opacity=1,
+                       const int subdivisionx=-60, const int subdivisiony=-60,
+                       const float precisionx=0, const float precisiony=0,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13) {
+      if (is_empty()) return *this;
+      const bool allow_zero = (x0*x1>0) || (y0*y1>0);
+      const float
+        dx = cimg::abs(x1 - x0), dy = cimg::abs(y1 - y0),
+        px = dx<=0?1:precisionx==0?(float)std::pow(10.0,(int)std::log10(dx) - 2.0):precisionx,
+        py = dy<=0?1:precisiony==0?(float)std::pow(10.0,(int)std::log10(dy) - 2.0):precisiony;
+      if (x0!=x1 && y0!=y1)
+        draw_axes(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),
+                  CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_x,pattern_y,font_height,allow_zero);
+      else if (x0==x1 && y0!=y1)
+        draw_axis((int)x0,CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_y,font_height);
+      else if (x0!=x1 && y0==y1)
+        draw_axis(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),(int)y0,
+                  color,opacity,pattern_x,font_height);
+      return *this;
+    }
+
+    //! Draw 2d grid.
+    /**
+       \param values_x X-coordinates of the vertical lines.
+       \param values_y Y-coordinates of the horizontal lines.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern_x Drawing pattern for vertical lines.
+       \param pattern_y Drawing pattern for horizontal lines.
+    **/
+    template<typename tx, typename ty, typename tc>
+    CImg<T>& draw_grid(const CImg<tx>& values_x, const CImg<ty>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      if (values_x) cimg_foroff(values_x,x) {
+          const int xi = (int)values_x[x];
+          if (xi>=0 && xi<width()) draw_line(xi,0,xi,_height - 1,color,opacity,pattern_x);
+        }
+      if (values_y) cimg_foroff(values_y,y) {
+          const int yi = (int)values_y[y];
+          if (yi>=0 && yi<height()) draw_line(0,yi,_width - 1,yi,color,opacity,pattern_y);
+        }
+      return *this;
+    }
+
+    //! Draw 2d grid \simplification.
+    template<typename tc>
+    CImg<T>& draw_grid(const float delta_x,  const float delta_y,
+                       const float offsetx, const float offsety,
+                       const bool invertx, const bool inverty,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      CImg<uintT> seqx, seqy;
+      if (delta_x!=0) {
+        const float dx = delta_x>0?delta_x:_width*-delta_x/100;
+        const unsigned int nx = (unsigned int)(_width/dx);
+        seqx = CImg<uintT>::sequence(1 + nx,0,(unsigned int)(dx*nx));
+        if (offsetx) cimg_foroff(seqx,x) seqx(x) = (unsigned int)cimg::mod(seqx(x) + offsetx,(float)_width);
+        if (invertx) cimg_foroff(seqx,x) seqx(x) = _width - 1 - seqx(x);
+      }
+      if (delta_y!=0) {
+        const float dy = delta_y>0?delta_y:_height*-delta_y/100;
+        const unsigned int ny = (unsigned int)(_height/dy);
+        seqy = CImg<uintT>::sequence(1 + ny,0,(unsigned int)(dy*ny));
+        if (offsety) cimg_foroff(seqy,y) seqy(y) = (unsigned int)cimg::mod(seqy(y) + offsety,(float)_height);
+        if (inverty) cimg_foroff(seqy,y) seqy(y) = _height - 1 - seqy(y);
+     }
+      return draw_grid(seqx,seqy,color,opacity,pattern_x,pattern_y);
+    }
+
+    //! Draw 1d graph.
+    /**
+       \param data Image containing the graph values I = f(x).
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+
+       \param plot_type Define the type of the plot:
+                      - 0 = No plot.
+                      - 1 = Plot using segments.
+                      - 2 = Plot using cubic splines.
+                      - 3 = Plot with bars.
+       \param vertex_type Define the type of points:
+                      - 0 = No points.
+                      - 1 = Point.
+                      - 2 = Straight cross.
+                      - 3 = Diagonal cross.
+                      - 4 = Filled circle.
+                      - 5 = Outlined circle.
+                      - 6 = Square.
+                      - 7 = Diamond.
+       \param ymin Lower bound of the y-range.
+       \param ymax Upper bound of the y-range.
+       \param pattern Drawing pattern.
+       \note
+         - if \c ymin==ymax==0, the y-range is computed automatically from the input samples.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_graph(const CImg<t>& data,
+                        const tc *const color, const float opacity=1,
+                        const unsigned int plot_type=1, const int vertex_type=1,
+                        const double ymin=0, const double ymax=0, const unsigned int pattern=~0U) {
+      if (is_empty() || _height<=1) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_graph(): Specified color is (null).",
+                                    cimg_instance);
+
+      // Create shaded colors for displaying bar plots.
+      CImg<tc> color1, color2;
+      if (plot_type==3) {
+        color1.assign(_spectrum); color2.assign(_spectrum);
+        cimg_forC(*this,c) {
+          color1[c] = (tc)std::min((float)cimg::type<tc>::max(),(float)color[c]*1.2f);
+          color2[c] = (tc)(color[c]*0.4f);
+        }
+      }
+
+      // Compute min/max and normalization factors.
+      const ulongT
+        siz = data.size(),
+        _siz1 = siz - (plot_type!=3),
+        siz1 = _siz1?_siz1:1;
+      const unsigned int
+        _width1 = _width - (plot_type!=3),
+        width1 = _width1?_width1:1;
+      double m = ymin, M = ymax;
+      if (ymin==ymax) m = (double)data.max_min(M);
+      if (m==M) { --m; ++M; }
+      const float ca = (float)(M-m)/(_height - 1);
+      bool init_hatch = true;
+
+      // Draw graph edges
+      switch (plot_type%4) {
+      case 1 : { // Segments
+        int oX = 0, oY = (int)((data[0] - m)/ca);
+        if (siz==1) {
+          const int Y = (int)((*data - m)/ca);
+          draw_line(0,Y,width() - 1,Y,color,opacity,pattern);
+        } else {
+          const float fx = (float)_width/siz1;
+          for (ulongT off = 1; off<siz; ++off) {
+            const int
+              X = (int)(off*fx) - 1,
+              Y = (int)((data[off]-m)/ca);
+            draw_line(oX,oY,X,Y,color,opacity,pattern,init_hatch);
+            oX = X; oY = Y;
+            init_hatch = false;
+          }
+        }
+      } break;
+      case 2 : { // Spline
+        const CImg<t> ndata(data._data,siz,1,1,1,true);
+        int oY = (int)((data[0] - m)/ca);
+        cimg_forX(*this,x) {
+          const int Y = (int)((ndata._cubic_atX((float)x*siz1/width1)-m)/ca);
+          if (x>0) draw_line(x,oY,x + 1,Y,color,opacity,pattern,init_hatch);
+          init_hatch = false;
+          oY = Y;
+        }
+      } break;
+      case 3 : { // Bars
+        const int Y0 = (int)(-m/ca);
+        const float fx = (float)_width/siz1;
+        int oX = 0;
+        cimg_foroff(data,off) {
+          const int
+            X = (int)((off + 1)*fx) - 1,
+            Y = (int)((data[off] - m)/ca);
+          draw_rectangle(oX,Y0,X,Y,color,opacity).
+            draw_line(oX,Y,oX,Y0,color2.data(),opacity).
+            draw_line(oX,Y0,X,Y0,Y<=Y0?color2.data():color1.data(),opacity).
+            draw_line(X,Y,X,Y0,color1.data(),opacity).
+            draw_line(oX,Y,X,Y,Y<=Y0?color1.data():color2.data(),opacity);
+          oX = X + 1;
+        }
+      } break;
+      default : break; // No edges
+      }
+
+      // Draw graph points
+      const unsigned int wb2 = plot_type==3?_width1/(2*siz):0;
+      const float fx = (float)_width1/siz1;
+      switch (vertex_type%8) {
+      case 1 : { // Point
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_point(X,Y,color,opacity);
+        }
+      } break;
+      case 2 : { // Straight Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y,X + 3,Y,color,opacity).draw_line(X,Y - 3,X,Y + 3,color,opacity);
+        }
+      } break;
+      case 3 : { // Diagonal Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y - 3,X + 3,Y + 3,color,opacity).draw_line(X - 3,Y + 3,X + 3,Y - 3,color,opacity);
+        }
+      } break;
+      case 4 : { // Filled Circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity);
+        }
+      } break;
+      case 5 : { // Outlined circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity,0U);
+        }
+      } break;
+      case 6 : { // Square
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_rectangle(X - 3,Y - 3,X + 3,Y + 3,color,opacity,~0U);
+        }
+      } break;
+      case 7 : { // Diamond
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X,Y - 4,X + 4,Y,color,opacity).
+            draw_line(X + 4,Y,X,Y + 4,color,opacity).
+            draw_line(X,Y + 4,X - 4,Y,color,opacity).
+            draw_line(X - 4,Y,X,Y - 4,color,opacity);
+        }
+      } break;
+      default : break; // No points
+      }
+      return *this;
+    }
+
+    bool _draw_fill(const int x, const int y, const int z,
+                    const CImg<T>& ref, const float tolerance2) const {
+      const T *ptr1 = data(x,y,z), *ptr2 = ref._data;
+      const unsigned long off = _width*_height*_depth;
+      float diff = 0;
+      cimg_forC(*this,c) { diff += cimg::sqr(*ptr1 - *(ptr2++)); ptr1+=off; }
+      return diff<=tolerance2;
+    }
+
+    //! Draw filled 3d region with the flood fill algorithm.
+    /**
+       \param x0 X-coordinate of the starting point of the region to fill.
+       \param y0 Y-coordinate of the starting point of the region to fill.
+       \param z0 Z-coordinate of the starting point of the region to fill.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param[out] region Image that will contain the mask of the filled region mask, as an output.
+       \param tolerance Tolerance concerning neighborhood values.
+       \param opacity Opacity of the drawing.
+       \param is_high_connectivity Tells if 8-connexity must be used.
+       \return \c region is initialized with the binary mask of the filled region.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_fill(const int x0, const int y0, const int z0,
+                        const tc *const color, const float opacity,
+                        CImg<t> &region,
+                        const float tolerance = 0,
+                        const bool is_high_connectivity = false) {
+#define _draw_fill_push(x,y,z) if (N>=stack._width) stack.resize(2*N + 1,1,1,3,0); \
+                               stack[N] = x; stack(N,1) = y; stack(N++,2) = z
+#define _draw_fill_pop(x,y,z) x = stack[--N]; y = stack(N,1); z = stack(N,2)
+#define _draw_fill_is_inside(x,y,z) !_region(x,y,z) && _draw_fill(x,y,z,ref,tolerance2)
+
+      if (!containsXYZC(x0,y0,z0,0)) return *this;
+      const float nopacity = cimg::abs((float)opacity), copacity = 1 - std::max((float)opacity,0.0f);
+      const float tolerance2 = cimg::sqr(tolerance);
+      const CImg<T> ref = get_vector_at(x0,y0,z0);
+      CImg<uintT> stack(256,1,1,3);
+      CImg<ucharT> _region(_width,_height,_depth,1,0);
+      unsigned int N = 0;
+      int x, y, z;
+
+      _draw_fill_push(x0,y0,z0);
+      while (N>0) {
+        _draw_fill_pop(x,y,z);
+        if (!_region(x,y,z)) {
+          const int yp = y - 1, yn = y + 1, zp = z - 1, zn = z + 1;
+          int xl = x, xr = x;
+
+          // Using these booleans reduces the number of pushes drastically.
+          bool is_yp = false, is_yn = false, is_zp = false, is_zn = false;
+          for (int step = -1; step<2; step+=2) {
+            while (x>=0 && x<width() && _draw_fill_is_inside(x,y,z)) {
+              if (yp>=0 && _draw_fill_is_inside(x,yp,z)) {
+                if (!is_yp) { _draw_fill_push(x,yp,z); is_yp = true; }
+              } else is_yp = false;
+              if (yn<height() && _draw_fill_is_inside(x,yn,z)) {
+                if (!is_yn) { _draw_fill_push(x,yn,z); is_yn = true; }
+              } else is_yn = false;
+              if (depth()>1) {
+                if (zp>=0 && _draw_fill_is_inside(x,y,zp)) {
+                  if (!is_zp) { _draw_fill_push(x,y,zp); is_zp = true; }
+                } else is_zp = false;
+                if (zn<depth() && _draw_fill_is_inside(x,y,zn)) {
+                  if (!is_zn) { _draw_fill_push(x,y,zn); is_zn = true; }
+                } else is_zn = false;
+              }
+              if (is_high_connectivity) {
+                const int xp = x - 1, xn = x + 1;
+                if (yp>=0 && !is_yp) {
+                  if (xp>=0 && _draw_fill_is_inside(xp,yp,z)) {
+                    _draw_fill_push(xp,yp,z); if (step<0) is_yp = true;
+                  }
+                  if (xn<width() && _draw_fill_is_inside(xn,yp,z)) {
+                    _draw_fill_push(xn,yp,z); if (step>0) is_yp = true;
+                  }
+                }
+                if (yn<height() && !is_yn) {
+                  if (xp>=0 && _draw_fill_is_inside(xp,yn,z)) {
+                    _draw_fill_push(xp,yn,z); if (step<0) is_yn = true;
+                  }
+                  if (xn<width() && _draw_fill_is_inside(xn,yn,z)) {
+                    _draw_fill_push(xn,yn,z); if (step>0) is_yn = true;
+                  }
+                }
+                if (depth()>1) {
+                  if (zp>=0 && !is_zp) {
+                    if (xp>=0 && _draw_fill_is_inside(xp,y,zp)) {
+                      _draw_fill_push(xp,y,zp); if (step<0) is_zp = true;
+                    }
+                    if (xn<width() && _draw_fill_is_inside(xn,y,zp)) {
+                      _draw_fill_push(xn,y,zp); if (step>0) is_zp = true;
+                    }
+
+                    if (yp>=0 && !is_yp) {
+                      if (_draw_fill_is_inside(x,yp,zp)) { _draw_fill_push(x,yp,zp); }
+                      if (xp>=0 && _draw_fill_is_inside(xp,yp,zp)) { _draw_fill_push(xp,yp,zp); }
+                      if (xn<width() && _draw_fill_is_inside(xn,yp,zp)) { _draw_fill_push(xn,yp,zp); }
+                    }
+                    if (yn<height() && !is_yn) {
+                      if (_draw_fill_is_inside(x,yn,zp)) { _draw_fill_push(x,yn,zp); }
+                      if (xp>=0 && _draw_fill_is_inside(xp,yn,zp)) { _draw_fill_push(xp,yn,zp); }
+                      if (xn<width() && _draw_fill_is_inside(xn,yn,zp)) { _draw_fill_push(xn,yn,zp); }
+                    }
+                  }
+
+                  if (zn<depth() && !is_zn) {
+                    if (xp>=0 && _draw_fill_is_inside(xp,y,zn)) {
+                      _draw_fill_push(xp,y,zn); if (step<0) is_zn = true;
+                    }
+                    if (xn<width() && _draw_fill_is_inside(xn,y,zn)) {
+                      _draw_fill_push(xn,y,zn); if (step>0) is_zn = true;
+                    }
+
+                    if (yp>=0 && !is_yp) {
+                      if (_draw_fill_is_inside(x,yp,zn)) { _draw_fill_push(x,yp,zn); }
+                      if (xp>=0 && _draw_fill_is_inside(xp,yp,zn)) { _draw_fill_push(xp,yp,zn); }
+                      if (xn<width() && _draw_fill_is_inside(xn,yp,zn)) { _draw_fill_push(xn,yp,zn); }
+                    }
+                    if (yn<height() && !is_yn) {
+                      if (_draw_fill_is_inside(x,yn,zn)) { _draw_fill_push(x,yn,zn); }
+                      if (xp>=0 && _draw_fill_is_inside(xp,yn,zn)) { _draw_fill_push(xp,yn,zn); }
+                      if (xn<width() && _draw_fill_is_inside(xn,yn,zn)) { _draw_fill_push(xn,yn,zn); }
+                    }
+                  }
+                }
+              }
+              x+=step;
+            }
+            if (step<0) { xl = ++x; x = xr + 1; is_yp = is_yn = is_zp = is_zn = false; }
+            else xr = --x;
+          }
+          std::memset(_region.data(xl,y,z),1,xr - xl + 1);
+          if (opacity==1) {
+            if (sizeof(T)==1) {
+              const int dx = xr - xl + 1;
+              cimg_forC(*this,c) std::memset(data(xl,y,z,c),(int)color[c],dx);
+            } else cimg_forC(*this,c) {
+                const T val = (T)color[c];
+                T *ptri = data(xl,y,z,c); for (int k = xl; k<=xr; ++k) *(ptri++) = val;
+              }
+          } else cimg_forC(*this,c) {
+              const T val = (T)(color[c]*nopacity);
+              T *ptri = data(xl,y,z,c); for (int k = xl; k<=xr; ++k) { *ptri = (T)(val + *ptri*copacity); ++ptri; }
+            }
+        }
+      }
+      _region.move_to(region);
+      return *this;
+    }
+
+    //! Draw filled 3d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x0, const int y0, const int z0,
+                       const tc *const color, const float opacity=1,
+                       const float tolerance=0, const bool is_high_connexity=false) {
+      CImg<ucharT> tmp;
+      return draw_fill(x0,y0,z0,color,opacity,tmp,tolerance,is_high_connexity);
+    }
+
+    //! Draw filled 2d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x0, const int y0,
+                       const tc *const color, const float opacity=1,
+                       const float tolerance=0, const bool is_high_connexity=false) {
+      CImg<ucharT> tmp;
+      return draw_fill(x0,y0,0,color,opacity,tmp,tolerance,is_high_connexity);
+    }
+
+    //! Draw a random plasma texture.
+    /**
+       \param alpha Alpha-parameter.
+       \param beta Beta-parameter.
+       \param scale Scale-parameter.
+       \note Use the mid-point algorithm to render.
+    **/
+    CImg<T>& draw_plasma(const float alpha=1, const float beta=0, const unsigned int scale=8) {
+      if (is_empty()) return *this;
+      const int w = width(), h = height();
+      const Tfloat m = (Tfloat)cimg::type<T>::min(), M = (Tfloat)cimg::type<T>::max();
+      cimg_forZC(*this,z,c) {
+        CImg<T> ref = get_shared_slice(z,c);
+        for (int delta = 1<<std::min(scale,31U); delta>1; delta>>=1) {
+          const int delta2 = delta>>1;
+          const float r = alpha*delta + beta;
+
+          // Square step.
+          for (int y0 = 0; y0<h; y0+=delta)
+            for (int x0 = 0; x0<w; x0+=delta) {
+              const int x1 = (x0 + delta)%w, y1 = (y0 + delta)%h, xc = (x0 + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(x0,y0) + ref(x0,y1) + ref(x0,y1) + ref(x1,y1)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+
+          // Diamond steps.
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x0=0; x0<w; x0+=delta) {
+              const int y0 = cimg::mod(y,h), x1 = (x0 + delta)%w, y1 = (y + delta)%h,
+                xc = (x0 + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y0 = 0; y0<h; y0+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), x1 = (x + delta)%w, y1 = (y0 + delta)%h,
+                xc = (x + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), y0 = cimg::mod(y,h), x1 = (x + delta)%w, y1 = (y + delta)%h,
+                xc = (x + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+                ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal.
+    /**
+       \param x0 X-coordinate of the upper-left pixel.
+       \param y0 Y-coordinate of the upper-left pixel.
+       \param x1 X-coordinate of the lower-right pixel.
+       \param y1 Y-coordinate of the lower-right pixel.
+       \param colormap Colormap.
+       \param opacity Drawing opacity.
+       \param z0r Real part of the upper-left fractal vertex.
+       \param z0i Imaginary part of the upper-left fractal vertex.
+       \param z1r Real part of the lower-right fractal vertex.
+       \param z1i Imaginary part of the lower-right fractal vertex.
+       \param iteration_max Maximum number of iterations for each estimated point.
+       \param is_normalized_iteration Tells if iterations are normalized.
+       \param is_julia_set Tells if the Mandelbrot or Julia set is rendered.
+       \param param_r Real part of the Julia set parameter.
+       \param param_i Imaginary part of the Julia set parameter.
+       \note Fractal rendering is done by the Escape Time Algorithm.
+    **/
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const int x0, const int y0, const int x1, const int y1,
+                             const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      if (is_empty()) return *this;
+      CImg<tc> palette;
+      if (colormap) palette.assign(colormap._data,colormap.size()/colormap._spectrum,1,1,colormap._spectrum,true);
+      if (palette && palette._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_mandelbrot(): Instance and specified colormap (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f), ln2 = (float)std::log(2.0);
+      const int
+        _x0 = cimg::cut(x0,0,width() - 1),
+        _y0 = cimg::cut(y0,0,height() - 1),
+        _x1 = cimg::cut(x1,0,width() - 1),
+        _y1 = cimg::cut(y1,0,height() - 1);
+
+      cimg_pragma_openmp(parallel for collapse(2) cimg_openmp_if((1 + _x1 - _x0)*(1 + _y1 - _y0)>=2048))
+      for (int q = _y0; q<=_y1; ++q)
+        for (int p = _x0; p<=_x1; ++p) {
+          unsigned int iteration = 0;
+          const double x = z0r + p*(z1r-z0r)/_width, y = z0i + q*(z1i-z0i)/_height;
+          double zr, zi, cr, ci;
+          if (is_julia_set) { zr = x; zi = y; cr = param_r; ci = param_i; }
+          else { zr = param_r; zi = param_i; cr = x; ci = y; }
+          for (iteration=1; zr*zr + zi*zi<=4 && iteration<=iteration_max; ++iteration) {
+            const double temp = zr*zr - zi*zi + cr;
+            zi = 2*zr*zi + ci;
+            zr = temp;
+          }
+          if (iteration>iteration_max) {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette(0,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(0,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)0;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)((*this)(p,q,0,c)*copacity);
+            }
+          } else if (is_normalized_iteration) {
+            const float
+              normz = (float)cimg::abs(zr*zr + zi*zi),
+              niteration = (float)(iteration + 1 - std::log(std::log(normz))/ln2);
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._linear_atX(niteration,c);
+              else cimg_forC(*this,c)
+                     (*this)(p,q,0,c) = (T)(palette._linear_atX(niteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)niteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(niteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          } else {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._atX(iteration,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(iteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)iteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(iteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          }
+        }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal \overloading.
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      return draw_mandelbrot(0,0,_width - 1,_height - 1,colormap,opacity,
+                             z0r,z0i,z1r,z1i,iteration_max,is_normalized_iteration,is_julia_set,param_r,param_i);
+    }
+
+    //! Draw a 1d gaussian function.
+    /**
+       \param xc X-coordinate of the gaussian center.
+       \param sigma Standard variation of the gaussian distribution.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified color is (null).",
+                                    cimg_instance);
+      const float sigma2 = 2*sigma*sigma, nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      cimg_forX(*this,x) {
+        const float dx = (x - xc), val = (float)std::exp(-dx*dx/sigma2);
+        T *ptrd = data(x,0,0,0);
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+        col-=_spectrum;
+      }
+      return *this;
+    }
+
+    //! Draw a 2d gaussian function.
+    /**
+       \param xc X-coordinate of the gaussian center.
+       \param yc Y-coordinate of the gaussian center.
+       \param tensor Covariance matrix (must be 2x2).
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const CImg<t>& tensor,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (tensor._width!=2 || tensor._height!=2 || tensor._depth!=1 || tensor._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified tensor (%u,%u,%u,%u,%p) is not a 2x2 matrix.",
+                                    cimg_instance,
+                                    tensor._width,tensor._height,tensor._depth,tensor._spectrum,tensor._data);
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified color is (null).",
+                                    cimg_instance);
+      typedef typename CImg<t>::Tfloat tfloat;
+      const CImg<tfloat> invT = tensor.get_invert(), invT2 = (invT*invT)/(-2.0);
+      const tfloat a = invT2(0,0), b = 2*invT2(1,0), c = invT2(1,1);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      float dy = -yc;
+      cimg_forY(*this,y) {
+        float dx = -xc;
+        cimg_forX(*this,x) {
+          const float val = (float)std::exp(a*dx*dx + b*dx*dy + c*dy*dy);
+          T *ptrd = data(x,y,0,0);
+          if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+          else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+          col-=_spectrum;
+          ++dx;
+        }
+        ++dy;
+      }
+      return *this;
+    }
+
+    //! Draw a 2d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const int xc, const int yc, const float r1, const float r2, const float ru, const float rv,
+                           const tc *const color, const float opacity=1) {
+      const double
+        a = r1*ru*ru + r2*rv*rv,
+        b = (r1-r2)*ru*rv,
+        c = r1*rv*rv + r2*ru*ru;
+      const CImg<Tfloat> tensor(2,2,1,1, a,b,b,c);
+      return draw_gaussian(xc,yc,tensor,color,opacity);
+    }
+
+    //! Draw a 2d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      return draw_gaussian(xc,yc,CImg<floatT>::diagonal(sigma,sigma),color,opacity);
+    }
+
+    //! Draw a 3d gaussian function \overloading.
+    template<typename t, typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float zc, const CImg<t>& tensor,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      typedef typename CImg<t>::Tfloat tfloat;
+      if (tensor._width!=3 || tensor._height!=3 || tensor._depth!=1 || tensor._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_gaussian(): Specified tensor (%u,%u,%u,%u,%p) is not a 3x3 matrix.",
+                                    cimg_instance,
+                                    tensor._width,tensor._height,tensor._depth,tensor._spectrum,tensor._data);
+
+      const CImg<tfloat> invT = tensor.get_invert(), invT2 = (invT*invT)/(-2.0);
+      const tfloat a = invT2(0,0), b = 2*invT2(1,0), c = 2*invT2(2,0), d = invT2(1,1), e = 2*invT2(2,1), f = invT2(2,2);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - std::max(opacity,0.0f);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const tc *col = color;
+      cimg_forXYZ(*this,x,y,z) {
+        const float
+          dx = (x - xc), dy = (y - yc), dz = (z - zc),
+          val = (float)std::exp(a*dx*dx + b*dx*dy + c*dx*dz + d*dy*dy + e*dy*dz + f*dz*dz);
+        T *ptrd = data(x,y,z,0);
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)(val*(*col++)); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(nopacity*val*(*col++) + *ptrd*copacity); ptrd+=whd; }
+        col-=_spectrum;
+      }
+      return *this;
+    }
+
+    //! Draw a 3d gaussian function \overloading.
+    template<typename tc>
+    CImg<T>& draw_gaussian(const float xc, const float yc, const float zc, const float sigma,
+                           const tc *const color, const float opacity=1) {
+      return draw_gaussian(xc,yc,zc,CImg<floatT>::diagonal(sigma,sigma,sigma),color,opacity);
+    }
+
+    //! Draw a 3d object.
+    /**
+       \param x0 X-coordinate of the 3d object position
+       \param y0 Y-coordinate of the 3d object position
+       \param z0 Z-coordinate of the 3d object position
+       \param vertices Image Nx3 describing 3d point coordinates
+       \param primitives List of P primitives
+       \param colors List of P color (or textures)
+       \param opacities Image or list of P opacities
+       \param render_type d Render type (0=Points, 1=Lines, 2=Faces (no light), 3=Faces (flat), 4=Faces(Gouraud)
+       \param is_double_sided Tells if object faces have two sides or are oriented.
+       \param focale length of the focale (0 for parallel projection)
+       \param lightx X-coordinate of the light
+       \param lighty Y-coordinate of the light
+       \param lightz Z-coordinate of the light
+       \param specular_lightness Amount of specular light.
+       \param specular_shininess Shininess of the object
+    **/
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d(0,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+
+#ifdef cimg_use_board
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(board,x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImg<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d((void*)&board,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+#endif
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImgList<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImgList<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d(0,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+
+#ifdef cimg_use_board
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImgList<to>& opacities,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(board,x0,y0,z0,vertices,primitives,colors,opacities,render_type,
+                           is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors, const CImgList<to>& opacities,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return _draw_object3d((void*)&board,zbuffer,x0,y0,z0,vertices,primitives,colors,opacities,
+                            render_type,is_double_sided,focale,lightx,lighty,lightz,
+                            specular_lightness,specular_shininess,1);
+    }
+#endif
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename tz>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,zbuffer);
+    }
+
+#ifdef cimg_use_board
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,zbuffer);
+    }
+#endif
+
+    template<typename t, typename to>
+    static float __draw_object3d(const CImgList<t>& opacities, const unsigned int n_primitive, CImg<to>& opacity) {
+      if (n_primitive>=opacities._width || opacities[n_primitive].is_empty()) { opacity.assign(); return 1; }
+      if (opacities[n_primitive].size()==1) { opacity.assign(); return opacities(n_primitive,0); }
+      opacity.assign(opacities[n_primitive],true);
+      return 1.0f;
+    }
+
+    template<typename t, typename to>
+    static float __draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive, CImg<to>& opacity) {
+      opacity.assign();
+      return n_primitive>=opacities._width?1.0f:(float)opacities[n_primitive];
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImgList<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width && opacities[n_primitive].size()==1?(float)opacities(n_primitive,0):1.0f;
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width?(float)opacities[n_primitive]:1.0f;
+    }
+
+    template<typename tz, typename tp, typename tf, typename tc, typename to>
+    CImg<T>& _draw_object3d(void *const pboard, CImg<tz>& zbuffer,
+                            const float X, const float Y, const float Z,
+                            const CImg<tp>& vertices,
+                            const CImgList<tf>& primitives,
+                            const CImgList<tc>& colors,
+                            const to& opacities,
+                            const unsigned int render_type,
+                            const bool is_double_sided, const float focale,
+                            const float lightx, const float lighty, const float lightz,
+                            const float specular_lightness, const float specular_shininess,
+                            const float sprite_scale) {
+      typedef typename cimg::superset2<tp,tz,float>::type tpfloat;
+      typedef typename to::value_type _to;
+      if (is_empty() || !vertices || !primitives) return *this;
+      CImg<char> error_message(1024);
+      if (!vertices.is_object3d(primitives,colors,opacities,false,error_message))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_object3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,vertices._width,primitives._width,error_message.data());
+#ifndef cimg_use_board
+      if (pboard) return *this;
+#endif
+      if (render_type==5) cimg::mutex(10);  // Static variable used in this case, breaks thread-safety.
+
+      const float
+        nspec = 1 - (specular_lightness<0.0f?0.0f:(specular_lightness>1.0f?1.0f:specular_lightness)),
+        nspec2 = 1 + (specular_shininess<0.0f?0.0f:specular_shininess),
+        nsl1 = (nspec2 - 1)/cimg::sqr(nspec - 1),
+        nsl2 = 1 - 2*nsl1*nspec,
+        nsl3 = nspec2 - nsl1 - nsl2;
+
+      // Create light texture for phong-like rendering.
+      CImg<floatT> light_texture;
+      if (render_type==5) {
+        if (colors._width>primitives._width) {
+          static CImg<floatT> default_light_texture;
+          static const tc *lptr = 0;
+          static tc ref_values[64] = { 0 };
+          const CImg<tc>& img = colors.back();
+          bool is_same_texture = (lptr==img._data);
+          if (is_same_texture)
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                if (ref_values[r++]!=img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum)) {
+                  is_same_texture = false; break;
+                }
+          if (!is_same_texture || default_light_texture._spectrum<_spectrum) {
+            (default_light_texture.assign(img,false)/=255).resize(-100,-100,1,_spectrum);
+            lptr = colors.back().data();
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                ref_values[r++] = img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum);
+          }
+          light_texture.assign(default_light_texture,true);
+        } else {
+          static CImg<floatT> default_light_texture;
+          static float olightx = 0, olighty = 0, olightz = 0, ospecular_shininess = 0;
+          if (!default_light_texture ||
+              lightx!=olightx || lighty!=olighty || lightz!=olightz ||
+              specular_shininess!=ospecular_shininess || default_light_texture._spectrum<_spectrum) {
+            default_light_texture.assign(512,512);
+            const float
+              dlx = lightx - X,
+              dly = lighty - Y,
+              dlz = lightz - Z,
+              nl = cimg::hypot(dlx,dly,dlz),
+              nlx = (default_light_texture._width - 1)/2*(1 + dlx/nl),
+              nly = (default_light_texture._height - 1)/2*(1 + dly/nl),
+              white[] = { 1 };
+            default_light_texture.draw_gaussian(nlx,nly,default_light_texture._width/3.0f,white);
+            cimg_forXY(default_light_texture,x,y) {
+              const float factor = default_light_texture(x,y);
+              if (factor>nspec) default_light_texture(x,y) = std::min(2.0f,nsl1*factor*factor + nsl2*factor + nsl3);
+            }
+            default_light_texture.resize(-100,-100,1,_spectrum);
+            olightx = lightx; olighty = lighty; olightz = lightz; ospecular_shininess = specular_shininess;
+          }
+          light_texture.assign(default_light_texture,true);
+        }
+      }
+
+      // Compute 3d to 2d projection.
+      CImg<tpfloat> projections(vertices._width,2);
+      tpfloat parallzmin = cimg::type<tpfloat>::max();
+      const float absfocale = focale?cimg::abs(focale):0;
+      if (absfocale) {
+        cimg_pragma_openmp(parallel for cimg_openmp_if(projections.size()>4096))
+        cimg_forX(projections,l) { // Perspective projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          const tpfloat projectedz = z + Z + absfocale;
+          projections(l,1) = Y + absfocale*y/projectedz;
+          projections(l,0) = X + absfocale*x/projectedz;
+        }
+      } else {
+        cimg_pragma_openmp(parallel for cimg_openmp_if(projections.size()>4096))
+        cimg_forX(projections,l) { // Parallel projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          if (z<parallzmin) parallzmin = z;
+          projections(l,1) = Y + y;
+          projections(l,0) = X + x;
+        }
+      }
+
+      const float _focale = absfocale?absfocale:(1e5f-parallzmin);
+      float zmax = 0;
+      if (zbuffer) zmax = vertices.get_shared_row(2).max();
+
+      // Compute visible primitives.
+      CImg<uintT> visibles(primitives._width,1,1,1,~0U);
+      CImg<tpfloat> zrange(primitives._width);
+      const tpfloat zmin = absfocale?(tpfloat)(1.5f - absfocale):cimg::type<tpfloat>::min();
+      bool is_forward = zbuffer?true:false;
+
+      cimg_pragma_openmp(parallel for cimg_openmp_if(primitives.size()>4096))
+      cimglist_for(primitives,l) {
+        const CImg<tf>& primitive = primitives[l];
+        switch (primitive.size()) {
+        case 1 : { // Point
+          CImg<_to> _opacity;
+          __draw_object3d(opacities,l,_opacity);
+          if (l<=colors.width() && (colors[l].size()!=_spectrum || _opacity)) is_forward = false;
+          const unsigned int i0 = (unsigned int)primitive(0);
+          const tpfloat z0 = Z + vertices(i0,2);
+          if (z0>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = z0;
+          }
+        } break;
+        case 5 : { // Sphere
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          const tpfloat
+            Xc = 0.5f*((float)vertices(i0,0) + (float)vertices(i1,0)),
+            Yc = 0.5f*((float)vertices(i0,1) + (float)vertices(i1,1)),
+            Zc = 0.5f*((float)vertices(i0,2) + (float)vertices(i1,2)),
+            _zc = Z + Zc,
+            zc = _zc + _focale,
+            xc = X + Xc*(absfocale?absfocale/zc:1),
+            yc = Y + Yc*(absfocale?absfocale/zc:1),
+            radius = 0.5f*cimg::hypot(vertices(i1,0) - vertices(i0,0),
+                                      vertices(i1,1) - vertices(i0,1),
+                                      vertices(i1,2) - vertices(i0,2))*(absfocale?absfocale/zc:1),
+            xm = xc - radius,
+            ym = yc - radius,
+            xM = xc + radius,
+            yM = yc + radius;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && _zc>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = _zc;
+          }
+          is_forward = false;
+        } break;
+        case 2 : case 6 : { // Segment
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
