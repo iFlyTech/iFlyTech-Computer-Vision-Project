@@ -329,4 +329,68 @@ CImg<uchar> canny::edgeTrack(CImg<uchar> Edge)
 						{
 							curr_d -= 8;
 						}
-			
+						if (curr_d < 0)
+						{
+							curr_d += 8;
+						}
+
+						// ��ǰ������
+						// ���ٵĹ��̣�Ӧ���Ǹ������Ĺ��̣���Ҫ��ͣ�ĸ���������root��
+						c_pt = Point(b_pt.x + directions[curr_d].x, b_pt.y + directions[curr_d].y);
+
+						// �߽��ж�
+						if ((c_pt.x > 0) && (c_pt.x < Edge.width() - 1) &&
+							(c_pt.y > 0) && (c_pt.y < Edge.height() - 1))
+						{
+							// �������ڱ�Ե
+							if (255 == Edge(c_pt.x, c_pt.y))
+							{
+								curr_d -= 2;   // ���µ�ǰ����
+								edge_t.push_back(c_pt);
+								Edge(c_pt.x, c_pt.y) = 0;
+
+								// ����b_pt:���ٵ�root��
+								b_pt = c_pt;
+
+								break;   // ����forѭ��
+							}
+						}
+						curr_d++;
+					}   // end for
+					// ���ٵ���ֹ����������8���򶼲����ڱ�Ե
+					if (8 == counts)
+					{
+						// ����
+						curr_d = 0;
+						tra_flag = true;
+						edges.push_back(edge_t);
+
+						break;
+					}
+
+				}  // end if
+			}  // end while
+
+		}
+	}
+
+	CImg<uchar> trace_edge_color(Edge.width(), Edge.height(), 1, 1, 0);
+
+	for (i = 0; i < edges.size(); i++)
+	{
+		// ���˵���С�ı�Ե 
+		if (edges[i].size() > 20)
+		{
+			for (j = 0; j < edges[i].size(); j++)
+			{
+				trace_edge_color(edges[i][j].x, edges[i][j].y) = 255;
+			}
+		}
+
+	}
+
+	return trace_edge_color;
+}
+
+
+
