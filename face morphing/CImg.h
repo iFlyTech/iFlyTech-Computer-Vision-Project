@@ -3676,3 +3676,7923 @@ namespace cimg_library_suffixed {
       "U^4\\O]O]I\\O]T`MZQ]S]O]E]3]Q]:]Q]:]Q]:]Q]:]Q]:^S^9]QmO]-m>m>m>m>].].].]1hL]G]T^R]D]C]H]C]H]"
       "C]H]C]H]C]?_X_@]O]Q]G]H]C]H]C]H]C]H]=a8]L]?]U]&].].].].].].^M]O].]L]?]L]?]L]?]L]?].].].].^"
       "M]?^M]?]L]?]L]?]L]?]L]?]L] I]Pa?]L]?]L]?]L]?]L]?]O]<^M]?]O]  O]P]P\\G]C\\G]ScS\\G]N^S\\G]P]P\\B"
+      "]2]O]  QuF]Q[ >oAqDuDqD]L]?]L]:^X^8^R^?\\       D] 5] 3]S]@`X[3bS\\R^G]W^N] P](].\\&]   W]1]J"
+      "]7]*^7c8]Q];ZM^=`O^4]4d:]M_?].])d:u:d=_5\\R]O^R\\N]Q]=j<]-]E]Fm>k=]-rC].].a2].]U^U^U]H]S]R]D"
+      "]C]G]N^?]C]G]P_:g3]6]H]A]O]<]S]S]S]E^1_.^8]-]*]   A]>^M]?]/^M^?]K]?]0^M^?]L]?].].]V_7].]M]"
+      "M]N]L]@^L]?^M]@^M^?]/]-].]L]?]O]<]S]X]S]C^X^9]O]2^1]4](]0_IZ O[R\\X]S\\G^O_>]Vd9_U];]L]?].]L"
+      "]=]P]8]X^9]L]?]C]I^T]S]@]P]>]S]S]?]L]@]L^9]6p=]Q]3^9]/]C]H]P]P]G]H]C]Q]Q]G]ViV]G_#]#_;];_H"
+      "_:] B]0]S[3]0\\N\\>o=]2]Q^ A[U\\C[LcX\\6]T]9u O[RfP[ 'uIf7e >]L]>dU\\<] :f5d4]T]:fT\\O^NfT\\UdOeR"
+      "\\O^F^3]Q]:]Q]:]Q]:]Q]:]Q]:]Q]:^QmO]-m>m>m>m>].].].]1hL]G]S]R]D]C]H]C]H]C]H]C]H]C]>d?]P^Q]G"
+      "]H]C]H]C]H]C]H]<_7]L]?]U^'].].].].].].^L]P].]K]@]K]@]K]@]K]@].].].].]L]?]L]@^L]@^L]@^L]@^L"
+      "]@^L] I]Q]X^@]L]?]L]?]L]?]L]?]O]<^M]?]O]  O\\WmX]H\\WmX]H\\QaR]H\\N^R]H\\O]P]C]2]O]  QuF]R\\ ?qC"
+      "sDtDrE]L]?]L]:]V]7]R]>x      '] 5] 3\\R\\?e3^R\\SbJ^V^O] P](].\\&]   W]1]J]7]+^6e:]Q]-^>_M]5^6"
+      "h<^O`  Qe8u8e@^5]R\\M]R\\O^Q^>m?]-]E]Fm>k=]KdFrC].].b3].]T]U]T]H]S^S]D]C]G]P_>]C]Gk6f5]6]H]A"
+      "^Q^<]S]S]S]F_1_/_8]-]*]   A]>]K]A].]K]@]J]?]0]K]?]L]?].].]W_6].]M]M]N]L]@]J]@]K]A]K]?]/^.]"
+      ".]L]?]O]<]T^W]T]C^X^9^Q^3^1]3]']3dN\\ P\\R`Q[G]N_>]Q`;bW];\\K^?]/]L]=]Q^8]W]9]L]?]C]I]S]S]@]P"
+      "]>]S]S]@]J]B^L^9]6p>^Q^4^9]/]C]H]P]P]G]H]C]Q]Q]G]ViV]H_\"]\"_<]<_F_;] B]1]R[3]1]N]8a6]2]P^ B"
+      "[U\\C[K`V\\7]T]8u O[RdN[ 'uIf5a <]L]=cU\\<] :f3`1]T];fU\\N^NfU\\T[S]NaQ\\N^G^3^Q^<^Q^<^Q^<^Q^<^Q"
+      "^;]Q]:]PmO]-m>m>m>m>].].].]1hL]G]S^S]D]C]H]C]H]C]H]C]H]C]=b>]P]P]G]H]C]H]C]H]C]H]<_7]L]?]U"
+      "_(].].].].].].]K]Q].]J]A]J]A]J]A]J]@].].].].]L]?]L]@]J]A]J]A]J]A]J]A]J] K]P\\V]@]L]?]L]?]L]"
+      "?]L]?^Q^<]K]@^Q^  O\\WmX]H\\WmX]H\\P_Q]H\\O^Q]H\\O]P]C]2^Q^  D^<]R[ >qDuEsCqD]L]?]L]:]V]7]R]>x "
+      "     '] 5] 3\\R\\=f+]TdL^T^P] P](].\\2u  *]1]J]7],^-_=]P],]>_M]5]7_R^<^Qa  Sd .dC^4\\R]M]R\\O]O"
+      "]>]N_@]-]E]F].]/]KdF]H]C].].]X^4].]T]U]T]H]R]S]D]C]Gk=]C]Gj1c6]6]H]@]Q];^T]S]T^Ga1].^7]-]*"
+      "]   Lh>]K]A].]K]@]J]?]0]K]?]L]?].].]X_5].]M]M]N]L]@]J]@]K]A]K]?]._0].]L]>]Q];^U]V]U^Bb7]Q]"
+      "3^1^3]'^6iS^ P[P^P[G]N_>]N^=dX]<]J]>^1]L]=^R]8^W]9]L]@]A]J]S]S]@]P]>]S]S]@]J]B]J]9]6]J]>]O"
+      "]5^8]/]C]H]P]P]G]H]B]R]R]F]C]Iz<]<z=]=z<] B]1]R[7j:\\L\\7_5]2]P^ B[U\\C[ V]T]7u O[R\\U^O[  T] "
+      "  ]L];aU\\<]   I]T],]O[X\\>]K]@]O[X\\I`3]O]<]O]<]O]<]O]<]O]<]O];]P]?]-].].].].].].].]-]E]G]R]"
+      "S]D]C]H]C]H]C]H]C]H]C]<`=]Q]O]G]H]C]H]C]H]C]H];]6]L]?]T_4h9h9h9h9h9h9hK]Q].]J]A]J]A]J]A]J]"
+      "@].].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J]?tG]Q\\U]@]L]?]L]?]L]?]L]>]Q];]K]?]Q]  N\\WmX]H\\WmX]H\\P_"
+      "Q]H\\P^P]H\\O]P]C]1]Q]  C]:]S[ ?sEvEqAoC]L]?]L];^V^8^T^>x      '] 5] 4]S]<g-\\T^V^M]S_Q\\ O](]"
+      ".\\2u Se =^1]J]7]-^*^?]O],^?^K]7^7]N]<^Sb  Sa (aC]3\\R\\K\\R\\P^O^?]L^A]-]E]F].]/]KdF]H]C].].]W"
+      "^5].]T^W^T]H]R^T]D]C]Gj<]C]Gj-`7]6]H]@]Q]:]U^S^U]Fb2]/^6]-^+]   Nj>]K]A].]K]@p?]0]K]?]L]?]"
+      ".].b3].]M]M]N]L]@]J]@]K]A]K]?].c4].]L]>]Q]:]U]V]U]@`6^S^4^5b2]&b<u P[O]P\\H]N^=]M]>^Ua<]J]="
+      "c7]L]<]S^8]V^:]L]@]A]J]S]S]@]P]>]S]S]@]J]B]J]9]6]J]?^O^7^7]/]C]H]P]P]G]H]B]R]R]F]C]Iz<]<z="
+      "]=z<] B]1]R[7j:\\L\\7_ C^P] B[U\\C[ W]T] W] O[R\\T^P[  T]   ]L]7]U\\<]   H]T]-\\O\\X\\>\\I\\@\\O\\X\\J`"
+      "3^O^>^O^>^O^>^O^>^O^=]O]<^P]?]-].].].].].].].]-]E]G]R^T]D]C]H]C]H]C]H]C]H]C];^<]R]N]G]H]C]"
+      "H]C]H]C]H];]6]L]?]S`8j;j;j;j;j;j;|Q].pApApAp@].].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J]?tG]R]U]@]"
+      "L]?]L]?]L]?]L]>^S^;]K]?^S^  N\\WmX]H\\WmX]H\\QaR]H\\Q^O]H\\O]P]C]1^S^  D]9]T\\ ?sFwDo?nC]L]?]L];"
+      "]T]7]T]=]       Hj ?] 4]S]8d/]T]T]N^R_R\\ O](] =u Se =]0]J]7].^(]?]O]+]?^K]7]7]L]<gX]  Sa ("
+      "aC]3\\R\\K\\R\\P]M]?]K]A]-]E]F].]/]D]F]H]C].].]V^6].]S]W]S]H]Q]T]D]C]Gg9]C]G]Q_,^7]6]H]@^S^:]U"
+      "]Q]U]G^X]2]0^5],]+]   Pl>]K]A].]K]@p?]0]K]?]L]?].].a2].]M]M]N]L]@]J]@]K]A]K]?]-f8].]L]>^S^"
+      ":]U]V]U]?^4]S]4^4`0]$`<^Si O[O\\O\\H]N^=]M^@^S`<]J]=c7]L]<]S]8^U]:]L]@]O]O]J]S]S]@]P]>]S]S]@"
+      "]J]B]J]9]6]J]?]M]7]6]/^E^H]P]P]G]H]A]S]S]E]C]Iz<]<z=]=z<] B]1]R[7j:\\L\\6] A^Q] B[U\\C[Ni:]T]"
+      " V] O[R\\S]P[  T]   ]L]6\\U\\<]  Dh2]T]/]P\\W\\?]I\\A]P\\W\\K`2]M]>]M]>]M]>]M]>]M]>^O^=]O]?]-].].]"
+      ".].].].].]-]E]G]Q]T]D]C]H]C]H]C]H]C]H]C]<`=]S]M]G]H]C]H]C]H]C]H];]6]M^?]R`;l=l=l=l=l=l=~Q]"
+      ".pApApAp@].].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J]?tG]S]T]@]L]?]L]?]L]?]L]=]S]:]K]>]S]  M]P]P\\G]"
+      "C\\G]ScS\\G]S^N\\G]P]P\\B]0]S]  D]7\\T[ >sFwCn?mB]L]?]L];]T]7]T]=]       Hi >] 4]S]7[Xa1]T^T^O]"
+      "P_T] O](] =u Se =]0]J]7]/^'^A]N]+]?^K]7]8^L^<eW]  Sd .dC]3\\R\\K\\R\\P]M]?]K]A]-]E]F].]/]D]F]H"
+      "]C].].]U^7].]ScS]H]Q^U]D]C]G]/]C]G]O^,^8]6]H]?]S]9]U]Q]U]H^W^3]1^4],]+]   Q`P]>]K]A].]K]@p"
+      "?]0]K]?]L]?].].b3].]M]M]N]L]@]J]@]K]A]K]?]+e9].]L]=]S]9]V]T]V]@_4]S]5_4b2]&b<\\Nd M[O]P\\H]N"
+      "^=]L]@]Q_<]J]?e7]L];]T]8]T]:]L]@]O]O]J]S]S]@]P]>]S]S]@]J]B]J]9]6]J]?]M]8^6].]E]G]P]Q^G]H]A"
+      "^T]T^E]C]Iz<]<z=]=z<] B]1]R[3]1\\L\\6] A_R] B\\U\\E\\Ni:]T] V] O\\S\\R]R\\  T]   ]L]6\\U\\<]  Dh2]T]"
+      "/\\O[V\\?\\H\\A\\O[V\\L`1]M]>]M]>]M]>]M]>]M]>]M]>^O]?]-].].].].].].].]-]E]G]Q^U]D]C]H]C]H]C]H]C]"
+      "H]C]=b>]T]L]G]H]C]H]C]H]C]H];]6]M]>]Qa>`P]>`P]>`P]>`P]>`P]>`P]>`PoQ].pApApAp@].].].]/]J]@]"
+      "L]@]J]A]J]A]J]A]J]A]J]?tG]T]S]@]L]?]L]?]L]?]L]=]S]:]K]>]S]  L\\P]P\\F\\C\\F\\T^W^T\\F\\T^M\\F\\C\\B]"
+      "0]S]  E^7]U[ >sFwBl=kA]L]?]L]<^T^8^V^=]       Ij >] <u=[U^1\\S]R]O]O_U\\ N](] 1] Ge =]0]J]7]"
+      "0_&]A]N]+]?^K]8^8]J]:aU\\  Pe 4eA]3\\R\\K\\R\\Qo@]J]A].]F^F].].]E]F]H]C].].]T^8].]RaR]H]P]U]C]E"
+      "]F].]E]F]N^,]8]6]H]?]S]9^V]Q]V^H^V^4]2_4],]+]   Q]M]>]K]A].]K]@],]0]K]?]L]?].].c4].]M]M]N]"
+      "L]@]J]@]K]A]K]?](d;].]L]=]S]9^W]T]W^@`5^U^5^/_3]'_8ZJ` K[O]P\\H]N^=]L]@]P];]J]@_0]L];]U^9^T"
+      "^;]L]@]O]O]J]S]S]@]P]>]S]S]@]J]B]J]9]6]J]@^M^:^5].]E]F]Q]Q]F]H]@^U]U^C]E]G_\"]\"_BZT]TZB_F_;"
+      "] B]1]R[3]1\\L\\?o I_S] A[U]F[ V]T] W] N[S\\R]R[  S]   ]L]6\\U\\   ']T]/\\O\\V\\@\\H\\A\\O\\V\\M_0o@o@o"
+      "@o@o?m>l>].].].].].].].].]-]F^G]P]U]C]E]F]E]F]E]F]E]F]E]=d?^V]L]F]H]C]H]C]H]C]H];]6]N^>]O`"
+      "?]M]>]M]>]M]>]M]>]M]>]M]>]M]?].].].].]-].].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J] K]U]R]@]L]?]L]?"
+      "]L]?]L]=^U^:]K]>^U^  L\\P]Q]F\\D]F\\U^U^V]F\\U^M]F\\D]B\\/^U^  OuD]V[ =sFwBk;i@]L]?]L]<]R]7]V];]"
+      "       F^   Nu=[T^3]S]R]O]N_V\\ N](] 1]   ].]L]6]1_%]Aq0]>]K]8]7]J]/]  Md:u:d>]3\\R\\K\\S\\Po@]"
+      "J]A].]F]E].].]E]F]H]C].].]S^9].]RaR]H]P^V]C]E]F].]E]F]M],]8]6]H]>]U^8]W^Q^W]H^U^4]2^3]+],]"
+      "   R^M]>]K]A].]K]@],]0]K]?]L]?].].]X_5].]M]M]N]L]@]J]@]K]A]K]?]$`;].]L]=^U^8]W]T]W]@b5]U]5"
+      "^,]3]']  J\\Q_Q[G]N^=]L]A]O];]J]@].]L];]U]8]R];]L]@]O]O]J]S]S]@]P]>]S]S]@]J]B]J]9]5]L]?]K];"
+      "^4].^G^F]Q]Q]F]H]?_W]W_B]E]F_#]#_B\\U]U\\B_H_A\\U]U[ H]1]R[3]1]N]?o H`V] @[T]G[ U]T] X] N[S\\Q"
+      "]S[  S]   ]L]6\\U\\   (]T]/]P\\U\\A]I]B]P\\U\\M^/o@o@o@o@o@o@m>].].].].].].].].]-]F]F]P^V]C]E]F]"
+      "E]F]E]F]E]F]E]>_X_?]W^L]F]H]C]H]C]H]C]H];]6]P_=]M^@^M]?^M]?^M]?^M]?^M]?^M]?^M]?].].].].]-]"
+      ".].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J] K]U\\Q]@]L]?]L]?]L]?]L]<]U]9]K]=]U]  K]Q]Q]F]E]F]W^S^W]F"
+      "]W^L]F]E]B\\.]U]  NuC\\V[ =eXZXdFgXhAi9h@]L]?]L]<]R]7]V];]       E]   Nu=[S]3\\R]R]O]M_X\\ M]("
+      "] 1]   ].]L]6]2_$]Aq0]>]K]8]7]J]/]  Ke=u=e<]3\\R\\K\\S\\Po@]J]A].]F]E].].]E]F]H]C].].]R^:].]Ra"
+      "R]H]O^W]C]E]F].]E]F]M^-]8]6]H]>]U]7]W]O]W]I^S^5]3^2]+],]   R]L]>]K]A].]K]@],]0]K]?]L]?].]."
+      "]W_6].]M]M]N]L]@]J]@]K]A]K]?]\"_<].]L]<]U]7]W]T]W]Ac5^W^6^+^4](]  H[R\\X]S\\G]N^=]L]A]O];]J]A"
+      "^.]L]:]W^9^R];]L]@]O]O]J]S]S]@]P]>]S]S]@]J]B]J]9]5]L]?]K];^4]-]G]D]R]R]E]H]>kA]E]E_$]$_B^V"
+      "]V^B_J_A^V]V] I]1]R[3]0\\N\\>o G`X] ?\\U_Q[T\\ T]T] ] N\\T\\Q]T\\  S]   ]L]6\\U\\   )]T].\\P\\T\\A\\I]A"
+      "\\P\\T\\N^.o@o@o@o@o@o@m>].].].].].].].].]-]F]F]O^W]C]E]F]E]F]E]F]E]F]E]?_V_@]W]K]F]H]C]H]C]H"
+      "]C]H];]6k<]L^A]L]?]L]?]L]?]L]?]L]?]L]?]L]?].].].].]-].].].]/]J]@]L]@]J]A]J]A]J]A]J]A]J] K]"
+      "V\\P]@]L]?]L]?]L]?]L]<^W^9]K]=^W^  J]R]R]D]G]D]W\\Q\\W]D]W\\L]D]G]A\\.^V]  NuC]W[ <cWZXdEfXh@g8"
+      "g?]L]?]L]=^R^8^X^:]       F]   G\\R\\5[S]4]R]R]O]Lb M](\\ 0]   ].]L]6]3_#]Aq0]>]K]9]6]J]/]  H"
+      "e@u@e H\\R]M]T]Q^J]A]J]@]/]G^E].]-]F]F]H]C].].]Q^;].]Q_Q]H]N]W]B]G]E]-]G^F]L]-]8]6]I^>^W^7]"
+      "W]O]W]I^R^6]4^1]+],]   R]M^>^M^@]/^M^?]-]0^M^?]L]?].].]V_7].]M]M]N]L]@^L]?^M^A^M^?] ]<].]L"
+      "]<]U]7]X]R]X]B^W^5]W]6^)]4](]  H\\T]W]U\\F]O_=]L]A]P^;^L^A]-]L]:]W]8]P]<]L]@]O]O]J^T]T]?]P]>"
+      "]S]S]@^L]A^L]8]5]L]@^J]=^3]-^I^D^S]S^E]H]<g>]G]C_%]%_A_W]W_A_L_@_W]W_ J]0]S[3]0]P]5]4],b ="
+      "[ThT[ R]T]!] M[T\\P]U[  R]   ]L]6\\U\\   *]T].]P[S\\B]J]A]P[S\\N].^J]B^J]B^J]B^J]B^J]B^K^A]M]=]"
+      "/].].].].].].].]-]G^F]N]W]B]G]D]G]D]G]D]G]D]G]?_T_AbK]E]I^C]I^C]I^C]I^;]6j;]K]A]M^?]M^?]M^"
+      "?]M^?]M^?]M^?]M_?].].].].].].].].]/]J]@]L]@^L]@^L]@^L]@^L]@^L] J^X]Q]?]L]?]L]?]L]?]L];]W]8"
+      "^M^<]W]  I]R]S]C]H]C]VZOZW]C]VZL]C]H]@\\-]W]  MuC]X[ ;cWZWbDeWZXe>e6e>]L]?]L]=]P]8^X^:]    "
+      "   F^   H\\R\\5[S]5]Q]R]O^L` K]*] 0]  !^.]L]6]4_\"]2],^>^M]8]6]J]0]  DeCuCe E]R\\M]T\\P]I]A]J]@"
+      "]/]G]D].]-]F]F]H]C].].]P^<].]Q_Q]H]N^X]B]G]E]-]G]E]L^.]8]5]J]<]W]6^X]O]X^J^Q^6]5^0]+^-]   "
+      "R]M^>^M]?].]M^?]-]/]M^?]L]?].].]U_8].]M]M]N]L]?]L]?^M]?]M^?] ]<].]M^<^W^6aRbB^V^6]W]7^(]4]"
+      "(]  GcUcE]P_=]L]A]P]9]L]@]-]L]:^X]9^P]<]M^@]P^O]I]T]T]?]P]>]S]S]@^L]@]L]8]5]M]?]I]>^2],]I]"
+      "B_U]U_D]H]:c<]G]B_&]&_?_X]X_?_N_>_X]X_ I]0]S[3]0_T_5]4]+` ;[SfU[ P^U^#] L[U\\P]V[  Q]   ]M^"
+      "6\\U\\   ,^U^-\\P\\S\\B\\J]@\\P\\S\\N].]I]B]I]B]I]B]I]B]I]B]I]B^M]=]/].].].].].].].]-]G]E]N^X]B]G]D"
+      "]G]D]G]D]G]D]G]@_R_A`J]D]J]A]J]A]J]A]J]:]6g8]K]A]M^?]M^?]M^?]M^?]M^?]M^?]M_?].].].].].].]."
+      "].].]L]?]L]?]L]?]L]?]L]?]L]?]L]3^;aP]?]M^?]M^?]M^?]M^;]W]8^M];]W]  H]S]T^B]J^B]J^B]J^B]J^@"
+      "\\-]W]  G^1_ :aW[V`BcW[Wc<d5c=]L]>]N]<]P]7]X]8]       F]KZ   X]S]5[S]5\\P]R]N]K_ K]*] 0]  !]"
+      ",]N]5]5_\"]1],]<]M]9^6^L^0]  Ad Nd A\\R]O^U\\P^I^B]K^?]H[C]H^D].],]G]F]H]C].].]O^=].]P^Q]H]M]"
+      "X]A]I]D],]I^E]K]AZH^8]5]J]<]W]5bObJ^O^7]6_0]*]-]   R]M^>^M]?^/]M^?^.]/]M^?]L]?].].]T_9].]M"
+      "]M]N]L]?]L]?^M]?]M^?] ]<].]M^;]W]5aRaB^U^6c8_(]4](]  FaSaD]P_=]M]@]P]9]L]@]-]L]9b9]O^=^N^?"
+      "\\P_Q]H]T]T]?]P]=]T]T]?^L]@]L]8]4]N]@^I^?]1],^K^A`W]W`C]H]7]8]I]@^&]&^=i=^N^<i H]0^T[3]1l6]"
+      "4])_ <\\RbT\\ O]T]#] L\\V\\O]X\\     M^N^6\\U\\   ,]T]-\\OhF\\J]@\\OhQ]/^I^D^I^D^I^D^I^D^I^C]I]B]L]<"
+      "]H[C].].].].].].].]-]H]D]M]X]A]I]B]I]B]I]B]I]B]I]@_P_B_J]C]J]A]J]A]J]A]J]:]6].]K]A]M^?]M^?"
+      "]M^?]M^?]M^?]M^?]M_?^/^/^/^/^/].].].].]L]?]L]?]L]?]L]?]L]?]L]?]L]3^;`O]?]M^?]M^?]M^?]M^;c8"
+      "^M];c  G^U]U^@^M^@^M^@^M^@^M^?\\-c  H^0_ 9^U[U^@aV[Va:b3a<]L]>^P^=^P]7]X]8_       H^M[ F] 6"
+      "]S]>ZQ[T^6]P]S^N^K^ K]*] 0]:] 8]0],]O^5]6_2ZI]1]-^<^O^9]4]L]0]<].] Uc Pc1]2\\Q^S`W^P]G]B]K]"
+      ">^J\\C]I^C].],^H]F]H]C].].]N^>].]C]H]MbA^K^D],^K^D]K^B[I]7]5^L^<c5aMaJ^N]7]6^/]*]-]   R^O_>"
+      "_O]=].]O_>].].]O_?]L]?].].]S_:].]M]M]N]L]>]N]>_O]=]O_?] ]<]-]O_;]X^5aRaC^S^6a8_']4](]  D]P"
+      "^B^Ra>^N]@]Q]7]N]?^.]L]9a8]N]=^N^?]Q_Q]G]U]U]>]P]=]T]T]?_N]>]N]7]4^P^@]G]@^1]+^M^?mB]H]7]8"
+      "^K^?\\%]%\\;g;\\L\\:g G]/]T[3]2n7]4]'^ <\\F\\ M\\S\\  J\\F\\     L^N^6\\U\\   ,\\S\\-]OhG]K]@]OhQ]LZ=]G]"
+      "D]G]D]G]D]G]D]G]D]G]D^L]<^J\\C].].].].].].].]-]J_D]MbA^K^B^K^B^K^B^K^B^K^A_N_B^K]B^L^A^L^A^"
+      "L^A^L^:]6].]K]A^O_?^O_?^O_?^O_?^O_?^O_?^Oa?].].].].]/].].].]-]N]>]L]>]N]=]N]=]N]=]N]=]N]2^"
+      ";_O]=]O_>]O_>]O_>]O_:a7_O]9a  E^P_>^P_>^P_>^P_>^P_>\\,a  H^.] /[5]T[S\\8a1`<]L]=^R^<]O^8b7_ "
+      "      H^O\\ F] 6\\R\\=[R[U^5\\N]T]L^M` L]*] 0]:] 8]1^+]P]4]7_1[L_1]<ZL^:^Q^8]4^N^>ZM];].] R` P"
+      "`.]2]QfXaN]G]B]L^=^L]C]K_B].]+_J]F]H]C].].]M^?].]C]H]La@^M^C]+^M^C]J]B]L^7]4^N^:a4aMaK^M^8"
+      "]7^.]*^.]   Q]P`>`Q^=^NZ;^Q`>_LZ>].^Q`?]L]?].].]Q^;].]M]M]N]L]>^P^>`Q^=^Q`?]/ZL];]-^Q`:a4`"
+      "P`D^Q^7a8^&]4](]   S]Sb>_P^@]R^7^P^>^MZ<]L]9a9]M]=_P`XZB]Q_Q]G^V]V^>]P]=^U]U^?`P^>^P^6]4]Q"
+      "^?]G]A^0]*^O^<i@]H]7]7^M^=Z$]%Z8e9ZKZ7e F]/^U[TZ9]3^V`V^8]4]&^ <\\H\\ K[R[  I\\H\\     K_P`XZ9"
+      "\\U\\   ,[R[,\\E\\D\\K]?\\E\\M]O\\=]G]D]G]D]G]D]G]D]G]D]G]D]K];^L]C].].].].].].].]-]K_C]La@^M^@^M^"
+      "@^M^@^M^@^M^A_L_C`N^A^N^?^N^?^N^?^N^9]6].]L]?]P`>]P`>]P`>]P`>]P`>]P`>]P]X^LZN^NZ;_LZ>_LZ>_"
+      "LZ>_LZ?].].].]-^P^>]L]>^P^=^P^=^P^=^P^=^P^2^:^P^=^Q`>^Q`>^Q`>^Q`:a7`Q^9a  Dk<k<k<k<k>],a  "
+      "H]-] /[,[._0_;]L]=j<]N]7`5a       J_S^ F] 6\\R\\=^U[W_5]N^V^K_Rd L],] /]:] 8]1])^T^3]8_0^Q`0"
+      "]<]Q_8^S^8^3_R_=]R^:].] O] P]+]1\\PdW`N^G^C]N_;`R`C]NaA].]*`O`F]H]C].].]L^@].]C]H]La?`S`B]*"
+      "`S`B]J]B`Q_6]3_R_9a4aMaL^K^9]8^-])].]   Q_Tb>aS^;_R\\:^Sa=`Q]>]-^Sa?]L]?].].]P^<].]M]M]N]L]"
+      "=_T_=aS^;^Sa?]/^R_:]-^Sa:a3_P_C^P^7_8^%]4](]   S_V^X^?aS^>]T^5_T_=`R]<]L]8_8]M^>`SdA]SaS]E"
+      "^W]W^=]P^=_W]W_>]X]T_<_T_5^4^T^?^G^C^/])^Q^8c=]H]7]6`S` ?] ;c >c E]._W[V\\9]4^J^9]4]%] ;]L]"
+      " IZQZ  H]L] !u  ,`Sd9\\U\\   ,ZQZ,]E\\E]L]?]E\\M_S^>^G^F^G^F^G^F^G^F^G^F^G^F^K]:`R`C].].].].]."
+      "].].]-]ObB]La?`S`>`S`>`S`>`S`>`S`?]J]CcS`?_R_=_R_=_R_=_R_8]6].]V[R^?_Tb>_Tb>_Tb>_Tb>_Tb>_T"
+      "b>_T^V_Q]M_R\\:`Q]=`Q]=`Q]=`Q]?].].].],_T_=]L]=_T_;_T_;_T_;_T_;_T_1^:`T_;^Sa=^Sa=^Sa=^Sa9_6"
+      "aS^7_  Bi:i:i:i:i=]+`  I],] /[,[-].]:]L]<h;]N]7`3q      \"h E] 7]S]=k5]LdIjW^ M],] /]:] 8]1"
+      "](f9k?n?l/]<j6g7]1j<h9].] LZ PZ(]1]O`U]K]E]Cm8kBn?n?](nE]H]C].].]K^Am>]C]H]K`>kA])kA]J^Cm5"
+      "]2j7_2`M`K^J]9]8tC])].]   PgX]>]Xf9h9fX]<k>],fX]?]L]?].].]O^=].]M]M]N]L]<h<]Xf9fX]?]/j9d4g"
+      "X]:a3_P_D^O^7_8m4]4](]   RfXaBk=^V^3h;j<]L]8_9^L]>qA^U]W]U^Di<]O`?k=]Xg:h3a7f>uCn?]/eSe;]:"
+      "]H]7]5k >] :a <a D]-h>n?\\H\\8]4]%] 9^R^   *^R^  Xu  ,q9\\U\\    /]D\\F]LfH]D\\Li>]E]F]E]F]E]F]E"
+      "]F]E]F]E]F]JnIkBn?n?n?n?].].].]-n@]K`>k<k<k<k<k=[H[Co<j;j;j;j7]6].]Vf=gX]=gX]=gX]=gX]=gX]="
+      "gX]=gTjLh9k<k<k<k?].].].]+h<]L]<h9h9h9h9h Fk:gX]=gX]=gX]=gX]9_6]Xf6_  @e6e6e6e6e;]+_  G\\+["
+      " /].]-[,[9]L];e:^N^8`2p       e D] 7]S]<i4\\JbGgT^ M\\,\\ .]:] 8]1]'d8k?n>i-]<i4e6]0h;g8].]  "
+      " I]0]3]E]Cl6h@l=n?]&jC]H]C].].]J^Bm>]C]H]K`<g?]'g?]I]Bj3]1h6_2_K_L^I^:]8tC])].]   OdV]>]Wd"
+      "6f8dW]:i>]+dW]?]L]?].].]N^>].]M]M]N]L];f;]Wd7dW]?]/i7c3dV]9_2_P_E^M^8_8m4]4](]   QdV`B]Xe;"
+      "d1f8h<]L]8_9]K]>]XdW_@eWeBg;]O`=g;]Vd8f1`6d=uCn?]/eSe;]:]H]7]3g <] 9_ :_ C]+f>n>ZFZ7]4]%] "
+      "7f   &f  Vu  ,]XdW_9\\U\\    /\\C\\F\\KfH\\C\\Kg=]E]F]E]F]E]F]E]F]E]F]E]F]JnHh@n?n?n?n?].].].]-l>"
+      "]K`<g8g8g8g8g J]Vh:h9h9h9h6]6].]Ve;dV]<dV]<dV]<dV]<dV]<dV]<eRiJf7i:i:i:i?].].].]*f;]L];f7f"
+      "7f7f7f F]Xe7dV]<dV]<dV]<dV]9_6]Wd5_  <\\-\\-\\-\\-\\6]+_  FZ*[ /].],Z+Z9]L]8`8]L]7^.m       W` "
+      "A] 7\\R\\7b2]H^BaP_ O].] .]:\\ 7]2^%`6k?n:b*]9c/a5],b6b5].\\   H]/\\4]C]Di0b=h9n?]#c?]H]C].].]I"
+      "_Dm>]C]H]J_9a<]$d?]I^?c0].b3_2_K_M^G^;]8tC](]/]   M`T]>]U`2b4`U]7c;])`U]?]L]?].].]M^?].]M]"
+      "M]N]L]8`8]U`3`U]?],c2a0_T]9_2^N^F^K^8]7m4]4](]   O`R^B]Va8b-`3d:]L]7]9^J]?]V`T]>cUc?c9]N_:"
+      "a8]T`3`-_4`<wDn?]/eSe;]:]H]7]0a 9] 8] 8] B])b<n @]4]&^ 5b   \"b  Tu  ,]V`T]8\\U\\    0].].]0b"
+      ";]C]H]C]H]C]H]C]H]C]H^E^H^JnEb=n?n?n?n?].].].]-h:]J_9a2a2a2a2a G\\Rb4b3b3b3b3]6].]Vc7`T]:`T"
+      "]:`T]:`T]:`T]:`T]:aMcEb2c4c4c4c<].].].]'`8]L]8`1`1`1`1` D]Ua2_T]9_T]9_T]9_T]8]5]U`2]      "
+      "=]                       &[   O].]  E]  E]         ']    S]        R]      ^       (](]/] "
+      "       C]  S]    '] V]      F^ 7]4](]   %])[  4]7] @])_Q_:] 9]6]                6[   S]0[R"
+      "^           H]%\\U\\ A\\            @\\             /Z            <\\             ,[    M^5](^ "
+      "     =]                       &[   N]0]  D\\  D]         '\\    Q^DZ       1]      _       )"
+      "](]/]        D^  S]    '] V]      F] 6]4](]   %]   ;]7] @] /] 9]6]                6[   S]0"
+      "g           H]%\\U\\ @\\            @\\                          J\\                  X]4](]   "
+      "   <]                       &[   N]0]  D\\  E^         '\\    P^G]       2]      X^       )]"
+      "(^0]        D]  R]    '] V]      G^ 6]4](]   %]   ;]7] @] /] 9]6]                6[   S]0e"
+      "           F]%\\U\\ ?[            ?[                          I[                  ^4])^     "
+      " @ZV]                       &[   M]2]  D]  E]         ']    O_K_       3]      V^       *b"
+      ",]5b        E^  R]    '] V]      G^ 6^5])^   %]   ;]7] @] /] 9]6]                6[   S].a"
+      "           D]%\\U\\ ?\\            @\\                          J\\                 !^4])^     "
+      " B\\V]                       &[   M]2]  D\\            G\\    L`P`       2]      U^       +b "
+      "=b        RZN^  R^    '] V]      H^ 4^6]*^   $]   ;]7] @] /] 9]6]                6[   S]  "
+      "          J]  :\\            @\\                          J\\                 \"^3]*^      A\\V"
+      "\\                       %[   L]4]                   Vm       2^      S^       ,b =b       "
+      " R\\Q_  R]    &] V]      I^ 3b:].b   $]   ;]7] @] /] 9]6]                6[   S]           "
+      " J]  @ZU]            FZU]                          PZU]                 #^2]+^      @b    "
+      "                   %[                       Si       4b                       %i  Ua    &]"
+      " V]      Mb 2a:].a   #]   ;]7] @] /] 9]6]                   .]            J]  @b          "
+      "  Fb                          Pb                 'b2]       E`                            "
+      "                   Qb       1a                       $g  S`    %] V]      Ma /_:]._   !]  "
+      " ;]7] @] /] 9]6]                   .]            J]  @a            Ea                     "
+      "     Oa                 &a1]       D^                                                     "
+      "  X^                 Ip      Fc  Q^    #] V]      M_  A]    )]   ;]7] @] /] 9]6]          "
+      "                      T]  @`            D`                          N`                 %_/"
+      "]       BZ                                                                        Ap      "
+      "                 6]                                                                       "
+      "                                                                                          "
+      "                          p                       6]                                      "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                F]']2]    +]']2^ D]']3_   E]']1]   \"]']2^ "
+      "8]                             H";
+
+    // Define a 90x103 font (huge size).
+    static const char *const _data_font90x103[] = {
+      // Defined as an array to avoid MS compiler limit about constant string (65Kb).
+      // First string:
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "            HX     4V         >X       IX           *W             FW                     "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                         HX  W 4Z 3VCT   <Z     >X  W 4Z  "
+      " HX  W 4Z     'VCT ;X  W 3Y 2UCT       KX  W 3Y   0W                                      "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                    @W !W 4\\ 5YET ?XHX 8]     >W !W 4\\ 7XGX KW !W 4\\ 7XHX "
+      "  +YET :W !W 3[ 5ZFT ?XGX     EW !W 3[ 7XGX 5W                                            "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                              >W \"V 3\\ 7]HU ?XHX 9`     ?W \"V 3\\ 7XGX JW \"V 3\\ 7XHX   -]HU"
+      " 9W \"V 3] 7]HT ?XGX     DW \"V 3] 8XGX 5V                                                  "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                        <W $V 3VNV 8_KV ?XHX 9`     >W $V 3VNV 8XGX IW $V 3VNV 8XHX   -_KV"
+      " 8W $V 2] 7_KU ?XGX     CW $V 2] 8XGX 6V                                                  "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                        :W &W 4VLV :j >XHX :VJV     >W &W 4VLV 9XGX HW &W 4VLV 9XHX   .j 6"
+      "W &W 3VMV 9i >XGX     BW &W 3VMV 9XGX 7W               MW                                 "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                          CV 'W 4VJV ;j >XHX ;UGV     >V 'W 4VJV :XGX GV 'W 4VJV :XHX   .j"
+      " 5V 'W 3VKV :i >XGX     AV 'W 3VKV :XGX 8W               N[                               "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                            DV )W 4VHU <VK_ =XHX ;TEU     =V )W 4VHU :XGX FV )W 4VHU :XHX "
+      "  /VK_ 3V )W 3VIV <UK_ =XGX     @V )W 3VIV ;XGX 9W               N]                       "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                    DV *V 3UFU =UH\\ <XHX <UDT     <V *V 3UFU ;XGX EV *V 3U"
+      "FU ;XHX   /UH\\ 1V *V 2UGU <TH] =XGX     ?V *V 2UGU ;XGX 9V               a                "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                           EV ,V 3UDU >TEY ;XHX <TBT     <V ,V 3UDU <XGX D"
+      "V ,V 3UDU <XHX   /TEY /V ,V 2UEU =TFZ <XGX     >V ,V 2UEU <XGX :V               Na        "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                   DU -V 3VDV ?TCV :XHX <TBT     ;U -V 3VD"
+      "V =XGX CU -V 3VDV =XHX   /TCV -U -V 2UCU >TCU :XGX     =U -V 2UCU =XGX ;V               NV"
+      "IV                                                                          \"W            "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                              JU /V 3VBV     ETBT     :U /"
+      "V 3VBV   FU /V 3VBV       (U /V 2UAU         DU /V 2UAU   @V               NVGV           "
+      "                                                               $X                         "
+      "                                                                                          "
+      "                                            *X                                            "
+      "                                                                                          "
+      "                           JX                                GTBT                         "
+      "                          MX  GX 7V     :UEU     DX  GX 7V   JX  GX 7W       4X  GX 6V    "
+      "     GX  GX 5V   (X                            &X                                         "
+      "                                                                                          "
+      "                            )X                                                     8V     "
+      "                                                                                          "
+      "            ;X                                FTBT                                        "
+      "           LX  IX 7X     <UCU     DX  IX 7X   JX  IX 6W       3X  IX 6X         GX  IX 5X "
+      "  *X                            &Y                                                        "
+      "                                                                                          "
+      "             (X                                                     9V                    "
+      "                                                                                       <X "
+      "                               ETBT                                                   KX  "
+      "KX 6X 1TBT   BTAT     CX  KX 6Y   JX  KX 6Y     (TBT BX  KX 5X 1TBT       LX  KX 4X   +X  "
+      "                          %T                                                    #W 9W     "
+      "                                                                                          "
+      "3a   :a     <W   2W    >W   E\\   AW ,W ,W ,W ,W                             HY GV +Y      "
+      "   4Z           NX                 @X                                                     "
+      "             %W                                DUDU                                       "
+      "          =Y 7W  KW 6Z 4XDT   BTAT     BW  KW 6Z   IW  KW 6[   ,Y )XDT AW  KW 5Z 4XDT     "
+      "  KW  KW 4Z   ,W BW                 8V         (S                                         "
+      "    <S       9V 7V                                                                        "
+      "                       3a   :a     ;W   3W    >W   H_   AW ,W ,W ,W ,W                    "
+      "         L] GV +]         ;a          #[                 F^                               "
+      "            8XGX                      +W                                BTEU              "
+      "                      *R            9a :W  MW 6\\ 6ZET ?XHX <TAT     AW  MW 6\\ 7XGX LW  MW "
+      "5[ 7XGX .Y +ZET @W  MW 5\\ 6ZET ?XHX     DW  MW 4\\ 7XHX 0W AW &XHX               MZ        "
+      " +T                                   $Y         BS 1W,V MY   8W 7W  T           9X   5Z /"
+      "[     0Z   8Z /Y           GY       .\\       <\\               [   4[   :\\              -a "
+      "  :a     :W   4W    >W   Ja   AW ,W ,W ,W ,W                             N_ GV +_         "
+      "?e   8]       J]                 Jb       8[       <[                  $Y       FY 7XGX   "
+      "=Z         Di 5W   8Z .Y !W         FW *Y   4W)V*W)V-Y(V            <UFU   3\\             "
+      "       +[ 0[ 0[ 0[ 0[   4[=T            <e ;W  W 5\\ 7\\FT ?XHX <TAT     @W  W 6^ 8XGX KW  W"
+      " 5] 8XGX .Z@R ?\\FT ?W  W 4\\ 7\\FT ?XHX     CW  W 3\\ 7XHX 1W @W &XHX               N\\       "
+      "  ,T     :U :U5U                            `   EX 2VFV   .S 4]0W\"b DV  V 5V  T         7W"
+      " .` 3[ 7c 8d )Z Dq 8b Hy Bb 7`           Na   /Z @k .d Kj ?x Mt 7f MX/X'X -X -X2Z&X -]0]0["
+      "3X Dc Ii -c Ij 4f N~W$X/X.X&X.X4Y4XDY/Y/Y,Y'~S%a >W $a  MY   EW   5W    >W   Kb   AW ,W ,W"
+      " ,W ,W                            !a GV +a         Ch   =f       ^                 Mf 2Z @"
+      "x Mx <c 3X C~Q)X?X?X Kc   2T   .V   .T   CX   $a  !W.W   N` ;XGX ![ Lb       &Z Mi 7[   >a"
+      " 5a &W   0g    #\\ -_   <\\*V.\\*V0a-V\"X )Z /Z /Z /Z /Z 4WJV 1~U+d Kx Mx Mx Mx MX -X -X -X ,j"
+      " @[3X Dc 8c 8c 8c 8c   <cBV.X/X'X/X'X/X'X/X/Y,Y$X &h ;W \"W 5VNV 8]HU ?XHX <TAT     ?W \"W 5"
+      "VNV 8XGX JW \"W 5VMV 9XGX -ZDV @]HU >W \"W 4VNV 8]HU ?XHX     BW \"W 3VNV 8XHX 2W ?W &XHX    "
+      "           ^ K~\\       >S   3Q +[ @[;[ ;Q                          ;e   HX 2VFV #VBV FS 6`"
+      "1V#g GV !V 3V !T         7W 0d :` ;j ?k -[ Dq :g Ky Df ;d          $f   1Z @o 5j Np Ex Mt "
+      ":m\"X/X'X -X -X3Z%X -]0]0\\4X Gi Lm 4i Ln ;m#~W$X/X-X(X-X4Y4XCY1Y-Y.Y&~S%a >W $a  N[   EV   "
+      "5W    >W   Lc   AW ,W ,W ,W ,W                            \"b GV +a         Dk   Aj      \"_"
+      "                 h 3Z @x Mx ?i 6X C~Q)X?X?X Ni   6V   /V   /V   DX   &f  #W0W   e >XGX %c#"
+      "e       +b\"i 9_   Be 9d 'V   3k    %^ /c   @^*V0^*V2d.V\"X )Z /Z /Z /Z /Z 3b 1~U.j Nx Mx Mx"
+      " Mx MX -X -X -X ,p F\\4X Gi >i >i >i >i   BiEV.X/X'X/X'X/X'X/X.Y.Y#X 'j ;V \"V 5VLV :_IT >XH"
+      "X <TAT     >V \"V 5VLV 9XGX IV \"V 4VMV 9XGX ,ZHY A_IT <V \"V 4VLV :_IT >XHX     AV \"V 3VLV 9"
+      "XHX 2V >W &XHX              !_ K~[       >T   4R -_ D_?_ >S         =t                Fh  "
+      " IX 2VFV #VBV FS 7c4V#i HV \"W 3V !T         7V 0f @e >o Co 0\\ Dq <j Ly Fj ?h          (i  "
+      "\\ ?Z @r :o\"s Hx Mt <q$X/X'X -X -X4Z$X -]0]0\\4X Im Np 9m Np ?q%~W$X/X-X(X,W5[6XAX1X+X.X%~S%"
+      "a =V $a  ]   EV   6W    >W   Md   AW ,W ,W ,W ,W               HW             1b GV +b    "
+      "     Fm   Dm      #`                \"j 4Z @x Mx Am 8X C~Q)X?X?X!m   9X   0V   0X   EX   'h"
+      "  $W0W  \"h ?XGX 'g%g       0h%i :a   Cf :f *V   4m    %^ 0e   A^+V/^+V1f1V!X )Z /Z /Z /Z /"
+      "Z 2` 1~V0o\"x Mx Mx Mx MX -X -X -X ,t J\\4X Im Bm Bm Bm Bm   FmHV-X/X'X/X'X/X'X/X-X.X\"X (l ;"
+      "V $V 4UJU :ULXLU >XHX <UCU     =V $V 5VJV :XGX HV $V 4VKV :XGX +ZL\\ AULXLU ;V $V 3UJU :ULX"
+      "LU >XHX     @V $V 2UJU 9XHX 3V =W &XHX              !` K~Z       >T   4S /a FaAa @T       "
+      "  @w                Hl   KX 2VFV $WCV ES 8e5V$j HV \"V 1V \"T         7V 2j Eh ?q Dp 1\\ Dq >"
+      "l Ly Hn Bj          +l %e E\\ At >s$v Kx Mt >u&X/X'X -X -X5Z#X -^2^0]5X Jo q ;o r Br%~W$X/X"
+      "-X(X,X6[6XAY3Y+Y0Y%~S%W 3V  IW !_   FW   7W    >W   Md   AW ,W ,W ,W ,W               HW  "
+      "           2[ ?V #[         Hn   En      #`                #l 6\\ Ax Mx Cp 9X C~Q)X?X?X\"o  "
+      " ;Z   1V   1Z   FX  KS 0i  #W2W LV ,i ?XGX *l'h       3l'i ;c   Dg ;g ,W   6o    %^ 1g   B"
+      "^,V.^,V0g3V X *\\ 1\\ 1\\ 1\\ 1\\ 2^ 0~V2s$x Mx Mx Mx MX -X -X -X ,v L]5X Jo Do Do Do Do   HpKW"
+      "-X/X'X/X'X/X'X/X-Y0Y\"X )n <W &W 5VJV ;TI_ >XHX ;UEU     <W &W 5VIV ;XGX HW &W 5VIV ;XGX *g"
+      " ?TI_ ;W &W 4VJV ;TI_ >XHX     @W &W 3VJV :XHX 4W =W &XHX     1\\ 1\\ 1\\ 1\\ 1\\ =XMV K~Y     "
+      "  =S   4U 1c IdCc AU         Dz                In   LX 2VFV $VBV ES 9g7V$k HV #W 1W #T    "
+      "     8W 3l Fh ?r Eq 3] Dq ?m Ly Ip Em          -n )k H\\ Au Av%x Mx Mt ?x(X/X'X -X -X6Z\"X -"
+      "^2^0]5X Ls\"s ?s\"s Et%~W$X/X,X*X+X6[6X@Y5Y)Y2Y$~S%W 3W  JW \"a   FW   8W    >W   NZ   6W ,W "
+      ",W ,W ,W               HW             2X <V  X         H[G[   Go       KZ                %"
+      "[H[ 7\\ Ax Mx Ds ;X C~Q)X?X?X$s   >\\   2V   2\\   GX  KS 1j  #W2W LV -j ?XGX +ZEZ)VGY       "
+      "5ZDZ)i <e   EUFY <UFX -W   7q    %VMU 2YIY   CVMU,V.VMU,V0UFX3V X *\\ 1\\ 1\\ 1\\ 1\\ 1\\ 0~W4v%"
+      "x Mx Mx Mx MX -X -X -X ,x N]5X Ls Hs Hs Hs Hs   LsMW,X/X'X/X'X/X'X/X,Y2Y!X *\\G[ <W (W 4UHU"
+      " <UH] =XHX ;VGV     ;W (W 5VHV ;XGX GW (W 4UGU ;XGX )c =UH] 9W (W 3UHU <UH] =XHX     ?W (W"
+      " 2UHU :XHX 5W <W &XHX     5c 8c 8c 8c 8c @WKU J~X       >T   5V 2e KfEe CW         G|     "
+      "           Jp   MX 2VFV $VBV ES 9XIX8V$l HV #V /V #T         8V 3n Gh ?s Fr 5^ Dq @n Lx Ir"
+      " Go          .o -q L^ Bv Cx&z x Mt A{)X/X'X -X -X7Z!X -^2^0^6X Mu#t Au#t Gu%~W$X/X,X*X+X6["
+      "6X?X5X'X2X#~S%W 2V  JW #c   FW   9W    >W   NX   4W ,W ,W ,W ,W               HW          "
+      "   2W ;V  NW         IZCY   Hp       JY                &ZDZ 9^ Bx Mx Eu <X C~Q)X?X?X%u   @"
+      "^   3V   3^   HX  KS 2k  \"W4W KV -ZGW ?XGX -X=X+R@W       8X<X  .XIX   FQ@W <Q@W /W   7dGU"
+      "    %QHU 3XEX   DQHU-V-QHU-V/Q@W5V NX +^ 3^ 3^ 3^ 3^ 2\\ 0~W5x&x Mx Mx Mx MX -X -X -X ,z!^6"
+      "X Mu Ju Ju Ju Ju   N}+X/X'X/X'X/X'X/X+X2X X +ZBY ;W *W 4UFU =TF\\ =XHX :VIV     9W *W 5VFV "
+      "<XGX FW *W 4VGV <XGX (_ :TF\\ 8W *W 3UFU =TF\\ =XHX     >W *W 2UFU ;XHX 6W ;W &XHX     7h =h"
+      " =h =h =h DWJV K~X       >T   5W 4g MgFg EY         J~                K]FZ   MX 2VFV $VBV "
+      "ES :XGX9V%\\GX HV $W /W 3PATAP         GV 3[H[ Gh ?]F] GZE^ 6^ Dq A]FX Lx I\\F\\ G\\G[        "
+      "  /[H] 0u N^ Bw E_D^&{!x Mt B`C_)X/X'X -X -X8Z X -_4_0_7X N^E^$u C^E^$u H^E\\%~W$X/X,Y,Y*W7"
+      "]8X>Y7Y'Y4Y#~S%W 2V  JW $e   FV   9W    >W   NW   3W ,W ,W ,W ,W               HW         "
+      "    2W ;V  NW         IY@X >X 4[AV       IX                &X@X 9^ Bx Mx F^E^ =X C~Q)X?X?X"
+      "&^E^   B`   4V   4`   IX  KS 3\\GW  \"W4W KV .YBT ?XGX .V7V,P=W       :W8W  /VEV   3V +V /V "
+      "  7eGU     KU 3WCW   ;U-V$U-V LV5V NX +^ 3^ 3^ 3^ 3^ 3^ 1~W6_D^&x Mx Mx Mx MX -X -X -X ,{\""
+      "_7X N^E^ L^E^ L^E^ L^E^ L^E^  !^Ed*X/X'X/X'X/X'X/X+Y4Y X +Y?X ;V *V 4UDU >TEZ <XHX 9a     "
+      "7V *V 4UDV =XGX EV *V 4VEV =XGX )] 7TEZ 6V *V 3UDU >TEZ <XHX     =V *V 2UDU <XHX 6V :W &XH"
+      "X     9k @k @k @k @k EWJV K~W       >T   5Y 5g MhHi G[         M~Q                L\\AW   M"
+      "X 2VFV $VCV DS :WEW:V%ZAU HV $V -V 3RCTCR         HW 4ZDZ H\\LX ?Y?[ HV>\\ 8_ DX )[?T -Y J[B"
+      "[ I[CZ          0WAZ 2x ^ BX>^ G]=Z&X=b#X -X '];[)X/X'X -X -X:[ NX -_4_0_7X \\?\\%X@^ E\\?\\%X"
+      "?] J[=X =X <X/X+X,X)X8]8X=Y9Y%Y6Y )Y$W 2W  KW %ZMZ   FV   :W    >W   X   3W     4W ,W     "
+      "          HW             3X ;V  NX         KY?X Ca 9Y:R       HX                (X>X :VNV "
+      "BZ /X '\\?\\ A^ FX0X)X?X?X'\\?\\   Db   5V   5b   JX  KS 3ZBT  !W6W JV .X?R   4V4U HV       ;V"
+      "4V  1VCV   4V *U 0V   7fGU     KU 4WAW   <U.V#U.V JU6V MX +^ 3^ 3^ 3^ 3^ 3^ 2XIX F]=Z&X -X"
+      " -X -X -X -X -X -X ,X=b$_7X \\?\\ N\\?\\ N\\?\\ N\\?\\ N\\?\\  #\\?`)X/X'X/X'X/X'X/X*Y6Y NX ,Y=W :V ,"
+      "V 3UDU >TDX   ;a     6V ,V 4UBU   GV ,V 3UCU   0` 6TDX 4V ,V 2UDU >TDX       >V ,V 1UDU   "
+      ":V 9W       (o Do Do Do Do GWIU J~V       >T   6Z 6i jIj I\\         N~R                M[="
+      "U   MX 2VFV %VBV H] AWCW;V%Y=R HV %W -V 4UETEU         IV 4ZBZ IWGX ?V;[ IS9Z 9VNX DX *Z;R"
+      " -X JZ>Y JZ?Y          1U>Z 5`C_#` CX;[ H[7W&X9_$X -X (\\6X)X/X'X -X -X;[ MX -_4_0`8X![;[&X"
+      "=[ F[;[&X<[ LZ8U =X <X/X+X,X)X8]8X<X9X#X6X )Z$W 1V  KW &ZKZ   FV   ;W    >W   W   2W     4"
+      "W ,W               HW             3W :V  MW         KX=W Cc ;X7P       HX                ("
+      "W<W ;WNW BY /X ([;[ Gg JX0X)X?X?X([;[   Fd   6V   6d   KX  KS 4Y>R  !X8X JV /X<P   6V1U IV"
+      "       <U0U  2UAU   3U *U 1V   6fGU     KU 4V?V   <U/V\"U/V IU7V LX ,` 5` 5` 5` 5` 5` 3XIX "
+      "G[7W&X -X -X -X -X -X -X -X ,X9_%`8X![;[![;[![;[![;[![;[  %[;](X/X'X/X'X/X'X/X)X6X MX ,X;W"
+      " :V .V 3UBU ?TBT   7]     3V .V 4VAU   GV .V 3UAU   4d 7TBT 1V .V 2UBU ?TBT       ;V .V 1U"
+      "BU   <V 8W       )r Gr Gr Gr Gr IVHR GX+W       =S   5[ 7i!kJk I]        !^               "
+      " )Y:T   MX 2VFV %VBV Le EVAV<V$X:P HV %W -W 6WFTFV         IV 4X?Y IRBX ?T7Y IP5Z :VNX DX "
+      "+Z8P .Y JY<Y KY=X          1S;Y 6];\\$WNW CX9Z J[4U&X6]%X -X )[2V)X/X'X -X -X<[ LX -XNV6VNX"
+      "0`8X\"Z7Z'X;Z HZ7Z'X;Z LY4R =X <X/X*X.X(X8]8X<Y;Y#Y8Y *Z#W 1V  KW 'ZIZ   FV   <W    >W   W "
+      "  2W     4W ,W               HW             3W :V  MW         KW<X Dd <W       -W         "
+      "       )W;X <WNW AY 0X )Z7Z Jl MX0X)X?X?X)Z7Z   Hf   7V   7f   LX  KS 4X;P   W8W IV /W   \""
+      "V.U JV       >U.U  4VAV &V 5U *U 2V   6gGU     KU 5W?W   =U/V\"U/V IU7V LX ,WNW 5WNW 5WNW 5"
+      "WNW 5WNW 5WNW 4XHX H[4U&X -X -X -X -X -X -X -X ,X6]&`8X\"Z7Z#Z7Z#Z7Z#Z7Z#Z7Z  'Z8['X/X'X/X'"
+      "X/X'X/X)Y8Y MX ,W:W 9V 0V 3U@U     ?[     1V 0V 3U@V   GV 0V 3U?U   8h   1V 0V 2U@U       "
+      "  CV 0V 1U@U   >V 7W       *`L` I`L` I`L` I`L` I`L` JV =X,X       >T   6] 9k\"lKl K_       "
+      " #\\                'Y8S   MX 2VFV %VBV Nk IVAV=V$X 1V %V +V 6YHTHY -V       EW 5Y>Y :X ?R5"
+      "Z .Y ;VMX DX +Y  DX IY<Y LY;X          2Q8Y 8[5[&WNW CX8Y KZ1T&X4\\&X -X *Z.T)X/X'X -X -X=["
+      " KX -XNV6VNX0a9X#Z5Z(X:Y IZ5Z(X:Z NY1P =X <X/X*X.X'W9WNV:X:Y=Y!Y:Y *Z\"W 1W  LW (ZGZ      -"
+      "W    >W   W   2W     4W ,W               HW             3W :V  MW         KW;W De =W      "
+      " -X                *W:W <VLV @Y 1X *Z5Z Mp X0X)X?X?X*Z5Z   Jh   8V   8h   MX  KS 5Y   :X:X"
+      " IV /W   #U+T JV       ?U+T  5U?U &V 5U +V     AgGU     KU 5V=V   =U0V!U0V IV8V KX ,WNW 5W"
+      "NW 5WNW 5WNW 5WNW 5WNW 4XHX IZ1T&X -X -X -X -X -X -X -X ,X4\\'a9X#Z5Z%Z5Z%Z5Z%Z5Z%Z5Z  )Z5Z"
+      "(X/X'X/X'X/X'X/X(Y:Y LX -X:W          !W                    2\\LZ                          "
+      "EW       +[@[ K[@[ K[@[ K[@[ K[@[ KV <X-X     /P 0T   7^ 9k\"lLm La        %Z              "
+      "  %Z6Q   MX 2VFV %VCV n KWAW>V$X 1V &W +W 5XITIX +V       EV 4X<X :X ?P2Y -X <WMX DX ,Y  C"
+      "X JY:Y MX9W          2P7Y :Z0Z(WLW DX7X KY.R&X2Z&X -X *Y+R)X/X'X -X -X>[ JX -XNW8WNX0a9X#Y"
+      "3Y(X9Y JY3Y(X9Y NX  LX <X/X*X.X'X:VMV:X9X=X NX:X *Z!W 0V  LW )ZEZ      .W    >W   W   2W  "
+      "   4W ,W               HW             3W :V  MW         LX;W Df >W       ,W               "
+      " +W8W >WLW @Y 2X +Z3Z!t\"X0X)X?X?X*Y3Y   Kj   9V   9j     AS 5X   8W:W HV /W   #T)T KV     "
+      "  @T(T  6U?U &V 5T +V     AhGU     KU 5V=V   =U0V!U0V JV7V   WLW 7WLW 7WLW 7WLW 7WLW 7XNX "
+      "6XGX IY.R&X -X -X -X -X -X -X -X ,X2Z'a9X#Y3Y%Y3Y%Y3Y%Y3Y%Y3Y  )Y3Z)X/X'X/X'X/X'X/X'X:X Ki"
+      " >W8V                               *XHZ                          FW       ,Z<Z MZ<Z MZ<Z "
+      "MZ<Z MZ<Z LV <X.X     .R 2S   7` :k#nMm Mb        &Z                $Y4P   MX 2VFV &VBV!o "
+      "KV?V?V#W 0V &V )V 3XKTKX )V       EV 5X:X ;X  X -Y =VLX DX -Y  CY JY:Y NY9X           HX ;"
+      "Z-Y)WLW DX7Y MY,Q&X1Z'X -X +Y)Q)X/X'X -X -X?[ IX -XMV8VMX0XNX:X$Y1Y)X9Y KY1Y)X8X NX  LX <X"
+      "/X)X0X&X:VMV:X9Y?Y NY<Y *Y W 0V  LW *ZCZ      /W    >W   W   2W     4W ,W               HW"
+      "             3W :V  MW         LW:W Dg ?W       ,X                ,W8W >WLW ?Y 3X +Y1Y\"v#X"
+      "0X)X?X?X+Y1Y   MYNVNY   :V   :YNVNY     BS 5X   8X<X HV /W   $T?ZBT*c       AT&T  7U?U &V "
+      "6U -W     @hGU     KU 6V;V   >U1V U1V KW7V   NWLW 7WLW 7WLW 7WLW 7WLW 7WLW 6XGX JY,Q&X -X "
+      "-X -X -X -X -X -X ,X1Z(XNX:X$Y1Y'Y1Y'Y1Y'Y1Y'Y1Y P)P$Y3[)X/X'X/X'X/X'X/X'Y<Y Km BW8W      "
+      "                         +UDZ               7P          1W       -Y8Y Y8Y Y8Y Y8Y Y8Y MV ;"
+      "W.X     /T 4T   7a ;k#nMn Nc 6P :W4W ?Z ?X6X KY                #Y   0X 2VFV &VBV\"p KV?V?V#"
+      "W 0V 'W )W 2XMTMX 'V       FW 5X:X ;X  Y -X >VKX DX -X  BX IX8X NX7W      KP  1P  =X <Y)X+"
+      "XLX EX6X NY*P&X0Z(X -X ,Y'P)X/X'X -X -X@Z GX -XMV8VMX0XNX:X%Y/Y*X8X LY/Y*X8Y!X  KX <X/X)X0"
+      "X&X:VMV:X8YAY LY>Y *Z W 0W  MW +ZAZ      0W    >W   W   2W     4W ,W               HW     "
+      "        3W :V  MW         LW:W DSF[ @X       -X                -X8W ?WJW ?Y 4X ,Y/Y%z%X0X)"
+      "X?X?X,Y/Y   YMVMY   ;V   ;YMVMY     CS 5X 5P*Q JW<W GV /W   %TBbET/g       BTGb?T  8U?U &V"
+      " 7U 5_     ?hGU     KU 6V;V   >U2V NU2V$_7V   NXLX 9XLX 9XLX 9XLX 9XLX 8WLW 6XGX KY*P&X -X"
+      " -X -X -X -X -X -X ,X0Z)XNX:X%Y/Y)Y/Y)Y/Y)Y/Y)Y/Y\"R+R&Y3]*X/X'X/X'X/X'X/X&Y>Y Jp EW:Y     "
+      "                          +R@Y               7Q          2W       .XEVFY\"X5Y\"X5Y\"X5Y\"X5Y N"
+      "V ;X/X     0V 5T   8c <k#nNo e >^ AW4W ?Z >W6W KY                \"Y   0X 2VFV &VCW#[LSKZ K"
+      "V?V@V\"W 0V 'W )W 1XNTNX &V       FW 6Y:Y <X  NX -X ?WKX DX .Y  CY IX8X NX7W      NS  1S  @"
+      "X =X&X,WJW EX6X NY /X/Y(X -X ,Y /X/X'X -X -XAZ FX -XMW:WMX0XMX;X%Y/Y*X8Y MY/Y*X8Y!X  KX <X"
+      "/X)Y1X%W;WMW;W6XAX JX>X *Z NW 0W  MW ,Z?Z      1W    >W   W   2W     4W ,W               H"
+      "W             3W :V  MW         LW:W DPAY ?Y       .W                -W6W @WJW >Y 5X ,X-X&"
+      "_MXM_&X0X)X?X?X,Y/Y  !YLVLY   <V   <YLVLY     DS 6Y 6R,R JX>W FV /X   'TCfFT2i       CUGfB"
+      "T  9U?U &V 7U 5]     >iGU     KU 6V;V   >U2V NU2V$]5V   NWJW 9WJW 9WJW 9WJW 9WJW 9WJW 8XFX"
+      " KY /X -X -X -X -X -X -X -X ,X/Y)XMX;X%Y/Y)Y/Y)Y/Y)Y/Y)Y/Y#T-T'Y3]*X/X'X/X'X/X'X/X%X>X Ir "
+      "GW=\\                                GY               9S          3W       /XDVDX$X2X$X2X$X"
+      "2X$X2X V ;X0X     0X 7T   8d <k#~`!g Bd DW4W ?[ ?X7W LY                !X   /X 2VFV &VCV#Z"
+      "JSGV KV?VAV!W 0V 'V 'V /d $V       FV 5X8X <X  NX -X ?VJX DX .X  BX HX8X Y7X     #V  1V  C"
+      "X >X$X-WJW EX6X Y .X.Y)X -X -Y .X/X'X -X -XBZ EX -XLV:VLX0XMX;X&Y-Y+X7X NY-Y+X7X!X  KX <X/"
+      "X(X2X$X<VKV<X6YCY JY@Y +Z MW /V  MW -Y;Y    \"Z ;WDX 0Z 2XDW >Z <W !X :WDY     IW ,W  HX8X "
+      "MY 3Z *X 3X &X 7] <W             3W :V  MW       ;X :W:W 4Y @[ )\\ (Y   6X     8QEV     :[ "
+      "    JW6W @VIW =Y 6X -Y-Y(]JXJ]'X0X)X?X?X-Y-Y  #YKVKY   =V   =YKVKY     IZ 9X 6T.T JW>W FV "
+      ".X   (TDgFT3j       CTFhDT  9U?U &V 8U 4\\     =iGU     KU 6V;V   >U3V MU3V#\\5V   MWJW 9WJW"
+      " 9WJW 9WJW 9WJW 9WJW 8XFX LY .X -X -X -X -X -X -X -X ,X.Y*XMX;X&Y-Y+Y-Y+Y-Y+Y-Y+Y-Y%V/V)Y3"
+      "_+X/X'X/X'X/X'X/X%Y@Y Is HW?^ ?Z /Z /Z /Z /Z /Z /Z6Y NZ 0Z /Z /Z /Z         8Y 1Y 3Z /Z /Z"
+      " /Z /Z   3ZCV          5WDX       DXCVCW%X0W%X0W%X0W%X0W V :X1X     0X 7T   9f =k#~`\"h Cf "
+      "EW4W @\\ ?X8X LX                !Y   /X 2VFV 'VBV#XHSET KV?VAV!W 0V (W 'W .` \"V       GW 5X"
+      "8X <X  NX -X @VIX DX .X  BX HX8X X5W     &Y  1Y  FX >W\"W.XJX FX6X X -X.Y)X -X -X -X/X'X -X"
+      " -XCZ DX -XLV:VLX0XLX<X&X+X+X7X NX+X+X7X!X  KX <X/X(X2X$X<VKV<X5YEY HYBY +Z LW /W  NW .Y9Y"
+      "    'b ?WG^ 7b 9^GW A` Gl 2_GW MWG_ DW ,W ,W8Y MW ,WG^>^4WG_ 9` @WG^ 9^GW MWG\\ ;f Gm <W6W#"
+      "X2X#W;X;W5Y7Y#W1X\"u 6W :V  MW       >^BV\"W:W 3X ?^ 0e AWG_ KV.X ?X <W6W   HTG[ K}!WCWCW Ca"
+      " 7p&{ NW6W AWHW >Z 7X -X+X)\\HXH\\(X0X)X?X?X-X+X  $YJVJY   >V   >YJVJY     Ma =X 7V0V JW@W E"
+      "V .Y   *TEiET5k       DTEiDT  :VAV &V 9U 3_   ;W6W NiGU     KU 6V;V   >U3V MU3V#_8V   NXJX"
+      " ;XJX ;XJX ;XJX ;XJX ;XJX :XEX LX -X -X -X -X -X -X -X -X ,X.Y*XLX<X&X+X+X+X+X+X+X+X+X+X&X"
+      "1X*X3`+X/X'X/X'X/X'X/X$YBY Ht IW@_ Cb 7b 7b 7b 7b 7b 7b>a'b 7` 5` 5` 5` AW ,W ,W ,W  DY EW"
+      "G_ 9` 5` 5` 5` 5` (Z <`GV W6W MW6W MW6W MW6W#W1X NWG^ HW1X     NWBVBW&W.W&WJP:PJW&W4PJW&W."
+      "W!V :X2X     0X 6S   8g >k#~`#j Fj GW4W @\\ >W8W LX                 X   .X 2VFV 'VBV$XGSCR "
+      "KV?VBV X 1V (W 'W ,\\  V       GW 5X8X <X  NX -X AWIX DX /X  BY HX8X X5W     ([  1[  HX ?W "
+      "W/WHW FX6X!Y -X-Y*X -X .Y -X/X'X -X -XDZ CX -XLW<WLX0XKW<X'Y+X+X7X Y+X+X7X!X  KX <X/X'X4X#"
+      "X<VKV<X4XFY FXBX *Y KW /W  NW /Y7Y    +g AWIb ;f =bIW De Il 3bIW MWIc FW ,W ,W9Y LW ,WIbBb"
+      "6WIc >f CWIb =bIW MWI^ =j Im <W6W\"W2W\"W<Z<W4X7X!W2W!u 6W :V  MW       @bEW\"W:W 2X @c 8j CW"
+      "Ic MX0W =W <W6W IW/W\"VI^ L}!WCWCW Ee =t&{ W4W BWHW =Y 7X .X*Y*ZFXFZ(X0X)X?X?X.Y+X  #WIVIW "
+      "  =V   =WIVIW     f ?X 8X2X KW@W EV .Z   +SE[GVDS6ZDV       DSDVDXDS  9UAU %V :U 2`   <W6W"
+      " NiGU     KU 6V;V   >U4V LU4V\"`:V GX /WHW ;WHW ;WHW ;WHW ;WHW ;WHW :XEX MY -X -X -X -X -X "
+      "-X -X -X ,X-Y+XKW<X'Y+X,Y+X,Y+X,Y+X,Y+X'Z3Z,Y4WNY,X/X'X/X'X/X'X/X#XBX Gu JWB\\ Ag <g <g <g "
+      "<g <g <gBe+f <e :e :e :e CW ,W ,W ,W  Mc FWIc >f ;f ;f ;f ;f +Z >eJU NW6W MW6W MW6W MW6W\"W"
+      "2W MWIb IW2W     NWAVAW(W,W(WJR<RJW(W4RJW(W,W\"V 9W2X     1X 6T   9i ?k#~`#k Hl HW4W @] ?X9"
+      "W LW                 NX   .X 2VFV 'VCW$WFSAP KV?VBV NW 1V (V &W *X  MV       GV 5X6X =X  N"
+      "X -X AVHX DX /X  BX GX8X X5X     ,^  1^  LX ?W MW0WHW FX6X!X ,X-Y*X -X .X ,X/X'X -X -XEZ B"
+      "X -XKV<VKX0XKX=X'Y+Y,X7X Y+Y,X7X!X  KX <X/X'X4X\"W=WKV<W3YGY FYDY +Z KW .V  NW 0Y5Y    /l C"
+      "WJe ?j AeJW Eh Kl 5eJW MWJe GW ,W ,W:Y KW ,WJdDd7WJe @h DWJe AeJW MWJ_ ?l Im <W6W\"W2W!W=Z="
+      "W2X9X W2W!u 6W :V  MW       BeFV!W;X 1W ?f =k CWJe NY2X =X =W6W JW-W$WI` N}!WCWCW Gi Av&{ "
+      "W4W BVGW <Y 8X .X)X+ZEXEZ)X0X)X?X?X.Y+Y  #UHVHU   <V   <UHVHU    !j AX 9Z4Z KWBW DV -Z   -"
+      "TFY@RDT8XAV       ETDVBWET  :VCV %V ;V )X   =W6W NiGU     KU 6V;V   >U5V KU5V GX<V FX /WHW"
+      " ;WHW ;WHW ;WHW ;WHW ;WHW :WDX MX ,X -X -X -X -X -X -X -X ,X-Y+XKX=X'Y+Y-Y+Y-Y+Y-Y+Y-Y+Y'Z"
+      "5Z+Y5WMY,X/X'X/X'X/X'X/X#YDY GX@^ KWCZ Al Al Al Al Al Al AlFh.j ?h =h =h =h EW ,W ,W ,W !g"
+      " GWJe @h =h =h =h =h ,Z @hLV NW6W MW6W MW6W MW6W\"W2W MWJe KW2W     W@VAW)W+W)WJT>TKW)W4TKW"
+      ")W+W\"V 9X3X     2X 5T   :k ?i\"~`$m Jn IW4W A^ ?X:X MW                 NY   .X 2VFV 7~X2XFS"
+      " <V?VCV MX 2V )W %W +X  MV       GV 5X6X =X  NX -X BVGX DX /X  BX GX8X X5X LX -X  7a  1a  "
+      "X @W KW2XHX GX6X!X ,X,X*X -X .X ,X/X'X -X -XFZ AX -XKV<VKX0XJW=X'X)X,X7X X)X,X7X!X  KX <X/"
+      "X'X4X\"X>VIV>X2YIY DYFY +Z JW .V  NW 1Y3Y    1n DWLh Bm ChLW Gk Ll 6hLW MWKg HW ,W ,W;Y JW "
+      ",WKfGg8WKg Cl FWLh ChLW MWK` @m Im <W6W\"X4X!W=Z=W1X;X NW3X!u 6W :V  MW       CgGV!W;W 0X ?"
+      "g Am CWKg [4X >Y =W6W JW-W&YJb }!WCWCW Hk Dx&{ W4W CWFW <Y 9X /Y)X,ZDXDZ*X0X)X?X?X.X)X P #"
+      "SGVGS %P 7V 9P0P CSGVGS    !l BX 8ZGWFZ JWCX DV ,Z   .SEW<PCS8V?V .P>P     JSCVAVDS  :WEV "
+      "$V <V &W   >W6W NiGU     KU 6V;V BP>P /U5V KU5V EW=V FX 0XHX =XHX =XHX =XHX =XHX =XHX <XDX"
+      " MX ,X -X -X -X -X -X -X -X ,X,X+XJW=X'X)X-X)X-X)X-X)X-X)X&Z7Z*X5WKX,X/X'X/X'X/X'X/X\"YFY F"
+      "X=[ KWDY @n Cn Cn Cn Cn Cn CnHj1m Bk @k @k @k FW ,W ,W ,W $j GWKg Cl Al Al Al Al .Z Bs MW6"
+      "W MW6W MW6W MW6W\"W3X MWLh LW3X     V?V@W*V)W*VJV@VKW*V4VKW*V)W#V 9X4X     2X 4S   :l ?i\"~`"
+      "%o Lp JW4W A^ >W:X MW                 NX   -X 2VFV 7~X2WES <V?VDV LX 2V )W %W -\\  V       "
+      "HW 5X6X =X  NX .X BWGX DX 0X  BY FX:X NX5X LX -X  :d  1d $Y @V IV2WFW GX6X\"Y ,X,Y+X -X /Y "
+      ",X/X'X -X -XH[ @X -XKW>WKX0XJX>X(Y)X,X7X!Y)X,X7X!Y  LX <X/X&X6X!X>VIV>X1YKY BXFX +Z IW .W "
+      " W 2Y1Y    2o EWMj Dn DjMW Hn Nl 7jMW MWLi IW ,W ,W<Y IW ,WLhIi9WLi En GWMj EjMW MWLa An I"
+      "m <W6W!W4W W=Z=W1Y=Y MW4W u 6W :V  MW       DiIV W;W /W =g Cm CWLi![4W =Y =W6W KW+W(ZKd!}!"
+      "WCWCW Im Fy&{ W4W CWFW ;Y :X /X'X-YCXCY*X0X)X?X?X/Y)X!R #QFVFQ $R 9V :R1R DQFVFQ    \"n BX "
+      "7ZJ\\JZ HWDW CV +[   1TFW.T:W?V /Q?Q     KTCVAWET  :XIX $V =V #U   >W6W NiGU     KU 6V;V BQ"
+      "?Q 0U6V JU6V BU>V EX 0WFW =WFW =WFW =WFW =WFW =WFW <XDX NY ,X -X -X -X -X -X -X -X ,X,Y,XJ"
+      "X>X(Y)X.Y)X.Y)X.Y)X.Y)X%Z9Z*Y6WJX,X/X'X/X'X/X'X/X!XFX EX;Z LWDX ?o Do Do Do Do Do DoKn4n C"
+      "n Cn Cn Cn HW ,W ,W ,W %l HWLi En Cn Cn Cn Cn /Z Cs LW6W MW6W MW6W MW6W!W4W LWMj LW4W     "
+      "W?V?V+W(V+WKXBXKV+W5XKV+W(V$W 8W4X     2X 5T   ;n ?g!~_%p LZDZ JW4W A^ >W:W MW            "
+      "     MX   -X 2VFV 7~X2WES <WAWDV KX 3V )W %W /` \"V       HV 4X6X =X  Y .X BVFX DX 0X  BX E"
+      "X:X NX5X LX -X  <e  /e 'Y @V GV4XFX HX7X!X +X+X+X -X /X +X/X'X -X -XI[ ?X -XJV>VJX0XIW>X(X"
+      "'X-X7X!X'X-X7X!Y  LX <X/X&X6X!X>VIV>X1YKY AXHX +Z HW -V  W 3Y/Y    3p FWMk Fo EkMW Io Nl 8"
+      "kMW MWMk JW ,W ,W=Y HW ,WMjJj:WMk Gp HWMk GkMW MWMb Bo Im <W6W!W4W W>\\>W0X=X LW5X u 6W :V "
+      " MW       EkJV W<X /W >j Fn CWMk\"\\6X =Z >W6W KW+W)[Ke\"}!WCWCW Jo Hz&{ W4W DWDW ;Y ;X /X'X."
+      "YBXBY+X0X)X?X?X/X'X#T  HV  IT :V ;T3T :V   CV +o BX 6ZM`MZ GXFX CV *\\   3SFW,S:V>V 0R@R   "
+      "  KSBV@VDS  9e #V ?W \"V   ?W6W NiGU     KU 6V;V BR@R 1U6V JU6V BV?V EX 1XFX ?XFX ?XFX ?XFX"
+      " ?XFX ?XFW =XCX NX +X -X -X -X -X -X -X -X ,X+X,XIW>X(X'X/X'X/X'X/X'X/X'X%Z;Z)X5VHX-X/X'X/"
+      "X'X/X'X/X XHX DX:Y LWEX >p Ep Ep Ep Ep Ep EpMp6o Do Do Do Do HW ,W ,W ,W 'o IWMk Gp Ep Ep "
+      "Ep Ep 0Z Ds KW6W MW6W MW6W MW6W!W5X LWMk MW5X     V>V?W,V'W,VKZDYKW,V5YKW,V'W%W 8X5W     2"
+      "X 4T   ;o @g ~^%q NY@Y KW4W B` ?X<X MV                 LX   -X 2VFV 7~X2WES ;VAVDV JY 4V )"
+      "V $W 1d $V       HV 4X6X =X  X .Y CWFX DXLY =XEX 'Y EY<X MX5X LX -X  ?e  )e +Y ?V:X6V4WDW "
+      "HX7X!X +X+X+X -X /X +X/X'X -X -XJ[ >X -XJW@WJX0XIX?X(X'X-X7X!X'X-X8Y Y  MX <X/X%W6X W?WIV>"
+      "W/YMY @YJY +Y GW -V  W 4X+X    4YE\\ FWNXG\\ H]EX F\\GXNW J\\F[ GW ,\\GXNW MWNXG[ JW ,W ,W?Z GW"
+      " ,WNXH[KXH[:WNXG[ H]H] IWNXG\\ I\\GXNW MWNXFQ C\\CW CW ,W6W!X6X NW?\\?W.X?X JW6W 1X 6W :V  MW "
+      "    9X=X\"[IZKW W=Y /W @m H]DV CWNXG[\"\\6W =[ >W6W LW)W*ZJWKY\"}!WCWCW K\\H] J{&{ V3W DWDW :Y "
+      "<X /X'X.XAXAX+X0X)X?X?X/X'X$V  IV  JV ;V <V5V ;V   CV ,^MSKW BX 5x EWFW BV ,_   5TFW,S:V?W"
+      " 1SAS     LTBV@VDS  9d \"V @W  U   ?W6W NiGU     KU 5V=V ASAS 2U7V IU7V @U@V DX 1WDW ?WDW ?"
+      "WDW ?WDW ?WDW ?XFX >XCX NX +X -X -X -X -X -X -X -X ,X+X,XIX?X(X'X/X'X/X'X/X'X/X'X$Z=Z(X6WH"
+      "X-X/X'X/X'X/X'X/X YJY DX9Y MWEW =YE\\ EYE\\ EYE\\ EYE\\ EYE\\ EYE\\ EYE]N\\G[7]EX E\\F[ F\\F[ F\\F[ "
+      "F\\F[ IW ,W ,W ,W (p IWNXG[ H]H] G]H] G]H] G]H] G]H] 1Z E]H^ JW6W MW6W MW6W MW6W W6W KWNXG\\"
+      " MW6W     NV>V>V,V&V,VJZFYIV,V6YIV,V&V%W 7W6X     3X LR:T   ;q @e N~^&s!Y>Y LW4W B` >W<X N"
+      "W                $x   FX 2VFV 7~X2WES ;VAVEW IY 5V *W #W 4XNTNX &V       IW 5X5X =X  X .X "
+      "CWEX Di AXH_ +X CX<X MX5X LX -X  Be  #e /Z @V<^IUDV5WDW HX8Y!X +X+X+X -X /X +X/X'X -X -XK["
+      " =X -XIV@VIX0XHW?X(X'X-X7X!X'X-X8X NZ  NX <X/X%X8X NX@VGV@X.c >XJX +Z GW -W !W 5X)X    5U>"
+      "Z G_CZ I[>T FZC_ KZAZ HW -ZB_ M^BZ KW ,W ,W@Z FW ,^CZMVCZ;^BZ IZBZ I_CZ IZC_ M^ 5Y<S CW ,W"
+      "6W W6W MW?\\?W.YAY JW6W 2Y 6W :V  MW     ;\\A\\%YDYLV NW>Y .W AXJa IZ<Q C^BZ MX8X =\\ ?W6W LW)"
+      "W+YIXJY LW=W JWCWCW LZBZ K]F] ;W >W2W EWDW 9Y =X /X'X/YAXAY,X0X)X?X?X/X'X%X  JV  KX <V =X7"
+      "X <V   CV -\\JSHT BX 4v DXHX BV -b   7SEV*S;V?W 2TBT     LSAV@VCS  9b !V AV  MU   ?W6W MhGU"
+      "     KU 5V=V ATBT 3U8V HU8V ?UAV CX 1WDW ?WDW ?WDW ?WDW ?WDW ?WDW ?XBX NX +X -X -X -X -X -"
+      "X -X -X ,X+X,XHW?X(X'X/X'X/X'X/X'X/X'X#Z?Z'X7WGX-X/X'X/X'X/X'X/X NXJX CX9Y MWFW <U>Z FU>Z "
+      "FU>Z FU>Z FU>Z FU>Z FU>eBZ9[>T FZAZ HZAZ HZAZ HZAZ JW ,W ,W ,W )r J^BZ IZBZ GZBZ GZBZ GZBZ"
+      " GZBZ 1Z EZB[ JW6W MW6W MW6W MW6W W6W K_CZ MW6W     V=V>V-V%V-VHZHYHV-V6YHV-V%V%W 7X7X    "
+      " 4X NU:T   <s Ae N~^'u\"X<X LW4W BWNW >W<W MW                $w   EX   2~X2WES ;WCWEV GY   "
+      "9W #W 5XMTMX 'V       IV 4X4X >X !Y 0Y BVDX Dk CXJc -X BX>X LX5Y MX -X  Ee   Le 3Z ?U=bKUC"
+      "U6XDX IX9Y X +X+X+X -X /X +X/X'X -X -XL[ <X -XIV@VIX0XHX@X(X'X-X8Y!X'X-X8X N[  X <X/X%X8X "
+      "NX@VGV@X.c =XLX +Z FW ,V !W       AR9Y H]?Y KZ:R GY?] LY=Y IW -Y?] M]@Y KW ,W ,WAY DW ,]@X"
+      "NV@X;]@Y JY>Y J]?Y KY?] M] 4X8P CW ,W6W X8X MW?\\?W-XAX IW7X 3Y 5W :V  MW     =_C_(YBXLV NW"
+      "?Z -W CXC\\ KY ,]@Y LW8X >] ?W6W LW)W,YHWHY MW=W JWCWCW MY>Y L[B[ ;W >W2W FWBW 9Y >X 0X%X0X"
+      "@X@X,X0X)X?X?X/X'X&Y  JV  KY =V >Y7Y =V   CV .[HSFR BX 3t BWHW AV .WN\\   9SFV)S;V?W 3UCU  "
+      "   LSAV@VCS  7_  V BV  LU   ?W6W MhGU     KU 5W?W AUCU 4U8V HU8V ?UAV CX 2XDX AXDX AXDX AX"
+      "DX AXDX AXDX @XBX NX +X -X -X -X -X -X -X -X ,X+X,XHX@X(X'X/X'X/X'X/X'X/X'X\"ZAZ&X8WFX-X/X'"
+      "X/X'X/X'X/X MXLX BX8X MWFW <R9Y GR9Y GR9Y GR9Y GR9Y GR9Y GR9a>Y;Z:R GY=Y JY=Y JY=Y JY=Y KW"
+      " ,W ,W ,W *]E[ J]@Y JY>Y IY>Y IY>Y IY>Y IY>Y 2Z FY>Y JW6W MW6W MW6W MW6W W7X K]?Y NW7X    "
+      " V=V=U-V$U-VGZJYFU-V7YFU-V$U%W 7X8X    &~X/X:T   =t @c L~\\'v\"W:W LW4W CXNX ?X>X MV        "
+      "        $x   EX   2~X2WES :VDWEV FZ   :W #W 7XKTKX )V       IV 4X4X >X !X 0Y BWDX Dm FXKf "
+      "/Y AYBY KX5Y MX -X  Gd ~X d 5Y ?V>dLUCU6WBW IX;Z Y +X+Y,X -X 0Y +X/X'X -X -XM[ ;X -XIWBWIX"
+      "0XGW@X)Y'Y.X8X!Y'Y.X9Y M] #X <X/X$X:X MX@VGV@X-a <YNY ,Z EW ,V !W       AP6X H\\=Y LY7P HY="
+      "\\ LX;X IW .Y=\\ M[=X KW ,W ,WBY CW ,[=]=W;[=X KY<Y K\\=Y MY=\\ M\\ 4X *W ,W6W NW8X MW@VNV@W,XC"
+      "X GW8W 3Y 4W :V  MW     >aEa)X@XNW NWA[ ,W DW?[ LX +[=X KW:X =] ?W6W MW'W-XGWGX MW=W JWCWC"
+      "W MX<Y NZ>Z <W >W2W FWBW 9Z ?X 0X%X0X@X@X,X0X(X@X@X/Y'Y(Y  IV  JY >V ?Y5Y >V   CV .YFSDP B"
+      "X 2q @XJX AV /WK[   :SFV)S;V@X 4VDV     LSAV@VCS  6\\  MV CV  KU   ?W6W MhGU     KU 4V?V @V"
+      "DV 5U9V GU9V >UBV BX 2WBW AWBW AWBW AWBW AWBW AXDX @XBX Y +X -X -X -X -X -X -X -X ,X+Y-XGW"
+      "@X)Y'Y1Y'Y1Y'Y1Y'Y1Y'Y\"ZCZ&Y9WEY.X/X'X/X'X/X'X/X MYNY BX8Y NWFW <P6X GP6X GP6X GP6X GP6X G"
+      "P6X GP6_<X;Y7P GX;X JX;X JX;X JX;X KW ,W ,W ,W *Z?Y K[=X KY<Y KY<Y KY<Y KY<Y KY<Y 3Z GY<Y "
+      "KW6W MW6W MW6W MW6W NW8W J\\=Y NW8W     NV=V=V.V$V.VFZLYEV.V8YEV.V$V&W 6W8X    &~X2\\<T   =v"
+      " Ab K~\\(x$W8W MW4W CXNX ?X>X NW                $w   DX   $VBV#XFS :WFXEV H]   ;W #W 9XITIX"
+      " +V       JW 4X4X >X \"Y 3[ BWCX Dn GXLi 1X ?ZFZ JY7Z MX -X  Je M~X Me 9Y >U?gMUCV7WBW IX>\\"
+      " NX *X*X,X -X 0X *X/X'X -X -XNZ 9X -XHVBVHX0XGXAX)X%X.X9Y!X%X.X:Y La 'X <X/X$X:X LWAWGV@W+"
+      "_ :XNX ,Z DW ,W \"W       &W H[;X MY .X;[ MX9X JW .X;[ M[<X LW ,W ,WCY BW ,Z<\\<X<[<X LX:X K"
+      "[;X MX;[ M[ 3W )W ,W6W NW8W KWAVNVAW*XEX FW9X 4Y 3W :V  MW     ?cGc+Y?WNV MWD] +W DV=Z LX "
+      "+Z;X LW:X >_ @W6W MW'W.YGWFX NW=W JWCWCW NX:X NY<Y <W >W2W FWBW 8Z @X 0X%X0X@X@X,X0X(X@X@X"
+      "/X%X)Y  HV  IY ?V @Y3Y ?V   CV /YES 6X 1\\H[ JcJc LV 0WI\\   =TFV)S;WAX 5WEW     MTAVAWCS  3"
+      "W 4~W.W  KV   ?W6W LgGU     KU 4WAW @WEW 6U9V GU9V ?VBV BX 2WBW AWBW AWBW AWBW AWBW AWBW A"
+      "XAX X *X -X -X -X -X -X -X -X ,X*X-XGXAX)X%X1X%X1X%X1X%X1X%X!ZEZ%X9WCX.X/X'X/X'X/X'X/X LXN"
+      "X AX7X NWFW !W ,W ,W ,W ,W ,W ,]:X=Y .X9X LX9X LX9X LX9X LW ,W ,W ,W +Z=X K[<X LX:X KX:X K"
+      "X:X KX:X KX:X 3Z GX<Z KW6W MW6W MW6W MW6W NW9X J[;X NW9X     NU<V=V.U#V.UDZNYDV.U8YDV.U#V&"
+      "V 5X9W    %~X3]<T   >x A` J~\\(y%W8W MW4W CXMW >W>W MV                $x   DX   $VCV\"XFS 9X"
+      "IXEV H_   <W #W ;YHTHY -V       JV 3X4X >X #Y ?g AVBX Do HXMk 3Y >l HX7Z MX -X  Me J~X Je "
+      "=Y >V?hNUBU8XBX Ju MX *X*X,w Lq IX *~R'X -X -c 8X -XHVBVHX0XFWAX)X%X.X9Y!X%X.X;Z Ke ,X <X/"
+      "X$X:X LXBVEVBX+_ 9` +Y CW +V \"W       %W IZ9X NX .X9Z MW7W JW /X9Z MZ;X LW ,W ,WDY AW ,Z;["
+      ";W<Z;X MY:Y LZ9X X9Z MZ 2W )W ,W6W NX:X KWAVNVAW*YGY EW:W 4Z 3W :V  MW     ?XMYIe,X>WNV MW"
+      "Ib +W EW;Y MW *Z;X KV:W =_ @W6W NW%W/XFWFX NW=W JWCWCW NW8X!Y:Y =W >| GW@W 8Y @X 0X%X1Y@X@"
+      "Y-X0X(X@X@X/XImIX*Y  GV  HY @V AY1Y @V   CV /XDS 6X 0YDY JdLd LV 1WF[   >SFV'S<WBY 6XFX   "
+      "  MS@VAVAS    @~W/W  JU   >W6W LgGU     KU 3WCW ?XFX 7U:V FU:V >UBV AX 3XBX CXBX CXBX CXBX"
+      " CXBX CXBX BXAw?X *w Lw Lw Lw LX -X -X -X ,X*X-XFWAX)X%X1X%X1X%X1X%X1X%X ZGZ$X:WBX.X/X'X/X"
+      "'X/X'X/X K` @X7X NWFW  W ,W ,W ,W ,W ,W ,[8W=X -W7W LW7W LW7W LW7W LW ,W ,W ,W ,Y:X LZ;X M"
+      "Y:Y MY:Y MY:Y MY:Y MY:Y  \"Y=\\ LW6W MW6W MW6W MW6W MW:W IZ9X NW:W     NV<V=V/V#V/VCcCV/V9YC"
+      "V/V=X>V&V 4W:X    %~X2TNV<S   =y KWM^LW$~Z({&W7V MW4W CWLX ?X?W MV                 KX   ,X"
+      "   %VBV!XGS 9gFV Ha   >W \"W ;WFTFW -V       JV 3X4X >X #Y ?f AWBX Dp IXNm 4X <j GX7Z MX -X"
+      " !e G~X Ge AY =U?ZH^BU8W@W Jt LX *X*X,w Lq IX *~R'X -X -b 7X -XHWDWHX0XFXBX)X%X.X:Y X%X.X<"
+      "Z Ih 0X <X/X#X<X KXBVEVBX*] 8` ,Z CW +V \"W       %W IZ9X X -X9Z NX7X KW /X9Z MY9W LW ,W ,W"
+      "EY @W ,Y:Z:W<Y9W MX8X LZ9X X9Z MY 1W )W ,W6W MW:W JWAVNVAW)XGX DW:W 4Y 3X :V  MW     @VHXK"
+      "WGV,W<^ MWIa *W FW9Y NW *Y9W KW<X >` @W6W NW%W/WEWEW NW=W JWCWCW X8X!X8X =W >| GW@W 7Y AX "
+      "0X%X1X?X?X-X0X(X@X@X/XImIX+Y  FV  GY AV BY/Y AV   DX 1XCS 6X 0W@X KdLd LV 1VCZ   ?SFV'S;WE"
+      "[ 7XFX G~X  .S@VBWAS    @~W0W .P>W   >W6W KfGU     KU 3XEX >XFX 8U;V:W3U;VCZ9P>WCV:W/Y 3W@"
+      "W CW@W CW@W CW@W CW@W CXBX CX@w?X *w Lw Lw Lw LX -X -X -X 5p9X-XFXBX)X%X1X%X1X%X1X%X1X%X N"
+      "ZIZ#X:VAX.X/X'X/X'X/X'X/X K` @X7X NWFW  W ,W ,W ,W ,W ,W ,[8X?X -X7X NX7X NX7X NX7X MW ,W "
+      ",W ,W ,X9X LY9W MX8X MX8X MX8X MX8X MX8X  \"X=] LW6W MW6W MW6W MW6W MW:W IZ9X NW:W     NVLu"
+      "KU/VLuKU/VBaAU/V:YAU/V=X=U&V 4X;X    %~X2RLW>T   >{!z'~Z)}(W6W NW4W DXLX ?X@X MV          "
+      "       KX   ,X   %VBV!YHS 8eEV Ic   ?W !W ;UETEU ,V       KW 3X4X >X $Y >c ?WAX DWD^ JbG] "
+      "5X 9d DY9[ MX -X #d D~X Dd DY <U@YD\\BU9X@X Kq IX *X*X,w Lq IX *~R'X -X -a 6X -XGVDVGX0XEWB"
+      "X)X%X.X;Z X%X.X?\\ Gk 4X <X/X#X<X KXBVEVBX)[ 6^ ,Z BW +W #W       %W IY7W X -W7Y NW5W KW 0X"
+      "7Y MY9W LW ,W ,WFY ?W ,Y:Z:W<Y9W MW6W LY7W W7Y MY 1W )W ,W6W MW:W JWBVLVBW(XIX CW;X 5Y 2X "
+      ":V  MX     BUDVKVDU.X<] LWI_ :WEW FV7X NW *Y9W JV<X >a AW6W NW%W0XEWEX W=W JWCWCW W6W!X8X "
+      "=W >| HX@X 7Y BX 0X%X1X?X?X-X0X(X@X@X/XImIX,Y  EV  FY BV CY-Y BV   DX 1XCS 6X 1W>W KeNe LV"
+      " 1VB[   ASFV'S;YI] 9YGY F~X  .S@VDX@S    @~W1V ,TEZ   >W6W JeGU IX   +U 2YIY <YGY :U;V:W3U"
+      ";VGa<TEZCV:W/X 3X@X EX@X EX@X EX@X EX@X EX@X DX@w?X *w Lw Lw Lw LX -X -X -X 5p9X-XEWBX)X%X"
+      "1X%X1X%X1X%X1X%X MZKZ\"X;WAX.X/X'X/X'X/X'X/X J^ ?X7X NWFX !W ,W ,W ,W ,W ,W ,Z6W?X -W5W NW5"
+      "W NW5W NW5W MW ,W ,W ,W -X7W LY9W MW6W MW6W MW6W MW6W MW6W  \"W=^ LW6W MW6W MW6W MW6W MW;X "
+      "IY7W NW;X     NVLuKU/VLuKU/VA_@U/V;Y@U/V=X=U&V 4X<X    $~X,W>T   ?|\"}(~X)~(W6W NW4W DXKW >"
+      "W@X MV                 KX   ,X   %VBV!ZIS 7cEV IYNZ8W  0W !W :RCTCR +V       KW 3X4X >X %Y"
+      " =b >V@X DS=\\ K`C[ 6Y 8b BX9[     Nd A~X Ad HY <VAX@ZBV:X?W Kq IX *X*X,w Lq IX *~R'X -X -a"
+      " 6X -XGVDVGX0XEXCX)X%X.X=[ NX%X.u Fl 6X <X/X\"W<W IWCWEVBW([ 5\\ ,Z AW +W #W       $V IY7X\"X"
+      " -X7Y NW5W KW 0X7Y MX8X MW ,W ,WHZ >W ,X8X8W=X8X X6X MY7X\"X7Y MX 0W )W ,W6W MX<X IWCVLVCW&"
+      "XKX AW<W 5Y 1W 9V  LW  4P  /TBVMVBT.X;\\ LWI` =\\HW GW7X NW *X8X KV=X >XMW AW6W NW%W0XEWDW W"
+      "=W JWCWCW!X6X#X6X >W >| HW>W 6Y CX 0X%X1X?X?X-X0X'XAXAX.XImIX-Y  DV  EY CV DY+Y CV   DX 2X"
+      "BS 6X 1V<V KeNe LV 2V?Y   ASFV'S:dNV :XFY E~X  .S@i?S    @~W2i >h   =W6W JeGU IX   4g :g :"
+      "YFX DgEV:X<gEVHe>hCV:X/X 3X?W EX?W EX?W EX?W EX?W EX@X EX?w?X *w Lw Lw Lw LX -X -X -X 5p9X"
+      "-XEXCX)X%X1X%X1X%X1X%X1X%X LZMZ!X<W@X.X/X'X/X'X/X'X/X I\\ >X7X NWFY !V +V +V +V +V +V +Y6W@"
+      "X ,W5W NW5W NW5W NW5W MW ,W ,W ,W -X7X MX8X X6X X6X X6X X6X X6X  $X=_ MW6W MW6W MW6W MW6W "
+      "LW<W HY7X NW<W     MVLuKU/VLuKU/V@]?U/V<Y?U/V=X=U&V 3W<X    $~X+V>S   >}%~R)~V(~P)W6W NW4W"
+      " DWJX ?XAW L~^               $X   ,X   %VCV N\\LS 6aDVAW0XLZ9W  0W !W :PATAP +V       KV 2X"
+      "4X >X &Z =e BW@X DP8[ L^?Z 7X :h EY;\\    \"d >~X ?e LY ;U@W>YAU:W>W Ks KX *X*X,w Lq IX6f+~R"
+      "'X -X -b 7X -XGWFWGX0XDWCX)X%X.X@^ NX%X.s Bl 8X <X/X\"X>X IXDVCVDX)[ 4\\ -Z @W *V #W       $"
+      "W JX5W\"X -W5X W4W KW 0W5X MX7W MW ,W ,WIZ =W ,X8X8W=X7W W4W MX5W\"W5X MX 0X *W ,W6W LW<W HW"
+      "CVLVCW&YMY AW=X 6Y 1X 9V  LX 1X.Q  /TA]AU/W:\\ LWIb A`JW GV5X NW +X7W KW>X >XMX BW6W W#W1WD"
+      "WDW W=W JWCWCW!W4W#X6X >W >| HW>W 7Y BX 0X%X1X?X?X-X0X'XAXAX.XImIX.Y  CV  DY DV EY)Y DV   "
+      "DX 2XBS 6X 2W<W =^ =V 2V>Y   BSFV'S9bMV ;XFY D~X  .S@h>S    @~W2i >g   <W6W HcGU IX   4g 9"
+      "e 8YFX EgEV;Y<gEVHf?gBV;Y0Y 3W>W EW>W EW>W EW>W EW>W EW>W EX?w?X *w Lw Lw Lw LX -X -X -X 5"
+      "p9X-XDWCX)X%X1X%X1X%X1X%X1X%X Ke X=W?X.X/X'X/X'X/X'X/X I\\ >X7X NWEY \"W ,W ,W ,W ,W ,W ,X5W"
+      "@X -W4W W4W W4W W4W MW ,W ,W ,W -W6X MX7W W4W W4W W4W W4W W4W  $W=VMW MW6W MW6W MW6W MW6W "
+      "LW=X HX5W NW=X     MVLuKU/VLuKU/V?[>U/V=Y>U/V=X=U&V 3X=W     7X FW@T   ?~&~T*~V)~R*W5V NW4"
+      "W EXJX ?XBX L~^               $X   ,X   &VBV Mb 4]CVC]4XJZ:W  0W !W +T  KV       KV 2X4X >"
+      "X 'Z <g EW?X +Z L]=Z 9Y <l GZ=]    %e    e!Y :UAW<XAU;X>X Lu MX *X*X,w Lq IX6f+~R'X -X -c "
+      "8X -XFVFVFX0XDXDX)X%X.u MX%X.r ?l :X <X/X\"X>X IXDVCVDX)\\ 4Z ,Y ?W *V #W       $W JX5W\"W ,W"
+      "5X W3W LW 0W5X MX7W MW ,W ,WJY ;W ,X8X8W=X7W W4W MX5W\"W5X MX 0X *W ,W6W LW<W HWCVKUCW%XMX "
+      "?W>W 6Y 0X 9V  LX 5`3R  0T?[?T/W:[ KWId DbKW HW5X NW +X7W JV>W =WLX BW6W W#W1WDWDW W=W JWC"
+      "WCW!W4W#W4W >W >| IX>X 9Y AX 0X%X1X?X?X-X0X'XAXAX.XImIX/Y  BV  CY EV FY'Y EV   DX 2WAS ?r "
+      "CV:V =^ =V 2V=Y   CSFV'S8`LV <XFX B~X  .S@e;S    @~W2i >e   :W6W GbGU IX   4g 8c 5XFX FgFV"
+      ":Y<gFVGg@eAV:Y1Y 3X>X GX>X GX>X GX>X GX>X GX>X FX?w?X *w Lw Lw Lw LX -X -X -X 5p9X-XDXDX)X"
+      "%X1X%X1X%X1X%X1X%X Jc NX>W>X.X/X'X/X'X/X'X/X HZ =X7X NWEZ #W ,W ,W ,W ,W ,W ,X4WAW ,W3W!W3"
+      "W!W3W!W3W NW ,W ,W ,W .X5W MX7W W4W W4W W4W W4W W4W  $W>VLW MW6W MW6W MW6W MW6W KW>W GX5W "
+      "MW>W     LVLuKU/VLuKU/V>Z>U/V>Y=U/V=X=U&V 2W>X     8Y FW@T   ?~P(~V*~T(~Q)V4V NW4W EXJX >W"
+      "BX L~^               $X   ,X   &VBV Ld 4WAVD`6XHZ;W  0W !W +T  KV       LW 2X4X >X 'Y ;i G"
+      "V>X *Z M\\;Y 9X =p HZ?^    'd    Id$Y 9UAW<XAU;W<W Lw X *X*X,w Lq IX6f+~R'X -X -d 9X -XFVFV"
+      "FX0XCWDX)X%X.t LX%X.p ;k ;X <X/X!X@X HXDVCVDX*^ 4X ,Z ?W *W $W       $W JX5W\"W ,W5X W3W LW"
+      " 0W5X MW6W MW ,W ,WKY :W ,W7W7W=W6W W4W MX5W\"W5X MX /Y ,W ,W6W LX>X GWEVJVEW#a >W>W 7Y 1Y "
+      "8V  KY 9e8T  0T?Z>T0X:[ KWIf GdLW HW4W MW ,W6W JV?X >XKW BW6W W#W2XDWDX!W=W JWCWCW!W4W#W4W"
+      " >W >| IW<W :Y @X 0X%X1X?X?X-X0X&XBXBX-XImIX0Y  AV  BY FV GY%Y FV   DX 2WAS ?r DW:W =\\ <V "
+      "2V;W   CSFV'S7]JV =XFX A~X  .S@d:S    (V Ii <a   8W6W FaGU IX   4g 6_ 2XFX GgGV:Z<gGVFUFY?"
+      "a@V:Z2Y 2W<W GW<W GW<W GW<W GW<W GX>X GX>w?X *w Lw Lw Lw LX -X -X -X 5p9X-XCWDX)X%X1X%X1X%",
+
+      // Second string:
+      "X1X%X1X%X Ia MX?W=X.X/X'X/X'X/X'X/X GX <X7X NWDZ $W ,W ,W ,W ,W ,W ,X4WAW ,W3W!W3W!W3W!W3W"
+      " NW ,W ,W ,W .W4W MW6W W4W W4W W4W W4W W4W  $W?VKW MW6W MW6W MW6W MW6W KW>W GX5W MW>W     "
+      "LVLuKU/VLuKU/V?\\?U/V?Y<U/V=X=U&V 2W>X     8X DWBT   ?~Q)~W)~R&~(V4V NW4W EWHW >WBW K~^    "
+      "           $X   ,X   &VBV Kg \"VEc8WFZ=W  /W !W +T 4~W      5V 1X4X >X (Y -] IW>X )Y M[9X 9"
+      "X >\\F\\ H[C`    'a    Ca$Y 9UAV:WAU;W<W LX<\\!X *X*X,X -X 0X6f+X/X'X -X -XN[ :X -XEVHVEX0XCX"
+      "EX)X%X.s KX%X.o 6h <X <X/X!X@X GWDVCVDW*_ 4X -Z >W )V $W       6i JX5X$X -X5X V2W LW 1W3W "
+      "MW6W MW ,W ,WLY 9W ,W7W7W=W6W!X4X NX5X$X5X MW .[ .W ,W6W KW>W FWEVJVEW#a >W?X 8Z 4\\ 8V  K["
+      " =i<V  0S=Y=S0X:[ KW@^ IfMW HW4W MY .W6W JW@W =XKX CW6W W#W2WCWCW!W=W JWCWCW\"X4X%X4X ?W >W"
+      "2W IW<W :Y @X 0X%X1X?X?X-X0X&XBXBX-X%X1~` GV H~` GV H~` GV   DX 3XAS ?r DV8V =\\ <V 2V;X   "
+      "DSFV'S4W /XFX @~X  .S@VIX;S    (V Ii 8Z   5W6W D_GU IX   4g 3Y .XFX HgGV;TNU<gGVFQ@W;Z=V;T"
+      "NU3Y 1W<W GW<W GW<W GW<W GW<W GW<W GX>X X *X -X -X -X -X -X -X -X ,X*X-XCXEX)X%X1X%X1X%X1X"
+      "%X1X%X H_ LX@W<X.X/X'X/X'X/X'X/X GX <X7X NWD\\ 8i >i >i >i >i >i >i3WBX ,V2W!V2W!V2W!V2W NW"
+      " ,W ,W ,W .W4W MW6W!X4X\"X4X\"X4X\"X4X\"X4X M~Y2X@VIW NW6W MW6W MW6W MW6W KW?X GX5X NW?X     L"
+      "VLuKU/VLuKU/V@^@U/V@Y;U/V=X=U&V 2X?W     8X CWBT   ?~R*~X)~Q%}(V4W W4W FXHX ?XDX K~^      "
+      "         $X   ,X   'WCV Ii &VEe:XEZ>W  /W !W +T 4~W      5V 1X4X >X )Y )[ KW=X (Y N[9Y ;Y "
+      "?Z@Z I]Gb    '^    =^$X 9U@V:WAU<X<X MX9Z\"X *X*X,X -X 0X6f+X/X'X -X -XM[ ;X -XEVHVEX0XBWEX"
+      ")X%X.r JX%X.q 4e =X <X/X!X@X GXFVAVFX*` 5X .Z =W )V $W       :m JW3W$W ,W3W!W2W LW 1W3W MW"
+      "6W MW ,W ,WMY 8W ,W7W7W=W6W!W2W NW3W$W3W MW -^ 2W ,W6W KX@X FWEVJVEW\"_ <W@W 7Y :b 7V  Jb F"
+      "mAX  0S<W<S0W8Y JW<[ KYHVMV GV3X MZ 0W6W IVAX >XIW CW6W!W!W3WCWCW!W=W JWCWCW\"W2W%W3X ?W >W"
+      "2W JW;X <Y ?X 0X&Y1X?X?X-X0X&YCXCY-X%X2~a GV H~a HV I~b HV   DX 3W@S ?r DV8V <Z ;V 2W;W   "
+      "DSFV'S  <XFX  =V  .S@VGW<S    (V      \"W6W A\\GU IX       2XFX *V;TMU LV2V V;TMU4Z 2X<X IX<"
+      "X IX<X IX<X IX<X IX<X IX=X X *X -X -X -X -X -X -X -X ,X*X-XBWEX)X%X1X%X1X%X1X%X1X%X G] KX@"
+      "V;X.X/X'X/X'X/X'X/X GX <X8Y NWC\\ =m Bm Bm Bm Bm Bm Bm3WBW ,W2W\"W2W\"W2W\"W2W NW ,W ,W ,W /X4"
+      "X NW6W!W2W\"W2W\"W2W\"W2W\"W2W M~Y2W@VHW NW6W MW6W MW6W MW6W JW@W FW3W MW@W     KVLuKU/VLuKU/V"
+      "A`AU/VAY:U/V=X=U&V 1W@X     9X BWBS   >~R+~Z*~P#{'V4W W4W FXHX ?XDX K~^               $X  "
+      " ,X   'VBV Gi (VFg;WCZ?W  /W !W +T 4~W      6W 1X4X >X *Y &Z LW=X (Y NZ7X ;X ?Z>Z ImNX    "
+      "'[    8\\%Y 9UAW:WAU<W:W MX7Y#X *X*X,X -X 0X6f+X/X'X -X -XL[ <X -XEWJWEX0XBXFX)X%X.p HX%X.r"
+      " 0a >X <X/X XBX FXFVAVFX+b 6X /Z <W )W %W       =p JW3W$W ,W3W!| LW 1W3W MW6W MW ,W ,WNY 7"
+      "W ,W7W7W=W6W!W2W NW3W$W3W MW -b 6W ,W6W JW@W EWFVHVFW!] ;WAX 8Y 9` 5V  H` HrG[  0S<W<S0W8Y"
+      " JW:Y KXF^ HW2W Kc ;W6W IVAX >XIW CW6W!W!W3WCWCW!W=W JWCWCW\"W2W%W2W ?W >W2W JW:W =Y >X 0Y'"
+      "X0X?X?X-X0X%XCXCX,X%X2~a GV H~a HV I~b HV   DX 3W@S ?r DV8V <Z   FW;W   DSFV'S  =XFX  <V  "
+      ".S@VFW=S    (V      \"W6W <WGU IX       1XFX +V;SLU LV2V V;SLU5Z 1W:W IW:W IW:W IW:W IW:W I"
+      "X<X IX=X X *X -X -X -X -X -X -X -X ,X*X-XBXFX)X%X1X%X1X%X1X%X1X%X F[ JXAW;X.X/X'X/X'X/X'X/"
+      "X GX <X8X MWB] Bp Ep Ep Ep Ep Ep E~eBW ,|\"|\"|\"| NW ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W "
+      "M~Y2WAWHW NW6W MW6W MW6W MW6W JWAX FW3W MWAX     KV<V=V/V#V/VBbCV/VBY:V/V=X>V&V 1XAW     9"
+      "X @WDT   ?~S+~Z)}!y'W4W W4W FWFW >WDW J~^               *r   ?V   &VBV Eh *VEXIX<XBZ@W  /W"
+      " !W +T 4~W  5f   8V 0X4X >X +Y $Z NW<X 'X NZ7X ;X ?X:X HkMX    '[    7[%X 8UAV8VAU=X:X NX6"
+      "X#X *X*X,X -X 0X6f+X/X'X -X -XK[ =X -XDVJVDX0XAWFX)X%X.m EX%X.XA\\ -^ ?X <X/X XBX FXFVAVFX,"
+      "c 6X /Y ;W (V %W       ?r JW3W$W ,W3W!| LW 1W3W MW6W MW ,W ,a 6W ,W7W7W=W6W!W2W NW3W$W3W M"
+      "W ,e :W ,W6W JW@W DWGVHVGW N[ 9WBW 8Y 8^ 3V  F^ I~X  0S;U;T1W8Y JW8X MXC\\ HW2W Ia ;W6W IWB"
+      "W >XHX DW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W >W2W KX:X ?Y =X /X'X0Y@X@Y-X0X%YDXDY,X%X2~a "
+      "GV H~a HV I~b HV   DX 3W@S ?r DV8V ;X   DW;V   DSFV'S  >XFX  ;V  .S@VFW=S    (V      \"W6W "
+      ":UGU IX       0XFX -V;TLU MV0U!V;TLU6Y 0X:X KX:X KX:X KX:X KX:X KX:X JW<X X *X -X -X -X -X"
+      " -X -X -X ,X*X-XAWFX)X%X1X%X1X%X1X%X1X%X F[ JXBW:X.X/X'X/X'X/X'X/X GX <X9Y MWA] Er Gr Gr G"
+      "r Gr Gr G~gBW ,|\"|\"|\"| NW ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W M~Y2WBWGW NW6W MW6W MW6W "
+      "MW6W IWBW EW3W LWBW     IU<V=V.U#V.UCdDV.UCY9V.U=X>V&V 1XBX     :X ?WDT   ?~S,~[({ x&W4W W"
+      "4W FWFX ?XFX JV                \"q   >V   &VBV Af -VEXGX=W@ZBW  .W !W +T 4~W  5f   8V 0X4X "
+      ">X ,Y \"Y W;X 'X NZ7X <Y @Y:Y HiLX    '^    =^%X 8UAV8VAU=X:X NX5X$X *X*X,X -X 0X(X+X/X'X -"
+      "X -XJ[ >X -XDVJVDX0XAXGX)X%X.i AX%X.X>Z ,\\ ?X <X/X NWBW DWFVAVFW+XMY 7X 0Z ;W (V %W       "
+      "@s JW3W$W ,W3W!| LW 1W3W MW6W MW ,W ,` 5W ,W7W7W=W6W!W2W NW3W$W3W MW +g =W ,W6W JXBX DWGVH"
+      "VGW N[ 9WBW 9Y 7^ 3V  F^ I[Gr  /S;U;T1W8X IW7X NWA[ HW2W F^ ;W6W HVCX >XGW DW6W!W<W<W3WCWC"
+      "W!W=W JWCWCW\"W2W%W2W ?W >W2W KW9X ?Y =X /X'X/X@X@X,X0X$YEXEY+X%X2~a GV H~a HV I~b HV   DX "
+      "3W@S 6X 3V8V ;X   DX<V   DTFV)T  >WEW  :V  .TAVEW?T    (V      \"W6W :UGU IX       /WEW .V;"
+      "TKU NV/U\"V;TKU7Y /X:X KX:X KX:X KX:X KX:X KX:X KX<X X *X -X -X -X -X -X -X -X ,X*X-XAXGX)X"
+      "%X1X%X1X%X1X%X1X%X G] KXCW9X.X/X'X/X'X/X'X/X GX <X9Y MW?] Hs Hs Hs Hs Hs Hs H~hBW ,|\"|\"|\"|"
+      " NW ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W M~Y2WBVFW NW6W MW6W MW6W MW6W IWBW EW3W LWBW   "
+      "  IU<V=V.U#V.UDYMZEV.UDY8V.U#V&V 0WBX     ;X >WDS   >~T-~\\(y Mw&W4W W4W GXFX ?XFX JV      "
+      "          #r   >V   'WCV <c .VEWEW=W?ZCW  .W !W   :~W  5f   9W 0X4X >X -Y  Y!W;X 'Y Y5X =X"
+      " @Y8Y HgKX    'a    Ca%X 8UAV8VAU=W8W NX4X%X *X+Y,X -X 0X(X+X/X'X -X -XI[ ?X -XDWLWDX0X@WG"
+      "X)X&Y.X 0X&Y.X=Y *[ @X <X/X NXDX DXHW@VHX,YMZ 8X 1Z :W (W &W       At JW3W$W ,W3W!| LW 1W3"
+      "W MW6W MW ,W ,` 5W ,W7W7W=W6W!W2W NW3W$W3W MW )g ?W ,W6W IWBW CWGVHVGW MY 8WCX :Y 6` 5V  H"
+      "` IW@m  -S;V<T1W8X IW7X W@[ HW2W Ia ;W6W HVCW >XFX EW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W "
+      ">W2W KW8W @Y <X /X'X/X@X@X,X0X#YFXFY*X&Y2~a GV H~a HV I~b HV   DX 3W@S 6X 3V8V ;X   CX=V  "
+      " CSFV)S  =WEW  :V  -SAVDW@S    'V      \"W6W :UGU IX       /WEW .V<TJU NV/U\"V<TJU8Z /W8W KW"
+      "8W KW8W KW8W KW8W KX:X KX<X X *X -X -X -X -X -X -X -X ,X+Y-X@WGX)X&Y1X&Y1X&Y1X&Y1X&Y H_ LX"
+      "DW9Y.X/X'X/X'X/X'X/X GX <X:Y LW>] Jt It It It It It I~iBW ,|\"|\"|\"| NW ,W ,W ,W /W2W NW6W!W"
+      "2W\"W2W\"W2W\"W2W\"W2W M~Y2WCVEW NW6W MW6W MW6W MW6W IWCX EW3W LWCX     IV=V=V.V$V.VFYKZFV.VFY"
+      "7V.V$V&V 0XCW     ;Y =WFT   >~T-~\\'w Ku%W4W W4W GXEW >WFW IV                #q   =V   6~X "
+      "JSN^ /VEWCW?W=ZDW  .W !W   :~W  5f   9V /X4X >X .Y  MX\"W:X &X Y5X >Y @X6X FcJX    &d    Id"
+      "%X 8UAV8VAU>X8X X4X$X +X+X+X -X /X)X+X/X'X -X -XH[ @X -XCVLVCX0X@XHX(X'X-X /X'X-X<Y *Z @X "
+      "<X/X NXDX DXHV?VHX-YKY 8X 2Z 9W 'V &W       B]?W JW3W$W ,W3W!| LW 1W3W MW6W MW ,W ,a 6W ,W"
+      "7W7W=W6W!W2W NW3W$W3W MW 'g AW ,W6W IWBW CWHVFVHW NZ 7WDW :Z 6a 6V  Jb IU;i  ,S;V<S0W7W IW"
+      "6W W?Z HW2W Kc ;W6W HWEX >XFX EW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W =V2V KX8X BY ;X /Y)Y/"
+      "X@X@X,X0X#YFXGZ)X'X0~` GV H~` GV H~` GV   DX 3W@S 6X 3V8V M|  &Z?V   CSFV)S:m AXFX  ;V  -S"
+      "AVDW@S    'V      \"W6W :UGU      *m 5XFX /V;SIU V.T\"V;SIU9Z /X8X MX8X MX8X MX8X MX8X MX8X "
+      "MX;X NX +X -X -X -X -X -X -X -X ,X+X,X@XHX(X'X/X'X/X'X/X'X/X'X Ha LXFW8X-X/X'X/X'X/X'X/X G"
+      "X <X;Z LW<\\ L]?W J]?W J]?W J]?W J]?W J]?W J]?{BW ,|\"|\"|\"| NW ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2"
+      "W\"W2W\"W2W M~Y2WDVDW NW6W MW6W MW6W MW6W HWDW DW3W KWDW     HV=V>V-V%V-VGYIZHV-VGY7V-V%V%V "
+      "/WDX     ;X <WFT   >~T-~\\'v Is$W4W W4W GWDX ?XGW HV                %r   =V   6~X JSJ[ 0VEV"
+      "AV?W<ZFW  -W !W   \"V   Lf   9V /X5X =X /Z  MX\"V9X &X NX5X >X ?X6X D`IX    $d    Ne#X 8UAV8"
+      "VBU=x X4X$X +X+X+X -X /X)X+X/X'X -X -XG[ AX -XCVLVCX0X?WHX(X'X-X /X'X-X;Y *Y @X <X/X MXFX "
+      "CXHV?VHX-XIY 9X 3Z 8W 'V &W       CZ;W JW3W$W ,W3W!| LW 1W3W MW6W MW ,W ,b 7W ,W7W7W=W6W!W"
+      "2W NW3W$W3W MW %f BW ,W6W IXDX BWIVFVIW N\\ 8WEX :Y .[ 7V  K\\ BT8e  *S<X=S0W7V HW6X\"W=X GW2"
+      "W Me ;W6W GVEX >WDW EW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W =W4W KW6W CY :X .X)X.YAXAY,X0X\""
+      "ZHXHZ(X'X/Y  AV  BY FV GY%Y FV   DX 3W@S 6X 2V:V L|  %ZAV   BSEV*S:m @XFX  <V  -SAVCWAS   "
+      " 'V      \"W6W :UGU      *m 6XFX .V<TIU V/U\"V<TIU9Y .x Mx Mx Mx Mx Mx Mu NX +X -X -X -X -X "
+      "-X -X -X ,X+X,X?WHX(X'X/X'X/X'X/X'X/X'X Ic MXGW7X-X/X'X/X'X/X'X/X GX <X=[ KW:[ NZ;W KZ;W K"
+      "Z;W KZ;W KZ;W KZ;W KZ;{BW ,|\"|\"|\"| NW ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W  &WEVCW NW6W "
+      "MW6W MW6W MW6W HWEX DW3W KWEX     GV>V>V,V&V,VIYGZIV,VIY6V,V&V&W /XEW     N~X'VGT   =~T-~\\"
+      "&u Ir#W4W NV4W HXDX ?XHX HV                 KX   ,V   6~X JSHZ 2VDVAV?W;ZGW  -W !W   \"V   "
+      "Lf   :W .X6X =X 0Z  LY#~ /X NX5X >X @X5Y AYFX    !d >~X >d X 8UAV8VBU>z!X3X%X +X+X+X -X /X"
+      ")X+X/X'X -X -XF[ BX -XCWNWCX0X?XIX(X'X-X /X'X-X:X )Y AX <X/X MXFX BWHV?VHW-YIY 9X 3Y 7W 'W"
+      " 'W       CX9W JW3W$W ,W3W!W 'W 1W3W MW6W MW ,W ,WNZ 8W ,W7W7W=W6W!W2W NW3W$W3W MW !c CW ,"
+      "W6W HWDW AWIVFVIW N] 8WFW :Y *Y 8V  KY ?R3`  (S<X=S0W7V HW5W\"W=X GW2W N[ 0W6W GWFW >XDX FW"
+      "6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W =W4W LX6X DY :X .X)X-XAXAX+X0X!ZIXIZ'X'X.Y  BV  CY EV"
+      " FY'Y EV   DX 3W@S 6X 2V:V L|  $[CV   BTFW,T:m ?XFX  =V  -TBVBVBT    'V      \"W6W :UGU    "
+      "  *m 7XFX .V<THU!V/U\"V<THU:Y .z z z z z Nx Nv NX +X -X -X -X -X -X -X -X ,X+X,X?XIX(X'X/X'"
+      "X/X'X/X'X/X'X Je NXGV6X-X/X'X/X'X/X'X/X GX <X@^ KW9[ X9W KX9W KX9W KX9W KX9W KX9W KX9W MW "
+      ",W ,W ,W ,W )W ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W  &WFVBW NW6W MW6W MW6W MW6W GWFW CW3"
+      "W JWFW     FV>V?W,V'W,VJYEZKW,VJY6W,V'W&W /XFX     N~X'WHT   =~T-~\\%s Gp\"W4W NV4V GXCW >WH"
+      "X HW                 LX   ,V   6~X JSGY 3VDWAW@W:ZIW  ,W !W   \"V   Lf   :W .X6X =X 1Z  JX#"
+      "~ /X NX5X ?Y @X4X .X     Md A~X Ad LX 8UAV8VBU>z!X3X%X +X+X+X -X /X)X+X/X'X -X -XE[ CX -XB"
+      "VNVBX0X>WIX(X'X-X /X'X-X9X *Y AX <X/X MXFX BXJW?WJX.YGY :X 4Z 7W 'W 'W       DX8W JW3W$W ,"
+      "W3W!W 'W 1W3W MW6W MW ,W ,WLY 9W ,W7W7W=W6W!W2W NW3W$W3W MW  K_ DW ,W6W HXFX AWIVFVIW ^ 8W"
+      "FW ;Y (Y 9V  LY >Q.X  $T>Z?T0W8W HW5W\"W<W GW2W Y -W6W GWGX >WCX FW6W!W<W<W3WCWCW!W=W JWCWC"
+      "W\"W2W%W2W ?W =W4W LX6X EY 9X .Y+Y-YBXBY+X0X ZJXJZ&X'X-Y  CV  DY DV EY)Y DV   DX 3W@S 6X 2W"
+      "<W L|  #\\FW   ASFW,S9m >XFX  >V  ,SBVBWCS    &V      \"W6W :UGU      *m 8XFX .V<TGU\"V.U#V<T"
+      "GU;Y -z z z z z z v NX +X -X -X -X -X -X -X -X ,X+X,X>WIX(X'X/X'X/X'X/X'X/X'X KZMZ XHW6X-X"
+      "/X'X/X'X/X'X/X GX <u JW7Y!X8W LX8W LX8W LX8W LX8W LX8W LX8W MW ,W ,W ,W ,W )W ,W ,W ,W /W2"
+      "W NW6W!W2W\"W2W\"W2W\"W2W\"W2W  &WGWBW NW6W MW6W MW6W MW6W GWFW CW3W JWFW     FW?V?V+W(V+WKXCY"
+      "KV+WKX5V+W(V%W .WFX     N~X'WHT   =~T-~\\$q Eo\"W4W NV4V GWBW >XIW GW                 LX    "
+      "   ;~X JSFX 3VDV?V@W9ZJW  +V \"W   !V       V -X6X =X 2Z  IX#~ /X NX5X ?X ?X4X .X     Jd D~"
+      "X Dd IX 8UAV8VCV>z!X3X%Y ,X,Y+X -X /Y*X+X/X'X -X -XD[ DX -XBVNVBX0X>XJX(Y)X,X /Y)X,X9Y *X "
+      "AX <X/X LXHX AXJV=VJX.XEY ;X 5Z 6W &V 'W       DW7W JW3W$W ,W3W!W 'W 1W3W MW6W MW ,W ,WKY "
+      ":W ,W7W7W=W6W!W2W NW3W$W3W MW  H\\ DW ,W6W GWFW @WJVDVJW!` 9WGX <Y &X 9V  LX =P   (T?\\@T0W8"
+      "X IW5W\"W<W GW2W X ,W6W FVGW >XBW FW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W =W4W LW4W FY 8X -X"
+      "+X+YCXCY*X0X N\\MXM\\%Y)X+Y  DV  EY NQFVFQ Y+Y CV   DX 3W@S 6X 1V<V K|  ![HW   @TFW.T9m =XFX"
+      "  ?V  ,TCVAVDT    &V      \"W6W :UGU      *m 9XFX -V<SFU\"V/U\"V<SFU;X ,z z z z z z v NY ,X -"
+      "X -X -X -X -X -X -X ,X,Y,X>XJX(Y)X.Y)X.Y)X.Y)X.Y)X KZKZ!YJW6X,X/X'X/X'X/X'X/X GX <t IW6Y\"W"
+      "7W LW7W LW7W LW7W LW7W LW7W LW7W MW ,W ,W ,W ,W )W ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W "
+      " &WHWAW NW6W MW6W MW6W MW6W GWGX CW3W JWGX     EV?V@W*V)W*VJVAWKW*VJV5W*V)W%W .XGW     M~X"
+      "&WJT   <~S,kNn#o Cm!W4W NV4V HXBX ?XJX FW                 MY       <~X JSEX 5VCV?V@W8ZLW  "
+      "*W #W   !V       V -X6X =X 3Z  HX#~ /X NX5X @Y ?X4X /X     Ge G~X Ge GX 8UAV9WCU>|\"X3X$X ,"
+      "X,X*X -X .X*X+X/X'X -X -XC[ EX -XA\\AX0X=WJX'X)X,X .X)X,X8X *X AX <X/X LXHX AXJV=VJX/YEY ;X"
+      " 6Z 5W &V 'W       DW7W JW3W$W ,W3W!W 'W 1W3W MW6W MW ,W ,WJY ;W ,W7W7W=W6W!W2W NW3W$W3W M"
+      "W  EZ EW ,W6W GWFW ?WKVDVKW!b 9WHW <Y $W 9V  LW     BTAVNUAT/W8X IW5W#W;V FW2W!X +W6W FWIX"
+      " >XBX GW6W!W<W<W3WCWCW!W=W JWCWCW\"W2W%W2W ?W =W4W MX4X HY 7X -Y-Y+ZDXDZ*X0X Mt#X)X*Y  EV  "
+      "FY NSGVGS Y-Y MQFVFQ   X 3W@S 6X 1W>W 9X   =\\KW   >SEW<PCS  6XFX  @V  +SCVAWES    %V      "
+      "\"W6W :UGU        &XFX -V<TFU#V/U\"V<TFU<X ,|\"|\"|\"|\"|\"|\"w MX ,X -X -X -X -X -X -X -X ,X,X+X="
+      "WJX'X)X-X)X-X)X-X)X-X)X LZIZ!XKW5X,X/X'X/X'X/X'X/X GX <s HW5X\"W7W LW7W LW7W LW7W LW7W LW7W"
+      " LW7W MW ,W ,W ,W ,W )W ,W ,W ,W /W2W NW6W!W2W\"W2W\"W2W\"W2W\"W2W  &WIW@W NW6W MW6W MW6W MW6W"
+      " FWHW BW3W IWHW     DW@VAW)W+W)WJT?UKW)WJT5W)W+W$W -WHX     M~X&WJT   ;eMQMe+jNQNj!m Bl W4"
+      "W NW6W HXBX >WJX FW                 LX       <~X JSEX 6WCV?V@W7ZMW  *W #W   !V      !W -X6"
+      "X =X 4Z  GX#~ /X NX5X @X >X4X /X     De J~X Je DX 8U@V:WDV>|\"X3X$X ,X-Y*X -X .X*X+X/X'X -X"
+      " -XB[ FX -XA\\AX0X=XKX'X*Y,X .X*Y,X8Y +X AX <Y1Y KWHW ?WJV=VJW/YCY <X 7Z 4W &W (W       EW6"
+      "W JX5X$X -X5X!X (W 0W5X MW6W MW ,W ,WIY <W ,W7W7W=W6W!X4X NX5X$X5X MW  CX EW ,W6W GXHX ?WK"
+      "VDVKW!XNY :WIX =Y #X :V  MX     BUCVMVBT/W9Y IW5W#W<W FW3X!W *W6W EVIX ?X@W GW6W!W=Y=W3XDW"
+      "DX!W=W JWCWCW\"X4X%X4W >W <W6W LX4X HY 7X ,X-X)ZEXEZ)X0X Lr\"X)X)Y  FV  GY NUHVHU Y/Y MSGVGS"
+      "  !X 3XAS 6X 0W@W 8X   ;\\NW   =TEX@RDT  5XFY  BV  +TDV@WGT    %V      \"W6W :UGU        (YF"
+      "X ,V=TEU#V0U!V=TEU<X ,|\"|\"|\"|\"|\"|\"w MX ,X -X -X -X -X -X -X -X ,X-Y+X=XKX'X*Y-X*Y-X*Y-X*Y-"
+      "X*Y MZGZ\"XLW5Y,Y1Y'Y1Y'Y1Y'Y1Y GX <r GW4X$W6W MW6W MW6W MW6W MW6W MW6W MW6X NX -X -X -X -X"
+      " *W ,W ,W ,W /W2W NW6W!X4X\"X4X\"X4X\"X4X\"X4X  &WIV@X NW6W MW6W MW6W MW6W FWIX BX5X IWIX     "
+      "CWAVAW(W,W(WJR=SJW(WJR4W(W,W$W -XIX     M~X&WJS   :dLQLd+iMQNj!l @j NW4W NW6W HW@W >WJW DW"
+      "                 MX       .VCV :SDW 6VBV?V@W6b  )W #W   !V      !V +X8X <X 5Z  FX#~ /X MW5"
+      "X @X >X4X /X     Ad L~X Ld AX 8VAV:WDU=|\"X3X$Y -X-Y*X -X .Y+X+X/X'X -X -XA[ GX -XA\\AX0X<WK"
+      "X'Y+X+X .Y+Y,X7X +X AX ;X1X JXJX ?XLW=WLX/XAY =X 7Y 3W %V (W       EW7X JX5W\"W ,W5X W (W 0"
+      "W5X MW6W MW ,W ,WHY =W ,W7W7W=W6W W4W MX5W\"W5X MW  BX FW ,W6W FWHW >WKVDVKW\"XLX 9WJW =Z #X"
+      " :V  MX     AUEVKVDU/X:Y IW5W#W<W EW4W!X *W6W EVJX >X@W GW6W!W=Y=W2WDWDW W=W JWCWCW\"X4W#W4"
+      "W >W <W6W LW2W IY 6X ,Y/Y(ZFXFZ(X0X Kp!Y+X'Y  GV  HY NWIVIW Y1Y MUHVHU  \"X 2WAS 6X 0YDY 8X"
+      "   :c   <TE[FUDS  3XFY  CV  *SDV@WGS    $V      \"W6W :UGU        )YFX ,V=TDU$V0V\"V=TDU=X +"
+      "|\"|\"|\"|\"|\"|#x MY -X -X -X -X -X -X -X -X ,X-Y+X<WKX'Y+X,Y+X,Y+X,Y+X,Y+X MZEZ#YNW4X*X1X%X1X"
+      "%X1X%X1X FX <p EW4X$W7X MW7X MW7X MW7X MW7X MW7X MW7Y MW ,W ,W ,W ,W *W ,W ,W ,W .W4W MW6W"
+      " W4W W4W W4W W4W W4W  $WKV?W MW6W MW6W MW6W MW6W EWJW AX5W GWJW     BXBVBW'X.W'XJP;QJW'XJP"
+      "4W'X.W#V ,XIW     L~X%WLT   :dLQLc*iMQMi k ?i NW4W NW6W IX@X ?XLX DW                 MY   "
+      "    0VBV :SDW 7VAV?V@X6a  )W #W   !V      !V +X8X <X 6Z  EX#~ 0Y MW5X AY >X4X 0X     =d ~X"
+      " d   LUAW<XEV>X2X#X3X#X -X.Y)X -X -X+X+X/X'X -X -X@[ HX -X@Z@X0X<XLX&X+X+X -X+X+X7Y ,X AX "
+      ";X1X JXJX ?XLV;VLX0YAY =X 8Z 3W %V (W       EW7X JX5W\"W ,W5X W (W 0W5X MW6W MW ,W ,WGY >W "
+      ",W7W7W=W6W W4W MX5W\"W5X MW  BX FW ,W7X FWHW >WLVBVLW#YKX :WJW =Y !W :V  MW     @VHXJWHV-W:"
+      "Y IW5W#W<W EW4W!W )W6W EWKX ?X?X HW6W!X>Y>W1WDWDW W=W JWCWCW\"X4W#W4W >W <W6W MX2X KY 5X +Y"
+      "1Y'[GXH\\(X0X Jn NX+X&Y  HV  IY NYJVJY Y3Y MWIVIW  #X 2WAS 6X 0[H[ 8X :V %`   :TEiET  2YGY "
+      " DV  *TEV?WIT    $V      \"W6W :UGU        *YGY ,V<SCU%V0V\"V<SCU=X ,X2X$X2X$X2X$X2X$X2X$X2X"
+      "$X8X LX -X -X -X -X -X -X -X -X ,X.Y*X<XLX&X+X+X+X+X+X+X+X+X+X NZCZ#`3X*X1X%X1X%X1X%X1X FX"
+      " <m BW3W$W7X MW7X MW7X MW7X MW7X MW7X MW7Y MW ,W ,W ,W ,W *W ,W ,W ,W .W4W MW6W W4W W4W W4"
+      "W W4W W4W 5Z IWLV>W MW7X MW7X MW7X MW7X EWJW AX5W GWJW     AXCVCW%X0W%X0W%X0W%X0W\"V +WJX  "
+      "   ?X 2WLT   9bKQKb)gLQMh Mi =g MW4W MV6W IX@X ?XLX CW                 MX       0VBV :SDW "
+      "7VAV?V@X5_  (W #W   !V      \"W +X8X <X 7Z  DX 5X 'X LX7X @X =X4X 0X     ;e   Le   JUAW<XFV"
+      "=X1W#X3X#Y .X.Y)X -X -Y,X+X/X'X -X -X?[ IX -X@Z@X0X;XMX&Y-Y+X -Y-Y+X6X ,X AX ;X1X IXLX >XL"
+      "V;VLX1Y?Y >X 9Z 2W %W )W       EW7X JX5W\"X -W5X X )W 0X7Y MW6W MW ,W ,WFY ?W ,W7W7W=W6W W4"
+      "W MX5W\"W5X MW  AW FW ,W7X FXJX =WMVBVMW#YJY ;WKX >Y  W :V  MW     ?dId,W;Z IW5W#W=W DW4W!W"
+      " )W6W DVKW >X>W HW6W W>Y>W1WDWDW W=W JWCWDX\"X4W#W4W >W ;V7W LX2X LY 4X *X1X%]JXJ]'X0X Hj L"
+      "Y-Y%Y  IV  JY LYKVKY MY5Y MYJVJY  $X 2XBS 6X 2q 9X :V #\\   7TDgFT  /XFX  EV  )TFV>VJT    #"
+      "V      \"W6W :UGU        +XFX *V=TCU%V1V!V=TCU=X ,X1W$X1W$X1W$X1W$X1W$X2X%X7X LY .X -X -X -"
+      "X -X -X -X -X ,X.Y*X;XMX&Y-Y+Y-Y+Y-Y+Y-Y+Y-Y ZAZ$_3Y*X1X%X1X%X1X%X1X FX <i >W3W$W7X MW7X M"
+      "W7X MW7X MW7X MW7X MW7Z NX -X -X -X -X +W ,W ,W ,W .W4W MW6W W4W W4W W4W W4W W4W 5Z IWMV=W"
+      " MW7X MW7X MW7X MW7X EWKX AX5W GWKX     @XDVDX$X2X$X2X$X2X$X2X\"V +XKW     ?X 1WMT   7`JQKa"
+      "'fLQLf Kg <f LW4W MW8W HW>W >WLW BX                 NY       1VBV :SDW 8V@V?V?W4]  &V $W  "
+      "  V      \"V *Y:Y <X 8Z  DY 5X 'X KW7X @X =X5Y 1Y     8e  #e   GU@W>YGW>X0X$X4Y\"Y /X/Y(X -X"
+      " ,Y-X+X/X'X -X -X>[ JX -X@Z@X0X;XMX%Y/Y*X ,Y/Y*X6Y -X AX ;Y3Y IXLX =WLV;VLW0X=Y ?X :Z 1W $"
+      "V )W       EW8Y JY7X\"X -X7Y X )W 0X7Y MW6W MW ,W ,WEY @W ,W7W7W=W6W X6X MY7X\"X7Y MW  AW FW"
+      " ,X8X EWJW <WMVBVMW#XHX :WLW >Y  NW :V  MW     >bGc,W;[ JW6X#W=W DX6X!W )W6W DVLX >W=X IW7"
+      "X W>Y>W1XEWEX W=W IWDWDW!Y6X#X6X >W ;W8W MX0X MY 4X *Y3Y$^LXL^&X0X Ff IY/Y#Y  JV  KY JYLVL"
+      "Y KY7Y KYKVKY  #X 2XBS 6X 3t ;X :V ![   8TCfFT  .XFX  FV  )UGV>WKT            MW7X :UGU   "
+      "     ,XFX *V=TBU&V2W!V=TBU=X -X0X&X0X&X0X&X0X&X0X&X0W%X7X KY /X -X -X -X -X -X -X -X ,X/Y)"
+      "X;XMX%Y/Y)Y/Y)Y/Y)Y/Y)Y/Y Z?Z$^4Y)Y3Y%Y3Y%Y3Y%Y3Y FX <X -W3W$W8Y MW8Y MW8Y MW8Y MW8Y MW8Y "
+      "MW8[ NX -X -X -X -X +W ,W ,W ,W .X6X MW6W X6X X6X X6X X6X X6X 5Z I_=X MX8X MX8X MX8X MX8X "
+      "DWLW @Y7X FWLW     >XEVFY\"X5Y\"X5Y\"X5Y\"X5Y!V *WLX     @X /WNT   7`JQJ_&eKQKe Je :d KW4W MW8"
+      "W HW>X ?XNX AX                 Y       1VCV 9SDW 9V?V?V?X4\\  &W %W    V      \"V )X:X ;X 9Z"
+      "  CX 4X (Y KW7X AX <Y6Y 1X     4e  )e   DVAX@ZHW=X0X$X4Y\"Y*P&X0Z(X -X ,Y-X+X/X'X -X -X=[ K"
+      "X -X?X?X0X:XNX%Y/Y*X ,Y/Y*X5X .Y AX :X3X HXLX =XNW;WNX1Y=Y ?X ;Z 0W $V )W       EW8Y JY7W "
+      "W ,W7Y NX *W /W8Z MW6W MW ,W ,WDY AW ,W7W7W=W6W NW6W LY7W W7Y MW  AW FW ,X9Y EWJW <WMVBVMW"
+      "$XFX ;WMX ?Y  MW :V  MW     =`Ea+X<[ JW6W\"W>W BW6W W )W6W DWMX ?X=X IX8X W?[?W0WEWEW NW=W "
+      "IWDWDW!Y6W!W6W =W ;W8W MX0X NY 3X )Y5Y\"z%X0X C` FY/Y\"X  JV  KX HYMVMY IX7X IYLVLY  \"X 1XCS"
+      " 6X 4v <X :V  [   8TBbET  ,WEW  FV  (T$T            LX8X :UGU        ,WEW )V=m,V3W V=mCX -"
+      "X0X&X0X&X0X&X0X&X0X&X0X&X7X KY*P&X -X -X -X -X -X -X -X ,X0Z)X:XNX%Y/Y)Y/Y)Y/Y)Y/Y)Y/Y!Z=Z"
+      "%]3Y(X3X#X3X#X3X#X3X EX <X -W3W$W8Y MW8Y MW8Y MW8Y MW8Y MW8Y MW8[ MW ,X -X -X -X ,W ,W ,W "
+      ",W -W6W LW6W NW6W MW6W MW6W MW6W MW6W 4Z H^=W LX9Y MX9Y MX9Y MX9Y DWMX @Y7W EWMX     =Y8Y "
+      "Y8Y Y8Y Y8Y Y8Y V *WLX     AX .WNT   6^IQI]$cKRJc Id 8c KW4W MX:X IX>X ?XNX AY            "
+      "     Y4P       VBV 9SDW 9V?V?V?Y4Z  %W %W    V      #W )X:X ;X :Z  CY 4X (Y KX9Y AX ;X6X 1"
+      "Y     1e  /e   @U@XB[JX<X/W$X4X Y,Q&X1Z'X -X +Y.X+X/X'X -X -X<[ LX -X?X?X0X:XNX$Y1Y)X +Y1Y"
+      ")X5Y /X @X :X4Y GXNX <XNV9VNX2Y;Y @X ;Y /W $W *W       EW9Z JZ9X X -X9Z NX *W /X9Z MW6W MW"
+      " ,W ,WCY BW ,W7W7W=W6W NX8X LZ9X X9Z MW  AW FW +W9Y EXLX <WNV@VNW%YEX ;WNW ?Y  LW :V  MW  "
+      "   <^C_)W=\\ JX7W\"W>W BX8X W )W6W CVNX >W;W IX8X X@[@X0XFWEW NW=W IWDWEX!Z8X!X8X =W :W:W LX"
+      "0X Y 2X (Y7Y Nv#X0X ?X AY1Y V  IV  JV FYNVNY GV5V GYMVMY  !X 1XCS 6X 5x =X :V  MZ   8T?ZBT"
+      "  *VDV  FV  'T&T            KX8X :UGU        ,VDV )V<m-V3V NV<mCX -X/W&X/W&X/W&X/W&X/W&X0X"
+      "'X6X JY,Q&X -X -X -X -X -X -X -X ,X1Z(X:XNX$Y1Y'Y1Y'Y1Y'Y1Y'Y1Y!Z;Z%[3Y'X4Y#X4Y#X4Y#X4Y EX"
+      " <X -W3W$W9Z MW9Z MW9Z MW9Z MW9Z MW9Z MW9] NX -X -X -X -X ,W ,W ,W ,W -X8X LW6W NX8X MX8X "
+      "MX8X MX8X MX8X 4Z H]=X KW9Y LW9Y LW9Y LW9Y CWNW ?Z9X DWNW     ;Y;Z MY;Z MY;Z MY;Z MY;Z NV "
+      "*XMW     AY -[   3ZHRH[\"aJRI` Fb 6a JW4W LW:W HX=W >WNX @Y                !Z6Q       VBV K"
+      "P>SEW 9V>WAW>X3Z  &W %W    V      #V 'X<X :X ;Z  BY 4X )Y IW9X AY ;Y8Y 2Y     .d  1d   >U?"
+      "ZH^MZ<X.X%X5Y NY.R&X2Z&X -X *Y/X+X/X'X -X -X;[ MX -X&X0X9a$Z3Y(X *Y3Y(X4X$P-Y @X :Y5Y GXNX"
+      " <XNV9VNX2X9Y AX <Z /W #V *W       EX:Z JZ9X NX .X9Z MX +W .X;[ MW6W MW ,W ,WBY CW ,W7W7W="
+      "W6W NX9Y LZ9X X9Z MW  AW FW +W:Z DWLW :^@^$XDY <WNW @Z  LW :V  MW     ;\\@['X>\\ JX8X\"W?W AX"
+      "9Y X *W6W CVNX ?X;X JX9Y NW@[@W/XFWFX NW=W IXEWEX!Z8X!X8W ;W ;W;X MX.X\"Y 1X 'Y9Y Lt\"X0X ?X"
+      " @Y3Y MT  HV  IT Dj ET3T EYNVNY   X 0XDS 6X 6ZM`LY >X :V  LY   7T)T  (UCU     ET(T        "
+      "    JX9Y :UGU        ,UCU )V;m.V3V NV;mCY7P HX.X(X.X(X.X(X.X(X.X(X.X(X6X IY.R&X -X -X -X -"
+      "X -X -X -X ,X2Z'X9a$Z3Y&Z3Y&Z3Y&Z3Y&Z3Y!Z9Z&Z3Y&Y5Y#Y5Y#Y5Y#Y5Y EX <X -W3W$X:Z MX:Z MX:Z M"
+      "X:Z MX:Z MX:Z MX:^ NX -X -X -X -X -W ,W ,W ,W -X8X LW6W NX9Y MX9Y MX9Y MX9Y MX9Y 4Z H\\=Y K"
+      "W:Z LW:Z LW:Z LW:Z CWNW ?Z9X DWNW     :[@[ K[@[ K[@[ K[@[ K[@[ MV )WNX     AX ,[   1WGRFW "
+      "N_IRH^ Da 5_ IW4W LX<X HW<W >` >Y                !Y8S   MX   +VBV KQ?SFX 9V=VAV=Y6]  &V &W"
+      "    NV BX   1X 1V 'Y>Y :X <Z  BY 3X GP3Z IX;Y AX :Y9Z 2X GX -X  7a  1a .X 6V@iNa;X.X%X6Z N"
+      "Z1T&X4\\&X -X *Z0X+X/X'X -X -X:[ NX -X&X0X9a#Z5Z(X *Z5Z(X4Y%R/Y @X 9Y7Y EWNW :WNV9VNW2Y9Y A"
+      "X =Z .W #V *W       EX;[ J[;X MY .X;[ MY2P JW .Y=\\ MW6W MW ,W ,WAY DW ,W7W7W=W6W MX:X K[;X"
+      " MX;[ MW /P4X FX ,X<[ DXNX :^@^%XBX <` @Y  KW :V  MW     8V;W%X?^ KY9X!V@X @X:X NX *W6W C_"
+      " >X:W JY;Z NXB]BX.XGWGX MW=W HXFWFX [:X NX:X ;W :W<W LX.X\"Y 1X &Y;Y Ip X0X ?X @Z5Z LR  GV "
+      " HR Bh CR1R Cj   NX 0YES 6X 7ZJ\\IY ?X :V  KY   8U+U  'TBT     DU+T            IY;Z :UGU   "
+      "     ,TBT (V;m.V4V MV;mCY8Q HX.X(X.X(X.X(X.X(X.X(X.X)X5X IZ1T&X -X -X -X -X -X -X -X ,X4\\'"
+      "X9a#Z5Z%Z5Z%Z5Z%Z5Z%Z5Z\"Z7Z&Z5Z%Y7Y!Y7Y!Y7Y!Y7Y DX <X -W4X$X;[ MX;[ MX;[ MX;[ MX;[ MX;[ MX"
+      ";`3P=Y .Y2P LY2P LY2P LY2P LW ,W ,W ,W ,X:X KW6W MX:X KX:X KX:X KX:X KX:X 3Z GZ<X JX<[ LX<"
+      "[ LX<[ LX<[ C` ?[;X C`     9_J_ I_J_ I_J_ I_J_ I_J_ LV )`     AX +Z    S <[GRFZ A_ 4^ HW4W"
+      " KX>X HX<X ?` =Z                \"Y:T   MX   +VCV JSASFX :V<VAV<Y8_  'W 'W    NV BX   1X 2W"
+      " &X>X 9X =Z 1P2Z 3X GQ5Z GX=Y @X 9Y:Y KP8Z GX -X  4^  1^ +X 5U?gM_9W,W%X7Z L[4U&X6]%X -X )"
+      "[2X+X/X'X -X -X9[ X -X&X0X8`\"Z7Z'X )Z7Z'X3X%T2Y ?X 9Z9Z E` :_9_3Y7Y BX >Z -W #W +W       D"
+      "X=\\ J\\=Y LY7P HY=\\ LY5R JW -Y?] MW6W MW ,W ,W@Y EW ,W7W7W=W6W MY<Y K\\=Y MY=\\ MW /R6W DW ,Y"
+      "=[ CWNW 9^@^&X@X <^ @Y  JW :V  MW       HXA` LZ;X V@W ?Y<Y MX +W6W B^ ?X9W JZ<Z NXB]BX.YHW"
+      "HY MW=W HYGWGY \\<Y NY<X :W :X>X LX.X#Y 0X %Y=Z Gl MX0X ?X ?Z7Z JP  FV  GP @f AP/P Ah   MX "
+      "/YFSDP BX 8ZFVEY @X :V  JX   7V.U  %SAS     CU.U            HZ<Z :UGU        ,SAS (V:m/V5W"
+      " MV:mBY;S HW,W(W,W(W,W(W,W(W,W(X.X)X5X H[4U&X -X -X -X -X -X -X -X ,X6]&X8`\"Z7Z#Z7Z#Z7Z#Z7"
+      "Z#Z7Z\"Z5Z&[8Z$Z9Z!Z9Z!Z9Z!Z9Z DX <X -W4W\"X=\\ LX=\\ LX=\\ LX=\\ LX=\\ LX=\\ LX=b6R<Y7P GY5R KY5R"
+      " KY5R KY5R LW ,W ,W ,W ,Y<Y KW6W MY<Y KY<Y KY<Y KY<Y KY<Y 3Z GY<Y JY=[ LY=[ LY=[ LY=[ B^ >"
+      "\\=Y B^     7r Gr Gr Gr Gr KV (_     BX )Y    S 8RBSCR <] 2\\ GW4W KZBZ HX;W >_ <[          "
+      "      $[=U   MX   ,VBV JUCSHY :V;WCW<[<b  (W 'W    NV BX   1X 2W &Y@Y 9X >Z 0R5Z 2X GT9[ G"
+      "Y?Z AY 9[>[ KR;Z FX -X  1[  1[ (X 5V>dL^9X,X&X9[ J[7W&X9_$X -X (\\6Z+X/X'X -X -X8[!X -X&X0X"
+      "8`![;[&X ([;[&X3Y&W7[ ?X 8Z;Z D` :^7^3X5Y CX ?Z ,W #W +W       DY?] J]?Y KZ:R GY?] LZ8T JW"
+      " -ZA^ MW6W MW ,W ,W?Y FW ,W7W7W=W6W LY>Y J]?Y KY?] MW /T9X DX ,Y@] CWNW 9]>]'Y@Y =^ AY  IW"
+      " :V  MW       HYCXNW L\\>Y VAX >Y>Y LY ,W6W B] >X9X K[>[ MXDVMVDX,YIWIY LW=W GYHWHY N]>Y LY"
+      ">Y :X :X@X LX,X%Y /X $ZAZ Ch KX0X ?X >[;[   ?V   6d   >f   LX /[HSFR BX 9Z3Y AX :V  IX   7"
+      "V1V  #R@R     BU0U            G[>[ :UGU        ,R@R 'V(U)V6W LV(U<Z>U IX,X*X,X*X,X*X,X*X,X"
+      "*X,X*W4X G[7W&X -X -X -X -X -X -X -X ,X9_%X8`![;[![;[![;[![;[![;[\"Z3Z(];[\"Z;Z NZ;Z NZ;Z NZ"
+      ";Z CX <X -WJP;X\"Y?] LY?] LY?] LY?] LY?] LY?] LY?XNZ9T<Z:R GZ8T KZ8T KZ8T KZ8T LW ,W ,W ,W "
+      "+Y>Y JW6W LY>Y IY>Y IY>Y IY>Y IY>Y 2Z FY>Y HY@] KY@] KY@] KY@] B^ >]?Y A^     6o Do Do Do "
+      "Do IV (_     CX (Y    S (S ,[ 0[ GW4W J\\H\\ GW:W >^ :\\                %[@W   MX   ,VBV JXFS"
+      "IZ :V:WEW:\\@e  (V 'V    MV BX   1X 2V $ZDZ 8X ?Z /U;] 2X GV=\\ EZC[ @X 7[@[ JT?[ EX -X  /Y "
+      " 1Y &X 5V=bK\\7X,X&X<^ I]=Z&X=b#X -X ']:\\+X/X'X -X -X7[\"X -X&X0X7_ \\?\\%X '\\?\\%X2X&Z<\\ >X 7["
+      "?[ B^ 9^7^4Y5Y CX ?Y +W \"V +W       DZB_ J_CZ I[>T G[C_ K[=W JW ,\\GXNW MW6W MW ,W ,W>Y GW "
+      ",W7W7W=W6W KZBZ I_CZ J[C_ MW /W>Z DZ .ZB^ C` 8\\>\\&X>Y =\\ AY  HW :V  MW       GZFYNY N]AZ N"
+      "WCX <ZBZ JZ:Q EW6W B] ?X7W K\\A^ NYFWMWFY,ZJWJY KW=X H[JWJ[ N_BZ JZBZ 8Y <ZDZ LX,X&Y .X #ZC"
+      "Z >_ FX0X ?X =\\?\\   >V   5b   <d   KX .\\JSHT BX 8X2X @X :V  IX   5V4U   Q?Q     AV4V      "
+      "      F\\A^ ;UGU        ,Q?Q 'V'U*V6W LV'U<[AW IX,X*X,X*X,X*X,X*X,X*X,X+X4X F]=Z&X -X -X -X"
+      " -X -X -X -X ,X=b$X7_ \\?\\ N\\?\\ N\\?\\ N\\?\\ N\\?\\ X1X(`?\\ [?[ L[?[ L[?[ L[?[ BX <X -WJS@Z\"ZB_ "
+      "LZB_ LZB_ LZB_ LZB_ LZB_ LZBYM\\>W;[>T F[=W J[=W J[=W J[=W LW ,W ,W ,W *ZBZ IW6W KZBZ GZBZ "
+      "GZBZ GZBZ GZBZ 1Z F[BZ GZB^ KZB^ KZB^ KZB^ A\\ =_CZ ?\\     3l Al Al Al Al HV (^     BX (X  "
+      "  NS (S ,Z .Y FW4W In GX:X ?^ 9_                (]FZ   MX   ,VBV J[ISL\\ :V9XGX9^Fi  )W )W "
+      "   MV BX   1X 3W #[H[ Et Mx MZC_ 1X GZD^ C[G\\ @Y 7^F] IXF] DX -X  ,V  1V #X 4V<^IY5X*X'y G"
+      "_D^&{!y NX &`B`+X/X'X -X -X6[#w LX&X0X7_ N^E^$X &^E^$X2Y'^C^ =X 7^E^ B^ 8]7]4Y3Y DX @~U&W "
+      "\"W ,W       C\\HYNW JWNXG\\ H]EX F\\GXNW J]D[ JW +kMW MW6W MW ,W ,W=Y HW ,W7W7W=W6W K]H] IWNX"
+      "G\\ I\\GXNW MW /[E\\ Be 9[GXNW B^ 7\\>\\'X<X =\\ AX  GW :V  MW       G\\IYM^$`F\\ MWEX ;]H] J]BV E"
+      "W6W A\\ ?X7X L_GaKP#ZJYMYJZ*[LWL[ KW=Y H\\LWL\\ MWNXG] J]H\\ 7a C[H[ L~W'x MX 1iEi HX CX0X ?X "
+      "<^E^   =V   4`   :b   JX -^MSLX Lz V0V ?X :V  HW   4V7V   MP>P     @W8W    3~W      :_GaKP"
+      " @UGU        ,P>P 'V&U+V6V KV&U;]GZ JX*X,X*X,X*X,X*X,X*X,Y,Y,X4y7_D^&y Ny Ny Ny NX -X -X -"
+      "X ,{\"X7_ N^E^ L^E^ L^E^ L^E^ L^E^ MV/V(dE^ N^E^ L^E^ L^E^ L^E^ BX <X -WJWF[ \\HYNW K\\HYNW K"
+      "\\HYNW K\\HYNW K\\HYNW K\\HYNW K\\H[K^E[:]EX E]D[ I]D[ I]D[ I]D[ LW ,W ,W ,W )[F[ HW6W K]H] G]H"
+      "] G]H] G]H] G]H] 1Z F]G] F[GXNW J[GXNW J[GXNW J[GXNW A\\ =WNXG\\ ?\\     1h =h =h =h =h FV ']"
+      "     AV &W    T )T +X -X EW4W Hl FX9W ?^ 8~R                Jp   MX   ,VCV It 9V8XIX7sLZ  "
+      "*W )W    MV BX   1X 3W #n Et Mx Mu 0X Gs Ao @X 5t In CX -X  )S  1S  X 4V9XFU1X*X'x Ex&z y "
+      "NX %|*X/X'X -X -X5[$w LX&X0X6^ Mu#X %u#X1X'y =X 6u A^ 8]7]4X1X DX @~U&W \"W ,W       ClMW J"
+      "WMk Fo EkMW Is JW *jMW MW6W MW ,W ,W<Y IW ,W7W7W=W6W Jp HWMk GkMW MW /q Ae 9kMW B^ 7\\=[(Y;"
+      "X >\\ Av 6W :V  MW       FkL]$u LXGX 9p Hp EW6W A[ ?X6X LpN\\#hKh)s JW<] Lu LWNm Hp 6` Bl K~"
+      "W'x MX 1iEi HX CX0X ?X ;u   <V   3^   8`   IX ,o Lz NT.T >X :V  HW   3X=X        )X<X    2"
+      "~W      :pN\\ @UGU           V&U+V7i.V&U:o JX*X,X*X,X*X,X*X,X*X,X*X-X3y6x&y Ny Ny Ny NX -X "
+      "-X -X ,z!X6^ Mu Ju Ju Ju Ju KT-T(} Lu Ju Ju Ju AX <X -WJk NlMW KlMW KlMW KlMW KlMW KlMW Kn"
+      "Is9o Ds Hs Hs Hs LW ,W ,W ,W )p HW6W Jp Ep Ep Ep Ep   Ls EkMW JkMW JkMW JkMW A\\ =WMk >\\   "
+      "  /c 8c 8c 8c 8c CV '\\     ?T %W    U *T *W ,V DW4W Gj EW8W >\\ 5~P                In   LX "
+      "  -VBV Is 9V7g6qJZ  *V )V    LV BX   1X 3V !l Dt Mx Mt /X Gr ?m ?X 4r Hm BX -X  &P  1P  LX"
+      " 3V 3X*X'w Cv%x My NX #x(X/X'X -X -X4[%w LX&X0X5] Ls\"X $s\"X1Y(w ;X 5s ?\\ 7\\5\\5Y1Y EX @~U&W"
+      " !V ,W       BjLW JWMj Dn DjMW Hr JW )hLW MW6W MW ,W ,W;Y JW ,W7W7W=W6W In GWMj EjMW MW /p"
+      " ?d 8iLW B^ 6Z<[)Y:Y >Z @v 6W :V  MW       EiK]$t JYLZ 7n Fo EW6W A[ ?X5W LWNfM\\\"gKg'q IW<"
+      "] Ks KWMk Fn 5` Aj J~W'x MX 1iEi HX CX0X ?X :s   ;V   2\\   6^   HX +n Lz MR,R =X :V  HW   "
+      "1ZEZ        %ZDZ    0~W      :WNfM\\ @UGU          !V%U,V6i/V%U9n JX*X,X*X,X*X,X*X,X*X,X*X-"
+      "X3y5v%y Ny Ny Ny NX -X -X -X ,x NX5] Ls Hs Hs Hs Hs IR+R(WMs Js Hs Hs Hs @X <X -WJk MjLW J"
+      "jLW JjLW JjLW JjLW JjLW JmHr8n Cr Gr Gr Gr LW ,W ,W ,W (n GW6W In Cn Cn Cn Cn   Ls CiLW Ii"
+      "LW IiLW IiLW @Z <WMj <Z     +] 2] 2] 2] 2] @V &[     >R $V    NU *U *U *U DW4W Fh DW8X ?\\ "
+      "4~                Hl   KX   -VBV Hp 8V5e4nGZ  +W +W    LV BX   1X 3V  j Ct Mx Mr -X Gq =j "
+      ">Y 3p Gl AX -X       2X 3W 5X(X(u ?s$v Ky NX \"v'X/X'X -X -X3[&w LX&X0X5] Kq!X #p X0X(v :X "
+      "4p =\\ 7\\5\\6Y/Y FX @~U&W !V ,W       AhKW JWLh Bm ChLW Gq JW (eJW MW6W MW ,W ,W:Y KW ,W7W7W"
+      "=W6W Hl FWLh ChLW MW /o >d 7gKW A\\ 5Z<Z(X8X >Z @v 6W :V  MW       DgI\\$s He 5l Dn EW6W @Y "
+      ">W4X MWMeM\\!eIe%o HW<] Jq JWLi Dk 2_ @h J~Y(x MX 1iEi HX CX0X ?X 9q   :V   1Z   4\\   GX *m"
+      " Lz LP*P <X :V  HW   0m        \"l    .~W      :WMeM\\ @UGU          !V%U,V6i/V%U8l JX(X.X(X"
+      ".X(X.X(X.X(X.Y)X/X2y3s$y Ny Ny Ny NX -X -X -X ,v LX5] Kq Fq Fq Fq Fq GP)P'VKp Gp Ep Ep Ep "
+      ">X <X -WJj KhKW IhKW IhKW IhKW IhKW IhKW IjEq7m Bq Fq Fq Fq LW ,W ,W ,W &j EW6W Hl Al Al A"
+      "l Al   Ls AgKW HgKW HgKW HgKW @Z <WLh ;Z               MV &[     =P \"U    V +V )S (S CW4W "
+      "De DX8X ?\\ 2|                Fh   IX   -VBV Ek 6V4c1kEZ  +V +V    KV BW   0X 4W  Mf At Mx "
+      "Mq ,X Go :h =X 0l Ej ?X -W       1X 2W 6X(X(s ;o\"s Hy NX  r%X/X'X -X -X2['w LX&X0X4\\ Im NX"
+      " !m NX0Y(t 9X 2m ;Z 5[5[5X-X FX @~U&W !W -W       @fJW JWJe ?j AeJW En IW 'cIW MW6W MW ,W "
+      ",W9Y LW ,W7W7W=W6W Fh DWJe AeJW MW .m ;b 6eJW A\\ 5Z<Z)X6X >X ?v 6W :V  MW       CeG[$r Fc "
+      "2h Am EW6W @Y ?X3W MWMdL\\ cGc#m GW;\\ Hm HWKg Ah /] ?f I~Y(x MX 1iEi HX CX0X ?X 7m   8V   0"
+      "X   2Z   FX (j Kz   AX :V  HW   -g         Lh    ,~W      :WMdL\\ @UGU          \"V$U-V5i0V$"
+      "U7i HX(X.X(X.X(X.X(X.X(X.X(X/X2y1o\"y Ny Ny Ny NX -X -X -X ,t JX4\\ Im Bm Bm Bm Bm  %VHm Dm "
+      "Bm Bm Bm =X <X -WJh HfJW HfJW HfJW HfJW HfJW HfJW HhBn4j ?n Cn Cn Cn KW ,W ,W ,W %h DW6W F"
+      "h =h =h =h =h   KVMi >eJW GeJW GeJW GeJW ?X ;WJe 9X               MW &Z       =U    W ,W *"
+      "R &Q BW4W B` AW6W >[ /y                Dd   GX   -VCV Af 5V2a.gBZ  ,W -W    KV CX   0X 4V "
+      " Kd @t Mx Km *X Ek 6d ;X .h Bh >X .X       1X 1W 7X(X(q 7j Np Ey NX  Mm\"X/X'X -X -X1[(w LX"
+      "&X0X4\\ Gi LX  Ni LX/X$n 7X 0i 9Z 5[5[6Y-Y GX @~U&W  V -W       >cIW JWIb <g =bIW Ci FW %_G"
+      "W MW6W MW ,W ,W8Y MW ,W7W7W=W6W Ef CWIb =bIW MW +h 8a 5cIW @Z 4Y:Y*Y5X ?X ?v 6W :V  MW    "
+      "   AbDY$WMf Ca 0f >k EW6W @Y ?W2W MWK`I[ NaEa i EW;\\ Fi FWIc >e ,\\ =b G~Y(x MX 1iEi HX CX0"
+      "X ?X 5i   6V   /V   0X   EX &f Iz   AX :V /P;W   *c         Gb    )~W      :WK`I[ @UGU    "
+      "      #V#U.V4i1V#U6f FX(X.X(X.X(X.X(X.X(X.X(X/X2y/j Ny Ny Ny Ny NX -X -X -X ,p FX4\\ Gi >i "
+      ">i >i >i  $VEi @i >i >i >i ;X <X -WIf EcIW FcIW FcIW FcIW FcIW FcIW Fd>i0g ;i >i >i >i HW "
+      ",W ,W ,W #d BW6W Ef ;f ;f ;f ;f   JUJe ;cIW FcIW FcIW FcIW ?X ;WIb 7X               MW %Y "
+      "      =T    X -X )P %P AW4W ?Z >W6X ?Z ,w                B`   EX   .VBV <] 1V0]*b?[  -W -W"
+      "    KV CW   /X 4V  I` >t Mx Hg 'X Bf 2` :X +d =b ;X .W       0X 1X 9X&X)m 0d Kj ?y NX  Jg "
+      "NX/X'X -X -X0[)w LX&X0X3[ Dc IX  Kf LX/Y!g 4X .e 7Z 5Z3Z7Y+Y HX @~U&W  V -W       =`GW JWG"
+      "^ 7b 9^GW Ad CW \"YDW MW6W MW ,W ,W7Y NW ,W7W7W=W6W B` @WG^ 9^GW MW (c 2] 3_GW @Z 3X:X*Y4Y "
+      "@X ?v 6W :V  MW       ?_AW$WKb @^ +` 9g CW6W ?W ?X2X NWJ^GY K]B^ Ke CW:[ Dd CWG_ 9` 'Y ;^ "
+      "F~[)x MX 1iEi HX CX0X ?X 2c   3V   .T   .V   DX $b Gz   AX :V /R>X   &[         ?Z    %~W "
+      "     :WJ^GY ?UGU          #V +V +V 1b EX&X0X&X0X&X0X&X0X&X0Y'X1X1y,d Ky Ny Ny Ny NX -X -X "
+      "-X ,j @X3[ Dc 8c 8c 8c 8c  !VBc ;e :e :e :e 9X <X -WFa B`GW E`GW E`GW E`GW E`GW E`GW D`:d*"
+      "b 7d 9d 9d 9d EW ,W ,W ,W !` @W6W B` 5` 5` 5` 5`   HVHa 7_GW D_GW D_GW D_GW ?X ;WG^ 5X    "
+      "           MW         7S                   @r                >Y         BS .V,W#Z   ;V -V "
+      "    7W     ;W  EX     ;\\   6] +Z   5\\ 5Z   <W         7X     %\\       <]    \"X         ([ "
+      "  4c   E]   /[          (W  W .W       :Y #X 0Z 2X *\\   $W    &W         .Z =WDX 3XDW   I["
+      "   0Y       8W   -W :V  MW       <Z ;WH[ 9Y &Z 1]  LW ?W   >WGXBU FX=X E` \"W >] @WDY 3Z   "
+      "2X               C[           >T     :[       KV /TAY                          EWGXBU =UGU"
+      "   BT       6V +V +V ,Y               ?\\                    +[ 0[ 0[ 0[ 0[   KT=[ 2[ 0[ 0["
+      " 0[     7Z ;Y .Y .Y .Y .Y .Y -Y2\\\"Z /\\ 1\\ 1\\ 1\\         CZ   3Z /Z /Z /Z /Z   FVCZ 1Y .Y ."
+      "Y .Y ,W :WDX 2W               LW         7R                                             #S"
+      "       >W /W     8W     :V                      \"W         5X                  )X         "
+      "    &Z                  CW  NV .W                   :W    %W           @W  :W             "
+      " -X   -W :V  MW         LW        FW ?W   >W    NW   0W =W                                "
+      "      3S       GV /XGZ                          DW  HUGU   AT                            %"
+      "T                               'R                             JT                         "
+      "      #T         (X :W  NX               LW                                               "
+      "        7S       =V /V     7W     :V                      \"W         4X'Q                 "
+      "&Y             %Z                  DW  NV .W                   :W    %W           @W  :W  "
+      "            -W   ,W :V  MW         LW        FW ?W   >W    NW   0W =W                     "
+      "                 3S       GV /j                          CW  HUGU   @T                    "
+      "        %T                               'P                             HT                "
+      "               \"Q         'W 9W  NW               KW                                      "
+      "                 7S       =W 1W     7V     :W                      \"V         2X)R        "
+      "         &X             #Z                  EW  NW /W                   :W    %W          "
+      " @W  :W              -W   ,X ;V  NX         LW        FW ?W   >W    NW   0W =W            "
+      "                          3S       GV /j                          CW  HUGU   @U           "
+      "                 &U                                                             U         "
+      "                      \"P         'W 9W  NW               KV                               "
+      "                        6S       <V 1V     6V     :V                      !V         1Y-U "
+      "                'X             \"Z                  FW  MV /W                   ;X    %W   "
+      "        @W  :W              .X   +W ;V  NW         KW        FW ?W   >W    NW   0W =W     "
+      "                                 3S       GV /h                          AW  HUGU   ?T    "
+      "                        %T                                                             NT "
+      "                                        )X 9W  X               KV                         "
+      "                              6S       <W 3V     6V     9V                      \"V        "
+      " /Z1X                 (X             !Z                  Ga (V 9a                   ;W    "
+      "$W           @W  :W              .W   *W ;V  NW         KW        FW ?W   >W    NW   0W =W"
+      "                                      3S       GV .f                          @W  HUGU   ?"
+      "U                            &U                                                           "
+      "  U                                         *W 8W  W               JV                     "
+      "                                  6S       ;V 3V     6V     :W                      \"V    "
+      "     .[5[                 *Y              Z                  Ha (W :a                   <X"
+      "    $W           @W  :W              /X   *X <V  X         KW        FW ?W   >W    NW   0W"
+      " =W                                      3S       GV +a                          >W  HUGU "
+      "  >T                            %T                                                        "
+      "     NT                                         +X 8W !X              (VIV                "
+      "                                       6S       :V 5V     5U     9W                      \""
+      "U         +\\;]                 )X              MZ                  Ia (W :a               "
+      "    =Y    %W           ?W  :W              /W   )[ ?V #[         KW        FW ?W   >W    N"
+      "W   0W =W                                      3S       GV 'Z                          ;W "
+      " HUGU   >U                            &U                                                  "
+      "           U                                         ,W 7W !W              'VIV           "
+      "                                            6S       :V 6W     6V                         "
+      "   4V         *_C`                 )Y              LZ                  Ja   :a            "
+      "      (P7Y    $W           ?W  :W              0X   (b GV +b         JW        FW ?W   >W "
+      "   NW   0W =W                                      3S       GV                            "
+      "7W  HUGU   >U                            &U                                               "
+      "              U                                         -X 7W \"X              'VJW        "
+      "                                               6S       9V 7V     5U                      "
+      "      3U         'x                 (Z              KZ                  Ka   :a           "
+      "       (R:Z    $W           ?W  :W              0X   (b GV +b         JW        FW ?W   >W"
+      "    NW   0W =W                                      3S       GV                           "
+      " 7W     #U                            &U                                                  "
+      "           U                                         -X 7W \"X              &UJW           "
+      "                                            6S       9W 9W                                "
+      "            Bu                 ([              IZ                  La   :a                "
+      "  (T>[    $X           ?W  :W              1X   &a GV +a         IW        FW ?W   >W    N"
+      "W   0W =W                                      3S       GV                            7W  "
+      "   $V                            'V                                                       "
+      "     !V                                         .X 6W #X              %VLW                "
+      "                                       5S                                                 "
+      "    2p                 -a                                                       8XE]    %Y"
+      "           >W  :W              3Z   $_ GV +_         GW        FW ?W   >W    NW   0W =W   "
+      "                                   3S       GV                            7W     /QGW     "
+      "                       2QGW                                                            ,QG"
+      "W                                         0Z 6W %Z              %a                        "
+      "                               5S                                                     0l  "
+      "               +a                                                       8p    +_          "
+      " >W  :W              ;a   !] GV +]         EW        FW ?W   >W    NW   0W =W             "
+      "                         3S       GV                            7W     /`                 "
+      "           1`                                                            +`               "
+      "                          7a 5W -a              #`                                        "
+      "                                                                     >e                 '`"
+      "                                                       7o    *^           =W  :W          "
+      "    ;`    KY GV +Y         AW        FW ?W   >W    NW   0W =W                             "
+      "         3S       GV                            7W     /`                            1`   "
+      "                                                         +`                               "
+      "          7` 4W -`              \"_                                                        "
+      "                                                     8\\                 #_                "
+      "                       \"}              3n    )^           =W  :W              ;`     9V   "
+      "        BW        FW ?W   >W    NW   0W =W                                             'V "
+      "                           7W     /_                            0_                        "
+      "                                    *_                                         6` 4W -`   "
+      "           !]                                                                             "
+      "                                                  -]                                      "
+      "  }              3l    ']           <W  :W              ;_     8V           BW        FW ?"
+      "W   >W    NW   0W =W                                             'V                       "
+      "     7W     /^                            /^                                              "
+      "              )^                                         5_ 3W -_               N[        "
+      "                                                                                          "
+      "                             ,[                                        M}              2j "
+      "   &\\           ;W  :W              ;^     7V           BW        FW ?W   >W    NW   0W =W"
+      "                                                                          7W     -Y       "
+      "                     *Y                                                            $Y     "
+      "                                    2^ 2W -^               LX                             "
+      "                                                                                          "
+      "        *X                                        J}              /d    #Z           9W  :"
+      "W              ;\\     5V           BW        FW ?W   >W    NW   0W =W                     "
+      "                                                     7W                                   "
+      "                                                                                          "
+      "            /\\ 0W                 HT                                                      "
+      "                                                                                          "
+      "                        I}              *[     NW           6W  :W              ;Z     3V "
+      "          BW        FW ?W   >W    NW   0W =W                                              "
+      "                            7W                                                            "
+      "                                                                             /Z .W        "
+      "                                                                                          "
+      "                                                                                       =} "
+      "                                                                                          "
+      "                                                                                          "
+      "                                                                                          "
+      "                                    D" };
+
+    // Define a 40x38 'danger' color logo (used by cimg::dialog()).
+    static const unsigned char logo40x38[4576] = {
+      177,200,200,200,3,123,123,0,36,200,200,200,1,123,123,0,2,255,255,0,1,189,189,189,1,0,0,0,34,200,200,200,
+      1,123,123,0,4,255,255,0,1,189,189,189,1,0,0,0,1,123,123,123,32,200,200,200,1,123,123,0,5,255,255,0,1,0,0,
+      0,2,123,123,123,30,200,200,200,1,123,123,0,6,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,29,200,200,200,
+      1,123,123,0,7,255,255,0,1,0,0,0,2,123,123,123,28,200,200,200,1,123,123,0,8,255,255,0,1,189,189,189,1,0,0,0,
+      2,123,123,123,27,200,200,200,1,123,123,0,9,255,255,0,1,0,0,0,2,123,123,123,26,200,200,200,1,123,123,0,10,255,
+      255,0,1,189,189,189,1,0,0,0,2,123,123,123,25,200,200,200,1,123,123,0,3,255,255,0,1,189,189,189,3,0,0,0,1,189,
+      189,189,3,255,255,0,1,0,0,0,2,123,123,123,24,200,200,200,1,123,123,0,4,255,255,0,5,0,0,0,3,255,255,0,1,189,
+      189,189,1,0,0,0,2,123,123,123,23,200,200,200,1,123,123,0,4,255,255,0,5,0,0,0,4,255,255,0,1,0,0,0,2,123,123,123,
+      22,200,200,200,1,123,123,0,5,255,255,0,5,0,0,0,4,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,21,200,200,200,
+      1,123,123,0,5,255,255,0,5,0,0,0,5,255,255,0,1,0,0,0,2,123,123,123,20,200,200,200,1,123,123,0,6,255,255,0,5,0,0,
+      0,5,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,19,200,200,200,1,123,123,0,6,255,255,0,1,123,123,0,3,0,0,0,1,
+      123,123,0,6,255,255,0,1,0,0,0,2,123,123,123,18,200,200,200,1,123,123,0,7,255,255,0,1,189,189,189,3,0,0,0,1,189,
+      189,189,6,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,17,200,200,200,1,123,123,0,8,255,255,0,3,0,0,0,8,255,255,
+      0,1,0,0,0,2,123,123,123,16,200,200,200,1,123,123,0,9,255,255,0,1,123,123,0,1,0,0,0,1,123,123,0,8,255,255,0,1,189,
+      189,189,1,0,0,0,2,123,123,123,15,200,200,200,1,123,123,0,9,255,255,0,1,189,189,189,1,0,0,0,1,189,189,189,9,255,
+      255,0,1,0,0,0,2,123,123,123,14,200,200,200,1,123,123,0,11,255,255,0,1,0,0,0,10,255,255,0,1,189,189,189,1,0,0,0,2,
+      123,123,123,13,200,200,200,1,123,123,0,23,255,255,0,1,0,0,0,2,123,123,123,12,200,200,200,1,123,123,0,11,255,255,0,
+      1,189,189,189,2,0,0,0,1,189,189,189,9,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,11,200,200,200,1,123,123,0,11,
+      255,255,0,4,0,0,0,10,255,255,0,1,0,0,0,2,123,123,123,10,200,200,200,1,123,123,0,12,255,255,0,4,0,0,0,10,255,255,0,
+      1,189,189,189,1,0,0,0,2,123,123,123,9,200,200,200,1,123,123,0,12,255,255,0,1,189,189,189,2,0,0,0,1,189,189,189,11,
+      255,255,0,1,0,0,0,2,123,123,123,9,200,200,200,1,123,123,0,27,255,255,0,1,0,0,0,3,123,123,123,8,200,200,200,1,123,
+      123,0,26,255,255,0,1,189,189,189,1,0,0,0,3,123,123,123,9,200,200,200,1,123,123,0,24,255,255,0,1,189,189,189,1,0,0,
+      0,4,123,123,123,10,200,200,200,1,123,123,0,24,0,0,0,5,123,123,123,12,200,200,200,27,123,123,123,14,200,200,200,25,
+      123,123,123,86,200,200,200,91,49,124,118,124,71,32,124,95,49,56,114,52,82,121,0 };
+
+    //! Get/set default output stream for the \CImg library messages.
+    /**
+       \param file Desired output stream. Set to \c 0 to get the currently used output stream only.
+       \return Currently used output stream.
+    **/
+    inline std::FILE* output(std::FILE *file) {
+      cimg::mutex(1);
+      static std::FILE *res = cimg::_stderr();
+      if (file) res = file;
+      cimg::mutex(1,0);
+      return res;
+    }
+
+    // Return number of available CPU cores.
+    inline unsigned int nb_cpus() {
+      unsigned int res = 1;
+#if cimg_OS==2
+      SYSTEM_INFO sysinfo;
+      GetSystemInfo(&sysinfo);
+      res = (unsigned int)sysinfo.dwNumberOfProcessors;
+#elif cimg_OS == 1
+      res = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+      return res?res:1U;
+    }
+
+    // Lock/unlock mutex for CImg multi-thread programming.
+    inline int mutex(const unsigned int n, const int lock_mode) {
+      switch (lock_mode) {
+      case 0 : cimg::Mutex_attr().unlock(n); return 0;
+      case 1 : cimg::Mutex_attr().lock(n); return 0;
+      default : return cimg::Mutex_attr().trylock(n);
+      }
+    }
+
+    //! Display a warning message on the default output stream.
+    /**
+       \param format C-string containing the format of the message, as with <tt>std::printf()</tt>.
+       \note If configuration macro \c cimg_strict_warnings is set, this function throws a
+       \c CImgWarningException instead.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       cimg::warn("%s",warning_message);
+       \endcode
+       instead of
+       \code
+       cimg::warn(warning_message);
+       \endcode
+       if \c warning_message can be arbitrary, to prevent nasty memory access.
+    **/
+    inline void warn(const char *const format, ...) {
+      if (cimg::exception_mode()>=1) {
+        char *const message = new char[16384];
+        std::va_list ap;
+        va_start(ap,format);
+        cimg_vsnprintf(message,16384,format,ap);
+        va_end(ap);
+#ifdef cimg_strict_warnings
+        throw CImgWarningException(message);
+#else
+        std::fprintf(cimg::output(),"\n%s[CImg] *** Warning ***%s%s\n",cimg::t_red,cimg::t_normal,message);
+#endif
+        delete[] message;
+      }
+    }
+
+    // Execute an external system command.
+    /**
+       \param command C-string containing the command line to execute.
+       \param module_name Module name.
+       \return Status value of the executed command, whose meaning is OS-dependent.
+       \note This function is similar to <tt>std::system()</tt>
+       but it does not open an extra console windows
+       on Windows-based systems.
+    **/
+    inline int system(const char *const command, const char *const module_name=0, const bool is_verbose=false) {
+      cimg::unused(module_name);
+#ifdef cimg_no_system_calls
+      return -1;
+#else
+      if (is_verbose) return std::system(command);
+#if cimg_OS==1
+      const unsigned int l = (unsigned int)std::strlen(command);
+      if (l) {
+        char *const ncommand = new char[l + 24];
+        std::memcpy(ncommand,command,l);
+        std::strcpy(ncommand + l," >/dev/null 2>&1"); // Make command silent.
+        const int out_val = std::system(ncommand);
+        delete[] ncommand;
+        return out_val;
+      } else return -1;
+#elif cimg_OS==2
+      PROCESS_INFORMATION pi;
+      STARTUPINFO si;
+      std::memset(&pi,0,sizeof(PROCESS_INFORMATION));
+      std::memset(&si,0,sizeof(STARTUPINFO));
+      GetStartupInfo(&si);
+      si.cb = sizeof(si);
+      si.wShowWindow = SW_HIDE;
+      si.dwFlags |= SW_HIDE | STARTF_USESHOWWINDOW;
+      const BOOL res = CreateProcess((LPCTSTR)module_name,(LPTSTR)command,0,0,FALSE,0,0,0,&si,&pi);
+      if (res) {
+        WaitForSingleObject(pi.hProcess,INFINITE);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        return 0;
+      } else return std::system(command);
+#else
+      return std::system(command);
+#endif
+#endif
+    }
+
+    //! Return a reference to a temporary variable of type T.
+    template<typename T>
+    inline T& temporary(const T&) {
+      static T temp;
+      return temp;
+    }
+
+    //! Exchange values of variables \c a and \c b.
+    template<typename T>
+    inline void swap(T& a, T& b) { T t = a; a = b; b = t; }
+
+    //! Exchange values of variables (\c a1,\c a2) and (\c b1,\c b2).
+    template<typename T1, typename T2>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
+      cimg::swap(a1,b1); cimg::swap(a2,b2);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,\c a3) and (\c b1,\c b2,\c b3).
+    template<typename T1, typename T2, typename T3>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3) {
+      cimg::swap(a1,b1,a2,b2); cimg::swap(a3,b3);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a4) and (\c b1,\c b2,...,\c b4).
+    template<typename T1, typename T2, typename T3, typename T4>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4) {
+      cimg::swap(a1,b1,a2,b2,a3,b3); cimg::swap(a4,b4);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a5) and (\c b1,\c b2,...,\c b5).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4); cimg::swap(a5,b5);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a6) and (\c b1,\c b2,...,\c b6).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5); cimg::swap(a6,b6);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a7) and (\c b1,\c b2,...,\c b7).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6); cimg::swap(a7,b7);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a8) and (\c b1,\c b2,...,\c b8).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7, T8& a8, T8& b8) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6,a7,b7); cimg::swap(a8,b8);
+    }
+
+    //! Return the endianness of the current architecture.
+    /**
+       \return \c false for <i>Little Endian</i> or \c true for <i>Big Endian</i>.
+    **/
+    inline bool endianness() {
+      const int x = 1;
+      return ((unsigned char*)&x)[0]?false:true;
+    }
+
+    //! Reverse endianness of all elements in a memory buffer.
+    /**
+       \param[in,out] buffer Memory buffer whose endianness must be reversed.
+       \param size Number of buffer elements to reverse.
+    **/
+    template<typename T>
+    inline void invert_endianness(T* const buffer, const cimg_ulong size) {
+      if (size) switch (sizeof(T)) {
+        case 1 : break;
+        case 2 : {
+          for (unsigned short *ptr = (unsigned short*)buffer + size; ptr>(unsigned short*)buffer; ) {
+            const unsigned short val = *(--ptr);
+            *ptr = (unsigned short)((val>>8) | ((val<<8)));
+          }
+        } break;
+        case 4 : {
+          for (unsigned int *ptr = (unsigned int*)buffer + size; ptr>(unsigned int*)buffer; ) {
+            const unsigned int val = *(--ptr);
+            *ptr = (val>>24) | ((val>>8)&0xff00) | ((val<<8)&0xff0000) | (val<<24);
+          }
+        } break;
+        case 8 : {
+          const cimg_uint64
+            m0 = (cimg_uint64)0xff, m1 = m0<<8, m2 = m0<<16, m3 = m0<<24,
+            m4 = m0<<32, m5 = m0<<40, m6 = m0<<48, m7 = m0<<56;
+          for (cimg_uint64 *ptr = (cimg_uint64*)buffer + size; ptr>(cimg_uint64*)buffer; ) {
+            const cimg_uint64 val = *(--ptr);
+            *ptr =  (((val&m7)>>56) | ((val&m6)>>40) | ((val&m5)>>24) | ((val&m4)>>8) |
+                     ((val&m3)<<8) |((val&m2)<<24) | ((val&m1)<<40) | ((val&m0)<<56));
+          }
+        } break;
+        default : {
+          for (T* ptr = buffer + size; ptr>buffer; ) {
+            unsigned char *pb = (unsigned char*)(--ptr), *pe = pb + sizeof(T);
+            for (int i = 0; i<(int)sizeof(T)/2; ++i) swap(*(pb++),*(--pe));
+          }
+        }
+        }
+    }
+
+    //! Reverse endianness of a single variable.
+    /**
+       \param[in,out] a Variable to reverse.
+       \return Reference to reversed variable.
+    **/
+    template<typename T>
+    inline T& invert_endianness(T& a) {
+      invert_endianness(&a,1);
+      return a;
+    }
+
+    // Conversion functions to get more precision when trying to store unsigned ints values as floats.
+    inline unsigned int float2uint(const float f) {
+      int tmp = 0;
+      std::memcpy(&tmp,&f,sizeof(float));
+      if (tmp>=0) return (unsigned int)f;
+      unsigned int u;
+      // use memcpy instead of assignment to avoid undesired optimizations by C++-compiler.
+      std::memcpy(&u,&f,sizeof(float));
+      return ((u)<<1)>>1; // set sign bit to 0.
+    }
+
+    inline float uint2float(const unsigned int u) {
+      if (u<(1U<<19)) return (float)u;  // Consider safe storage of unsigned int as floats until 19bits (i.e 524287).
+      float f;
+      const unsigned int v = u|(1U<<(8*sizeof(unsigned int)-1)); // set sign bit to 1.
+      // use memcpy instead of simple assignment to avoid undesired optimizations by C++-compiler.
+      std::memcpy(&f,&v,sizeof(float));
+      return f;
+    }
+
+    //! Return the value of a system timer, with a millisecond precision.
+    /**
+       \note The timer does not necessarily starts from \c 0.
+    **/
+    inline cimg_ulong time() {
+#if cimg_OS==1
+      struct timeval st_time;
+      gettimeofday(&st_time,0);
+      return (cimg_ulong)(st_time.tv_usec/1000 + st_time.tv_sec*1000);
+#elif cimg_OS==2
+      SYSTEMTIME st_time;
+      GetLocalTime(&st_time);
+      return (cimg_ulong)(st_time.wMilliseconds + 1000*(st_time.wSecond + 60*(st_time.wMinute + 60*st_time.wHour)));
+#else
+      return 0;
+#endif
+    }
+
+    // Implement a tic/toc mechanism to display elapsed time of algorithms.
+    inline cimg_ulong tictoc(const bool is_tic);
+
+    //! Start tic/toc timer for time measurement between code instructions.
+    /**
+       \return Current value of the timer (same value as time()).
+    **/
+    inline cimg_ulong tic() {
+      return cimg::tictoc(true);
+    }
+
+    //! End tic/toc timer and displays elapsed time from last call to tic().
+    /**
+       \return Time elapsed (in ms) since last call to tic().
+    **/
+    inline cimg_ulong toc() {
+      return cimg::tictoc(false);
+    }
+
+    //! Sleep for a given numbers of milliseconds.
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \note This function frees the CPU ressources during the sleeping time.
+       It can be used to temporize your program properly, without wasting CPU time.
+    **/
+    inline void sleep(const unsigned int milliseconds) {
+#if cimg_OS==1
+      struct timespec tv;
+      tv.tv_sec = milliseconds/1000;
+      tv.tv_nsec = (milliseconds%1000)*1000000;
+      nanosleep(&tv,0);
+#elif cimg_OS==2
+      Sleep(milliseconds);
+#else
+      cimg::unused(milliseconds);
+#endif
+    }
+
+    inline unsigned int _wait(const unsigned int milliseconds, cimg_ulong& timer) {
+      if (!timer) timer = cimg::time();
+      const cimg_ulong current_time = cimg::time();
+      if (current_time>=timer + milliseconds) { timer = current_time; return 0; }
+      const unsigned int time_diff = (unsigned int)(timer + milliseconds - current_time);
+      timer = current_time + time_diff;
+      cimg::sleep(time_diff);
+      return time_diff;
+    }
+
+    //! Wait for a given number of milliseconds since the last call to wait().
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \return Number of milliseconds elapsed since the last call to wait().
+       \note Same as sleep() with a waiting time computed with regard to the last call
+       of wait(). It may be used to temporize your program properly, without wasting CPU time.
+    **/
+    inline cimg_long wait(const unsigned int milliseconds) {
+      cimg::mutex(3);
+      static cimg_ulong timer = 0;
+      if (!timer) timer = cimg::time();
+      cimg::mutex(3,0);
+      return _wait(milliseconds,timer);
+    }
+
+    // Random number generators.
+    // CImg may use its own Random Number Generator (RNG) if configuration macro 'cimg_use_rng' is set.
+    // Use it for instance when you have to deal with concurrent threads trying to call std::srand()
+    // at the same time!
+#ifdef cimg_use_rng
+
+#include <stdint.h>
+
+    // Use a custom RNG.
+    inline unsigned int _rand(const unsigned int seed=0, const bool set_seed=false) {
+      static cimg_ulong next = 0xB16B00B5;
+      cimg::mutex(4);
+      if (set_seed) next = (cimg_ulong)seed;
+      else next = next*1103515245 + 12345U;
+      cimg::mutex(4,0);
+      return (unsigned int)(next&0xFFFFFFU);
+    }
+
+    inline unsigned int srand() {
+      unsigned int t = (unsigned int)cimg::time();
+#if cimg_OS==1
+      t+=(unsigned int)getpid();
+#elif cimg_OS==2
+      t+=(unsigned int)_getpid();
+#endif
+      return cimg::_rand(t,true);
+    }
+
+    inline unsigned int srand(const unsigned int seed) {
+      return _rand(seed,true);
+    }
+
+    inline double rand(const double val_min, const double val_max) {
+      const double val = cimg::_rand()/16777215.;
+      return val_min + (val_max - val_min)*val;
+    }
+
+#else
+
+    // Use the system RNG.
+    inline unsigned int srand() {
+      const unsigned int t = (unsigned int)cimg::time();
+#if cimg_OS==1 || defined(__BORLANDC__)
+      std::srand(t + (unsigned int)getpid());
+#elif cimg_OS==2
+      std::srand(t + (unsigned int)_getpid());
+#else
+      std::srand(t);
+#endif
+      return t;
+    }
+
+    inline unsigned int srand(const unsigned int seed) {
+      std::srand(seed);
+      return seed;
+    }
+
+    //! Return a random variable uniformely distributed between [val_min,val_max].
+    /**
+    **/
+    inline double rand(const double val_min, const double val_max) {
+      const double val = (double)std::rand()/RAND_MAX;
+      return val_min + (val_max - val_min)*val;
+    }
+#endif
+
+    //! Return a random variable uniformely distributed between [0,val_max].
+    /**
+     **/
+    inline double rand(const double val_max=1) {
+      return cimg::rand(0,val_max);
+    }
+
+    //! Return a random variable following a gaussian distribution and a standard deviation of 1.
+    /**
+    **/
+    inline double grand() {
+      double x1, w;
+      do {
+        const double x2 = cimg::rand(-1,1);
+        x1 = cimg::rand(-1,1);
+        w = x1*x1 + x2*x2;
+      } while (w<=0 || w>=1.0);
+      return x1*std::sqrt((-2*std::log(w))/w);
+    }
+
+    //! Return a random variable following a Poisson distribution of parameter z.
+    /**
+    **/
+    inline unsigned int prand(const double z) {
+      if (z<=1.0e-10) return 0;
+      if (z>100) return (unsigned int)((std::sqrt(z) * cimg::grand()) + z);
+      unsigned int k = 0;
+      const double y = std::exp(-z);
+      for (double s = 1.0; s>=y; ++k) s*=cimg::rand();
+      return k - 1;
+    }
+
+    //! Cut (i.e. clamp) value in specified interval.
+    template<typename T, typename t>
+    inline T cut(const T& val, const t& val_min, const t& val_max) {
+      return val<val_min?(T)val_min:val>val_max?(T)val_max:val;
+    }
+
+    //! Bitwise-rotate value on the left.
+    template<typename T>
+    inline T rol(const T& a, const unsigned int n=1) {
+      return n?(T)((a<<n)|(a>>((sizeof(T)<<3) - n))):a;
+    }
+
+    inline float rol(const float a, const unsigned int n=1) {
+      return (float)rol((int)a,n);
+    }
+
+    inline double rol(const double a, const unsigned int n=1) {
+      return (double)rol((cimg_long)a,n);
+    }
+
+    inline double rol(const long double a, const unsigned int n=1) {
+      return (double)rol((cimg_long)a,n);
+    }
+
+#ifdef cimg_use_half
+    inline half rol(const half a, const unsigned int n=1) {
+      return (half)rol((int)a,n);
+    }
+#endif
+
+    //! Bitwise-rotate value on the right.
+    template<typename T>
+    inline T ror(const T& a, const unsigned int n=1) {
+      return n?(T)((a>>n)|(a<<((sizeof(T)<<3) - n))):a;
+    }
+
+    inline float ror(const float a, const unsigned int n=1) {
+      return (float)ror((int)a,n);
+    }
+
+    inline double ror(const double a, const unsigned int n=1) {
+      return (double)ror((cimg_long)a,n);
+    }
+
+    inline double ror(const long double a, const unsigned int n=1) {
+      return (double)ror((cimg_long)a,n);
+    }
+
+#ifdef cimg_use_half
+    inline half ror(const half a, const unsigned int n=1) {
+      return (half)ror((int)a,n);
+    }
+#endif
+
+    //! Return absolute value of a value.
+    template<typename T>
+    inline T abs(const T& a) {
+      return a>=0?a:-a;
+    }
+    inline bool abs(const bool a) {
+      return a;
+    }
+    inline int abs(const unsigned char a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned short a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned int a) {
+      return (int)a;
+    }
+    inline int abs(const int a) {
+      return std::abs(a);
+    }
+    inline cimg_int64 abs(const cimg_uint64 a) {
+      return (cimg_int64)a;
+    }
+    inline double abs(const double a) {
+      return std::fabs(a);
+    }
+    inline float abs(const float a) {
+      return (float)std::fabs((double)a);
+    }
+
+    //! Return hyperbolic arcosine of a value.
+    inline double acosh(const double x) {
+#if cimg_use_cpp11==1 && !defined(_MSC_VER)
+      return std::acosh(x);
+#else
+      return std::log(x + std::sqrt(x*x - 1));
+#endif
+    }
+
+    //! Return hyperbolic arcsine of a value.
+    inline double asinh(const double x) {
+#if cimg_use_cpp11==1 && !defined(_MSC_VER)
+      return std::asinh(x);
+#else
+      return std::log(x + std::sqrt(x*x + 1));
+#endif
+    }
+
+    //! Return hyperbolic arctangent of a value.
+    inline double atanh(const double x) {
+#if cimg_use_cpp11==1 && !defined(_MSC_VER)
+      return std::atanh(x);
+#else
+      return 0.5*std::log((1.0 + x)/(1.0 - x));
+#endif
+    }
+
+    //! Return the sinc of a given value.
+    inline double sinc(const double x) {
+      return x?std::sin(x)/x:1;
+    }
+
+    //! Return base-2 logarithm of a value.
+    inline double log2(const double x) {
+#if cimg_use_cpp11==1 && !defined(_MSC_VER)
+      return std::log2(x);
+#else
+      const double base2 = std::log(2.0);
+      return std::log(x)/base2;
+#endif
+    }
+
+    //! Return square of a value.
+    template<typename T>
+    inline T sqr(const T& val) {
+      return val*val;
+    }
+
+    //! Return cubic root of a value.
+    template<typename T>
+    inline double cbrt(const T& x) {
+#if cimg_use_cpp11==1
+      return std::cbrt(x);
+#else
+      return x>=0?std::pow((double)x,1.0/3):-std::pow(-(double)x,1.0/3);
+#endif
+    }
+
+    //! Return the minimum between three values.
+    template<typename t>
+    inline t min(const t& a, const t& b, const t& c) {
+      return std::min(std::min(a,b),c);
+    }
+
+    //! Return the minimum between four values.
+    template<typename t>
+    inline t min(const t& a, const t& b, const t& c, const t& d) {
+      return std::min(std::min(a,b),std::min(c,d));
+    }
+
+    //! Return the maximum between three values.
+    template<typename t>
+    inline t max(const t& a, const t& b, const t& c) {
+      return std::max(std::max(a,b),c);
+    }
+
+    //! Return the maximum between four values.
+    template<typename t>
+    inline t max(const t& a, const t& b, const t& c, const t& d) {
+      return std::max(std::max(a,b),std::max(c,d));
+    }
+
+    //! Return the sign of a value.
+    template<typename T>
+    inline T sign(const T& x) {
+      return (T)(x<0?-1:x>0);
+    }
+
+    //! Return the nearest power of 2 higher than given value.
+    template<typename T>
+    inline cimg_ulong nearest_pow2(const T& x) {
+      cimg_ulong i = 1;
+      while (x>i) i<<=1;
+      return i;
+    }
+
+    //! Return the modulo of a value.
+    /**
+       \param x Input value.
+       \param m Modulo value.
+       \note This modulo function accepts negative and floating-points modulo numbers, as well as variables of any type.
+    **/
+    template<typename T>
+    inline T mod(const T& x, const T& m) {
+      const double dx = (double)x, dm = (double)m;
+      return (T)(dx - dm * std::floor(dx / dm));
+    }
+    inline int mod(const bool x, const bool m) {
+      return m?(x?1:0):0;
+    }
+    inline int mod(const unsigned char x, const unsigned char m) {
+      return x%m;
+    }
+    inline int mod(const char x, const char m) {
+#if defined(CHAR_MAX) && CHAR_MAX==255
+      return x%m;
+#else
+      return x>=0?x%m:(x%m?m + x%m:0);
+#endif
+    }
+    inline int mod(const unsigned short x, const unsigned short m) {
+      return x%m;
+    }
+    inline int mod(const short x, const short m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline int mod(const unsigned int x, const unsigned int m) {
+      return (int)(x%m);
+    }
+    inline int mod(const int x, const int m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline cimg_int64 mod(const cimg_uint64 x, const cimg_uint64 m) {
+      return x%m;
+    }
+    inline cimg_int64 mod(const cimg_int64 x, const cimg_int64 m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+
+    //! Return the min-mod of two values.
+    /**
+       \note <i>minmod(\p a,\p b)</i> is defined to be:
+       - <i>minmod(\p a,\p b) = min(\p a,\p b)</i>, if \p a and \p b have the same sign.
+       - <i>minmod(\p a,\p b) = 0</i>, if \p a and \p b have different signs.
+    **/
+    template<typename T>
+    inline T minmod(const T& a, const T& b) {
+      return a*b<=0?0:(a>0?(a<b?a:b):(a<b?b:a));
+    }
+
+    template<typename T>
+    inline T round(const T& x) {
+      return (T)std::floor((_cimg_Tfloat)x + 0.5f);
+    }
+
+    //! Return rounded value.
+    /**
+       \param x Value to be rounded.
+       \param y Rounding precision.
+       \param rounding_type Type of rounding operation (\c 0 = nearest, \c -1 = backward, \c 1 = forward).
+       \return Rounded value, having the same type as input value \c x.
+    **/
+    template<typename T>
+    inline T round(const T& x, const double y, const int rounding_type=0) {
+      if (y<=0) return x;
+      if (y==1) switch (rounding_type) {
+        case 0 : return cimg::round(x);
+        case 1 : return (T)std::ceil((_cimg_Tfloat)x);
+        default : return (T)std::floor((_cimg_Tfloat)x);
+        }
+      const double sx = (double)x/y, floor = std::floor(sx), delta =  sx - floor;
+      return (T)(y*(rounding_type<0?floor:rounding_type>0?std::ceil(sx):delta<0.5?floor:std::ceil(sx)));
+    }
+
+    // Code to compute fast median from 2,3,5,7,9,13,25 and 49 values.
+    // (contribution by RawTherapee: http://rawtherapee.com/).
+    template<typename T>
+    inline T median(T val0, T val1) {
+      return (val0 + val1)/2;
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2) {
+      return std::max(std::min(val0,val1),std::min(val2,std::max(val0,val1)));
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4) {
+      T tmp = std::min(val0,val1);
+      val1 = std::max(val0,val1); val0 = tmp; tmp = std::min(val3,val4); val4 = std::max(val3,val4);
+      val3 = std::max(val0,tmp);  val1 = std::min(val1,val4); tmp = std::min(val1,val2); val2 = std::max(val1,val2);
+      val1 = tmp; tmp = std::min(val2,val3);
+      return std::max(val1,tmp);
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6) {
+      T tmp = std::min(val0,val5);
+      val5 = std::max(val0,val5); val0 = tmp; tmp = std::min(val0,val3); val3 = std::max(val0,val3); val0 = tmp;
+      tmp = std::min(val1,val6); val6 = std::max(val1,val6); val1 = tmp; tmp = std::min(val2,val4);
+      val4 = std::max(val2,val4); val2 = tmp; val1 = std::max(val0,val1); tmp = std::min(val3,val5);
+      val5 = std::max(val3,val5); val3 = tmp; tmp = std::min(val2,val6); val6 = std::max(val2,val6);
+      val3 = std::max(tmp,val3); val3 = std::min(val3,val6); tmp = std::min(val4,val5); val4 = std::max(val1,tmp);
+      tmp = std::min(val1,tmp); val3 = std::max(tmp,val3);
+      return std::min(val3,val4);
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8) {
+      T tmp = std::min(val1,val2);
+      val2 = std::max(val1,val2); val1 = tmp; tmp = std::min(val4,val5);
+      val5 = std::max(val4,val5); val4 = tmp; tmp = std::min(val7,val8);
+      val8 = std::max(val7,val8); val7 = tmp; tmp = std::min(val0,val1);
+      val1 = std::max(val0,val1); val0 = tmp; tmp = std::min(val3,val4);
+      val4 = std::max(val3,val4); val3 = tmp; tmp = std::min(val6,val7);
+      val7 = std::max(val6,val7); val6 = tmp; tmp = std::min(val1,val2);
+      val2 = std::max(val1,val2); val1 = tmp; tmp = std::min(val4,val5);
+      val5 = std::max(val4,val5); val4 = tmp; tmp = std::min(val7,val8);
+      val8 = std::max(val7,val8); val3 = std::max(val0,val3); val5 = std::min(val5,val8);
+      val7 = std::max(val4,tmp); tmp = std::min(val4,tmp); val6 = std::max(val3,val6);
+      val4 = std::max(val1,tmp); val2 = std::min(val2,val5); val4 = std::min(val4,val7);
+      tmp = std::min(val4,val2); val2 = std::max(val4,val2); val4 = std::max(val6,tmp);
+      return std::min(val4,val2);
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8, T val9, T val10, T val11,
+                    T val12) {
+      T tmp = std::min(val1,val7);
+      val7 = std::max(val1,val7); val1 = tmp; tmp = std::min(val9,val11); val11 = std::max(val9,val11); val9 = tmp;
+      tmp = std::min(val3,val4);  val4 = std::max(val3,val4); val3 = tmp; tmp = std::min(val5,val8);
+      val8 = std::max(val5,val8); val5 = tmp; tmp = std::min(val0,val12); val12 = std::max(val0,val12);
+      val0 = tmp; tmp = std::min(val2,val6); val6 = std::max(val2,val6); val2 = tmp; tmp = std::min(val0,val1);
+      val1 = std::max(val0,val1); val0 = tmp; tmp = std::min(val2,val3); val3 = std::max(val2,val3); val2 = tmp;
+      tmp = std::min(val4,val6);  val6 = std::max(val4,val6); val4 = tmp; tmp = std::min(val8,val11);
+      val11 = std::max(val8,val11); val8 = tmp; tmp = std::min(val7,val12); val12 = std::max(val7,val12); val7 = tmp;
+      tmp = std::min(val5,val9); val9 = std::max(val5,val9); val5 = tmp; tmp = std::min(val0,val2);
+      val2 = std::max(val0,val2); val0 = tmp; tmp = std::min(val3,val7); val7 = std::max(val3,val7); val3 = tmp;
+      tmp = std::min(val10,val11); val11 = std::max(val10,val11); val10 = tmp; tmp = std::min(val1,val4);
+      val4 = std::max(val1,val4); val1 = tmp; tmp = std::min(val6,val12); val12 = std::max(val6,val12); val6 = tmp;
+      tmp = std::min(val7,val8); val8 = std::max(val7,val8); val7 = tmp; val11 = std::min(val11,val12);
+      tmp = std::min(val4,val9); val9 = std::max(val4,val9); val4 = tmp; tmp = std::min(val6,val10);
+      val10 = std::max(val6,val10); val6 = tmp; tmp = std::min(val3,val4); val4 = std::max(val3,val4); val3 = tmp;
+      tmp = std::min(val5,val6); val6 = std::max(val5,val6); val5 = tmp; val8 = std::min(val8,val9);
+      val10 = std::min(val10,val11); tmp = std::min(val1,val7); val7 = std::max(val1,val7); val1 = tmp;
+      tmp = std::min(val2,val6); val6 = std::max(val2,val6); val2 = tmp; val3 = std::max(val1,val3);
+      tmp = std::min(val4,val7); val7 = std::max(val4,val7); val4 = tmp; val8 = std::min(val8,val10);
+      val5 = std::max(val0,val5); val5 = std::max(val2,val5); tmp = std::min(val6,val8); val8 = std::max(val6,val8);
+      val5 = std::max(val3,val5); val7 = std::min(val7,val8); val6 = std::max(val4,tmp); tmp = std::min(val4,tmp);
+      val5 = std::max(tmp,val5); val6 = std::min(val6,val7);
+      return std::max(val5,val6);
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4,
+                    T val5, T val6, T val7, T val8, T val9,
+                    T val10, T val11, T val12, T val13, T val14,
+                    T val15, T val16, T val17, T val18, T val19,
+                    T val20, T val21, T val22, T val23, T val24) {
+      T tmp = std::min(val0,val1);
+      val1 = std::max(val0,val1); val0 = tmp; tmp = std::min(val3,val4); val4 = std::max(val3,val4);
+      val3 = tmp; tmp = std::min(val2,val4); val4 = std::max(val2,val4); val2 = std::min(tmp,val3);
+      val3 = std::max(tmp,val3); tmp = std::min(val6,val7); val7 = std::max(val6,val7); val6 = tmp;
+      tmp = std::min(val5,val7); val7 = std::max(val5,val7); val5 = std::min(tmp,val6); val6 = std::max(tmp,val6);
+      tmp = std::min(val9,val10); val10 = std::max(val9,val10); val9 = tmp; tmp = std::min(val8,val10);
+      val10 = std::max(val8,val10); val8 = std::min(tmp,val9); val9 = std::max(tmp,val9);
+      tmp = std::min(val12,val13); val13 = std::max(val12,val13); val12 = tmp; tmp = std::min(val11,val13);
+      val13 = std::max(val11,val13); val11 = std::min(tmp,val12); val12 = std::max(tmp,val12);
+      tmp = std::min(val15,val16); val16 = std::max(val15,val16); val15 = tmp; tmp = std::min(val14,val16);
+      val16 = std::max(val14,val16); val14 = std::min(tmp,val15); val15 = std::max(tmp,val15);
+      tmp = std::min(val18,val19); val19 = std::max(val18,val19); val18 = tmp; tmp = std::min(val17,val19);
+      val19 = std::max(val17,val19); val17 = std::min(tmp,val18); val18 = std::max(tmp,val18);
+      tmp = std::min(val21,val22); val22 = std::max(val21,val22); val21 = tmp; tmp = std::min(val20,val22);
+      val22 = std::max(val20,val22); val20 = std::min(tmp,val21); val21 = std::max(tmp,val21);
+      tmp = std::min(val23,val24); val24 = std::max(val23,val24); val23 = tmp; tmp = std::min(val2,val5);
+      val5 = std::max(val2,val5); val2 = tmp; tmp = std::min(val3,val6); val6 = std::max(val3,val6); val3 = tmp;
+      tmp = std::min(val0,val6); val6 = std::max(val0,val6); val0 = std::min(tmp,val3); val3 = std::max(tmp,val3);
+      tmp = std::min(val4,val7); val7 = std::max(val4,val7); val4 = tmp; tmp = std::min(val1,val7);
+      val7 = std::max(val1,val7); val1 = std::min(tmp,val4); val4 = std::max(tmp,val4); tmp = std::min(val11,val14);
+      val14 = std::max(val11,val14); val11 = tmp; tmp = std::min(val8,val14); val14 = std::max(val8,val14);
+      val8 = std::min(tmp,val11); val11 = std::max(tmp,val11); tmp = std::min(val12,val15);
+      val15 = std::max(val12,val15); val12 = tmp; tmp = std::min(val9,val15); val15 = std::max(val9,val15);
+      val9 = std::min(tmp,val12); val12 = std::max(tmp,val12); tmp = std::min(val13,val16);
+      val16 = std::max(val13,val16); val13 = tmp; tmp = std::min(val10,val16); val16 = std::max(val10,val16);
+      val10 = std::min(tmp,val13); val13 = std::max(tmp,val13); tmp = std::min(val20,val23);
+      val23 = std::max(val20,val23); val20 = tmp; tmp = std::min(val17,val23); val23 = std::max(val17,val23);
+      val17 = std::min(tmp,val20); val20 = std::max(tmp,val20); tmp = std::min(val21,val24);
+      val24 = std::max(val21,val24); val21 = tmp; tmp = std::min(val18,val24); val24 = std::max(val18,val24);
+      val18 = std::min(tmp,val21); val21 = std::max(tmp,val21); tmp = std::min(val19,val22);
+      val22 = std::max(val19,val22); val19 = tmp; val17 = std::max(val8,val17); tmp = std::min(val9,val18);
+      val18 = std::max(val9,val18); val9 = tmp; tmp = std::min(val0,val18); val18 = std::max(val0,val18);
+      val9 = std::max(tmp,val9); tmp = std::min(val10,val19); val19 = std::max(val10,val19); val10 = tmp;
+      tmp = std::min(val1,val19); val19 = std::max(val1,val19); val1 = std::min(tmp,val10);
+      val10 = std::max(tmp,val10); tmp = std::min(val11,val20); val20 = std::max(val11,val20); val11 = tmp;
+      tmp = std::min(val2,val20); val20 = std::max(val2,val20); val11 = std::max(tmp,val11);
+      tmp = std::min(val12,val21); val21 = std::max(val12,val21); val12 = tmp; tmp = std::min(val3,val21);
+      val21 = std::max(val3,val21); val3 = std::min(tmp,val12); val12 = std::max(tmp,val12);
+      tmp = std::min(val13,val22); val22 = std::max(val13,val22); val4 = std::min(val4,val22);
+      val13 = std::max(val4,tmp); tmp = std::min(val4,tmp); val4 = tmp; tmp = std::min(val14,val23);
+      val23 = std::max(val14,val23); val14 = tmp; tmp = std::min(val5,val23); val23 = std::max(val5,val23);
+      val5 = std::min(tmp,val14); val14 = std::max(tmp,val14); tmp = std::min(val15,val24);
+      val24 = std::max(val15,val24); val15 = tmp; val6 = std::min(val6,val24); tmp = std::min(val6,val15);
+      val15 = std::max(val6,val15); val6 = tmp; tmp = std::min(val7,val16); val7 = std::min(tmp,val19);
+      tmp = std::min(val13,val21); val15 = std::min(val15,val23); tmp = std::min(val7,tmp);
+      val7 = std::min(tmp,val15); val9 = std::max(val1,val9); val11 = std::max(val3,val11);
+      val17 = std::max(val5,val17); val17 = std::max(val11,val17); val17 = std::max(val9,val17);
+      tmp = std::min(val4,val10); val10 = std::max(val4,val10); val4 = tmp; tmp = std::min(val6,val12);
+      val12 = std::max(val6,val12); val6 = tmp; tmp = std::min(val7,val14); val14 = std::max(val7,val14);
+      val7 = tmp; tmp = std::min(val4,val6); val6 = std::max(val4,val6); val7 = std::max(tmp,val7);
+      tmp = std::min(val12,val14); val14 = std::max(val12,val14); val12 = tmp; val10 = std::min(val10,val14);
+      tmp = std::min(val6,val7); val7 = std::max(val6,val7); val6 = tmp; tmp = std::min(val10,val12);
+      val12 = std::max(val10,val12); val10 = std::max(val6,tmp); tmp = std::min(val6,tmp);
+      val17 = std::max(tmp,val17); tmp = std::min(val12,val17); val17 = std::max(val12,val17); val12 = tmp;
+      val7 = std::min(val7,val17); tmp = std::min(val7,val10); val10 = std::max(val7,val10); val7 = tmp;
+      tmp = std::min(val12,val18); val18 = std::max(val12,val18); val12 = std::max(val7,tmp);
+      val10 = std::min(val10,val18); tmp = std::min(val12,val20); val20 = std::max(val12,val20); val12 = tmp;
+      tmp = std::min(val10,val20);
+      return std::max(tmp,val12);
+    }
+
+    template<typename T>
+    inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6,
+                    T val7, T val8, T val9, T val10, T val11, T val12, T val13,
+                    T val14, T val15, T val16, T val17, T val18, T val19, T val20,
+                    T val21, T val22, T val23, T val24, T val25, T val26, T val27,
+                    T val28, T val29, T val30, T val31, T val32, T val33, T val34,
+                    T val35, T val36, T val37, T val38, T val39, T val40, T val41,
+                    T val42, T val43, T val44, T val45, T val46, T val47, T val48) {
+      T tmp = std::min(val0,val32);
+      val32 = std::max(val0,val32); val0 = tmp; tmp = std::min(val1,val33); val33 = std::max(val1,val33); val1 = tmp;
+      tmp = std::min(val2,val34); val34 = std::max(val2,val34); val2 = tmp; tmp = std::min(val3,val35);
+      val35 = std::max(val3,val35); val3 = tmp; tmp = std::min(val4,val36); val36 = std::max(val4,val36); val4 = tmp;
+      tmp = std::min(val5,val37); val37 = std::max(val5,val37); val5 = tmp; tmp = std::min(val6,val38);
+      val38 = std::max(val6,val38); val6 = tmp; tmp = std::min(val7,val39); val39 = std::max(val7,val39); val7 = tmp;
+      tmp = std::min(val8,val40); val40 = std::max(val8,val40); val8 = tmp; tmp = std::min(val9,val41);
+      val41 = std::max(val9,val41); val9 = tmp; tmp = std::min(val10,val42); val42 = std::max(val10,val42);
+      val10 = tmp; tmp = std::min(val11,val43); val43 = std::max(val11,val43); val11 = tmp;
+      tmp = std::min(val12,val44); val44 = std::max(val12,val44); val12 = tmp; tmp = std::min(val13,val45);
+      val45 = std::max(val13,val45); val13 = tmp; tmp = std::min(val14,val46); val46 = std::max(val14,val46);
+      val14 = tmp; tmp = std::min(val15,val47); val47 = std::max(val15,val47); val15 = tmp;
+      tmp = std::min(val16,val48); val48 = std::max(val16,val48); val16 = tmp; tmp = std::min(val0,val16);
+      val16 = std::max(val0,val16); val0 = tmp; tmp = std::min(val1,val17); val17 = std::max(val1,val17);
+      val1 = tmp; tmp = std::min(val2,val18); val18 = std::max(val2,val18); val2 = tmp; tmp = std::min(val3,val19);
+      val19 = std::max(val3,val19); val3 = tmp; tmp = std::min(val4,val20); val20 = std::max(val4,val20); val4 = tmp;
+      tmp = std::min(val5,val21); val21 = std::max(val5,val21); val5 = tmp; tmp = std::min(val6,val22);
+      val22 = std::max(val6,val22); val6 = tmp; tmp = std::min(val7,val23); val23 = std::max(val7,val23); val7 = tmp;
+      tmp = std::min(val8,val24); val24 = std::max(val8,val24); val8 = tmp; tmp = std::min(val9,val25);
+      val25 = std::max(val9,val25); val9 = tmp; tmp = std::min(val10,val26); val26 = std::max(val10,val26);
+      val10 = tmp; tmp = std::min(val11,val27); val27 = std::max(val11,val27); val11 = tmp;
+      tmp = std::min(val12,val28); val28 = std::max(val12,val28); val12 = tmp; tmp = std::min(val13,val29);
+      val29 = std::max(val13,val29); val13 = tmp; tmp = std::min(val14,val30); val30 = std::max(val14,val30);
+      val14 = tmp; tmp = std::min(val15,val31); val31 = std::max(val15,val31); val15 = tmp;
+      tmp = std::min(val32,val48); val48 = std::max(val32,val48); val32 = tmp; tmp = std::min(val16,val32);
+      val32 = std::max(val16,val32); val16 = tmp; tmp = std::min(val17,val33); val33 = std::max(val17,val33);
+      val17 = tmp; tmp = std::min(val18,val34); val34 = std::max(val18,val34); val18 = tmp;
+      tmp = std::min(val19,val35); val35 = std::max(val19,val35); val19 = tmp; tmp = std::min(val20,val36);
+      val36 = std::max(val20,val36); val20 = tmp; tmp = std::min(val21,val37); val37 = std::max(val21,val37);
+      val21 = tmp; tmp = std::min(val22,val38); val38 = std::max(val22,val38); val22 = tmp;
+      tmp = std::min(val23,val39); val39 = std::max(val23,val39); val23 = tmp; tmp = std::min(val24,val40);
+      val40 = std::max(val24,val40); val24 = tmp; tmp = std::min(val25,val41); val41 = std::max(val25,val41);
+      val25 = tmp; tmp = std::min(val26,val42); val42 = std::max(val26,val42); val26 = tmp;
+      tmp = std::min(val27,val43); val43 = std::max(val27,val43); val27 = tmp; tmp = std::min(val28,val44);
+      val44 = std::max(val28,val44); val28 = tmp; tmp = std::min(val29,val45); val45 = std::max(val29,val45);
+      val29 = tmp; tmp = std::min(val30,val46); val46 = std::max(val30,val46); val30 = tmp;
+      tmp = std::min(val31,val47); val47 = std::max(val31,val47); val31 = tmp; tmp = std::min(val0,val8);
+      val8 = std::max(val0,val8); val0 = tmp; tmp = std::min(val1,val9); val9 = std::max(val1,val9); val1 = tmp;
+      tmp = std::min(val2,val10); val10 = std::max(val2,val10); val2 = tmp; tmp = std::min(val3,val11);
+      val11 = std::max(val3,val11); val3 = tmp; tmp = std::min(val4,val12); val12 = std::max(val4,val12); val4 = tmp;
+      tmp = std::min(val5,val13); val13 = std::max(val5,val13); val5 = tmp; tmp = std::min(val6,val14);
+      val14 = std::max(val6,val14); val6 = tmp; tmp = std::min(val7,val15); val15 = std::max(val7,val15); val7 = tmp;
+      tmp = std::min(val16,val24); val24 = std::max(val16,val24); val16 = tmp; tmp = std::min(val17,val25);
+      val25 = std::max(val17,val25); val17 = tmp; tmp = std::min(val18,val26); val26 = std::max(val18,val26);
+      val18 = tmp; tmp = std::min(val19,val27); val27 = std::max(val19,val27); val19 = tmp;
+      tmp = std::min(val20,val28); val28 = std::max(val20,val28); val20 = tmp; tmp = std::min(val21,val29);
+      val29 = std::max(val21,val29); val21 = tmp; tmp = std::min(val22,val30); val30 = std::max(val22,val30);
+      val22 = tmp; tmp = std::min(val23,val31); val31 = std::max(val23,val31); val23 = tmp;
+      tmp = std::min(val32,val40); val40 = std::max(val32,val40); val32 = tmp; tmp = std::min(val33,val41);
+      val41 = std::max(val33,val41); val33 = tmp; tmp = std::min(val34,val42); val42 = std::max(val34,val42);
+      val34 = tmp; tmp = std::min(val35,val43); val43 = std::max(val35,val43); val35 = tmp;
+      tmp = std::min(val36,val44); val44 = std::max(val36,val44); val36 = tmp; tmp = std::min(val37,val45);
+      val45 = std::max(val37,val45); val37 = tmp; tmp = std::min(val38,val46); val46 = std::max(val38,val46);
+      val38 = tmp; tmp = std::min(val39,val47); val47 = std::max(val39,val47); val39 = tmp;
+      tmp = std::min(val8,val32); val32 = std::max(val8,val32); val8 = tmp; tmp = std::min(val9,val33);
+      val33 = std::max(val9,val33); val9 = tmp; tmp = std::min(val10,val34); val34 = std::max(val10,val34);
+      val10 = tmp; tmp = std::min(val11,val35); val35 = std::max(val11,val35); val11 = tmp;
+      tmp = std::min(val12,val36); val36 = std::max(val12,val36); val12 = tmp; tmp = std::min(val13,val37);
+      val37 = std::max(val13,val37); val13 = tmp; tmp = std::min(val14,val38); val38 = std::max(val14,val38);
+      val14 = tmp; tmp = std::min(val15,val39); val39 = std::max(val15,val39); val15 = tmp;
+      tmp = std::min(val24,val48); val48 = std::max(val24,val48); val24 = tmp; tmp = std::min(val8,val16);
+      val16 = std::max(val8,val16); val8 = tmp; tmp = std::min(val9,val17); val17 = std::max(val9,val17);
+      val9 = tmp; tmp = std::min(val10,val18); val18 = std::max(val10,val18); val10 = tmp;
+      tmp = std::min(val11,val19); val19 = std::max(val11,val19); val11 = tmp; tmp = std::min(val12,val20);
+      val20 = std::max(val12,val20); val12 = tmp; tmp = std::min(val13,val21); val21 = std::max(val13,val21);
+      val13 = tmp; tmp = std::min(val14,val22); val22 = std::max(val14,val22); val14 = tmp;
+      tmp = std::min(val15,val23); val23 = std::max(val15,val23); val15 = tmp; tmp = std::min(val24,val32);
+      val32 = std::max(val24,val32); val24 = tmp; tmp = std::min(val25,val33); val33 = std::max(val25,val33);
+      val25 = tmp; tmp = std::min(val26,val34); val34 = std::max(val26,val34); val26 = tmp;
+      tmp = std::min(val27,val35); val35 = std::max(val27,val35); val27 = tmp; tmp = std::min(val28,val36);
+      val36 = std::max(val28,val36); val28 = tmp; tmp = std::min(val29,val37); val37 = std::max(val29,val37);
+      val29 = tmp; tmp = std::min(val30,val38); val38 = std::max(val30,val38); val30 = tmp;
+      tmp = std::min(val31,val39); val39 = std::max(val31,val39); val31 = tmp; tmp = std::min(val40,val48);
+      val48 = std::max(val40,val48); val40 = tmp; tmp = std::min(val0,val4); val4 = std::max(val0,val4);
+      val0 = tmp; tmp = std::min(val1,val5); val5 = std::max(val1,val5); val1 = tmp; tmp = std::min(val2,val6);
+      val6 = std::max(val2,val6); val2 = tmp; tmp = std::min(val3,val7); val7 = std::max(val3,val7); val3 = tmp;
+      tmp = std::min(val8,val12); val12 = std::max(val8,val12); val8 = tmp; tmp = std::min(val9,val13);
+      val13 = std::max(val9,val13); val9 = tmp; tmp = std::min(val10,val14); val14 = std::max(val10,val14);
+      val10 = tmp; tmp = std::min(val11,val15); val15 = std::max(val11,val15); val11 = tmp;
+      tmp = std::min(val16,val20); val20 = std::max(val16,val20); val16 = tmp; tmp = std::min(val17,val21);
+      val21 = std::max(val17,val21); val17 = tmp; tmp = std::min(val18,val22); val22 = std::max(val18,val22);
+      val18 = tmp; tmp = std::min(val19,val23); val23 = std::max(val19,val23); val19 = tmp;
+      tmp = std::min(val24,val28); val28 = std::max(val24,val28); val24 = tmp; tmp = std::min(val25,val29);
+      val29 = std::max(val25,val29); val25 = tmp; tmp = std::min(val26,val30); val30 = std::max(val26,val30);
+      val26 = tmp; tmp = std::min(val27,val31); val31 = std::max(val27,val31); val27 = tmp;
+      tmp = std::min(val32,val36); val36 = std::max(val32,val36); val32 = tmp; tmp = std::min(val33,val37);
+      val37 = std::max(val33,val37); val33 = tmp; tmp = std::min(val34,val38); val38 = std::max(val34,val38);
+      val34 = tmp; tmp = std::min(val35,val39); val39 = std::max(val35,val39); val35 = tmp;
+      tmp = std::min(val40,val44); val44 = std::max(val40,val44); val40 = tmp; tmp = std::min(val41,val45);
+      val45 = std::max(val41,val45); val41 = tmp; tmp = std::min(val42,val46); val46 = std::max(val42,val46);
+      val42 = tmp; tmp = std::min(val43,val47); val47 = std::max(val43,val47); val43 = tmp;
+      tmp = std::min(val4,val32); val32 = std::max(val4,val32); val4 = tmp; tmp = std::min(val5,val33);
+      val33 = std::max(val5,val33); val5 = tmp; tmp = std::min(val6,val34); val34 = std::max(val6,val34);
+      val6 = tmp; tmp = std::min(val7,val35); val35 = std::max(val7,val35); val7 = tmp;
+      tmp = std::min(val12,val40); val40 = std::max(val12,val40); val12 = tmp; tmp = std::min(val13,val41);
+      val41 = std::max(val13,val41); val13 = tmp; tmp = std::min(val14,val42); val42 = std::max(val14,val42);
+      val14 = tmp; tmp = std::min(val15,val43); val43 = std::max(val15,val43); val15 = tmp;
+      tmp = std::min(val20,val48); val48 = std::max(val20,val48); val20 = tmp; tmp = std::min(val4,val16);
+      val16 = std::max(val4,val16); val4 = tmp; tmp = std::min(val5,val17); val17 = std::max(val5,val17);
+      val5 = tmp; tmp = std::min(val6,val18); val18 = std::max(val6,val18); val6 = tmp;
+      tmp = std::min(val7,val19); val19 = std::max(val7,val19); val7 = tmp; tmp = std::min(val12,val24);
+      val24 = std::max(val12,val24); val12 = tmp; tmp = std::min(val13,val25); val25 = std::max(val13,val25);
+      val13 = tmp; tmp = std::min(val14,val26); val26 = std::max(val14,val26); val14 = tmp;
+      tmp = std::min(val15,val27); val27 = std::max(val15,val27); val15 = tmp; tmp = std::min(val20,val32);
+      val32 = std::max(val20,val32); val20 = tmp; tmp = std::min(val21,val33); val33 = std::max(val21,val33);
+      val21 = tmp; tmp = std::min(val22,val34); val34 = std::max(val22,val34); val22 = tmp;
+      tmp = std::min(val23,val35); val35 = std::max(val23,val35); val23 = tmp; tmp = std::min(val28,val40);
+      val40 = std::max(val28,val40); val28 = tmp; tmp = std::min(val29,val41); val41 = std::max(val29,val41);
+      val29 = tmp; tmp = std::min(val30,val42); val42 = std::max(val30,val42); val30 = tmp;
+      tmp = std::min(val31,val43); val43 = std::max(val31,val43); val31 = tmp; tmp = std::min(val36,val48);
+      val48 = std::max(val36,val48); val36 = tmp; tmp = std::min(val4,val8); val8 = std::max(val4,val8);
+      val4 = tmp; tmp = std::min(val5,val9); val9 = std::max(val5,val9); val5 = tmp; tmp = std::min(val6,val10);
+      val10 = std::max(val6,val10); val6 = tmp; tmp = std::min(val7,val11); val11 = std::max(val7,val11); val7 = tmp;
+      tmp = std::min(val12,val16); val16 = std::max(val12,val16); val12 = tmp; tmp = std::min(val13,val17);
+      val17 = std::max(val13,val17); val13 = tmp; tmp = std::min(val14,val18); val18 = std::max(val14,val18);
+      val14 = tmp; tmp = std::min(val15,val19); val19 = std::max(val15,val19); val15 = tmp;
+      tmp = std::min(val20,val24); val24 = std::max(val20,val24); val20 = tmp; tmp = std::min(val21,val25);
+      val25 = std::max(val21,val25); val21 = tmp; tmp = std::min(val22,val26); val26 = std::max(val22,val26);
+      val22 = tmp; tmp = std::min(val23,val27); val27 = std::max(val23,val27); val23 = tmp;
+      tmp = std::min(val28,val32); val32 = std::max(val28,val32); val28 = tmp; tmp = std::min(val29,val33);
+      val33 = std::max(val29,val33); val29 = tmp; tmp = std::min(val30,val34); val34 = std::max(val30,val34);
+      val30 = tmp; tmp = std::min(val31,val35); val35 = std::max(val31,val35); val31 = tmp;
+      tmp = std::min(val36,val40); val40 = std::max(val36,val40); val36 = tmp; tmp = std::min(val37,val41);
+      val41 = std::max(val37,val41); val37 = tmp; tmp = std::min(val38,val42); val42 = std::max(val38,val42);
+      val38 = tmp; tmp = std::min(val39,val43); val43 = std::max(val39,val43); val39 = tmp;
+      tmp = std::min(val44,val48); val48 = std::max(val44,val48); val44 = tmp; tmp = std::min(val0,val2);
+      val2 = std::max(val0,val2); val0 = tmp; tmp = std::min(val1,val3); val3 = std::max(val1,val3); val1 = tmp;
+      tmp = std::min(val4,val6); val6 = std::max(val4,val6); val4 = tmp; tmp = std::min(val5,val7);
+      val7 = std::max(val5,val7); val5 = tmp; tmp = std::min(val8,val10); val10 = std::max(val8,val10); val8 = tmp;
+      tmp = std::min(val9,val11); val11 = std::max(val9,val11); val9 = tmp; tmp = std::min(val12,val14);
+      val14 = std::max(val12,val14); val12 = tmp; tmp = std::min(val13,val15); val15 = std::max(val13,val15);
+      val13 = tmp; tmp = std::min(val16,val18); val18 = std::max(val16,val18); val16 = tmp;
+      tmp = std::min(val17,val19); val19 = std::max(val17,val19); val17 = tmp; tmp = std::min(val20,val22);
+      val22 = std::max(val20,val22); val20 = tmp; tmp = std::min(val21,val23); val23 = std::max(val21,val23);
+      val21 = tmp; tmp = std::min(val24,val26); val26 = std::max(val24,val26); val24 = tmp;
+      tmp = std::min(val25,val27); val27 = std::max(val25,val27); val25 = tmp; tmp = std::min(val28,val30);
+      val30 = std::max(val28,val30); val28 = tmp; tmp = std::min(val29,val31); val31 = std::max(val29,val31);
+      val29 = tmp; tmp = std::min(val32,val34); val34 = std::max(val32,val34); val32 = tmp;
+      tmp = std::min(val33,val35); val35 = std::max(val33,val35); val33 = tmp; tmp = std::min(val36,val38);
+      val38 = std::max(val36,val38); val36 = tmp; tmp = std::min(val37,val39); val39 = std::max(val37,val39);
+      val37 = tmp; tmp = std::min(val40,val42); val42 = std::max(val40,val42); val40 = tmp;
+      tmp = std::min(val41,val43); val43 = std::max(val41,val43); val41 = tmp; tmp = std::min(val44,val46);
+      val46 = std::max(val44,val46); val44 = tmp; tmp = std::min(val45,val47); val47 = std::max(val45,val47);
+      val45 = tmp; tmp = std::min(val2,val32); val32 = std::max(val2,val32); val2 = tmp; tmp = std::min(val3,val33);
+      val33 = std::max(val3,val33); val3 = tmp; tmp = std::min(val6,val36); val36 = std::max(val6,val36); val6 = tmp;
+      tmp = std::min(val7,val37); val37 = std::max(val7,val37); val7 = tmp; tmp = std::min(val10,val40);
+      val40 = std::max(val10,val40); val10 = tmp; tmp = std::min(val11,val41); val41 = std::max(val11,val41);
+      val11 = tmp; tmp = std::min(val14,val44); val44 = std::max(val14,val44); val14 = tmp;
+      tmp = std::min(val15,val45); val45 = std::max(val15,val45); val15 = tmp; tmp = std::min(val18,val48);
+      val48 = std::max(val18,val48); val18 = tmp; tmp = std::min(val2,val16); val16 = std::max(val2,val16);
+      val2 = tmp; tmp = std::min(val3,val17); val17 = std::max(val3,val17); val3 = tmp;
+      tmp = std::min(val6,val20); val20 = std::max(val6,val20); val6 = tmp; tmp = std::min(val7,val21);
+      val21 = std::max(val7,val21); val7 = tmp; tmp = std::min(val10,val24); val24 = std::max(val10,val24);
+      val10 = tmp; tmp = std::min(val11,val25); val25 = std::max(val11,val25); val11 = tmp;
+      tmp = std::min(val14,val28); val28 = std::max(val14,val28); val14 = tmp; tmp = std::min(val15,val29);
+      val29 = std::max(val15,val29); val15 = tmp; tmp = std::min(val18,val32); val32 = std::max(val18,val32);
+      val18 = tmp; tmp = std::min(val19,val33); val33 = std::max(val19,val33); val19 = tmp;
+      tmp = std::min(val22,val36); val36 = std::max(val22,val36); val22 = tmp; tmp = std::min(val23,val37);
+      val37 = std::max(val23,val37); val23 = tmp; tmp = std::min(val26,val40); val40 = std::max(val26,val40);
+      val26 = tmp; tmp = std::min(val27,val41); val41 = std::max(val27,val41); val27 = tmp;
+      tmp = std::min(val30,val44); val44 = std::max(val30,val44); val30 = tmp; tmp = std::min(val31,val45);
+      val45 = std::max(val31,val45); val31 = tmp; tmp = std::min(val34,val48); val48 = std::max(val34,val48);
+      val34 = tmp; tmp = std::min(val2,val8); val8 = std::max(val2,val8); val2 = tmp; tmp = std::min(val3,val9);
+      val9 = std::max(val3,val9); val3 = tmp; tmp = std::min(val6,val12); val12 = std::max(val6,val12); val6 = tmp;
+      tmp = std::min(val7,val13); val13 = std::max(val7,val13); val7 = tmp; tmp = std::min(val10,val16);
+      val16 = std::max(val10,val16); val10 = tmp; tmp = std::min(val11,val17); val17 = std::max(val11,val17);
+      val11 = tmp; tmp = std::min(val14,val20); val20 = std::max(val14,val20); val14 = tmp;
+      tmp = std::min(val15,val21); val21 = std::max(val15,val21); val15 = tmp; tmp = std::min(val18,val24);
+      val24 = std::max(val18,val24); val18 = tmp; tmp = std::min(val19,val25); val25 = std::max(val19,val25);
+      val19 = tmp; tmp = std::min(val22,val28); val28 = std::max(val22,val28); val22 = tmp;
+      tmp = std::min(val23,val29); val29 = std::max(val23,val29); val23 = tmp; tmp = std::min(val26,val32);
+      val32 = std::max(val26,val32); val26 = tmp; tmp = std::min(val27,val33); val33 = std::max(val27,val33);
+      val27 = tmp; tmp = std::min(val30,val36); val36 = std::max(val30,val36); val30 = tmp;
+      tmp = std::min(val31,val37); val37 = std::max(val31,val37); val31 = tmp; tmp = std::min(val34,val40);
+      val40 = std::max(val34,val40); val34 = tmp; tmp = std::min(val35,val41); val41 = std::max(val35,val41);
+      val35 = tmp; tmp = std::min(val38,val44); val44 = std::max(val38,val44); val38 = tmp;
+      tmp = std::min(val39,val45); val45 = std::max(val39,val45); val39 = tmp; tmp = std::min(val42,val48);
+      val48 = std::max(val42,val48); val42 = tmp; tmp = std::min(val2,val4); val4 = std::max(val2,val4);
+      val2 = tmp; tmp = std::min(val3,val5); val5 = std::max(val3,val5); val3 = tmp; tmp = std::min(val6,val8);
+      val8 = std::max(val6,val8); val6 = tmp; tmp = std::min(val7,val9); val9 = std::max(val7,val9); val7 = tmp;
+      tmp = std::min(val10,val12); val12 = std::max(val10,val12); val10 = tmp; tmp = std::min(val11,val13);
+      val13 = std::max(val11,val13); val11 = tmp; tmp = std::min(val14,val16); val16 = std::max(val14,val16);
+      val14 = tmp; tmp = std::min(val15,val17); val17 = std::max(val15,val17); val15 = tmp;
+      tmp = std::min(val18,val20); val20 = std::max(val18,val20); val18 = tmp; tmp = std::min(val19,val21);
+      val21 = std::max(val19,val21); val19 = tmp; tmp = std::min(val22,val24); val24 = std::max(val22,val24);
+      val22 = tmp; tmp = std::min(val23,val25); val25 = std::max(val23,val25); val23 = tmp;
+      tmp = std::min(val26,val28); val28 = std::max(val26,val28); val26 = tmp; tmp = std::min(val27,val29);
+      val29 = std::max(val27,val29); val27 = tmp; tmp = std::min(val30,val32); val32 = std::max(val30,val32);
+      val30 = tmp; tmp = std::min(val31,val33); val33 = std::max(val31,val33); val31 = tmp;
+      tmp = std::min(val34,val36); val36 = std::max(val34,val36); val34 = tmp; tmp = std::min(val35,val37);
+      val37 = std::max(val35,val37); val35 = tmp; tmp = std::min(val38,val40); val40 = std::max(val38,val40);
+      val38 = tmp; tmp = std::min(val39,val41); val41 = std::max(val39,val41); val39 = tmp;
+      tmp = std::min(val42,val44); val44 = std::max(val42,val44); val42 = tmp; tmp = std::min(val43,val45);
+      val45 = std::max(val43,val45); val43 = tmp; tmp = std::min(val46,val48); val48 = std::max(val46,val48);
+      val46 = tmp; val1 = std::max(val0,val1); val3 = std::max(val2,val3); val5 = std::max(val4,val5);
+      val7 = std::max(val6,val7); val9 = std::max(val8,val9); val11 = std::max(val10,val11);
+      val13 = std::max(val12,val13); val15 = std::max(val14,val15); val17 = std::max(val16,val17);
+      val19 = std::max(val18,val19); val21 = std::max(val20,val21); val23 = std::max(val22,val23);
+      val24 = std::min(val24,val25); val26 = std::min(val26,val27); val28 = std::min(val28,val29);
+      val30 = std::min(val30,val31); val32 = std::min(val32,val33); val34 = std::min(val34,val35);
+      val36 = std::min(val36,val37); val38 = std::min(val38,val39); val40 = std::min(val40,val41);
+      val42 = std::min(val42,val43); val44 = std::min(val44,val45); val46 = std::min(val46,val47);
+      val32 = std::max(val1,val32); val34 = std::max(val3,val34); val36 = std::max(val5,val36);
+      val38 = std::max(val7,val38); val9 = std::min(val9,val40); val11 = std::min(val11,val42);
+      val13 = std::min(val13,val44); val15 = std::min(val15,val46); val17 = std::min(val17,val48);
+      val24 = std::max(val9,val24); val26 = std::max(val11,val26); val28 = std::max(val13,val28);
+      val30 = std::max(val15,val30); val17 = std::min(val17,val32); val19 = std::min(val19,val34);
+      val21 = std::min(val21,val36); val23 = std::min(val23,val38); val24 = std::max(val17,val24);
+      val26 = std::max(val19,val26); val21 = std::min(val21,val28); val23 = std::min(val23,val30);
+      val24 = std::max(val21,val24); val23 = std::min(val23,val26);
+      return std::max(val23,val24);
+    }
+
+    //! Return sqrt(x^2 + y^2).
+    template<typename T>
+    inline T hypot(const T x, const T y) {
+      return std::sqrt(x*x + y*y);
+    }
+
+    template<typename T>
+    inline T hypot(const T x, const T y, const T z) {
+      return std::sqrt(x*x + y*y + z*z);
+    }
+
+    template<typename T>
+    inline T _hypot(const T x, const T y) { // Slower but more precise version
+      T nx = cimg::abs(x), ny = cimg::abs(y), t;
+      if (nx<ny) { t = nx; nx = ny; } else t = ny;
+      if (nx>0) { t/=nx; return nx*std::sqrt(1 + t*t); }
+      return 0;
+    }
+
+    //! Return the factorial of n
+    inline double factorial(const int n) {
+      if (n<0) return cimg::type<double>::nan();
+      if (n<2) return 1;
+      double res = 2;
+      for (int i = 3; i<=n; ++i) res*=i;
+      return res;
+    }
+
+    //! Return the number of permutations of k objects in a set of n objects.
+    inline double permutations(const int k, const int n, const bool with_order) {
+      if (n<0 || k<0) return cimg::type<double>::nan();
+      if (k>n) return 0;
+      double res = 1;
+      for (int i = n; i>=n - k + 1; --i) res*=i;
+      return with_order?res:res/cimg::factorial(k);
+    }
+
+    inline double _fibonacci(int exp) {
+      double
+        base = (1 + std::sqrt(5.0))/2,
+        result = 1/std::sqrt(5.0);
+      while (exp) {
+        if (exp&1) result*=base;
+        exp>>=1;
+        base*=base;
+      }
+      return result;
+    }
+
+    //! Calculate fibonacci number.
+    // (Precise up to n = 78, less precise for n>78).
+    inline double fibonacci(const int n) {
+      if (n<0) return cimg::type<double>::nan();
+      if (n<3) return 1;
+      if (n<11) {
+        cimg_uint64 fn1 = 1, fn2 = 1, fn = 0;
+        for (int i = 3; i<=n; ++i) { fn = fn1 + fn2; fn2 = fn1; fn1 = fn; }
+        return (double)fn;
+      }
+      if (n<75) // precise up to n = 74, faster than the integer calculation above for n>10
+        return (double)((cimg_uint64)(_fibonacci(n) + 0.5));
+
+      if (n<94) { // precise up to n = 78, less precise for n>78 up to n = 93, overflows for n>93
+        cimg_uint64
+          fn1 = (cimg_uint64)1304969544928657ULL,
+          fn2 = (cimg_uint64)806515533049393ULL,
+          fn = 0;
+        for (int i = 75; i<=n; ++i) { fn = fn1 + fn2; fn2 = fn1; fn1 = fn; }
+        return (double)fn;
+      }
+      return _fibonacci(n); // Not precise, but better than the wrong overflowing calculation
+    }
+
+    //! Calculate greatest common divisor.
+    inline long gcd(long a, long b) {
+      while (a) { const long c = a; a = b%a; b = c; }
+      return b;
+    }
+
+    //! Convert ascii character to lower case.
+    inline char lowercase(const char x) {
+      return (char)((x<'A'||x>'Z')?x:x - 'A' + 'a');
+    }
+    inline double lowercase(const double x) {
+      return (double)((x<'A'||x>'Z')?x:x - 'A' + 'a');
+    }
+
+    //! Convert C-string to lower case.
+    inline void lowercase(char *const str) {
+      if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = lowercase(*ptr);
+    }
+
+    //! Convert ascii character to upper case.
+    inline char uppercase(const char x) {
+      return (char)((x<'a'||x>'z')?x:x - 'a' + 'A');
+    }
+
+    inline double uppercase(const double x) {
+      return (double)((x<'a'||x>'z')?x:x - 'a' + 'A');
+    }
+
+    //! Convert C-string to upper case.
+    inline void uppercase(char *const str) {
+      if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = uppercase(*ptr);
+    }
+
+    //! Read value in a C-string.
+    /**
+       \param str C-string containing the float value to read.
+       \return Read value.
+       \note Same as <tt>std::atof()</tt> extended to manage the retrieval of fractions from C-strings,
+       as in <em>"1/2"</em>.
+    **/
+    inline double atof(const char *const str) {
+      double x = 0, y = 1;
+      return str && cimg_sscanf(str,"%lf/%lf",&x,&y)>0?x/y:0;
+    }
+
+    //! Compare the first \p l characters of two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \param l Number of characters to compare.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strncasecmp(const char *const str1, const char *const str2, const int l) {
+      if (!l) return 0;
+      if (!str1) return str2?-1:0;
+      const char *nstr1 = str1, *nstr2 = str2;
+      int k, diff = 0; for (k = 0; k<l && !(diff = lowercase(*nstr1) - lowercase(*nstr2)); ++k) { ++nstr1; ++nstr2; }
+      return k!=l?diff:0;
+    }
+
+    //! Compare two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strcasecmp(const char *const str1, const char *const str2) {
+      if (!str1) return str2?-1:0;
+      const int
+        l1 = (int)std::strlen(str1),
+        l2 = (int)std::strlen(str2);
+      return cimg::strncasecmp(str1,str2,1 + (l1<l2?l1:l2));
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(char *const str, const unsigned int l=64,
+                              const bool is_ending=true) {
+      if (!str) return str;
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) return str;
+      if (is_ending) std::strcpy(str + nl - 5,"(...)");
+      else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strcpy(str + ll,"(...)");
+        std::memmove(str + ll + 5,str + ls - lr,lr);
+      }
+      str[nl] = 0;
+      return str;
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param res output C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(const char *const str, char *const res, const unsigned int l=64,
+                              const bool is_ending=true) {
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) { std::strcpy(res,str); return res; }
+      if (is_ending) {
+        std::strncpy(res,str,nl - 5);
+        std::strcpy(res + nl -5,"(...)");
+      } else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strncpy(res,str,ll);
+        std::strcpy(res + ll,"(...)");
+        std::strncpy(res + ll + 5,str + ls - lr,lr);
+      }
+      res[nl] = 0;
+      return res;
+    }
+
+    //! Remove delimiters on the start and/or end of a C-string.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param delimiter Delimiter character code to remove.
+       \param is_symmetric Tells if the removal is done only if delimiters are symmetric
+       (both at the beginning and the end of \c s).
+       \param is_iterative Tells if the removal is done if several iterations are possible.
+       \return \c true if delimiters have been removed, \c false otherwise.
+   **/
+    inline bool strpare(char *const str, const char delimiter,
+                        const bool is_symmetric, const bool is_iterative) {
+      if (!str) return false;
+      const int l = (int)std::strlen(str);
+      int p, q;
+      if (is_symmetric) for (p = 0, q = l - 1; p<q && str[p]==delimiter && str[q]==delimiter; ) {
+          --q; ++p; if (!is_iterative) break;
+        } else {
+        for (p = 0; p<l && str[p]==delimiter; ) { ++p; if (!is_iterative) break; }
+        for (q = l - 1; q>p && str[q]==delimiter; ) { --q; if (!is_iterative) break; }
+      }
+      const int n = q - p + 1;
+      if (n!=l) { std::memmove(str,str + p,(unsigned int)n); str[n] = 0; return true; }
+      return false;
+    }
+
+    //! Remove white spaces on the start and/or end of a C-string.
+    inline bool strpare(char *const str, const bool is_symmetric, const bool is_iterative) {
+      if (!str) return false;
+      const int l = (int)std::strlen(str);
+      int p, q;
+      if (is_symmetric) for (p = 0, q = l - 1; p<q && (signed char)str[p]<=' ' && (signed char)str[q]<=' '; ) {
+          --q; ++p; if (!is_iterative) break;
+        } else {
+        for (p = 0; p<l && (signed char)str[p]<=' '; ) { ++p; if (!is_iterative) break; }
+        for (q = l - 1; q>p && (signed char)str[q]<=' '; ) { --q; if (!is_iterative) break; }
+      }
+      const int n = q - p + 1;
+      if (n!=l) { std::memmove(str,str + p,(unsigned int)n); str[n] = 0; return true; }
+      return false;
+    }
+
+    //! Replace reserved characters (for Windows filename) by another character.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param[in] c Replacement character.
+    **/
+    inline void strwindows_reserved(char *const str, const char c='_') {
+      for (char *s = str; *s; ++s) {
+        const char i = *s;
+        if (i=='<' || i=='>' || i==':' || i=='\"' || i=='/' || i=='\\' || i=='|' || i=='?' || i=='*') *s = c;
+      }
+    }
+
+    //! Replace escape sequences in C-strings by their binary ascii values.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+    **/
+    inline void strunescape(char *const str) {
+#define cimg_strunescape(ci,co) case ci : *nd = co; ++ns; break;
+      unsigned int val = 0;
+      for (char *ns = str, *nd = str; *ns || (bool)(*nd=0); ++nd) if (*ns=='\\') switch (*(++ns)) {
+            cimg_strunescape('a','\a');
+            cimg_strunescape('b','\b');
+            cimg_strunescape('e',0x1B);
+            cimg_strunescape('f','\f');
+            cimg_strunescape('n','\n');
+            cimg_strunescape('r','\r');
+            cimg_strunescape('t','\t');
+            cimg_strunescape('v','\v');
+            cimg_strunescape('\\','\\');
+            cimg_strunescape('\'','\'');
+            cimg_strunescape('\"','\"');
+            cimg_strunescape('\?','\?');
+          case 0 : *nd = 0; break;
+          case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' :
+            cimg_sscanf(ns,"%o",&val); while (*ns>='0' && *ns<='7') ++ns;
+            *nd = (char)val; break;
+          case 'x' :
+            cimg_sscanf(++ns,"%x",&val);
+            while ((*ns>='0' && *ns<='9') || (*ns>='a' && *ns<='f') || (*ns>='A' && *ns<='F')) ++ns;
+            *nd = (char)val; break;
+          default : *nd = *(ns++);
+          } else *nd = *(ns++);
+    }
+
+    // Return a temporary string describing the size of a memory buffer.
+    inline const char *strbuffersize(const cimg_ulong size);
+
+    // Return string that identifies the running OS.
+    inline const char *stros() {
+#if defined(linux) || defined(__linux) || defined(__linux__)
+      static const char *const str = "Linux";
+#elif defined(sun) || defined(__sun)
+      static const char *const str = "Sun OS";
+#elif defined(BSD) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined (__DragonFly__)
+      static const char *const str = "BSD";
+#elif defined(sgi) || defined(__sgi)
+      static const char *const str = "Irix";
+#elif defined(__MACOSX__) || defined(__APPLE__)
+      static const char *const str = "Mac OS";
+#elif defined(unix) || defined(__unix) || defined(__unix__)
+      static const char *const str = "Generic Unix";
+#elif defined(_MSC_VER) || defined(WIN32)  || defined(_WIN32) || defined(__WIN32__) || \
+  defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+      static const char *const str = "Windows";
+#else
+      const char
+        *const _str1 = std::getenv("OSTYPE"),
+        *const _str2 = _str1?_str1:std::getenv("OS"),
+        *const str = _str2?_str2:"Unknown OS";
+#endif
+      return str;
+    }
+
+    //! Return the basename of a filename.
+    inline const char* basename(const char *const s, const char separator=cimg_file_separator)  {
+      const char *p = 0, *np = s;
+      while (np>=s && (p=np)) np = std::strchr(np,separator) + 1;
+      return p;
+    }
+
+    // Return a random filename.
+    inline const char* filenamerand() {
+      cimg::mutex(6);
+      static char randomid[9];
+      cimg::srand();
+      for (unsigned int k = 0; k<8; ++k) {
+        const int v = (int)cimg::rand(65535)%3;
+        randomid[k] = (char)(v==0?('0' + ((int)cimg::rand(65535)%10)):
+                             (v==1?('a' + ((int)cimg::rand(65535)%26)):
+                              ('A' + ((int)cimg::rand(65535)%26))));
+      }
+      cimg::mutex(6,0);
+      return randomid;
+    }
+
+    // Convert filename as a Windows-style filename (short path name).
+    inline void winformat_string(char *const str) {
+      if (str && *str) {
+#if cimg_OS==2
+        char *const nstr = new char[MAX_PATH];
+        if (GetShortPathNameA(str,nstr,MAX_PATH)) std::strcpy(str,nstr);
+        delete[] nstr;
+#endif
+      }
+    }
+
+    // Open a file (with wide character support on Windows).
+    inline std::FILE *win_fopen(const char *const path, const char *const mode);
+
+    //! Open a file.
+    /**
+       \param path Path of the filename to open.
+       \param mode C-string describing the opening mode.
+       \return Opened file.
+       \note Same as <tt>std::fopen()</tt> but throw a \c CImgIOException when
+       the specified file cannot be opened, instead of returning \c 0.
+    **/
+    inline std::FILE *fopen(const char *const path, const char *const mode) {
+      if (!path)
+        throw CImgArgumentException("cimg::fopen(): Specified file path is (null).");
+      if (!mode)
+        throw CImgArgumentException("cimg::fopen(): File '%s', specified mode is (null).",
+                                    path);
+      std::FILE *res = 0;
+      if (*path=='-' && (!path[1] || path[1]=='.')) {
+        res = (*mode=='r')?cimg::_stdin():cimg::_stdout();
+#if cimg_OS==2
+        if (*mode && mode[1]=='b') { // Force stdin/stdout to be in binary mode.
+#ifdef __BORLANDC__
+          if (setmode(_fileno(res),0x8000)==-1) res = 0;
+#else
+          if (_setmode(_fileno(res),0x8000)==-1) res = 0;
+#endif
+        }
+#endif
+      } else res = std_fopen(path,mode);
+      if (!res) throw CImgIOException("cimg::fopen(): Failed to open file '%s' with mode '%s'.",
+                                      path,mode);
+      return res;
+    }
+
+    //! Close a file.
+    /**
+       \param file File to close.
+       \return \c 0 if file has been closed properly, something else otherwise.
+       \note Same as <tt>std::fclose()</tt> but display a warning message if
+       the file has not been closed properly.
+    **/
+    inline int fclose(std::FILE *file) {
+      if (!file) { warn("cimg::fclose(): Specified file is (null)."); return 0; }
+      if (file==cimg::_stdin(false) || file==cimg::_stdout(false)) return 0;
+      const int errn = std::fclose(file);
+      if (errn!=0) warn("cimg::fclose(): Error code %d returned during file closing.",
+                        errn);
+      return errn;
+    }
+
+    //! Version of 'fseek()' that supports >=64bits offsets everywhere (for Windows).
+    inline int fseek(FILE *stream, cimg_long offset, int origin) {
+#if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+      return _fseeki64(stream,(__int64)offset,origin);
+#else
+      return std::fseek(stream,offset,origin);
+#endif
+    }
+
+    //! Version of 'ftell()' that supports >=64bits offsets everywhere (for Windows).
+    inline cimg_long ftell(FILE *stream) {
+#if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+      return (cimg_long)_ftelli64(stream);
+#else
+      return (cimg_long)std::ftell(stream);
+#endif
+    }
+
+    //! Check if a path is a directory.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_directory(const char *const path) {
+      if (!path || !*path) return false;
+#if cimg_OS==1
+      struct stat st_buf;
+      return (!stat(path,&st_buf) && S_ISDIR(st_buf.st_mode));
+#elif cimg_OS==2
+      const unsigned int res = (unsigned int)GetFileAttributesA(path);
+      return res==INVALID_FILE_ATTRIBUTES?false:(res&16);
+#else
+      return false;
+#endif
+    }
+
+    //! Check if a path is a file.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_file(const char *const path) {
+      if (!path || !*path) return false;
+      std::FILE *const file = std_fopen(path,"rb");
+      if (!file) return false;
+      std::fclose(file);
+      return !is_directory(path);
+    }
+
+    //! Get file size.
+    /**
+       \param filename Specified filename to get size from.
+       \return File size or '-1' if file does not exist.
+    **/
+    inline cimg_int64 fsize(const char *const filename) {
+      std::FILE *const file = std::fopen(filename,"rb");
+      if (!file) return (cimg_int64)-1;
+      std::fseek(file,0,SEEK_END);
+      const cimg_int64 siz = (cimg_int64)std::ftell(file);
+      std::fclose(file);
+      return siz;
+    }
+
+    //! Get last write time of a given file or directory (multiple-attributes version).
+    /**
+       \param path Specified path to get attributes from.
+       \param[in,out] attr Type of requested time attributes.
+                      Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+                      Replaced by read attributes after return (or -1 if an error occured).
+       \param nb_attr Number of attributes to read/write.
+       \return Latest read attribute.
+    **/
+    template<typename T>
+    inline int fdate(const char *const path, T *attr, const unsigned int nb_attr) {
+#define _cimg_fdate_err() for (unsigned int i = 0; i<nb_attr; ++i) attr[i] = (T)-1
+      int res = -1;
+      if (!path || !*path) { _cimg_fdate_err(); return -1; }
+      cimg::mutex(6);
+#if cimg_OS==2
+      HANDLE file = CreateFileA(path,GENERIC_READ,0,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+      if (file!=INVALID_HANDLE_VALUE) {
+        FILETIME _ft;
+        SYSTEMTIME ft;
+        if (GetFileTime(file,0,0,&_ft) && FileTimeToSystemTime(&_ft,&ft)) {
+          for (unsigned int i = 0; i<nb_attr; ++i) {
+            res = (int)(attr[i]==0?ft.wYear:attr[i]==1?ft.wMonth:attr[i]==2?ft.wDay:
+                        attr[i]==3?ft.wDayOfWeek:attr[i]==4?ft.wHour:attr[i]==5?ft.wMinute:
+                        attr[i]==6?ft.wSecond:-1);
+            attr[i] = (T)res;
+          }
+        } else _cimg_fdate_err();
+        CloseHandle(file);
+      } else _cimg_fdate_err();
+#elif cimg_OS==1
+      struct stat st_buf;
+      if (!stat(path,&st_buf)) {
+        const time_t _ft = st_buf.st_mtime;
+        const struct tm& ft = *std::localtime(&_ft);
+        for (unsigned int i = 0; i<nb_attr; ++i) {
+          res = (int)(attr[i]==0?ft.tm_year + 1900:attr[i]==1?ft.tm_mon + 1:attr[i]==2?ft.tm_mday:
+                      attr[i]==3?ft.tm_wday:attr[i]==4?ft.tm_hour:attr[i]==5?ft.tm_min:
+                      attr[i]==6?ft.tm_sec:-1);
+          attr[i] = (T)res;
+        }
+      } else _cimg_fdate_err();
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    //! Get last write time of a given file or directory (single-attribute version).
+    /**
+       \param path Specified path to get attributes from.
+       \param attr Type of requested time attributes.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+       \return Specified attribute or -1 if an error occured.
+    **/
+    inline int fdate(const char *const path, unsigned int attr) {
+      int out = (int)attr;
+      return fdate(path,&out,1);
+    }
+
+    //! Get current local time (multiple-attributes version).
+    /**
+       \param[in,out] attr Type of requested time attributes.
+                           Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+                           Replaced by read attributes after return (or -1 if an error occured).
+       \param nb_attr Number of attributes to read/write.
+       \return Latest read attribute.
+    **/
+    template<typename T>
+    inline int date(T *attr, const unsigned int nb_attr) {
+      int res = -1;
+      cimg::mutex(6);
+#if cimg_OS==2
+      SYSTEMTIME st;
+      GetLocalTime(&st);
+      for (unsigned int i = 0; i<nb_attr; ++i) {
+        res = (int)(attr[i]==0?st.wYear:attr[i]==1?st.wMonth:attr[i]==2?st.wDay:
+                    attr[i]==3?st.wDayOfWeek:attr[i]==4?st.wHour:attr[i]==5?st.wMinute:
+                    attr[i]==6?st.wSecond:-1);
+        attr[i] = (T)res;
+      }
+#else
+      time_t _st;
+      std::time(&_st);
+      struct tm *st = std::localtime(&_st);
+      for (unsigned int i = 0; i<nb_attr; ++i) {
+        res = (int)(attr[i]==0?st->tm_year + 1900:attr[i]==1?st->tm_mon + 1:attr[i]==2?st->tm_mday:
+                    attr[i]==3?st->tm_wday:attr[i]==4?st->tm_hour:attr[i]==5?st->tm_min:
+                    attr[i]==6?st->tm_sec:-1);
+        attr[i] = (T)res;
+      }
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    //! Get current local time (single-attribute version).
+    /**
+       \param attr Type of requested time attribute.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+       \return Specified attribute or -1 if an error occured.
+    **/
+    inline int date(unsigned int attr) {
+      int out = (int)attr;
+      return date(&out,1);
+    }
+
+    // Get/set path to store temporary files.
+    inline const char* temporary_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the <i>Program Files/</i> directory (Windows only).
+#if cimg_OS==2
+    inline const char* programfiles_path(const char *const user_path=0, const bool reinit_path=false);
+#endif
+
+    // Get/set path to the ImageMagick's \c convert binary.
+    inline const char* imagemagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the GraphicsMagick's \c gm binary.
+    inline const char* graphicsmagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the XMedcon's \c medcon binary.
+    inline const char* medcon_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the FFMPEG's \c ffmpeg binary.
+    inline const char *ffmpeg_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gzip binary.
+    inline const char *gzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gunzip binary.
+    inline const char *gunzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c dcraw binary.
+    inline const char *dcraw_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c wget binary.
+    inline const char *wget_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c curl binary.
+    inline const char *curl_path(const char *const user_path=0, const bool reinit_path=false);
+
+    //! Split filename into two C-strings \c body and \c extension.
+    /**
+       filename and body must not overlap!
+    **/
+    inline const char *split_filename(const char *const filename, char *const body=0) {
+      if (!filename) { if (body) *body = 0; return 0; }
+      const char *p = 0; for (const char *np = filename; np>=filename && (p=np); np = std::strchr(np,'.') + 1) {}
+      if (p==filename) {
+        if (body) std::strcpy(body,filename);
+        return filename + std::strlen(filename);
+      }
+      const unsigned int l = (unsigned int)(p - filename - 1);
+      if (body) { if (l) std::memcpy(body,filename,l); body[l] = 0; }
+      return p;
+    }
+
+    //! Generate a numbered version of a filename.
+    inline char* number_filename(const char *const filename, const int number,
+                                 const unsigned int digits, char *const str) {
+      if (!filename) { if (str) *str = 0; return 0; }
+      char *const format = new char[1024], *const body = new char[1024];
+      const char *const ext = cimg::split_filename(filename,body);
+      if (*ext) cimg_snprintf(format,1024,"%%s_%%.%ud.%%s",digits);
+      else cimg_snprintf(format,1024,"%%s_%%.%ud",digits);
+      cimg_sprintf(str,format,body,number,ext);
+      delete[] format; delete[] body;
+      return str;
+    }
+
+    //! Read data from file.
+    /**
+       \param[out] ptr Pointer to memory buffer that will contain the binary data read from file.
+       \param nmemb Number of elements to read.
+       \param stream File to read data from.
+       \return Number of read elements.
+       \note Same as <tt>std::fread()</tt> but may display warning message if all elements could not be read.
+    **/
+    template<typename T>
+    inline size_t fread(T *const ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fread(): Invalid reading request of %u %s%s from file %p to buffer %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",stream,ptr);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_read = nmemb, al_read = 0, l_to_read = 0, l_al_read = 0;
+      do {
+        l_to_read = (to_read*sizeof(T))<wlimitT?to_read:wlimit;
+        l_al_read = std::fread((void*)(ptr + al_read),sizeof(T),l_to_read,stream);
+        al_read+=l_al_read;
+        to_read-=l_al_read;
+      } while (l_to_read==l_al_read && to_read>0);
+      if (to_read>0)
+        warn("cimg::fread(): Only %lu/%lu elements could be read from file.",
+             (unsigned long)al_read,(unsigned long)nmemb);
+      return al_read;
+    }
+
+    //! Write data to file.
+    /**
+       \param ptr Pointer to memory buffer containing the binary data to write on file.
+       \param nmemb Number of elements to write.
+       \param[out] stream File to write data on.
+       \return Number of written elements.
+       \note Similar to <tt>std::fwrite</tt> but may display warning messages if all elements could not be written.
+    **/
+    template<typename T>
+    inline size_t fwrite(const T *ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fwrite(): Invalid writing request of %u %s%s from buffer %p to file %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",ptr,stream);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_write = nmemb, al_write = 0, l_to_write = 0, l_al_write = 0;
+      do {
+        l_to_write = (to_write*sizeof(T))<wlimitT?to_write:wlimit;
+        l_al_write = std::fwrite((void*)(ptr + al_write),sizeof(T),l_to_write,stream);
+        al_write+=l_al_write;
+        to_write-=l_al_write;
+      } while (l_to_write==l_al_write && to_write>0);
+      if (to_write>0)
+        warn("cimg::fwrite(): Only %lu/%lu elements could be written in file.",
+             (unsigned long)al_write,(unsigned long)nmemb);
+      return al_write;
+    }
+
+    //! Create an empty file.
+    /**
+       \param file Input file (can be \c 0 if \c filename is set).
+       \param filename Filename, as a C-string (can be \c 0 if \c file is set).
+    **/
+    inline void fempty(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException("cimg::fempty(): Specified filename is (null).");
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      if (!file) cimg::fclose(nfile);
+    }
+
+    // Try to guess format from an image file.
+    inline const char *ftype(std::FILE *const file, const char *const filename);
+
+    // Load file from network as a local temporary file.
+    inline char *load_network(const char *const url, char *const filename_local,
+                              const unsigned int timeout=0, const bool try_fallback=false,
+                              const char *const referer=0);
+
+    //! Return options specified on the command line.
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage, const bool reset_static) {
+      static bool first = true, visu = false;
+      if (reset_static) { first = true; return 0; }
+      const char *res = 0;
+      if (first) {
+        first = false;
+        visu = cimg::option("-h",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("-help",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("--help",argc,argv,(char*)0,(char*)0,false)!=0;
+      }
+      if (!name && visu) {
+        if (usage) {
+          std::fprintf(cimg::output(),"\n %s%s%s",cimg::t_red,cimg::basename(argv[0]),cimg::t_normal);
+          std::fprintf(cimg::output(),": %s",usage);
+          std::fprintf(cimg::output()," (%s, %s)\n\n",cimg_date,cimg_time);
+        }
+        if (defaut) std::fprintf(cimg::output(),"%s\n",defaut);
+      }
+      if (name) {
+        if (argc>0) {
+          int k = 0;
+          while (k<argc && std::strcmp(argv[k],name)) ++k;
+          res = (k++==argc?defaut:(k==argc?argv[--k]:argv[k]));
+        } else res = defaut;
+        if (visu && usage) std::fprintf(cimg::output(),"    %s%-16s%s %-24s %s%s%s\n",
+                                        cimg::t_bold,name,cimg::t_normal,res?res:"0",
+                                        cimg::t_green,usage,cimg::t_normal);
+      }
+      return res;
+    }
+
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage=0) {
+      return option(name,argc,argv,defaut,usage,false);
+    }
+
+    inline bool option(const char *const name, const int argc, const char *const *const argv,
+                       const bool defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const bool res = s?(cimg::strcasecmp(s,"false") && cimg::strcasecmp(s,"off") && cimg::strcasecmp(s,"0")):defaut;
+      cimg::option(name,0,0,res?"true":"false",usage);
+      return res;
+    }
+
+    inline int option(const char *const name, const int argc, const char *const *const argv,
+                      const int defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const int res = s?std::atoi(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%d",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline char option(const char *const name, const int argc, const char *const *const argv,
+                       const char defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const char res = s?*s:defaut;
+      char tmp[8];
+      *tmp = res; tmp[1] = 0;
+      cimg::option(name,0,0,tmp,usage);
+      return res;
+    }
+
+    inline float option(const char *const name, const int argc, const char *const *const argv,
+                        const float defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const float res = s?(float)cimg::atof(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%g",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline double option(const char *const name, const int argc, const char *const *const argv,
+                         const double defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const double res = s?cimg::atof(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%g",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    //! Print information about \CImg environement variables.
+    /**
+       \note Output is done on the default output stream.
+    **/
+    inline void info() {
+      std::fprintf(cimg::output(),"\n %s%sCImg Library %u.%u.%u%s, compiled %s ( %s ) with the following flags:\n\n",
+                   cimg::t_red,cimg::t_bold,cimg_version/100,(cimg_version/10)%10,cimg_version%10,
+                   cimg::t_normal,cimg_date,cimg_time);
+
+      std::fprintf(cimg::output(),"  > Operating System:       %s%-13s%s %s('cimg_OS'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_OS==1?"Unix":(cimg_OS==2?"Windows":"Unknow"),
+                   cimg::t_normal,cimg::t_green,
+                   cimg_OS,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > CPU endianness:         %s%s Endian%s\n",
+                   cimg::t_bold,
+                   cimg::endianness()?"Big":"Little",
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Verbosity mode:         %s%-13s%s %s('cimg_verbosity'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_verbosity==0?"Quiet":
+                   cimg_verbosity==1?"Console":
+                   cimg_verbosity==2?"Dialog":
+                   cimg_verbosity==3?"Console+Warnings":"Dialog+Warnings",
+                   cimg::t_normal,cimg::t_green,
+                   cimg_verbosity,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Stricts warnings:       %s%-13s%s %s('cimg_strict_warnings' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_strict_warnings
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Support for C++11:      %s%-13s%s %s('cimg_use_cpp11'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_use_cpp11?"Yes":"No",
+                   cimg::t_normal,cimg::t_green,
+                   (int)cimg_use_cpp11,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using VT100 messages:   %s%-13s%s %s('cimg_use_vt100' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_vt100
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Display type:           %s%-13s%s %s('cimg_display'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_display==0?"No display":cimg_display==1?"X11":cimg_display==2?"Windows GDI":"Unknown",
+                   cimg::t_normal,cimg::t_green,
+                   (int)cimg_display,
+                   cimg::t_normal);
+
+#if cimg_display==1
+      std::fprintf(cimg::output(),"  > Using XShm for X11:     %s%-13s%s %s('cimg_use_xshm' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_xshm
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using XRand for X11:    %s%-13s%s %s('cimg_use_xrandr' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_xrandr
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+#endif
+      std::fprintf(cimg::output(),"  > Using OpenMP:           %s%-13s%s %s('cimg_use_openmp' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_openmp
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+      std::fprintf(cimg::output(),"  > Using PNG library:      %s%-13s%s %s('cimg_use_png' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_png
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+      std::fprintf(cimg::output(),"  > Using JPEG library:     %s%-13s%s %s('cimg_use_jpeg' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_jpeg
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using TIFF library:     %s%-13s%s %s('cimg_use_tiff' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_tiff
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using Magick++ library: %s%-13s%s %s('cimg_use_magick' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_magick
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using FFTW3 library:    %s%-13s%s %s('cimg_use_fftw3' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_fftw3
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using LAPACK library:   %s%-13s%s %s('cimg_use_lapack' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_lapack
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      char *const tmp = new char[1024];
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::imagemagick_path());
+      std::fprintf(cimg::output(),"  > Path of ImageMagick:    %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::graphicsmagick_path());
+      std::fprintf(cimg::output(),"  > Path of GraphicsMagick: %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::medcon_path());
+      std::fprintf(cimg::output(),"  > Path of 'medcon':       %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::temporary_path());
+      std::fprintf(cimg::output(),"  > Temporary path:         %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"\n");
+      delete[] tmp;
+    }
+
+    // Declare LAPACK function signatures if LAPACK support is enabled.
+#ifdef cimg_use_lapack
+    template<typename T>
+    inline void getrf(int &N, T *lapA, int *IPIV, int &INFO) {
+      dgetrf_(&N,&N,lapA,&N,IPIV,&INFO);
+    }
+
+    inline void getrf(int &N, float *lapA, int *IPIV, int &INFO) {
+      sgetrf_(&N,&N,lapA,&N,IPIV,&INFO);
+    }
+
+    template<typename T>
+    inline void getri(int &N, T *lapA, int *IPIV, T* WORK, int &LWORK, int &INFO) {
+      dgetri_(&N,lapA,&N,IPIV,WORK,&LWORK,&INFO);
+    }
+
+    inline void getri(int &N, float *lapA, int *IPIV, float* WORK, int &LWORK, int &INFO) {
+      sgetri_(&N,lapA,&N,IPIV,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void gesvd(char &JOB, int &M, int &N, T *lapA, int &MN,
+                      T *lapS, T *lapU, T *lapV, T *WORK, int &LWORK, int &INFO) {
+      dgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    inline void gesvd(char &JOB, int &M, int &N, float *lapA, int &MN,
+                      float *lapS, float *lapU, float *lapV, float *WORK, int &LWORK, int &INFO) {
+      sgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void getrs(char &TRANS, int &N, T *lapA, int *IPIV, T *lapB, int &INFO) {
+      int one = 1;
+      dgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    inline void getrs(char &TRANS, int &N, float *lapA, int *IPIV, float *lapB, int &INFO) {
+      int one = 1;
+      sgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    template<typename T>
+    inline void syev(char &JOB, char &UPLO, int &N, T *lapA, T *lapW, T *WORK, int &LWORK, int &INFO) {
+      dsyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    inline void syev(char &JOB, char &UPLO, int &N, float *lapA, float *lapW, float *WORK, int &LWORK, int &INFO) {
+      ssyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, T* lapA, int &LDA,
+                      T* lapB, int &LDB, T* WORK, int &LWORK, int &INFO){
+      dgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, float* lapA, int &LDA,
+                      float* lapB, int &LDB, float* WORK, int &LWORK, int &INFO){
+      sgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+#endif
+
+    // End of the 'cimg' namespace
+  }
+
+  /*------------------------------------------------
+   #
+   #
+   #   Definition of mathematical operators and
+   #   external functions.
+   #
+   #
+   -------------------------------------------------*/
+
+#define _cimg_create_ext_operators(typ) \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator+(const typ val, const CImg<T>& img) { \
+    return img + val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator-(const typ val, const CImg<T>& img) { \
+    typedef typename cimg::superset<T,typ>::type Tt; \
+    return CImg<Tt>(img._width,img._height,img._depth,img._spectrum,val)-=img; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator*(const typ val, const CImg<T>& img) { \
+    return img*val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator/(const typ val, const CImg<T>& img) { \
+    return val*img.get_invert(); \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator&(const typ val, const CImg<T>& img) { \
+    return img & val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator|(const typ val, const CImg<T>& img) { \
+    return img | val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator^(const typ val, const CImg<T>& img) { \
+    return img ^ val; \
+  } \
+  template<typename T> \
+  inline bool operator==(const typ val, const CImg<T>& img) {   \
+    return img == val; \
+  } \
+  template<typename T> \
+  inline bool operator!=(const typ val, const CImg<T>& img) { \
+    return img != val; \
+  }
+
+  _cimg_create_ext_operators(bool)
+  _cimg_create_ext_operators(unsigned char)
+  _cimg_create_ext_operators(char)
+  _cimg_create_ext_operators(signed char)
+  _cimg_create_ext_operators(unsigned short)
+  _cimg_create_ext_operators(short)
+  _cimg_create_ext_operators(unsigned int)
+  _cimg_create_ext_operators(int)
+  _cimg_create_ext_operators(cimg_uint64)
+  _cimg_create_ext_operators(cimg_int64)
+  _cimg_create_ext_operators(float)
+  _cimg_create_ext_operators(double)
+  _cimg_create_ext_operators(long double)
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator+(const char *const expression, const CImg<T>& img) {
+    return img + expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator-(const char *const expression, const CImg<T>& img) {
+    return CImg<_cimg_Tfloat>(img,false).fill(expression,true)-=img;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator*(const char *const expression, const CImg<T>& img) {
+    return img*expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
+    return expression*img.get_invert();
+  }
+
+  template<typename T>
+  inline CImg<T> operator&(const char *const expression, const CImg<T>& img) {
+    return img & expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator|(const char *const expression, const CImg<T>& img) {
+    return img | expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator^(const char *const expression, const CImg<T>& img) {
+    return img ^ expression;
+  }
+
+  template<typename T>
+  inline bool operator==(const char *const expression, const CImg<T>& img) {
+    return img==expression;
+  }
+
+  template<typename T>
+  inline bool operator!=(const char *const expression, const CImg<T>& img) {
+    return img!=expression;
+  }
+
+  template<typename T>
+  inline CImg<T> transpose(const CImg<T>& instance) {
+    return instance.get_transpose();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> invert(const CImg<T>& instance) {
+    return instance.get_invert();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> pseudoinvert(const CImg<T>& instance) {
+    return instance.get_pseudoinvert();
+  }
+
+#define _cimg_create_ext_pointwise_function(name) \
+  template<typename T> \
+  inline CImg<_cimg_Tfloat> name(const CImg<T>& instance) { \
+    return instance.get_##name(); \
+  }
+
+  _cimg_create_ext_pointwise_function(sqr)
+  _cimg_create_ext_pointwise_function(sqrt)
+  _cimg_create_ext_pointwise_function(exp)
+  _cimg_create_ext_pointwise_function(log)
+  _cimg_create_ext_pointwise_function(log2)
+  _cimg_create_ext_pointwise_function(log10)
+  _cimg_create_ext_pointwise_function(abs)
+  _cimg_create_ext_pointwise_function(sign)
+  _cimg_create_ext_pointwise_function(cos)
+  _cimg_create_ext_pointwise_function(sin)
+  _cimg_create_ext_pointwise_function(sinc)
+  _cimg_create_ext_pointwise_function(tan)
+  _cimg_create_ext_pointwise_function(acos)
+  _cimg_create_ext_pointwise_function(asin)
+  _cimg_create_ext_pointwise_function(atan)
+  _cimg_create_ext_pointwise_function(cosh)
+  _cimg_create_ext_pointwise_function(sinh)
+  _cimg_create_ext_pointwise_function(tanh)
+  _cimg_create_ext_pointwise_function(acosh)
+  _cimg_create_ext_pointwise_function(asinh)
+  _cimg_create_ext_pointwise_function(atanh)
+
+  /*-----------------------------------
+   #
+   # Define the CImgDisplay structure
+   #
+   ----------------------------------*/
+  //! Allow the creation of windows, display images on them and manage user events (keyboard, mouse and windows events).
+  /**
+     CImgDisplay methods rely on a low-level graphic library to perform: it can be either \b X-Window
+     (X11, for Unix-based systems) or \b GDI32 (for Windows-based systems).
+     If both libraries are missing, CImgDisplay will not be able to display images on screen, and will enter
+     a minimal mode where warning messages will be outputed each time the program is trying to call one of the
+     CImgDisplay method.
+
+     The configuration variable \c cimg_display tells about the graphic library used.
+     It is set automatically by \CImg when one of these graphic libraries has been detected.
+     But, you can override its value if necessary. Valid choices are:
+     - 0: Disable display capabilities.
+     - 1: Use \b X-Window (X11) library.
+     - 2: Use \b GDI32 library.
+
+     Remember to link your program against \b X11 or \b GDI32 libraries if you use CImgDisplay.
+  **/
+  struct CImgDisplay {
+    cimg_ulong _timer, _fps_frames, _fps_timer;
+    unsigned int _width, _height, _normalization;
+    float _fps_fps, _min, _max;
+    bool _is_fullscreen;
+    char *_title;
+    unsigned int _window_width, _window_height, _button, *_keys, *_released_keys;
+    int _window_x, _window_y, _mouse_x, _mouse_y, _wheel;
+    bool _is_closed, _is_resized, _is_moved, _is_event,
+      _is_keyESC, _is_keyF1, _is_keyF2, _is_keyF3, _is_keyF4, _is_keyF5, _is_keyF6, _is_keyF7,
+      _is_keyF8, _is_keyF9, _is_keyF10, _is_keyF11, _is_keyF12, _is_keyPAUSE, _is_key1, _is_key2,
+      _is_key3, _is_key4, _is_key5, _is_key6, _is_key7, _is_key8, _is_key9, _is_key0,
+      _is_keyBACKSPACE, _is_keyINSERT, _is_keyHOME, _is_keyPAGEUP, _is_keyTAB, _is_keyQ, _is_keyW, _is_keyE,
+      _is_keyR, _is_keyT, _is_keyY, _is_keyU, _is_keyI, _is_keyO, _is_keyP, _is_keyDELETE,
+      _is_keyEND, _is_keyPAGEDOWN, _is_keyCAPSLOCK, _is_keyA, _is_keyS, _is_keyD, _is_keyF, _is_keyG,
+      _is_keyH, _is_keyJ, _is_keyK, _is_keyL, _is_keyENTER, _is_keySHIFTLEFT, _is_keyZ, _is_keyX,
+      _is_keyC, _is_keyV, _is_keyB, _is_keyN, _is_keyM, _is_keySHIFTRIGHT, _is_keyARROWUP, _is_keyCTRLLEFT,
+      _is_keyAPPLEFT, _is_keyALT, _is_keySPACE, _is_keyALTGR, _is_keyAPPRIGHT, _is_keyMENU, _is_keyCTRLRIGHT,
+      _is_keyARROWLEFT, _is_keyARROWDOWN, _is_keyARROWRIGHT, _is_keyPAD0, _is_keyPAD1, _is_keyPAD2, _is_keyPAD3,
+      _is_keyPAD4, _is_keyPAD5, _is_keyPAD6, _is_keyPAD7, _is_keyPAD8, _is_keyPAD9, _is_keyPADADD, _is_keyPADSUB,
+      _is_keyPADMUL, _is_keyPADDIV;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+
+#ifdef cimgdisplay_plugin
+#include cimgdisplay_plugin
+#endif
+#ifdef cimgdisplay_plugin1
+#include cimgdisplay_plugin1
+#endif
+#ifdef cimgdisplay_plugin2
+#include cimgdisplay_plugin2
+#endif
+#ifdef cimgdisplay_plugin3
+#include cimgdisplay_plugin3
+#endif
+#ifdef cimgdisplay_plugin4
+#include cimgdisplay_plugin4
+#endif
+#ifdef cimgdisplay_plugin5
+#include cimgdisplay_plugin5
+#endif
+#ifdef cimgdisplay_plugin6
+#include cimgdisplay_plugin6
+#endif
+#ifdef cimgdisplay_plugin7
+#include cimgdisplay_plugin7
+#endif
+#ifdef cimgdisplay_plugin8
+#include cimgdisplay_plugin8
+#endif
+
+    //@}
+    //--------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //--------------------------------------------------------
+
+    //! Destructor.
+    /**
+       \note If the associated window is visible on the screen, it is closed by the call to the destructor.
+    **/
+    ~CImgDisplay() {
+      assign();
+      delete[] _keys;
+      delete[] _released_keys;
+    }
+
+    //! Construct an empty display.
+    /**
+       \note Constructing an empty CImgDisplay instance does not make a window appearing on the screen, until
+       display of valid data is performed.
+       \par Example
+       \code
+       CImgDisplay disp;  // Does actually nothing.
+       ...
+       disp.display(img); // Construct new window and display image in it.
+       \endcode
+    **/
+    CImgDisplay():
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign();
+    }
+
+    //! Construct a display with specified dimensions.
+    /** \param width Window width.
+        \param height Window height.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note A black background is initially displayed on the associated window.
+    **/
+    CImgDisplay(const unsigned int width, const unsigned int height,
+                const char *const title=0, const unsigned int normalization=3,
+                const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(width,height,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image.
+    /** \param img Image used as a model to create the window.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note The pixels of the input image are initially displayed on the associated window.
+    **/
+    template<typename T>
+    explicit CImgDisplay(const CImg<T>& img,
+                         const char *const title=0, const unsigned int normalization=3,
+                         const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(img,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image list.
+    /** \param list The images list to display.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note All images of the list, appended along the X-axis, are initially displayed on the associated window.
+    **/
+    template<typename T>
+    explicit CImgDisplay(const CImgList<T>& list,
+                         const char *const title=0, const unsigned int normalization=3,
+                         const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(list,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of an existing one.
+    /**
+        \param disp Display instance to copy.
+        \note The pixel buffer of the input window is initially displayed on the associated window.
+    **/
+    CImgDisplay(const CImgDisplay& disp):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(disp);
+    }
+
+    //! Take a screenshot.
+    /**
+       \param[out] img Output screenshot. Can be empty on input
+    **/
+    template<typename T>
+    static void screenshot(CImg<T>& img) {
+      return screenshot(0,0,cimg::type<int>::max(),cimg::type<int>::max(),img);
+    }
+
+#if cimg_display==0
+
+    static void _no_display_exception() {
+      throw CImgDisplayException("CImgDisplay(): No display available.");
+    }
+
+    //! Destructor - Empty constructor \inplace.
+    /**
+       \note Replace the current instance by an empty display.
+    **/
+    CImgDisplay& assign() {
+      return flush();
+    }
+
+    //! Construct a display with specified dimensions \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const unsigned int width, const unsigned int height,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      cimg::unused(width,height,title,normalization,is_fullscreen,is_closed);
+      _no_display_exception();
+      return assign();
+    }
+
+    //! Construct a display from an image \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(img._width,img._height,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image list \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(list._width,list._width,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of another one \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const CImgDisplay &disp) {
+      _no_display_exception();
+      return assign(disp._width,disp._height);
+    }
+
+#endif
+
+    //! Return a reference to an empty display.
+    /**
+       \note Can be useful for writing function prototypes where one of the argument (of type CImgDisplay&)
+       must have a default value.
+       \par Example
+       \code
+       void foo(CImgDisplay& disp=CImgDisplay::empty());
+       \endcode
+    **/
+    static CImgDisplay& empty() {
+      static CImgDisplay _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty display \const.
+    static const CImgDisplay& const_empty() {
+      static const CImgDisplay _empty;
+      return _empty;
+    }
+
+#define cimg_fitscreen(dx,dy,dz) CImgDisplay::_fitscreen(dx,dy,dz,480,-85,false), \
+                                 CImgDisplay::_fitscreen(dx,dy,dz,480,-85,true)
+    static unsigned int _fitscreen(const unsigned int dx, const unsigned int dy, const unsigned int dz,
+                                   const int dmin, const int dmax, const bool return_y) {
+      const unsigned int _nw = dx + (dz>1?dz:0), _nh = dy + (dz>1?dz:0);
+      unsigned int nw = _nw?_nw:1, nh = _nh?_nh:1;
+      const unsigned int
+        sw = (unsigned int)CImgDisplay::screen_width(),
+        sh = (unsigned int)CImgDisplay::screen_height(),
+        mw = dmin<0?(unsigned int)(sw*-dmin/100):(unsigned int)dmin,
+        mh = dmin<0?(unsigned int)(sh*-dmin/100):(unsigned int)dmin,
+        Mw = dmax<0?(unsigned int)(sw*-dmax/100):(unsigned int)dmax,
+        Mh = dmax<0?(unsigned int)(sh*-dmax/100):(unsigned int)dmax;
+      if (nw<mw) { nh = nh*mw/nw; nh+=(nh==0); nw = mw; }
+      if (nh<mh) { nw = nw*mh/nh; nw+=(nw==0); nh = mh; }
+      if (nw>Mw) { nh = nh*Mw/nw; nh+=(nh==0); nw = Mw; }
+      if (nh>Mh) { nw = nw*Mh/nh; nw+=(nw==0); nh = Mh; }
+      if (nw<mw) nw = mw;
+      if (nh<mh) nh = mh;
+      return return_y?nh:nw;
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Overloaded Operators
+    //@{
+    //------------------------------------------
+
+    //! Display image on associated window.
+    /**
+       \note <tt>disp = img</tt> is equivalent to <tt>disp.display(img)</tt>.
+    **/
+    template<typename t>
+    CImgDisplay& operator=(const CImg<t>& img) {
+      return display(img);
+    }
+
+    //! Display list of images on associated window.
+    /**
+       \note <tt>disp = list</tt> is equivalent to <tt>disp.display(list)</tt>.
+    **/
+    template<typename t>
+    CImgDisplay& operator=(const CImgList<t>& list) {
+      return display(list);
+    }
+
+    //! Construct a display as a copy of another one \inplace.
+    /**
+       \note Equivalent to assign(const CImgDisplay&).
+     **/
+    CImgDisplay& operator=(const CImgDisplay& disp) {
+      return assign(disp);
+    }
+
+    //! Return \c false if display is empty, \c true otherwise.
+    /**
+       \note <tt>if (disp) { ... }</tt> is equivalent to <tt>if (!disp.is_empty()) { ... }</tt>.
+    **/
+    operator bool() const {
+      return !is_empty();
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Instance Checking
+    //@{
+    //------------------------------------------
+
+    //! Return \c true if display is empty, \c false otherwise.
+    /**
+    **/
+    bool is_empty() const {
+      return !(_width && _height);
+    }
+
+    //! Return \c true if display is closed (i.e. not visible on the screen), \c false otherwise.
+    /**
+       \note
+       - When a user physically closes the associated window, the display is set to closed.
+       - A closed display is not destroyed. Its associated window can be show again on the screen using show().
+    **/
+    bool is_closed() const {
+      return _is_closed;
+    }
+
+    //! Return \c true if associated window has been resized on the screen, \c false otherwise.
+    /**
+    **/
+    bool is_resized() const {
+      return _is_resized;
+    }
+
+    //! Return \c true if associated window has been moved on the screen, \c false otherwise.
+    /**
+    **/
+    bool is_moved() const {
+      return _is_moved;
+    }
+
+    //! Return \c true if any event has occured on the associated window, \c false otherwise.
+    /**
+    **/
+    bool is_event() const {
+      return _is_event;
+    }
+
+    //! Return \c true if current display is in fullscreen mode, \c false otherwise.
+    /**
+    **/
+    bool is_fullscreen() const {
+      return _is_fullscreen;
+    }
+
+    //! Return \c true if any key is being pressed on the associated window, \c false otherwise.
+    /**
+       \note The methods below do the same only for specific keys.
+    **/
+    bool is_key() const {
+      return _is_keyESC || _is_keyF1 || _is_keyF2 || _is_keyF3 ||
+        _is_keyF4 || _is_keyF5 || _is_keyF6 || _is_keyF7 ||
+        _is_keyF8 || _is_keyF9 || _is_keyF10 || _is_keyF11 ||
+        _is_keyF12 || _is_keyPAUSE || _is_key1 || _is_key2 ||
+        _is_key3 || _is_key4 || _is_key5 || _is_key6 ||
+        _is_key7 || _is_key8 || _is_key9 || _is_key0 ||
+        _is_keyBACKSPACE || _is_keyINSERT || _is_keyHOME ||
+        _is_keyPAGEUP || _is_keyTAB || _is_keyQ || _is_keyW ||
+        _is_keyE || _is_keyR || _is_keyT || _is_keyY ||
+        _is_keyU || _is_keyI || _is_keyO || _is_keyP ||
+        _is_keyDELETE || _is_keyEND || _is_keyPAGEDOWN ||
+        _is_keyCAPSLOCK || _is_keyA || _is_keyS || _is_keyD ||
+        _is_keyF || _is_keyG || _is_keyH || _is_keyJ ||
+        _is_keyK || _is_keyL || _is_keyENTER ||
+        _is_keySHIFTLEFT || _is_keyZ || _is_keyX || _is_keyC ||
+        _is_keyV || _is_keyB || _is_keyN || _is_keyM ||
+        _is_keySHIFTRIGHT || _is_keyARROWUP || _is_keyCTRLLEFT ||
+        _is_keyAPPLEFT || _is_keyALT || _is_keySPACE || _is_keyALTGR ||
+        _is_keyAPPRIGHT || _is_keyMENU || _is_keyCTRLRIGHT ||
+        _is_keyARROWLEFT || _is_keyARROWDOWN || _is_keyARROWRIGHT ||
+        _is_keyPAD0 || _is_keyPAD1 || _is_keyPAD2 ||
+        _is_keyPAD3 || _is_keyPAD4 || _is_keyPAD5 ||
+        _is_keyPAD6 || _is_keyPAD7 || _is_keyPAD8 ||
+        _is_keyPAD9 || _is_keyPADADD || _is_keyPADSUB ||
+        _is_keyPADMUL || _is_keyPADDIV;
+    }
+
+    //! Return \c true if key specified by given keycode is being pressed on the associated window, \c false otherwise.
+    /**
+       \param keycode Keycode to test.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.key(cimg::keyTAB)) { ... }  // Equivalent to 'if (disp.is_keyTAB())'.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool is_key(const unsigned int keycode) const {
+#define _cimg_iskey_test(k) if (keycode==cimg::key##k) return _is_key##k;
+      _cimg_iskey_test(ESC); _cimg_iskey_test(F1); _cimg_iskey_test(F2); _cimg_iskey_test(F3);
+      _cimg_iskey_test(F4); _cimg_iskey_test(F5); _cimg_iskey_test(F6); _cimg_iskey_test(F7);
+      _cimg_iskey_test(F8); _cimg_iskey_test(F9); _cimg_iskey_test(F10); _cimg_iskey_test(F11);
+      _cimg_iskey_test(F12); _cimg_iskey_test(PAUSE); _cimg_iskey_test(1); _cimg_iskey_test(2);
+      _cimg_iskey_test(3); _cimg_iskey_test(4); _cimg_iskey_test(5); _cimg_iskey_test(6);
+      _cimg_iskey_test(7); _cimg_iskey_test(8); _cimg_iskey_test(9); _cimg_iskey_test(0);
+      _cimg_iskey_test(BACKSPACE); _cimg_iskey_test(INSERT); _cimg_iskey_test(HOME);
+      _cimg_iskey_test(PAGEUP); _cimg_iskey_test(TAB); _cimg_iskey_test(Q); _cimg_iskey_test(W);
+      _cimg_iskey_test(E); _cimg_iskey_test(R); _cimg_iskey_test(T); _cimg_iskey_test(Y);
+      _cimg_iskey_test(U); _cimg_iskey_test(I); _cimg_iskey_test(O); _cimg_iskey_test(P);
+      _cimg_iskey_test(DELETE); _cimg_iskey_test(END); _cimg_iskey_test(PAGEDOWN);
+      _cimg_iskey_test(CAPSLOCK); _cimg_iskey_test(A); _cimg_iskey_test(S); _cimg_iskey_test(D);
+      _cimg_iskey_test(F); _cimg_iskey_test(G); _cimg_iskey_test(H); _cimg_iskey_test(J);
+      _cimg_iskey_test(K); _cimg_iskey_test(L); _cimg_iskey_test(ENTER);
+      _cimg_iskey_test(SHIFTLEFT); _cimg_iskey_test(Z); _cimg_iskey_test(X); _cimg_iskey_test(C);
+      _cimg_iskey_test(V); _cimg_iskey_test(B); _cimg_iskey_test(N); _cimg_iskey_test(M);
+      _cimg_iskey_test(SHIFTRIGHT); _cimg_iskey_test(ARROWUP); _cimg_iskey_test(CTRLLEFT);
+      _cimg_iskey_test(APPLEFT); _cimg_iskey_test(ALT); _cimg_iskey_test(SPACE); _cimg_iskey_test(ALTGR);
+      _cimg_iskey_test(APPRIGHT); _cimg_iskey_test(MENU); _cimg_iskey_test(CTRLRIGHT);
+      _cimg_iskey_test(ARROWLEFT); _cimg_iskey_test(ARROWDOWN); _cimg_iskey_test(ARROWRIGHT);
+      _cimg_iskey_test(PAD0); _cimg_iskey_test(PAD1); _cimg_iskey_test(PAD2);
+      _cimg_iskey_test(PAD3); _cimg_iskey_test(PAD4); _cimg_iskey_test(PAD5);
+      _cimg_iskey_test(PAD6); _cimg_iskey_test(PAD7); _cimg_iskey_test(PAD8);
+      _cimg_iskey_test(PAD9); _cimg_iskey_test(PADADD); _cimg_iskey_test(PADSUB);
+      _cimg_iskey_test(PADMUL); _cimg_iskey_test(PADDIV);
+      return false;
+    }
+
+    //! Return \c true if key specified by given keycode is being pressed on the associated window, \c false otherwise.
+    /**
+       \param keycode C-string containing the keycode label of the key to test.
+       \note Use it when the key you want to test can be dynamically set by the user.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const char *const keycode = "TAB";
+       while (!disp.is_closed()) {
+         if (disp.is_key(keycode)) { ... }  // Equivalent to 'if (disp.is_keyTAB())'.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool& is_key(const char *const keycode) {
+      static bool f = false;
+      f = false;
+#define _cimg_iskey_test2(k) if (!cimg::strcasecmp(keycode,#k)) return _is_key##k;
+      _cimg_iskey_test2(ESC); _cimg_iskey_test2(F1); _cimg_iskey_test2(F2); _cimg_iskey_test2(F3);
+      _cimg_iskey_test2(F4); _cimg_iskey_test2(F5); _cimg_iskey_test2(F6); _cimg_iskey_test2(F7);
+      _cimg_iskey_test2(F8); _cimg_iskey_test2(F9); _cimg_iskey_test2(F10); _cimg_iskey_test2(F11);
+      _cimg_iskey_test2(F12); _cimg_iskey_test2(PAUSE); _cimg_iskey_test2(1); _cimg_iskey_test2(2);
+      _cimg_iskey_test2(3); _cimg_iskey_test2(4); _cimg_iskey_test2(5); _cimg_iskey_test2(6);
+      _cimg_iskey_test2(7); _cimg_iskey_test2(8); _cimg_iskey_test2(9); _cimg_iskey_test2(0);
+      _cimg_iskey_test2(BACKSPACE); _cimg_iskey_test2(INSERT); _cimg_iskey_test2(HOME);
+      _cimg_iskey_test2(PAGEUP); _cimg_iskey_test2(TAB); _cimg_iskey_test2(Q); _cimg_iskey_test2(W);
+      _cimg_iskey_test2(E); _cimg_iskey_test2(R); _cimg_iskey_test2(T); _cimg_iskey_test2(Y);
+      _cimg_iskey_test2(U); _cimg_iskey_test2(I); _cimg_iskey_test2(O); _cimg_iskey_test2(P);
+      _cimg_iskey_test2(DELETE); _cimg_iskey_test2(END); _cimg_iskey_test2(PAGEDOWN);
+      _cimg_iskey_test2(CAPSLOCK); _cimg_iskey_test2(A); _cimg_iskey_test2(S); _cimg_iskey_test2(D);
+      _cimg_iskey_test2(F); _cimg_iskey_test2(G); _cimg_iskey_test2(H); _cimg_iskey_test2(J);
+      _cimg_iskey_test2(K); _cimg_iskey_test2(L); _cimg_iskey_test2(ENTER);
+      _cimg_iskey_test2(SHIFTLEFT); _cimg_iskey_test2(Z); _cimg_iskey_test2(X); _cimg_iskey_test2(C);
+      _cimg_iskey_test2(V); _cimg_iskey_test2(B); _cimg_iskey_test2(N); _cimg_iskey_test2(M);
+      _cimg_iskey_test2(SHIFTRIGHT); _cimg_iskey_test2(ARROWUP); _cimg_iskey_test2(CTRLLEFT);
+      _cimg_iskey_test2(APPLEFT); _cimg_iskey_test2(ALT); _cimg_iskey_test2(SPACE); _cimg_iskey_test2(ALTGR);
+      _cimg_iskey_test2(APPRIGHT); _cimg_iskey_test2(MENU); _cimg_iskey_test2(CTRLRIGHT);
+      _cimg_iskey_test2(ARROWLEFT); _cimg_iskey_test2(ARROWDOWN); _cimg_iskey_test2(ARROWRIGHT);
+      _cimg_iskey_test2(PAD0); _cimg_iskey_test2(PAD1); _cimg_iskey_test2(PAD2);
+      _cimg_iskey_test2(PAD3); _cimg_iskey_test2(PAD4); _cimg_iskey_test2(PAD5);
+      _cimg_iskey_test2(PAD6); _cimg_iskey_test2(PAD7); _cimg_iskey_test2(PAD8);
+      _cimg_iskey_test2(PAD9); _cimg_iskey_test2(PADADD); _cimg_iskey_test2(PADSUB);
+      _cimg_iskey_test2(PADMUL); _cimg_iskey_test2(PADDIV);
+      return f;
+    }
+
+    //! Return \c true if specified key sequence has been typed on the associated window, \c false otherwise.
+    /**
+       \param keycodes_sequence Buffer of keycodes to test.
+       \param length Number of keys in the \c keycodes_sequence buffer.
+       \param remove_sequence Tells if the key sequence must be removed from the key history, if found.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const unsigned int key_seq[] = { cimg::keyCTRLLEFT, cimg::keyD };
+       while (!disp.is_closed()) {
+         if (disp.is_key_sequence(key_seq,2)) { ... }  // Test for the 'CTRL+D' keyboard event.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool is_key_sequence(const unsigned int *const keycodes_sequence, const unsigned int length,
+                         const bool remove_sequence=false) {
+      if (keycodes_sequence && length) {
+        const unsigned int
+          *const ps_end = keycodes_sequence + length - 1,
+          *const pk_end = (unsigned int*)_keys + 1 + 128 - length,
+          k = *ps_end;
+        for (unsigned int *pk = (unsigned int*)_keys; pk<pk_end; ) {
+          if (*(pk++)==k) {
+            bool res = true;
+            const unsigned int *ps = ps_end, *pk2 = pk;
+            for (unsigned int i = 1; i<length; ++i) res = (*(--ps)==*(pk2++));
+            if (res) {
+              if (remove_sequence) std::memset((void*)(pk - 1),0,sizeof(unsigned int)*length);
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+#define _cimg_iskey_def(k) \
+    bool is_key##k() const { \
+      return _is_key##k; \
+    }
+
+    //! Return \c true if the \c ESC key is being pressed on the associated window, \c false otherwise.
+    /**
+       \note Similar methods exist for all keys managed by \CImg (see cimg::keyESC).
+    **/
+    _cimg_iskey_def(ESC); _cimg_iskey_def(F1); _cimg_iskey_def(F2); _cimg_iskey_def(F3);
+    _cimg_iskey_def(F4); _cimg_iskey_def(F5); _cimg_iskey_def(F6); _cimg_iskey_def(F7);
+    _cimg_iskey_def(F8); _cimg_iskey_def(F9); _cimg_iskey_def(F10); _cimg_iskey_def(F11);
+    _cimg_iskey_def(F12); _cimg_iskey_def(PAUSE); _cimg_iskey_def(1); _cimg_iskey_def(2);
+    _cimg_iskey_def(3); _cimg_iskey_def(4); _cimg_iskey_def(5); _cimg_iskey_def(6);
+    _cimg_iskey_def(7); _cimg_iskey_def(8); _cimg_iskey_def(9); _cimg_iskey_def(0);
+    _cimg_iskey_def(BACKSPACE); _cimg_iskey_def(INSERT); _cimg_iskey_def(HOME);
+    _cimg_iskey_def(PAGEUP); _cimg_iskey_def(TAB); _cimg_iskey_def(Q); _cimg_iskey_def(W);
+    _cimg_iskey_def(E); _cimg_iskey_def(R); _cimg_iskey_def(T); _cimg_iskey_def(Y);
+    _cimg_iskey_def(U); _cimg_iskey_def(I); _cimg_iskey_def(O); _cimg_iskey_def(P);
+    _cimg_iskey_def(DELETE); _cimg_iskey_def(END); _cimg_iskey_def(PAGEDOWN);
+    _cimg_iskey_def(CAPSLOCK); _cimg_iskey_def(A); _cimg_iskey_def(S); _cimg_iskey_def(D);
+    _cimg_iskey_def(F); _cimg_iskey_def(G); _cimg_iskey_def(H); _cimg_iskey_def(J);
+    _cimg_iskey_def(K); _cimg_iskey_def(L); _cimg_iskey_def(ENTER);
+    _cimg_iskey_def(SHIFTLEFT); _cimg_iskey_def(Z); _cimg_iskey_def(X); _cimg_iskey_def(C);
+    _cimg_iskey_def(V); _cimg_iskey_def(B); _cimg_iskey_def(N); _cimg_iskey_def(M);
+    _cimg_iskey_def(SHIFTRIGHT); _cimg_iskey_def(ARROWUP); _cimg_iskey_def(CTRLLEFT);
+    _cimg_iskey_def(APPLEFT); _cimg_iskey_def(ALT); _cimg_iskey_def(SPACE); _cimg_iskey_def(ALTGR);
+    _cimg_iskey_def(APPRIGHT); _cimg_iskey_def(MENU); _cimg_iskey_def(CTRLRIGHT);
+    _cimg_iskey_def(ARROWLEFT); _cimg_iskey_def(ARROWDOWN); _cimg_iskey_def(ARROWRIGHT);
+    _cimg_iskey_def(PAD0); _cimg_iskey_def(PAD1); _cimg_iskey_def(PAD2);
+    _cimg_iskey_def(PAD3); _cimg_iskey_def(PAD4); _cimg_iskey_def(PAD5);
+    _cimg_iskey_def(PAD6); _cimg_iskey_def(PAD7); _cimg_iskey_def(PAD8);
+    _cimg_iskey_def(PAD9); _cimg_iskey_def(PADADD); _cimg_iskey_def(PADSUB);
+    _cimg_iskey_def(PADMUL); _cimg_iskey_def(PADDIV);
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //------------------------------------------
+
+#if cimg_display==0
+
+    //! Return width of the screen (current resolution along the X-axis).
+    /**
+    **/
+    static int screen_width() {
+      _no_display_exception();
+      return 0;
+    }
+
+    //! Return height of the screen (current resolution along the Y-axis).
+    /**
+    **/
+    static int screen_height() {
+      _no_display_exception();
+      return 0;
+    }
+
+#endif
+
+    //! Return display width.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the associated window.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return display height.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int height() const {
+      return (int)_height;
+    }
+
+    //! Return normalization type of the display.
+    /**
+       The normalization type tells about how the values of an input image are normalized by the CImgDisplay to be
+       correctly displayed. The range of values for pixels displayed on screen is <tt>[0,255]</tt>.
+       If the range of values of the data to display is different, a normalization may be required for displaying
+       the data in a correct way. The normalization type can be one of:
+       - \c 0: Value normalization is disabled. It is then assumed that all input data to be displayed by the
+       CImgDisplay instance have values in range <tt>[0,255]</tt>.
+       - \c 1: Value normalization is always performed (this is the default behavior).
+       Before displaying an input image, its values will be (virtually) stretched
+       in range <tt>[0,255]</tt>, so that the contrast of the displayed pixels will be maximum.
+       Use this mode for images whose minimum and maximum values are not prescribed to known values
+       (e.g. float-valued images).
+       Note that when normalized versions of images are computed for display purposes, the actual values of these
+       images are not modified.
+       - \c 2: Value normalization is performed once (on the first image display), then the same normalization
+       coefficients are kept for next displayed frames.
+       - \c 3: Value normalization depends on the pixel type of the data to display. For integer pixel types,
+       the normalization is done regarding the minimum/maximum values of the type (no normalization occurs then
+       for <tt>unsigned char</tt>).
+       For float-valued pixel types, the normalization is done regarding the minimum/maximum value of the image
+       data instead.
+    **/
+    unsigned int normalization() const {
+      return _normalization;
+    }
+
+    //! Return title of the associated window as a C-string.
+    /**
+       \note Window title may be not visible, depending on the used window manager or if the current display is
+       in fullscreen mode.
+    **/
+    const char *title() const {
+      return _title?_title:"";
+    }
+
+    //! Return width of the associated window.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the associated window.
+    **/
+    int window_width() const {
+      return (int)_window_width;
+    }
+
+    //! Return height of the associated window.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int window_height() const {
+      return (int)_window_height;
+    }
+
+    //! Return X-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_x() const {
+      return _window_x;
+    }
+
+    //! Return Y-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_y() const {
+      return _window_y;
+    }
+
+    //! Return X-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,width()-1].
+    **/
+    int mouse_x() const {
+      return _mouse_x;
+    }
+
+    //! Return Y-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,height()-1].
+    **/
+    int mouse_y() const {
+      return _mouse_y;
+    }
+
+    //! Return current state of the mouse buttons.
+    /**
+       \note Three mouse buttons can be managed. If one button is pressed, its corresponding bit in the returned
+       value is set:
+       - bit \c 0 (value \c 0x1): State of the left mouse button.
+       - bit \c 1 (value \c 0x2): State of the right mouse button.
+       - bit \c 2 (value \c 0x4): State of the middle mouse button.
+
+       Several bits can be activated if more than one button are pressed at the same time.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.button()&1) { // Left button clicked.
+           ...
+         }
+         if (disp.button()&2) { // Right button clicked.
+           ...
+         }
+         if (disp.button()&4) { // Middle button clicked.
+           ...
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    unsigned int button() const {
+      return _button;
+    }
+
+    //! Return current state of the mouse wheel.
+    /**
+       \note
+       - The returned value can be positive or negative depending on whether the mouse wheel has been scrolled
+       forward or backward.
+       - Scrolling the wheel forward add \c 1 to the wheel value.
+       - Scrolling the wheel backward substract \c 1 to the wheel value.
+       - The returned value cumulates the number of forward of backward scrolls since the creation of the display,
+       or since the last reset of the wheel value (using set_wheel()). It is strongly recommended to quickly reset
+       the wheel counter when an action has been performed regarding the current wheel value.
+       Otherwise, the returned wheel value may be for instance \c 0 despite the fact that many scrolls have been done
+       (as many in forward as in backward directions).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.wheel()) {
+           int counter = disp.wheel();  // Read the state of the mouse wheel.
+           ...                          // Do what you want with 'counter'.
+           disp.set_wheel();            // Reset the wheel value to 0.
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    int wheel() const {
+      return _wheel;
+    }
+
+    //! Return one entry from the pressed keys history.
+    /**
+       \param pos Indice to read from the pressed keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a pressed key or \c 0 for a released key.
+       \note
+       - Each CImgDisplay stores a history of the pressed keys in a buffer of size \c 128. When a new key is pressed,
+       its keycode is stored in the pressed keys history. When a key is released, \c 0 is put instead.
+       This means that up to the 64 last pressed keys may be read from the pressed keys history.
+       When a new value is stored, the pressed keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int key(const unsigned int pos=0) const {
+      return pos<128?_keys[pos]:0;
+    }
+
+    //! Return one entry from the released keys history.
+    /**
+       \param pos Indice to read from the released keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a released key or \c 0 for a pressed key.
+       \note
+       - Each CImgDisplay stores a history of the released keys in a buffer of size \c 128. When a new key is released,
+       its keycode is stored in the pressed keys history. When a key is pressed, \c 0 is put instead.
+       This means that up to the 64 last released keys may be read from the released keys history.
+       When a new value is stored, the released keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int released_key(const unsigned int pos=0) const {
+      return pos<128?_released_keys[pos]:0;
+    }
+
+    //! Return keycode corresponding to the specified string.
+    /**
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       const unsigned int keyTAB = CImgDisplay::keycode("TAB");  // Return cimg::keyTAB.
+       \endcode
+    **/
+    static unsigned int keycode(const char *const keycode) {
+#define _cimg_keycode(k) if (!cimg::strcasecmp(keycode,#k)) return cimg::key##k;
+      _cimg_keycode(ESC); _cimg_keycode(F1); _cimg_keycode(F2); _cimg_keycode(F3);
+      _cimg_keycode(F4); _cimg_keycode(F5); _cimg_keycode(F6); _cimg_keycode(F7);
+      _cimg_keycode(F8); _cimg_keycode(F9); _cimg_keycode(F10); _cimg_keycode(F11);
+      _cimg_keycode(F12); _cimg_keycode(PAUSE); _cimg_keycode(1); _cimg_keycode(2);
+      _cimg_keycode(3); _cimg_keycode(4); _cimg_keycode(5); _cimg_keycode(6);
+      _cimg_keycode(7); _cimg_keycode(8); _cimg_keycode(9); _cimg_keycode(0);
+      _cimg_keycode(BACKSPACE); _cimg_keycode(INSERT); _cimg_keycode(HOME);
+      _cimg_keycode(PAGEUP); _cimg_keycode(TAB); _cimg_keycode(Q); _cimg_keycode(W);
+      _cimg_keycode(E); _cimg_keycode(R); _cimg_keycode(T); _cimg_keycode(Y);
+      _cimg_keycode(U); _cimg_keycode(I); _cimg_keycode(O); _cimg_keycode(P);
+      _cimg_keycode(DELETE); _cimg_keycode(END); _cimg_keycode(PAGEDOWN);
+      _cimg_keycode(CAPSLOCK); _cimg_keycode(A); _cimg_keycode(S); _cimg_keycode(D);
+      _cimg_keycode(F); _cimg_keycode(G); _cimg_keycode(H); _cimg_keycode(J);
+      _cimg_keycode(K); _cimg_keycode(L); _cimg_keycode(ENTER);
+      _cimg_keycode(SHIFTLEFT); _cimg_keycode(Z); _cimg_keycode(X); _cimg_keycode(C);
+      _cimg_keycode(V); _cimg_keycode(B); _cimg_keycode(N); _cimg_keycode(M);
+      _cimg_keycode(SHIFTRIGHT); _cimg_keycode(ARROWUP); _cimg_keycode(CTRLLEFT);
+      _cimg_keycode(APPLEFT); _cimg_keycode(ALT); _cimg_keycode(SPACE); _cimg_keycode(ALTGR);
+      _cimg_keycode(APPRIGHT); _cimg_keycode(MENU); _cimg_keycode(CTRLRIGHT);
+      _cimg_keycode(ARROWLEFT); _cimg_keycode(ARROWDOWN); _cimg_keycode(ARROWRIGHT);
+      _cimg_keycode(PAD0); _cimg_keycode(PAD1); _cimg_keycode(PAD2);
+      _cimg_keycode(PAD3); _cimg_keycode(PAD4); _cimg_keycode(PAD5);
+      _cimg_keycode(PAD6); _cimg_keycode(PAD7); _cimg_keycode(PAD8);
+      _cimg_keycode(PAD9); _cimg_keycode(PADADD); _cimg_keycode(PADSUB);
+      _cimg_keycode(PADMUL); _cimg_keycode(PADDIV);
+      return 0;
+    }
+
+    //! Return the current refresh rate, in frames per second.
+    /**
+       \note Returns a significant value when the current instance is used to display successive frames.
+       It measures the delay between successive calls to frames_per_second().
+    **/
+    float frames_per_second() {
+      if (!_fps_timer) _fps_timer = cimg::time();
+      const float delta = (cimg::time() - _fps_timer)/1000.0f;
+      ++_fps_frames;
+      if (delta>=1) {
+        _fps_fps = _fps_frames/delta;
+        _fps_frames = 0;
+        _fps_timer = cimg::time();
+      }
+      return _fps_fps;
+    }
+
+    //@}
+    //---------------------------------------
+    //
+    //! \name Window Manipulation
+    //@{
+    //---------------------------------------
+
+#if cimg_display==0
+
+    //! Display image on associated window.
+    /**
+       \param img Input image to display.
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      return assign(img);
+    }
+
+#endif
+
+    //! Display list of images on associated window.
+    /**
+       \param list List of images to display.
+       \param axis Axis used to append the images along, for the visualization (can be \c x, \c y, \c z or \c c).
+       \param align Relative position of aligned images when displaying lists with images of different sizes
+       (\c 0 for upper-left, \c 0.5 for centering and \c 1 for lower-right).
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImgList<T>& list, const char axis='x', const float align=0) {
+      if (list._width==1) {
+        const CImg<T>& img = list[0];
+        if (img._depth==1 && (img._spectrum==1 || img._spectrum>=3) && _normalization!=1) return display(img);
+      }
+      CImgList<typename CImg<T>::ucharT> visu(list._width);
+      unsigned int dims = 0;
+      cimglist_for(list,l) {
+        const CImg<T>& img = list._data[l];
+        img.__get_select(*this,_normalization,(img._width - 1)/2,(img._height - 1)/2,
+                         (img._depth - 1)/2).move_to(visu[l]);
+        dims = std::max(dims,visu[l]._spectrum);
+      }
+      cimglist_for(list,l) if (visu[l]._spectrum<dims) visu[l].resize(-100,-100,-100,dims,1);
+      visu.get_append(axis,align).display(*this);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Show (closed) associated window on the screen.
+    /**
+       \note
+       - Force the associated window of a display to be visible on the screen, even if it has been closed before.
+       - Using show() on a visible display does nothing.
+    **/
+    CImgDisplay& show() {
+      return assign();
+    }
+
+    //! Close (visible) associated window and make it disappear from the screen.
+    /**
+       \note
+       - A closed display only means the associated window is not visible anymore. This does not mean the display has
+       been destroyed.
+       Use show() to make the associated window reappear.
+       - Using close() on a closed display does nothing.
+    **/
+    CImgDisplay& close() {
+      return assign();
+    }
+
+    //! Move associated window to a new location.
+    /**
+       \param pos_x X-coordinate of the new window location.
+       \param pos_y Y-coordinate of the new window location.
+       \note Depending on the window manager behavior, this method may not succeed (no exceptions are thrown
+       nevertheless).
+    **/
+    CImgDisplay& move(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Resize display to the size of the associated window.
+    /**
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note
+       - Calling this method ensures that width() and window_width() become equal, as well as height() and
+       window_height().
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const bool force_redraw=true) {
+      resize(window_width(),window_height(),force_redraw);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Resize display to the specified size.
+    /**
+       \param width Requested display width.
+       \param height Requested display height.
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const int width, const int height, const bool force_redraw=true) {
+      return assign(width,height,0,3,force_redraw);
+    }
+
+#endif
+
+    //! Resize display to the size of an input image.
+    /**
+       \param img Input image to take size from.
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>img.width()</tt> become equal, as well as height() and
+       <tt>img.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    template<typename T>
+    CImgDisplay& resize(const CImg<T>& img, const bool force_redraw=true) {
+      return resize(img._width,img._height,force_redraw);
+    }
+
+    //! Resize display to the size of another CImgDisplay instance.
+    /**
+       \param disp Input display to take size from.
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>disp.width()</tt> become equal, as well as height() and
+       <tt>disp.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const CImgDisplay& disp, const bool force_redraw=true) {
+      return resize(disp.width(),disp.height(),force_redraw);
+    }
+
+    // [internal] Render pixel buffer with size (wd,hd) from source buffer of size (ws,hs).
+    template<typename t, typename T>
+    static void _render_resize(const T *ptrs, const unsigned int ws, const unsigned int hs,
+                               t *ptrd, const unsigned int wd, const unsigned int hd) {
+      typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+      const ulongT one = (ulongT)1;
+      CImg<ulongT> off_x(wd), off_y(hd + 1);
+      if (wd==ws) off_x.fill(1);
+      else {
+        ulongT *poff_x = off_x._data, curr = 0;
+        for (unsigned int x = 0; x<wd; ++x) {
+          const ulongT old = curr;
+          curr = (x + one)*ws/wd;
+          *(poff_x++) = curr - old;
+        }
+      }
+      if (hd==hs) off_y.fill(ws);
+      else {
+        ulongT *poff_y = off_y._data, curr = 0;
+        for (unsigned int y = 0; y<hd; ++y) {
+          const ulongT old = curr;
+          curr = (y + one)*hs/hd;
+          *(poff_y++) = ws*(curr - old);
+        }
+        *poff_y = 0;
+      }
+      ulongT *poff_y = off_y._data;
+      for (unsigned int y = 0; y<hd; ) {
+        const T *ptr = ptrs;
+        ulongT *poff_x = off_x._data;
+        for (unsigned int x = 0; x<wd; ++x) { *(ptrd++) = *ptr; ptr+=*(poff_x++); }
+        ++y;
+        ulongT dy = *(poff_y++);
+        for ( ; !dy && y<hd; std::memcpy(ptrd,ptrd - wd,sizeof(t)*wd), ++y, ptrd+=wd, dy = *(poff_y++)) {}
+        ptrs+=dy;
+      }
+    }
+
+    //! Set normalization type.
+    /**
+       \param normalization New normalization mode.
+    **/
+    CImgDisplay& set_normalization(const unsigned int normalization) {
+      _normalization = normalization;
+      _min = _max = 0;
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Set title of the associated window.
+    /**
+       \param format C-string containing the format of the title, as with <tt>std::printf()</tt>.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       disp.set_title("%s",window_title);
+       \endcode
+       instead of
+       \code
+       disp.set_title(window_title);
+       \endcode
+       if \c window_title can be arbitrary, to prevent nasty memory access.
+    **/
+    CImgDisplay& set_title(const char *const format, ...) {
+      return assign(0,0,format);
+    }
+
+#endif
+
+    //! Enable or disable fullscreen mode.
+    /**
+       \param is_fullscreen Tells is the fullscreen mode must be activated or not.
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note
+       - When the fullscreen mode is enabled, the associated window fills the entire screen but the size of the
+       current display is not modified.
+       - The screen resolution may be switched to fit the associated window size and ensure it appears the largest
+       as possible.
+       For X-Window (X11) users, the configuration flag \c cimg_use_xrandr has to be set to allow the screen
+       resolution change (requires the X11 extensions to be enabled).
+    **/
+    CImgDisplay& set_fullscreen(const bool is_fullscreen, const bool force_redraw=true) {
+      if (is_empty() || _is_fullscreen==is_fullscreen) return *this;
+      return toggle_fullscreen(force_redraw);
+    }
+
+#if cimg_display==0
+
+    //! Toggle fullscreen mode.
+    /**
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note Enable fullscreen mode if it was not enabled, and disable it otherwise.
+    **/
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      return assign(_width,_height,0,3,force_redraw);
+    }
+
+    //! Show mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& show_mouse() {
+      return assign();
+    }
+
+    //! Hide mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& hide_mouse() {
+      return assign();
+    }
+
+    //! Move mouse pointer to a specified location.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& set_mouse(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Simulate a mouse button release event.
+    /**
+       \note All mouse buttons are considered released at the same time.
+    **/
+    CImgDisplay& set_button() {
+      _button = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a mouse button press or release event.
+    /**
+       \param button Buttons event code, where each button is associated to a single bit.
+       \param is_pressed Tells if the mouse button is considered as pressed or released.
+    **/
+    CImgDisplay& set_button(const unsigned int button, const bool is_pressed=true) {
+      const unsigned int buttoncode = button==1U?1U:button==2U?2U:button==3U?4U:0U;
+      if (is_pressed) _button |= buttoncode; else _button &= ~buttoncode;
+      _is_event = buttoncode?true:false;
+      if (buttoncode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all mouse wheel events.
+    /**
+       \note Make wheel() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_wheel() {
+      _wheel = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a wheel event.
+    /**
+       \param amplitude Amplitude of the wheel scrolling to simulate.
+       \note Make wheel() to return \c amplitude, if called afterwards.
+    **/
+    CImgDisplay& set_wheel(const int amplitude) {
+      _wheel+=amplitude;
+      _is_event = amplitude?true:false;
+      if (amplitude) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all key events.
+    /**
+       \note Make key() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_key() {
+      std::memset((void*)_keys,0,128*sizeof(unsigned int));
+      std::memset((void*)_released_keys,0,128*sizeof(unsigned int));
+      _is_keyESC = _is_keyF1 = _is_keyF2 = _is_keyF3 = _is_keyF4 = _is_keyF5 = _is_keyF6 = _is_keyF7 = _is_keyF8 =
+        _is_keyF9 = _is_keyF10 = _is_keyF11 = _is_keyF12 = _is_keyPAUSE = _is_key1 = _is_key2 = _is_key3 = _is_key4 =
+        _is_key5 = _is_key6 = _is_key7 = _is_key8 = _is_key9 = _is_key0 = _is_keyBACKSPACE = _is_keyINSERT =
+        _is_keyHOME = _is_keyPAGEUP = _is_keyTAB = _is_keyQ = _is_keyW = _is_keyE = _is_keyR = _is_keyT = _is_keyY =
+        _is_keyU = _is_keyI = _is_keyO = _is_keyP = _is_keyDELETE = _is_keyEND = _is_keyPAGEDOWN = _is_keyCAPSLOCK =
+        _is_keyA = _is_keyS = _is_keyD = _is_keyF = _is_keyG = _is_keyH = _is_keyJ = _is_keyK = _is_keyL =
+        _is_keyENTER = _is_keySHIFTLEFT = _is_keyZ = _is_keyX = _is_keyC = _is_keyV = _is_keyB = _is_keyN =
+        _is_keyM = _is_keySHIFTRIGHT = _is_keyARROWUP = _is_keyCTRLLEFT = _is_keyAPPLEFT = _is_keyALT = _is_keySPACE =
+        _is_keyALTGR = _is_keyAPPRIGHT = _is_keyMENU = _is_keyCTRLRIGHT = _is_keyARROWLEFT = _is_keyARROWDOWN =
+        _is_keyARROWRIGHT = _is_keyPAD0 = _is_keyPAD1 = _is_keyPAD2 = _is_keyPAD3 = _is_keyPAD4 = _is_keyPAD5 =
+        _is_keyPAD6 = _is_keyPAD7 = _is_keyPAD8 = _is_keyPAD9 = _is_keyPADADD = _is_keyPADSUB = _is_keyPADMUL =
+        _is_keyPADDIV = false;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a keyboard press/release event.
+    /**
+       \param keycode Keycode of the associated key.
+       \param is_pressed Tells if the key is considered as pressed or released.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    CImgDisplay& set_key(const unsigned int keycode, const bool is_pressed=true) {
+#define _cimg_set_key(k) if (keycode==cimg::key##k) _is_key##k = is_pressed;
+      _cimg_set_key(ESC); _cimg_set_key(F1); _cimg_set_key(F2); _cimg_set_key(F3);
+      _cimg_set_key(F4); _cimg_set_key(F5); _cimg_set_key(F6); _cimg_set_key(F7);
+      _cimg_set_key(F8); _cimg_set_key(F9); _cimg_set_key(F10); _cimg_set_key(F11);
+      _cimg_set_key(F12); _cimg_set_key(PAUSE); _cimg_set_key(1); _cimg_set_key(2);
+      _cimg_set_key(3); _cimg_set_key(4); _cimg_set_key(5); _cimg_set_key(6);
+      _cimg_set_key(7); _cimg_set_key(8); _cimg_set_key(9); _cimg_set_key(0);
+      _cimg_set_key(BACKSPACE); _cimg_set_key(INSERT); _cimg_set_key(HOME);
+      _cimg_set_key(PAGEUP); _cimg_set_key(TAB); _cimg_set_key(Q); _cimg_set_key(W);
+      _cimg_set_key(E); _cimg_set_key(R); _cimg_set_key(T); _cimg_set_key(Y);
+      _cimg_set_key(U); _cimg_set_key(I); _cimg_set_key(O); _cimg_set_key(P);
+      _cimg_set_key(DELETE); _cimg_set_key(END); _cimg_set_key(PAGEDOWN);
+      _cimg_set_key(CAPSLOCK); _cimg_set_key(A); _cimg_set_key(S); _cimg_set_key(D);
+      _cimg_set_key(F); _cimg_set_key(G); _cimg_set_key(H); _cimg_set_key(J);
+      _cimg_set_key(K); _cimg_set_key(L); _cimg_set_key(ENTER);
+      _cimg_set_key(SHIFTLEFT); _cimg_set_key(Z); _cimg_set_key(X); _cimg_set_key(C);
+      _cimg_set_key(V); _cimg_set_key(B); _cimg_set_key(N); _cimg_set_key(M);
+      _cimg_set_key(SHIFTRIGHT); _cimg_set_key(ARROWUP); _cimg_set_key(CTRLLEFT);
+      _cimg_set_key(APPLEFT); _cimg_set_key(ALT); _cimg_set_key(SPACE); _cimg_set_key(ALTGR);
+      _cimg_set_key(APPRIGHT); _cimg_set_key(MENU); _cimg_set_key(CTRLRIGHT);
+      _cimg_set_key(ARROWLEFT); _cimg_set_key(ARROWDOWN); _cimg_set_key(ARROWRIGHT);
+      _cimg_set_key(PAD0); _cimg_set_key(PAD1); _cimg_set_key(PAD2);
+      _cimg_set_key(PAD3); _cimg_set_key(PAD4); _cimg_set_key(PAD5);
+      _cimg_set_key(PAD6); _cimg_set_key(PAD7); _cimg_set_key(PAD8);
+      _cimg_set_key(PAD9); _cimg_set_key(PADADD); _cimg_set_key(PADSUB);
+      _cimg_set_key(PADMUL); _cimg_set_key(PADDIV);
+      if (is_pressed) {
+        if (*_keys)
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+        *_keys = keycode;
+        if (*_released_keys) {
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+          *_released_keys = 0;
+        }
+      } else {
+        if (*_keys) {
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+          *_keys = 0;
+        }
+        if (*_released_keys)
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+        *_released_keys = keycode;
+      }
+      _is_event = keycode?true:false;
+      if (keycode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all display events.
+    /**
+       \note Remove all passed events from the current display.
+    **/
+    CImgDisplay& flush() {
+      set_key().set_button().set_wheel();
+      _is_resized = _is_moved = _is_event = false;
+      _fps_timer = _fps_frames = _timer = 0;
+      _fps_fps = 0;
+      return *this;
+    }
+
+    //! Wait for any user event occuring on the current display.
+    CImgDisplay& wait() {
+      wait(*this);
+      return *this;
+    }
+
+    //! Wait for a given number of milliseconds since the last call to wait().
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \note Similar to cimg::wait().
+    **/
+    CImgDisplay& wait(const unsigned int milliseconds) {
+      cimg::_wait(milliseconds,_timer);
+      return *this;
+    }
+
+    //! Wait for any event occuring on the display \c disp1.
+    static void wait(CImgDisplay& disp1) {
+      disp1._is_event = false;
+      while (!disp1._is_closed && !disp1._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1 or \c disp2.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2) {
+      disp1._is_event = disp2._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed) &&
+             !disp1._is_event && !disp2._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2 or \c disp3.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3) {
+      disp1._is_event = disp2._is_event = disp3._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3 or \c disp4.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4 or \c disp5.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4,
+                     CImgDisplay& disp5) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event)
+        wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp6.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp7.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp8.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp9.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8, CImgDisplay& disp9) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = disp9._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed || !disp9._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event && !disp9._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp10.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4, CImgDisplay& disp5,
+                     CImgDisplay& disp6, CImgDisplay& disp7, CImgDisplay& disp8, CImgDisplay& disp9,
+                     CImgDisplay& disp10) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event =
+        disp6._is_event = disp7._is_event = disp8._is_event = disp9._is_event = disp10._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed ||
+              !disp6._is_closed || !disp7._is_closed || !disp8._is_closed || !disp9._is_closed || !disp10._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event &&
+             !disp6._is_event && !disp7._is_event && !disp8._is_event && !disp9._is_event && !disp10._is_event)
+        wait_all();
+    }
+
+#if cimg_display==0
+
+    //! Wait for any window event occuring in any opened CImgDisplay.
+    static void wait_all() {
+      return _no_display_exception();
+    }
+
+    //! Render image into internal display buffer.
+    /**
+       \param img Input image data to render.
+       \note
+       - Convert image data representation into the internal display buffer (architecture-dependent structure).
+       - The content of the associated window is not modified, until paint() is called.
+       - Should not be used for common CImgDisplay uses, since display() is more useful.
+    **/
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img) {
+      return assign(img);
+    }
+
+    //! Paint internal display buffer on associated window.
+    /**
+       \note
+       - Update the content of the associated window with the internal display buffer, e.g. after a render() call.
+       - Should not be used for common CImgDisplay uses, since display() is more useful.
+    **/
+    CImgDisplay& paint() {
+      return assign();
+    }
+
+
+    //! Take a snapshot of the current screen content.
+    /**
+       \param x0 X-coordinate of the upper left corner.
+       \param y0 Y-coordinate of the upper left corner.
+       \param x1 X-coordinate of the lower right corner.
+       \param y1 Y-coordinate of the lower right corner.
+       \param[out] img Output screenshot. Can be empty on input
+    **/
+    template<typename T>
+    static void screenshot(const int x0, const int y0, const int x1, const int y1, CImg<T>& img) {
+      cimg::unused(x0,y0,x1,y1,&img);
+      _no_display_exception();
+    }
+
+    //! Take a snapshot of the associated window content.
+    /**
+       \param[out] img Output snapshot. Can be empty on input.
+    **/
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      cimg::unused(img);
+      _no_display_exception();
+      return *this;
+    }
+#endif
+
+    // X11-based implementation
+    //--------------------------
+#if cimg_display==1
+
+    Atom _wm_window_atom, _wm_protocol_atom;
+    Window _window, _background_window;
+    Colormap _colormap;
+    XImage *_image;
+    void *_data;
+#ifdef cimg_use_xshm
+    XShmSegmentInfo *_shminfo;
+#endif
+
+    static int screen_width() {
+      Display *const dpy = cimg::X11_attr().display;
+      int res = 0;
+      if (!dpy) {
+        Display *const _dpy = XOpenDisplay(0);
+        if (!_dpy)
+          throw CImgDisplayException("CImgDisplay::screen_width(): Failed to open X11 display.");
+        res = DisplayWidth(_dpy,DefaultScreen(_dpy));
+        XCloseDisplay(_dpy);
+      } else {
+#ifdef cimg_use_xrandr
+        if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution)
+          res = cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].width;
+        else res = DisplayWidth(dpy,DefaultScreen(dpy));
+#else
+        res = DisplayWidth(dpy,DefaultScreen(dpy));
+#endif
+      }
+      return res;
+    }
+
+    static int screen_height() {
+      Display *const dpy = cimg::X11_attr().display;
+      int res = 0;
+      if (!dpy) {
+        Display *const _dpy = XOpenDisplay(0);
+        if (!_dpy)
+          throw CImgDisplayException("CImgDisplay::screen_height(): Failed to open X11 display.");
+        res = DisplayHeight(_dpy,DefaultScreen(_dpy));
+        XCloseDisplay(_dpy);
+      } else {
+#ifdef cimg_use_xrandr
+        if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution)
+          res = cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].height;
+        else res = DisplayHeight(dpy,DefaultScreen(dpy));
+#else
+        res = DisplayHeight(dpy,DefaultScreen(dpy));
+#endif
+      }
+      return res;
+    }
+
+    static void wait_all() {
+      if (!cimg::X11_attr().display) return;
+      pthread_mutex_lock(&cimg::X11_attr().wait_event_mutex);
+      pthread_cond_wait(&cimg::X11_attr().wait_event,&cimg::X11_attr().wait_event_mutex);
+      pthread_mutex_unlock(&cimg::X11_attr().wait_event_mutex);
+    }
+
+    void _handle_events(const XEvent *const pevent) {
+      Display *const dpy = cimg::X11_attr().display;
+      XEvent event = *pevent;
+      switch (event.type) {
+      case ClientMessage : {
+        if ((int)event.xclient.message_type==(int)_wm_protocol_atom &&
+            (int)event.xclient.data.l[0]==(int)_wm_window_atom) {
+          XUnmapWindow(cimg::X11_attr().display,_window);
+          _is_closed = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+      } break;
+      case ConfigureNotify : {
+        while (XCheckWindowEvent(dpy,_window,StructureNotifyMask,&event)) {}
+        const unsigned int nw = event.xconfigure.width, nh = event.xconfigure.height;
+        const int nx = event.xconfigure.x, ny = event.xconfigure.y;
+        if (nw && nh && (nw!=_window_width || nh!=_window_height)) {
+          _window_width = nw; _window_height = nh; _mouse_x = _mouse_y = -1;
+          XResizeWindow(dpy,_window,_window_width,_window_height);
+          _is_resized = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+        if (nx!=_window_x || ny!=_window_y) {
+          _window_x = nx; _window_y = ny; _is_moved = _is_event = true;
+          pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+        }
+      } break;
+      case Expose : {
+        while (XCheckWindowEvent(dpy,_window,ExposureMask,&event)) {}
+        _paint(false);
+        if (_is_fullscreen) {
+          XWindowAttributes attr;
+          XGetWindowAttributes(dpy,_window,&attr);
+          while (attr.map_state!=IsViewable) XSync(dpy,0);
+          XSetInputFocus(dpy,_window,RevertToParent,CurrentTime);
+        }
+      } break;
+      case ButtonPress : {
+        do {
+          _mouse_x = event.xmotion.x; _mouse_y = event.xmotion.y;
+          if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+          switch (event.xbutton.button) {
+          case 1 : set_button(1); break;
+          case 3 : set_button(2); break;
+          case 2 : set_button(3); break;
+          }
+        } while (XCheckWindowEvent(dpy,_window,ButtonPressMask,&event));
+      } break;
+      case ButtonRelease : {
+        do {
+          _mouse_x = event.xmotion.x; _mouse_y = event.xmotion.y;
+          if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+          switch (event.xbutton.button) {
+          case 1 : set_button(1,false); break;
+          case 3 : set_button(2,false); break;
+          case 2 : set_button(3,false); break;
+          case 4 : set_wheel(1); break;
+          case 5 : set_wheel(-1); break;
+          }
+        } while (XCheckWindowEvent(dpy,_window,ButtonReleaseMask,&event));
+      } break;
+      case KeyPress : {
+        char tmp = 0; KeySym ksym;
+        XLookupString(&event.xkey,&tmp,1,&ksym,0);
+        set_key((unsigned int)ksym,true);
+      } break;
+      case KeyRelease : {
+        char keys_return[32];  // Check that the key has been physically unpressed.
+        XQueryKeymap(dpy,keys_return);
+        const unsigned int kc = event.xkey.keycode, kc1 = kc/8, kc2 = kc%8;
+        const bool is_key_pressed = kc1>=32?false:(keys_return[kc1]>>kc2)&1;
+        if (!is_key_pressed) {
+          char tmp = 0; KeySym ksym;
+          XLookupString(&event.xkey,&tmp,1,&ksym,0);
+          set_key((unsigned int)ksym,false);
+        }
+      } break;
+      case EnterNotify: {
+        while (XCheckWindowEvent(dpy,_window,EnterWindowMask,&event)) {}
+        _mouse_x = event.xmotion.x;
+        _mouse_y = event.xmotion.y;
+        if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+      } break;
+      case LeaveNotify : {
+        while (XCheckWindowEvent(dpy,_window,LeaveWindowMask,&event)) {}
+        _mouse_x = _mouse_y = -1; _is_event = true;
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+      } break;
+      case MotionNotify : {
+        while (XCheckWindowEvent(dpy,_window,PointerMotionMask,&event)) {}
+        _mouse_x = event.xmotion.x;
+        _mouse_y = event.xmotion.y;
+        if (_mouse_x<0 || _mouse_y<0 || _mouse_x>=width() || _mouse_y>=height()) _mouse_x = _mouse_y = -1;
+        _is_event = true;
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+      } break;
+      }
+    }
+
+    static void* _events_thread(void *arg) { // Thread to manage events for all opened display windows.
+      Display *const dpy = cimg::X11_attr().display;
+      XEvent event;
+      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,0);
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,0);
+      if (!arg) for ( ; ; ) {
+        cimg_lock_display();
+        bool event_flag = XCheckTypedEvent(dpy,ClientMessage,&event);
+        if (!event_flag) event_flag = XCheckMaskEvent(dpy,
+                                                      ExposureMask | StructureNotifyMask | ButtonPressMask |
+                                                      KeyPressMask | PointerMotionMask | EnterWindowMask |
+                                                      LeaveWindowMask | ButtonReleaseMask | KeyReleaseMask,&event);
+        if (event_flag)
+          for (unsigned int i = 0; i<cimg::X11_attr().nb_wins; ++i)
+            if (!cimg::X11_attr().wins[i]->_is_closed && event.xany.window==cimg::X11_attr().wins[i]->_window)
+              cimg::X11_attr().wins[i]->_handle_events(&event);
+        cimg_unlock_display();
+        pthread_testcancel();
+        cimg::sleep(8);
+      }
+      return 0;
+    }
+
+    void _set_colormap(Colormap& _colormap, const unsigned int dim) {
+      XColor *const colormap = new XColor[256];
+      switch (dim) {
+      case 1 : { // colormap for greyscale images
+        for (unsigned int index = 0; index<256; ++index) {
+          colormap[index].pixel = index;
+          colormap[index].red = colormap[index].green = colormap[index].blue = (unsigned short)(index<<8);
+          colormap[index].flags = DoRed | DoGreen | DoBlue;
+        }
+      } break;
+      case 2 : { // colormap for RG images
+        for (unsigned int index = 0, r = 8; r<256; r+=16)
+          for (unsigned int g = 8; g<256; g+=16) {
+            colormap[index].pixel = index;
+            colormap[index].red = colormap[index].blue = (unsigned short)(r<<8);
+            colormap[index].green = (unsigned short)(g<<8);
+            colormap[index++].flags = DoRed | DoGreen | DoBlue;
+          }
+      } break;
+      default : { // colormap for RGB images
+        for (unsigned int index = 0, r = 16; r<256; r+=32)
+          for (unsigned int g = 16; g<256; g+=32)
+            for (unsigned int b = 32; b<256; b+=64) {
+              colormap[index].pixel = index;
+              colormap[index].red = (unsigned short)(r<<8);
+              colormap[index].green = (unsigned short)(g<<8);
+              colormap[index].blue = (unsigned short)(b<<8);
+              colormap[index++].flags = DoRed | DoGreen | DoBlue;
+            }
+      }
+      }
+      XStoreColors(cimg::X11_attr().display,_colormap,colormap,256);
+      delete[] colormap;
+    }
+
+    void _map_window() {
+      Display *const dpy = cimg::X11_attr().display;
+      bool is_exposed = false, is_mapped = false;
+      XWindowAttributes attr;
+      XEvent event;
+      XMapRaised(dpy,_window);
+      do { // Wait for the window to be mapped.
+        XWindowEvent(dpy,_window,StructureNotifyMask | ExposureMask,&event);
+        switch (event.type) {
+        case MapNotify : is_mapped = true; break;
+        case Expose : is_exposed = true; break;
+        }
+      } while (!is_exposed || !is_mapped);
+      do { // Wait for the window to be visible.
+        XGetWindowAttributes(dpy,_window,&attr);
+        if (attr.map_state!=IsViewable) { XSync(dpy,0); cimg::sleep(10); }
+      } while (attr.map_state!=IsViewable);
+      _window_x = attr.x;
+      _window_y = attr.y;
+    }
+
+    void _paint(const bool wait_expose=true) {
+      if (_is_closed || !_image) return;
+      Display *const dpy = cimg::X11_attr().display;
+      if (wait_expose) { // Send an expose event sticked to display window to force repaint.
+        XEvent event;
+        event.xexpose.type = Expose;
+        event.xexpose.serial = 0;
+        event.xexpose.send_event = 1;
+        event.xexpose.display = dpy;
+        event.xexpose.window = _window;
+        event.xexpose.x = 0;
+        event.xexpose.y = 0;
+        event.xexpose.width = width();
+        event.xexpose.height = height();
+        event.xexpose.count = 0;
+        XSendEvent(dpy,_window,0,0,&event);
+      } else { // Repaint directly (may be called from the expose event).
+        GC gc = DefaultGC(dpy,DefaultScreen(dpy));
+#ifdef cimg_use_xshm
+        if (_shminfo) XShmPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height,1);
+        else XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#else
+        XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#endif
+      }
+    }
+
+    template<typename T>
+    void _resize(T pixel_type, const unsigned int ndimx, const unsigned int ndimy, const bool force_redraw) {
+      Display *const dpy = cimg::X11_attr().display;
+      cimg::unused(pixel_type);
+
+#ifdef cimg_use_xshm
+      if (_shminfo) {
+        XShmSegmentInfo *const nshminfo = new XShmSegmentInfo;
+        XImage *const nimage = XShmCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),
+                                               cimg::X11_attr().nb_bits,ZPixmap,0,nshminfo,ndimx,ndimy);
+        if (!nimage) { delete nshminfo; return; }
+        else {
+          nshminfo->shmid = shmget(IPC_PRIVATE,ndimx*ndimy*sizeof(T),IPC_CREAT | 0777);
+          if (nshminfo->shmid==-1) { XDestroyImage(nimage); delete nshminfo; return; }
+          else {
+            nshminfo->shmaddr = nimage->data = (char*)shmat(nshminfo->shmid,0,0);
+            if (nshminfo->shmaddr==(char*)-1) {
+              shmctl(nshminfo->shmid,IPC_RMID,0); XDestroyImage(nimage); delete nshminfo; return;
+            } else {
+              nshminfo->readOnly = 0;
+              cimg::X11_attr().is_shm_enabled = true;
+              XErrorHandler oldXErrorHandler = XSetErrorHandler(_assign_xshm);
+              XShmAttach(dpy,nshminfo);
+              XFlush(dpy);
+              XSetErrorHandler(oldXErrorHandler);
+              if (!cimg::X11_attr().is_shm_enabled) {
+                shmdt(nshminfo->shmaddr);
+                shmctl(nshminfo->shmid,IPC_RMID,0);
+                XDestroyImage(nimage);
+                delete nshminfo;
+                return;
+              } else {
+                T *const ndata = (T*)nimage->data;
+                if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+                else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+                XShmDetach(dpy,_shminfo);
+                XDestroyImage(_image);
+                shmdt(_shminfo->shmaddr);
+                shmctl(_shminfo->shmid,IPC_RMID,0);
+                delete _shminfo;
+                _shminfo = nshminfo;
+                _image = nimage;
+                _data = (void*)ndata;
+              }
+            }
+          }
+        }
+      } else
+#endif
+        {
+          T *ndata = (T*)std::malloc(ndimx*ndimy*sizeof(T));
+          if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+          else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+          _data = (void*)ndata;
+          XDestroyImage(_image);
+          _image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),
+                                cimg::X11_attr().nb_bits,ZPixmap,0,(char*)_data,ndimx,ndimy,8,0);
+        }
+    }
+
+    void _init_fullscreen() {
+      if (!_is_fullscreen || _is_closed) return;
+      Display *const dpy = cimg::X11_attr().display;
+      _background_window = 0;
+
+#ifdef cimg_use_xrandr
+      int foo;
+      if (XRRQueryExtension(dpy,&foo,&foo)) {
+        XRRRotations(dpy,DefaultScreen(dpy),&cimg::X11_attr().curr_rotation);
+        if (!cimg::X11_attr().resolutions) {
+          cimg::X11_attr().resolutions = XRRSizes(dpy,DefaultScreen(dpy),&foo);
+          cimg::X11_attr().nb_resolutions = (unsigned int)foo;
+        }
+        if (cimg::X11_attr().resolutions) {
+          cimg::X11_attr().curr_resolution = 0;
+          for (unsigned int i = 0; i<cimg::X11_attr().nb_resolutions; ++i) {
+            const unsigned int
+              nw = (unsigned int)(cimg::X11_attr().resolutions[i].width),
+              nh = (unsigned int)(cimg::X11_attr().resolutions[i].height);
+            if (nw>=_width && nh>=_height &&
+                nw<=(unsigned int)(cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].width) &&
+                nh<=(unsigned int)(cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].height))
+              cimg::X11_attr().curr_resolution = i;
+          }
+          if (cimg::X11_attr().curr_resolution>0) {
+            XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,DefaultRootWindow(dpy));
+            XRRSetScreenConfig(dpy,config,DefaultRootWindow(dpy),
+                               cimg::X11_attr().curr_resolution,cimg::X11_attr().curr_rotation,CurrentTime);
+            XRRFreeScreenConfigInfo(config);
+            XSync(dpy,0);
+          }
+        }
+      }
+      if (!cimg::X11_attr().resolutions)
+        cimg::warn(_cimgdisplay_instance
+                   "init_fullscreen(): Xrandr extension not supported by the X server.",
+                   cimgdisplay_instance);
+#endif
+
+      const unsigned int sx = screen_width(), sy = screen_height();
+      if (sx==_width && sy==_height) return;
+      XSetWindowAttributes winattr;
+      winattr.override_redirect = 1;
+      _background_window = XCreateWindow(dpy,DefaultRootWindow(dpy),0,0,sx,sy,0,0,
+                                         InputOutput,CopyFromParent,CWOverrideRedirect,&winattr);
+      const cimg_ulong buf_size = (cimg_ulong)sx*sy*(cimg::X11_attr().nb_bits==8?1:
+                                                     (cimg::X11_attr().nb_bits==16?2:4));
+      void *background_data = std::malloc(buf_size);
+      std::memset(background_data,0,buf_size);
+      XImage *background_image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                              ZPixmap,0,(char*)background_data,sx,sy,8,0);
+      XEvent event;
+      XSelectInput(dpy,_background_window,StructureNotifyMask);
+      XMapRaised(dpy,_background_window);
+      do XWindowEvent(dpy,_background_window,StructureNotifyMask,&event);
+      while (event.type!=MapNotify);
+      GC gc = DefaultGC(dpy,DefaultScreen(dpy));
+#ifdef cimg_use_xshm
+      if (_shminfo) XShmPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy,0);
+      else XPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy);
+#else
+      XPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy);
+#endif
+      XWindowAttributes attr;
+      XGetWindowAttributes(dpy,_background_window,&attr);
+      while (attr.map_state!=IsViewable) XSync(dpy,0);
+      XDestroyImage(background_image);
+    }
+
+    void _desinit_fullscreen() {
+      if (!_is_fullscreen) return;
+      Display *const dpy = cimg::X11_attr().display;
+      XUngrabKeyboard(dpy,CurrentTime);
+#ifdef cimg_use_xrandr
+      if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution) {
+        XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,DefaultRootWindow(dpy));
+        XRRSetScreenConfig(dpy,config,DefaultRootWindow(dpy),0,cimg::X11_attr().curr_rotation,CurrentTime);
+        XRRFreeScreenConfigInfo(config);
+        XSync(dpy,0);
+        cimg::X11_attr().curr_resolution = 0;
+      }
+#endif
+      if (_background_window) XDestroyWindow(dpy,_background_window);
+      _background_window = 0;
+      _is_fullscreen = false;
+    }
+
+    static int _assign_xshm(Display *dpy, XErrorEvent *error) {
+      cimg::unused(dpy,error);
+      cimg::X11_attr().is_shm_enabled = false;
+      return 0;
+    }
+
+    void _assign(const unsigned int dimw, const unsigned int dimh, const char *const ptitle=0,
+                 const unsigned int normalization_type=3,
+                 const bool fullscreen_flag=false, const bool closed_flag=false) {
+      cimg::mutex(14);
+
+      // Allocate space for window title
+      const char *const nptitle = ptitle?ptitle:"";
+      const unsigned int s = (unsigned int)std::strlen(nptitle) + 1;
+      char *const tmp_title = s?new char[s]:0;
+      if (s) std::memcpy(tmp_title,nptitle,s*sizeof(char));
+
+      // Destroy previous display window if existing
+      if (!is_empty()) assign();
+
+      // Open X11 display and retrieve graphical properties.
+      Display* &dpy = cimg::X11_attr().display;
+      if (!dpy) {
+        dpy = XOpenDisplay(0);
+        if (!dpy)
+          throw CImgDisplayException(_cimgdisplay_instance
+                                     "assign(): Failed to open X11 display.",
+                                     cimgdisplay_instance);
+
+        cimg::X11_attr().nb_bits = DefaultDepth(dpy,DefaultScreen(dpy));
+        if (cimg::X11_attr().nb_bits!=8 && cimg::X11_attr().nb_bits!=16 &&
+            cimg::X11_attr().nb_bits!=24 && cimg::X11_attr().nb_bits!=32)
+          throw CImgDisplayException(_cimgdisplay_instance
+                                     "assign(): Invalid %u bits screen mode detected "
+                                     "(only 8, 16, 24 and 32 bits modes are managed).",
+                                     cimgdisplay_instance,
+                                     cimg::X11_attr().nb_bits);
+        XVisualInfo vtemplate;
+        vtemplate.visualid = XVisualIDFromVisual(DefaultVisual(dpy,DefaultScreen(dpy)));
+        int nb_visuals;
+        XVisualInfo *vinfo = XGetVisualInfo(dpy,VisualIDMask,&vtemplate,&nb_visuals);
+        if (vinfo && vinfo->red_mask<vinfo->blue_mask) cimg::X11_attr().is_blue_first = true;
+        cimg::X11_attr().byte_order = ImageByteOrder(dpy);
+        XFree(vinfo);
+
+        cimg_lock_display();
+        cimg::X11_attr().events_thread = new pthread_t;
+        pthread_create(cimg::X11_attr().events_thread,0,_events_thread,0);
+      } else cimg_lock_display();
+
+      // Set display variables.
+      _width = std::min(dimw,(unsigned int)screen_width());
+      _height = std::min(dimh,(unsigned int)screen_height());
+      _normalization = normalization_type<4?normalization_type:3;
+      _is_fullscreen = fullscreen_flag;
+      _window_x = _window_y = 0;
+      _is_closed = closed_flag;
+      _title = tmp_title;
+      flush();
+
+      // Create X11 window (and LUT, if 8bits display)
+      if (_is_fullscreen) {
+        if (!_is_closed) _init_fullscreen();
+        const unsigned int sx = screen_width(), sy = screen_height();
+        XSetWindowAttributes winattr;
+        winattr.override_redirect = 1;
+        _window = XCreateWindow(dpy,DefaultRootWindow(dpy),(sx - _width)/2,(sy - _height)/2,_width,_height,0,0,
+                                InputOutput,CopyFromParent,CWOverrideRedirect,&winattr);
+      } else
+        _window = XCreateSimpleWindow(dpy,DefaultRootWindow(dpy),0,0,_width,_height,0,0L,0L);
+
+      XSelectInput(dpy,_window,
+                   ExposureMask | StructureNotifyMask | ButtonPressMask | KeyPressMask | PointerMotionMask |
+                   EnterWindowMask | LeaveWindowMask | ButtonReleaseMask | KeyReleaseMask);
+
+      XStoreName(dpy,_window,_title?_title:" ");
+      if (cimg::X11_attr().nb_bits==8) {
+        _colormap = XCreateColormap(dpy,_window,DefaultVisual(dpy,DefaultScreen(dpy)),AllocAll);
+        _set_colormap(_colormap,3);
+        XSetWindowColormap(dpy,_window,_colormap);
+      }
+
+      static const char *const _window_class = cimg_appname;
+      XClassHint *const window_class = XAllocClassHint();
+      window_class->res_name = (char*)_window_class;
+      window_class->res_class = (char*)_window_class;
+      XSetClassHint(dpy,_window,window_class);
+      XFree(window_class);
+
+      _window_width = _width;
+      _window_height = _height;
+
+      // Create XImage
+#ifdef cimg_use_xshm
+      _shminfo = 0;
+      if (XShmQueryExtension(dpy)) {
+        _shminfo = new XShmSegmentInfo;
+        _image = XShmCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                 ZPixmap,0,_shminfo,_width,_height);
+        if (!_image) { delete _shminfo; _shminfo = 0; }
+        else {
+          _shminfo->shmid = shmget(IPC_PRIVATE,_image->bytes_per_line*_image->height,IPC_CREAT|0777);
+          if (_shminfo->shmid==-1) { XDestroyImage(_image); delete _shminfo; _shminfo = 0; }
+          else {
+            _shminfo->shmaddr = _image->data = (char*)(_data = shmat(_shminfo->shmid,0,0));
+            if (_shminfo->shmaddr==(char*)-1) {
+              shmctl(_shminfo->shmid,IPC_RMID,0); XDestroyImage(_image); delete _shminfo; _shminfo = 0;
+            } else {
+              _shminfo->readOnly = 0;
+              cimg::X11_attr().is_shm_enabled = true;
+              XErrorHandler oldXErrorHandler = XSetErrorHandler(_assign_xshm);
+              XShmAttach(dpy,_shminfo);
+              XSync(dpy,0);
+              XSetErrorHandler(oldXErrorHandler);
+              if (!cimg::X11_attr().is_shm_enabled) {
+                shmdt(_shminfo->shmaddr); shmctl(_shminfo->shmid,IPC_RMID,0); XDestroyImage(_image);
+                delete _shminfo; _shminfo = 0;
+              }
+            }
+          }
+        }
+      }
+      if (!_shminfo)
+#endif
+        {
+          const cimg_ulong buf_size = (cimg_ulong)_width*_height*(cimg::X11_attr().nb_bits==8?1:
+                                                                  (cimg::X11_attr().nb_bits==16?2:4));
+          _data = std::malloc(buf_size);
+          _image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                ZPixmap,0,(char*)_data,_width,_height,8,0);
+        }
+
+      _wm_window_atom = XInternAtom(dpy,"WM_DELETE_WINDOW",0);
+      _wm_protocol_atom = XInternAtom(dpy,"WM_PROTOCOLS",0);
+      XSetWMProtocols(dpy,_window,&_wm_window_atom,1);
+
+      if (_is_fullscreen) XGrabKeyboard(dpy,_window,1,GrabModeAsync,GrabModeAsync,CurrentTime);
+      cimg::X11_attr().wins[cimg::X11_attr().nb_wins++]=this;
+      if (!_is_closed) _map_window(); else { _window_x = _window_y = cimg::type<int>::min(); }
+      cimg_unlock_display();
+      cimg::mutex(14,0);
+    }
+
+    CImgDisplay& assign() {
+      if (is_empty()) return flush();
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+
+      // Remove display window from event thread list.
+      unsigned int i;
+      for (i = 0; i<cimg::X11_attr().nb_wins && cimg::X11_attr().wins[i]!=this; ++i) {}
+      for ( ; i<cimg::X11_attr().nb_wins - 1; ++i) cimg::X11_attr().wins[i] = cimg::X11_attr().wins[i + 1];
+      --cimg::X11_attr().nb_wins;
+
+      // Destroy window, image, colormap and title.
+      if (_is_fullscreen && !_is_closed) _desinit_fullscreen();
+      XDestroyWindow(dpy,_window);
+      _window = 0;
+#ifdef cimg_use_xshm
+      if (_shminfo) {
+        XShmDetach(dpy,_shminfo);
+        XDestroyImage(_image);
+        shmdt(_shminfo->shmaddr);
+        shmctl(_shminfo->shmid,IPC_RMID,0);
+        delete _shminfo;
+        _shminfo = 0;
+      } else
+#endif
+        XDestroyImage(_image);
+      _data = 0; _image = 0;
+      if (cimg::X11_attr().nb_bits==8) XFreeColormap(dpy,_colormap);
+      _colormap = 0;
+      XSync(dpy,0);
+
+      // Reset display variables.
+      delete[] _title;
+      _width = _height = _normalization = _window_width = _window_height = 0;
+      _window_x = _window_y = 0;
+      _is_fullscreen = false;
+      _is_closed = true;
+      _min = _max = 0;
+      _title = 0;
+      flush();
+
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& assign(const unsigned int dimw, const unsigned int dimh, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!dimw || !dimh) return assign();
+      _assign(dimw,dimh,title,normalization_type,fullscreen_flag,closed_flag);
+      _min = _max = 0;
+      std::memset(_data,0,(cimg::X11_attr().nb_bits==8?sizeof(unsigned char):
+                           (cimg::X11_attr().nb_bits==16?sizeof(unsigned short):sizeof(unsigned int)))*
+                  (size_t)_width*_height);
+      return paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!img) return assign();
+      CImg<T> tmp;
+      const CImg<T>& nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                           (img._height - 1)/2,
+                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return render(nimg).paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!list) return assign();
+      CImg<T> tmp;
+      const CImg<T> img = list>'x', &nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                                           (img._height - 1)/2,
+                                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return render(nimg).paint();
+    }
+
+    CImgDisplay& assign(const CImgDisplay& disp) {
+      if (!disp) return assign();
+      _assign(disp._width,disp._height,disp._title,disp._normalization,disp._is_fullscreen,disp._is_closed);
+      std::memcpy(_data,disp._data,(cimg::X11_attr().nb_bits==8?sizeof(unsigned char):
+                                    cimg::X11_attr().nb_bits==16?sizeof(unsigned short):
+                                    sizeof(unsigned int))*(size_t)_width*_height);
+      return paint();
+    }
+
+    CImgDisplay& resize(const int nwidth, const int nheight, const bool force_redraw=true) {
+      if (!nwidth || !nheight || (is_empty() && (nwidth<0 || nheight<0))) return assign();
+      if (is_empty()) return assign(nwidth,nheight);
+      Display *const dpy = cimg::X11_attr().display;
+      const unsigned int
+        tmpdimx = (nwidth>0)?nwidth:(-nwidth*width()/100),
+        tmpdimy = (nheight>0)?nheight:(-nheight*height()/100),
+        dimx = tmpdimx?tmpdimx:1,
+        dimy = tmpdimy?tmpdimy:1;
+      if (_width!=dimx || _height!=dimy || _window_width!=dimx || _window_height!=dimy) {
+        show();
+        cimg_lock_display();
+        if (_window_width!=dimx || _window_height!=dimy) {
+          XWindowAttributes attr;
+          for (unsigned int i = 0; i<10; ++i) {
+            XResizeWindow(dpy,_window,dimx,dimy);
+            XGetWindowAttributes(dpy,_window,&attr);
+            if (attr.width==(int)dimx && attr.height==(int)dimy) break;
+            cimg::wait(5);
+          }
+        }
+        if (_width!=dimx || _height!=dimy) switch (cimg::X11_attr().nb_bits) {
+          case 8 :  { unsigned char pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); } break;
+          case 16 : { unsigned short pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); } break;
+          default : { unsigned int pixel_type = 0; _resize(pixel_type,dimx,dimy,force_redraw); }
+          }
+        _window_width = _width = dimx; _window_height = _height = dimy;
+        cimg_unlock_display();
+      }
+      _is_resized = false;
+      if (_is_fullscreen) move((screen_width() - _width)/2,(screen_height() - _height)/2);
+      if (force_redraw) return paint();
+      return *this;
+    }
+
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      if (is_empty()) return *this;
+      if (force_redraw) {
+        const cimg_ulong buf_size = (cimg_ulong)_width*_height*
+          (cimg::X11_attr().nb_bits==8?1:(cimg::X11_attr().nb_bits==16?2:4));
+        void *image_data = std::malloc(buf_size);
+        std::memcpy(image_data,_data,buf_size);
+        assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+        std::memcpy(_data,image_data,buf_size);
+        std::free(image_data);
+        return paint();
+      }
+      return assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+    }
+
+    CImgDisplay& show() {
+      if (is_empty() || !_is_closed) return *this;
+      cimg_lock_display();
+      if (_is_fullscreen) _init_fullscreen();
+      _map_window();
+      _is_closed = false;
+      cimg_unlock_display();
+      return paint();
+    }
+
+    CImgDisplay& close() {
+      if (is_empty() || _is_closed) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      if (_is_fullscreen) _desinit_fullscreen();
+      XUnmapWindow(dpy,_window);
+      _window_x = _window_y = -1;
+      _is_closed = true;
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& move(const int posx, const int posy) {
+      if (is_empty()) return *this;
+      if (_window_x!=posx || _window_y!=posy) {
+        show();
+        Display *const dpy = cimg::X11_attr().display;
+        cimg_lock_display();
+        XMoveWindow(dpy,_window,posx,posy);
+        _window_x = posx; _window_y = posy;
+        cimg_unlock_display();
+      }
+      _is_moved = false;
+      return paint();
+    }
+
+    CImgDisplay& show_mouse() {
+      if (is_empty()) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XUndefineCursor(dpy,_window);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& hide_mouse() {
+      if (is_empty()) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      static const char pix_data[8] = { 0 };
+      XColor col;
+      col.red = col.green = col.blue = 0;
+      Pixmap pix = XCreateBitmapFromData(dpy,_window,pix_data,8,8);
+      Cursor cur = XCreatePixmapCursor(dpy,pix,pix,&col,&col,0,0);
+      XFreePixmap(dpy,pix);
+      XDefineCursor(dpy,_window,cur);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& set_mouse(const int posx, const int posy) {
+      if (is_empty() || _is_closed) return *this;
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XWarpPointer(dpy,0L,_window,0,0,0,0,posx,posy);
+      _mouse_x = posx; _mouse_y = posy;
+      _is_moved = false;
+      XSync(dpy,0);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    CImgDisplay& set_title(const char *const format, ...) {
+      if (is_empty()) return *this;
+      char *const tmp = new char[1024];
+      va_list ap;
+      va_start(ap, format);
+      cimg_vsnprintf(tmp,1024,format,ap);
+      va_end(ap);
+      if (!std::strcmp(_title,tmp)) { delete[] tmp; return *this; }
+      delete[] _title;
+      const unsigned int s = (unsigned int)std::strlen(tmp) + 1;
+      _title = new char[s];
+      std::memcpy(_title,tmp,s*sizeof(char));
+      Display *const dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      XStoreName(dpy,_window,tmp);
+      cimg_unlock_display();
+      delete[] tmp;
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "display(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return assign(img);
+      return render(img).paint(false);
+    }
+
+    CImgDisplay& paint(const bool wait_expose=true) {
+      if (is_empty()) return *this;
+      cimg_lock_display();
+      _paint(wait_expose);
+      cimg_unlock_display();
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img, const bool flag8=false) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "render(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return *this;
+      if (img._depth!=1) return render(img.get_projections2d((img._width - 1)/2,(img._height - 1)/2,
+                                                             (img._depth - 1)/2));
+      if (cimg::X11_attr().nb_bits==8 && (img._width!=_width || img._height!=_height))
+        return render(img.get_resize(_width,_height,1,-100,1));
+      if (cimg::X11_attr().nb_bits==8 && !flag8 && img._spectrum==3) {
+        static const CImg<typename CImg<T>::ucharT> default_colormap = CImg<typename CImg<T>::ucharT>::default_LUT256();
+        return render(img.get_index(default_colormap,1,false));
+      }
+
+      const T
+        *data1 = img._data,
+        *data2 = (img._spectrum>1)?img.data(0,0,0,1):data1,
+        *data3 = (img._spectrum>2)?img.data(0,0,0,2):data1;
+
+      if (cimg::X11_attr().is_blue_first) cimg::swap(data1,data3);
+      cimg_lock_display();
+
+      if (!_normalization || (_normalization==3 && cimg::type<T>::string()==cimg::type<unsigned char>::string())) {
+        _min = _max = 0;
+        switch (cimg::X11_attr().nb_bits) {
+        case 8 : { // 256 colormap, no normalization
+          _set_colormap(_colormap,img._spectrum);
+          unsigned char
+            *const ndata = (img._width==_width && img._height==_height)?(unsigned char*)_data:
+            new unsigned char[(size_t)img._width*img._height],
+            *ptrd = (unsigned char*)ndata;
+          switch (img._spectrum) {
+          case 1 :
+            for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+              (*ptrd++) = (unsigned char)*(data1++);
+            break;
+          case 2 : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char
+                R = (unsigned char)*(data1++),
+                G = (unsigned char)*(data2++);
+              (*ptrd++) = (R&0xf0) | (G>>4);
+            } break;
+          default : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char
+                R = (unsigned char)*(data1++),
+                G = (unsigned char)*(data2++),
+                B = (unsigned char)*(data3++);
+              (*ptrd++) = (R&0xe0) | ((G>>5)<<2) | (B>>6);
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned char*)_data,_width,_height);
+            delete[] ndata;
+          }
+        } break;
+        case 16 : { // 16 bits colors, no normalization
+          unsigned short *const ndata = (img._width==_width && img._height==_height)?(unsigned short*)_data:
+            new unsigned short[(size_t)img._width*img._height];
+          unsigned char *ptrd = (unsigned char*)ndata;
+          const unsigned int M = 248;
+          switch (img._spectrum) {
+          case 1 :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char val = (unsigned char)*(data1++), G = val>>2;
+                ptrd[0] = (val&M) | (G>>3);
+                ptrd[1] = (G<<5) | (G>>1);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char val = (unsigned char)*(data1++), G = val>>2;
+                ptrd[0] = (G<<5) | (G>>1);
+                ptrd[1] = (val&M) | (G>>3);
+                ptrd+=2;
+              }
+            break;
+          case 2 :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)*(data2++)>>2;
+                ptrd[0] = ((unsigned char)*(data1++)&M) | (G>>3);
+                ptrd[1] = (G<<5);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)*(data2++)>>2;
+                ptrd[0] = (G<<5);
+                ptrd[1] = ((unsigned char)*(data1++)&M) | (G>>3);
+                ptrd+=2;
+              }
+            break;
+          default :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)*(data2++)>>2;
+                ptrd[0] = ((unsigned char)*(data1++)&M) | (G>>3);
+                ptrd[1] = (G<<5) | ((unsigned char)*(data3++)>>3);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)*(data2++)>>2;
+                ptrd[0] = (G<<5) | ((unsigned char)*(data3++)>>3);
+                ptrd[1] = ((unsigned char)*(data1++)&M) | (G>>3);
+                ptrd+=2;
+              }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned short*)_data,_width,_height);
+            delete[] ndata;
+          }
+        } break;
+        default : { // 24 bits colors, no normalization
+          unsigned int *const ndata = (img._width==_width && img._height==_height)?(unsigned int*)_data:
+            new unsigned int[(size_t)img._width*img._height];
+          if (sizeof(int)==4) { // 32 bits int uses optimized version
+            unsigned int *ptrd = ndata;
+            switch (img._spectrum) {
+            case 1 :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)*(data1++);
+                  *(ptrd++) = (val<<16) | (val<<8) | val;
+                }
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                 const unsigned char val = (unsigned char)*(data1++);
+                  *(ptrd++) = (val<<16) | (val<<8) | val;
+                }
+              break;
+            case 2 :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) = ((unsigned char)*(data1++)<<16) | ((unsigned char)*(data2++)<<8);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) = ((unsigned char)*(data2++)<<16) | ((unsigned char)*(data1++)<<8);
+              break;
+            default :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) = ((unsigned char)*(data1++)<<16) | ((unsigned char)*(data2++)<<8) |
+                    (unsigned char)*(data3++);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) = ((unsigned char)*(data3++)<<24) | ((unsigned char)*(data2++)<<16) |
+                    ((unsigned char)*(data1++)<<8);
+            }
+          } else {
+            unsigned char *ptrd = (unsigned char*)ndata;
+            switch (img._spectrum) {
+            case 1 :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = 0;
+                  ptrd[1] = (unsigned char)*(data1++);
+                  ptrd[2] = 0;
+                  ptrd[3] = 0;
+                  ptrd+=4;
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = 0;
+                  ptrd[1] = 0;
+                  ptrd[2] = (unsigned char)*(data1++);
+                  ptrd[3] = 0;
+                  ptrd+=4;
+                }
+              break;
+            case 2 :
+              if (cimg::X11_attr().byte_order) cimg::swap(data1,data2);
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                ptrd[0] = 0;
+                ptrd[1] = (unsigned char)*(data2++);
+                ptrd[2] = (unsigned char)*(data1++);
+                ptrd[3] = 0;
+                ptrd+=4;
+              }
+              break;
+            default :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = 0;
+                  ptrd[1] = (unsigned char)*(data1++);
+                  ptrd[2] = (unsigned char)*(data2++);
+                  ptrd[3] = (unsigned char)*(data3++);
+                  ptrd+=4;
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = (unsigned char)*(data3++);
+                  ptrd[1] = (unsigned char)*(data2++);
+                  ptrd[2] = (unsigned char)*(data1++);
+                  ptrd[3] = 0;
+                  ptrd+=4;
+                }
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned int*)_data,_width,_height);
+            delete[] ndata;
+          }
+        }
+        }
+      } else {
+        if (_normalization==3) {
+          if (cimg::type<T>::is_float()) _min = (float)img.min_max(_max);
+          else { _min = (float)cimg::type<T>::min(); _max = (float)cimg::type<T>::max(); }
+        } else if ((_min>_max) || _normalization==1) _min = (float)img.min_max(_max);
+        const float delta = _max - _min, mm = 255/(delta?delta:1.0f);
+        switch (cimg::X11_attr().nb_bits) {
+        case 8 : { // 256 colormap, with normalization
+          _set_colormap(_colormap,img._spectrum);
+          unsigned char *const ndata = (img._width==_width && img._height==_height)?(unsigned char*)_data:
+            new unsigned char[(size_t)img._width*img._height];
+          unsigned char *ptrd = (unsigned char*)ndata;
+          switch (img._spectrum) {
+          case 1 : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char R = (unsigned char)((*(data1++) - _min)*mm);
+              *(ptrd++) = R;
+            } break;
+          case 2 : for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char
+                R = (unsigned char)((*(data1++) - _min)*mm),
+                G = (unsigned char)((*(data2++) - _min)*mm);
+            (*ptrd++) = (R&0xf0) | (G>>4);
+          } break;
+          default :
+            for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+              const unsigned char
+                R = (unsigned char)((*(data1++) - _min)*mm),
+                G = (unsigned char)((*(data2++) - _min)*mm),
+                B = (unsigned char)((*(data3++) - _min)*mm);
+              *(ptrd++) = (R&0xe0) | ((G>>5)<<2) | (B>>6);
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned char*)_data,_width,_height);
+            delete[] ndata;
+          }
+        } break;
+        case 16 : { // 16 bits colors, with normalization
+          unsigned short *const ndata = (img._width==_width && img._height==_height)?(unsigned short*)_data:
+            new unsigned short[(size_t)img._width*img._height];
+          unsigned char *ptrd = (unsigned char*)ndata;
+          const unsigned int M = 248;
+          switch (img._spectrum) {
+          case 1 :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char val = (unsigned char)((*(data1++) - _min)*mm), G = val>>2;
+                ptrd[0] = (val&M) | (G>>3);
+                ptrd[1] = (G<<5) | (val>>3);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char val = (unsigned char)((*(data1++) - _min)*mm), G = val>>2;
+                ptrd[0] = (G<<5) | (val>>3);
+                ptrd[1] = (val&M) | (G>>3);
+                ptrd+=2;
+              }
+            break;
+          case 2 :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)((*(data2++) - _min)*mm)>>2;
+                ptrd[0] = ((unsigned char)((*(data1++) - _min)*mm)&M) | (G>>3);
+                ptrd[1] = (G<<5);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)((*(data2++) - _min)*mm)>>2;
+                ptrd[0] = (G<<5);
+                ptrd[1] = ((unsigned char)((*(data1++) - _min)*mm)&M) | (G>>3);
+                ptrd+=2;
+              }
+            break;
+          default :
+            if (cimg::X11_attr().byte_order)
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)((*(data2++) - _min)*mm)>>2;
+                ptrd[0] = ((unsigned char)((*(data1++) - _min)*mm)&M) | (G>>3);
+                ptrd[1] = (G<<5) | ((unsigned char)((*(data3++) - _min)*mm)>>3);
+                ptrd+=2;
+              } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                const unsigned char G = (unsigned char)((*(data2++) - _min)*mm)>>2;
+                ptrd[0] = (G<<5) | ((unsigned char)((*(data3++) - _min)*mm)>>3);
+                ptrd[1] = ((unsigned char)((*(data1++) - _min)*mm)&M) | (G>>3);
+                ptrd+=2;
+              }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned short*)_data,_width,_height);
+            delete[] ndata;
+          }
+        } break;
+        default : { // 24 bits colors, with normalization
+          unsigned int *const ndata = (img._width==_width && img._height==_height)?(unsigned int*)_data:
+            new unsigned int[(size_t)img._width*img._height];
+          if (sizeof(int)==4) { // 32 bits int uses optimized version
+            unsigned int *ptrd = ndata;
+            switch (img._spectrum) {
+            case 1 :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  *(ptrd++) = (val<<16) | (val<<8) | val;
+                }
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  *(ptrd++) = (val<<24) | (val<<16) | (val<<8);
+                }
+              break;
+            case 2 :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data1++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<8);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data2++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data1++) - _min)*mm)<<8);
+              break;
+            default :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data1++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<8) |
+                    (unsigned char)((*(data3++) - _min)*mm);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data3++) - _min)*mm)<<24) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data1++) - _min)*mm)<<8);
+            }
+          } else {
+            unsigned char *ptrd = (unsigned char*)ndata;
+            switch (img._spectrum) {
+            case 1 :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  ptrd[0] = 0;
+                  ptrd[1] = val;
+                  ptrd[2] = val;
+                  ptrd[3] = val;
+                  ptrd+=4;
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  ptrd[0] = val;
+                  ptrd[1] = val;
+                  ptrd[2] = val;
+                  ptrd[3] = 0;
+                  ptrd+=4;
+                }
+              break;
+            case 2 :
+              if (cimg::X11_attr().byte_order) cimg::swap(data1,data2);
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                ptrd[0] = 0;
+                ptrd[1] = (unsigned char)((*(data2++) - _min)*mm);
+                ptrd[2] = (unsigned char)((*(data1++) - _min)*mm);
+                ptrd[3] = 0;
+                ptrd+=4;
+              }
+              break;
+            default :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = 0;
+                  ptrd[1] = (unsigned char)((*(data1++) - _min)*mm);
+                  ptrd[2] = (unsigned char)((*(data2++) - _min)*mm);
+                  ptrd[3] = (unsigned char)((*(data3++) - _min)*mm);
+                  ptrd+=4;
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  ptrd[0] = (unsigned char)((*(data3++) - _min)*mm);
+                  ptrd[1] = (unsigned char)((*(data2++) - _min)*mm);
+                  ptrd[2] = (unsigned char)((*(data1++) - _min)*mm);
+                  ptrd[3] = 0;
+                  ptrd+=4;
+                }
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned int*)_data,_width,_height);
+            delete[] ndata;
+          }
+        }
+        }
+      }
+      cimg_unlock_display();
+      return *this;
+    }
+
+    template<typename T>
+    static void screenshot(const int x0, const int y0, const int x1, const int y1, CImg<T>& img) {
+      img.assign();
+      Display *dpy = cimg::X11_attr().display;
+      cimg_lock_display();
+      if (!dpy) {
+        dpy = XOpenDisplay(0);
+        if (!dpy)
+          throw CImgDisplayException("CImgDisplay::screenshot(): Failed to open X11 display.");
+      }
+      Window root = DefaultRootWindow(dpy);
+      XWindowAttributes gwa;
+      XGetWindowAttributes(dpy,root,&gwa);
+      const int width = gwa.width, height = gwa.height;
+      int _x0 = x0, _y0 = y0, _x1 = x1, _y1 = y1;
+      if (_x0>_x1) cimg::swap(_x0,_x1);
+      if (_y0>_y1) cimg::swap(_y0,_y1);
+
+      XImage *image = 0;
+      if (_x1>=0 && _x0<width && _y1>=0 && _y0<height) {
+        _x0 = std::max(_x0,0);
+        _y0 = std::max(_y0,0);
+        _x1 = std::min(_x1,width - 1);
+        _y1 = std::min(_y1,height - 1);
+        image = XGetImage(dpy,root,_x0,_y0,_x1 - _x0 + 1,_y1 - _y0 + 1,AllPlanes,ZPixmap);
+
+        if (image) {
+          const unsigned long
+            red_mask = image->red_mask,
+            green_mask = image->green_mask,
+            blue_mask = image->blue_mask;
+          img.assign(image->width,image->height,1,3);
+          T *pR = img.data(0,0,0,0), *pG = img.data(0,0,0,1), *pB = img.data(0,0,0,2);
+          cimg_forXY(img,x,y) {
+            const unsigned long pixel = XGetPixel(image,x,y);
+            *(pR++) = (T)((pixel & red_mask)>>16);
+            *(pG++) = (T)((pixel & green_mask)>>8);
+            *(pB++) = (T)(pixel & blue_mask);
+          }
+          XDestroyImage(image);
+        }
+      }
+      if (!cimg::X11_attr().display) XCloseDisplay(dpy);
+      cimg_unlock_display();
+      if (img.is_empty())
+        throw CImgDisplayException("CImgDisplay::screenshot(): Failed to take screenshot "
+                                   "with coordinates (%d,%d)-(%d,%d).",
+                                   x0,y0,x1,y1);
+    }
+
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      if (is_empty()) { img.assign(); return *this; }
+      const unsigned char *ptrs = (unsigned char*)_data;
+      img.assign(_width,_height,1,3);
+      T
+        *data1 = img.data(0,0,0,0),
+        *data2 = img.data(0,0,0,1),
+        *data3 = img.data(0,0,0,2);
+      if (cimg::X11_attr().is_blue_first) cimg::swap(data1,data3);
+      switch (cimg::X11_attr().nb_bits) {
+      case 8 : {
+        for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char val = *(ptrs++);
+          *(data1++) = (T)(val&0xe0);
+          *(data2++) = (T)((val&0x1c)<<3);
+          *(data3++) = (T)(val<<6);
+        }
+      } break;
+      case 16 : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char
+            val0 = ptrs[0],
+            val1 = ptrs[1];
+          ptrs+=2;
+          *(data1++) = (T)(val0&0xf8);
+          *(data2++) = (T)((val0<<5) | ((val1&0xe0)>>5));
+          *(data3++) = (T)(val1<<3);
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned short
+            val0 = ptrs[0],
+            val1 = ptrs[1];
+          ptrs+=2;
+          *(data1++) = (T)(val1&0xf8);
+          *(data2++) = (T)((val1<<5) | ((val0&0xe0)>>5));
+          *(data3++) = (T)(val0<<3);
+        }
+      } break;
+      default : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          ++ptrs;
+          *(data1++) = (T)ptrs[0];
+          *(data2++) = (T)ptrs[1];
+          *(data3++) = (T)ptrs[2];
+          ptrs+=3;
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            *(data3++) = (T)ptrs[0];
+            *(data2++) = (T)ptrs[1];
+            *(data1++) = (T)ptrs[2];
+            ptrs+=3;
+            ++ptrs;
+          }
+      }
+      }
+      return *this;
+    }
+
+    // Windows-based implementation.
+    //-------------------------------
+#elif cimg_display==2
+
+    bool _is_mouse_tracked, _is_cursor_visible;
+    HANDLE _thread, _is_created, _mutex;
+    HWND _window, _background_window;
+    CLIENTCREATESTRUCT _ccs;
+    unsigned int *_data;
+    DEVMODE _curr_mode;
+    BITMAPINFO _bmi;
+    HDC _hdc;
+
+    static int screen_width() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsWidth;
+    }
+
+    static int screen_height() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsHeight;
+    }
+
+    static void wait_all() {
+      WaitForSingleObject(cimg::Win32_attr().wait_event,INFINITE);
+    }
+
+    static LRESULT APIENTRY _handle_events(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
+#ifdef _WIN64
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLongPtr(window,GWLP_USERDATA);
+#else
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLong(window,GWL_USERDATA);
+#endif
+      MSG st_msg;
+      switch (msg) {
+      case WM_CLOSE :
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_window_x = disp->_window_y = 0;
+        disp->set_button().set_key(0).set_key(0,false)._is_closed = true;
+        ReleaseMutex(disp->_mutex);
+        ShowWindow(disp->_window,SW_HIDE);
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        return 0;
+      case WM_SIZE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const unsigned int nw = LOWORD(lParam),nh = HIWORD(lParam);
+        if (nw && nh && (nw!=disp->_width || nh!=disp->_height)) {
+          disp->_window_width = nw;
+          disp->_window_height = nh;
+          disp->_mouse_x = disp->_mouse_y = -1;
+          disp->_is_resized = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_MOVE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const int nx = (int)(short)(LOWORD(lParam)), ny = (int)(short)(HIWORD(lParam));
+        if (nx!=disp->_window_x || ny!=disp->_window_y) {
+          disp->_window_x = nx;
+          disp->_window_y = ny;
+          disp->_is_moved = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_PAINT :
+        disp->paint();
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+        break;
+      case WM_ERASEBKGND :
+        //        return 0;
+        break;
+      case WM_KEYDOWN :
+        disp->set_key((unsigned int)wParam);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_KEYUP :
+        disp->set_key((unsigned int)wParam,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MOUSEMOVE : {
+        while (PeekMessage(&st_msg,window,WM_MOUSEMOVE,WM_MOUSEMOVE,PM_REMOVE)) {}
+        disp->_mouse_x = LOWORD(lParam);
+        disp->_mouse_y = HIWORD(lParam);
+#if (_WIN32_WINNT>=0x0400) && !defined(NOTRACKMOUSEEVENT)
+        if (!disp->_is_mouse_tracked) {
+          TRACKMOUSEEVENT tme;
+          tme.cbSize = sizeof(TRACKMOUSEEVENT);
+          tme.dwFlags = TME_LEAVE;
+          tme.hwndTrack = disp->_window;
+          if (TrackMouseEvent(&tme)) disp->_is_mouse_tracked = true;
+        }
+#endif
+        if (disp->_mouse_x<0 || disp->_mouse_y<0 || disp->_mouse_x>=disp->width() || disp->_mouse_y>=disp->height())
+          disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+      } break;
+      case WM_MOUSELEAVE : {
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_mouse_tracked = false;
+        cimg::mutex(15);
+        while (ShowCursor(TRUE)<0) {}
+        cimg::mutex(15,0);
+      } break;
+      case WM_LBUTTONDOWN :
+        disp->set_button(1);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONDOWN :
+        disp->set_button(2);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONDOWN :
+        disp->set_button(3);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_LBUTTONUP :
+        disp->set_button(1,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONUP :
+        disp->set_button(2,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONUP :
+        disp->set_button(3,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case 0x020A : // WM_MOUSEWHEEL:
+        disp->set_wheel((int)((short)HIWORD(wParam))/120);
+        SetEvent(cimg::Win32_attr().wait_event);
+      }
+      return DefWindowProc(window,msg,wParam,lParam);
+    }
+
+    static DWORD WINAPI _events_thread(void* arg) {
+      CImgDisplay *const disp = (CImgDisplay*)(((void**)arg)[0]);
+      const char *const title = (const char*)(((void**)arg)[1]);
+      MSG msg;
+      delete[] (void**)arg;
+      disp->_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+      disp->_bmi.bmiHeader.biWidth = disp->width();
+      disp->_bmi.bmiHeader.biHeight = -disp->height();
+      disp->_bmi.bmiHeader.biPlanes = 1;
+      disp->_bmi.bmiHeader.biBitCount = 32;
+      disp->_bmi.bmiHeader.biCompression = BI_RGB;
+      disp->_bmi.bmiHeader.biSizeImage = 0;
+      disp->_bmi.bmiHeader.biXPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biYPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biClrUsed = 0;
+      disp->_bmi.bmiHeader.biClrImportant = 0;
+      disp->_data = new unsigned int[(size_t)disp->_width*disp->_height];
+      if (!disp->_is_fullscreen) { // Normal window
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)disp->_width - 1; rect.bottom = (LONG)disp->_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - disp->_width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - disp->_height - border1);
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_OVERLAPPEDWINDOW | (disp->_is_closed?0:WS_VISIBLE), CW_USEDEFAULT,CW_USEDEFAULT,
+                                     disp->_width + 2*border1, disp->_height + border1 + border2,
+                                     0,0,0,&(disp->_ccs));
+        if (!disp->_is_closed) {
+          GetWindowRect(disp->_window,&rect);
+          disp->_window_x = rect.left + border1;
+          disp->_window_y = rect.top + border2;
+        } else disp->_window_x = disp->_window_y = 0;
+      } else { // Fullscreen window
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_POPUP | (disp->_is_closed?0:WS_VISIBLE),
+                                      (sx - disp->_width)/2,
+                                      (sy - disp->_height)/2,
+                                     disp->_width,disp->_height,0,0,0,&(disp->_ccs));
+        disp->_window_x = disp->_window_y = 0;
+      }
+      SetForegroundWindow(disp->_window);
+      disp->_hdc = GetDC(disp->_window);
+      disp->_window_width = disp->_width;
+      disp->_window_height = disp->_height;
+      disp->flush();
+#ifdef _WIN64
+      SetWindowLongPtr(disp->_window,GWLP_USERDATA,(LONG_PTR)disp);
+      SetWindowLongPtr(disp->_window,GWLP_WNDPROC,(LONG_PTR)_handle_events);
+#else
+      SetWindowLong(disp->_window,GWL_USERDATA,(LONG)disp);
+      SetWindowLong(disp->_window,GWL_WNDPROC,(LONG)_handle_events);
+#endif
+      SetEvent(disp->_is_created);
+      while (GetMessage(&msg,0,0,0)) DispatchMessage(&msg);
+      return 0;
+    }
+
+    CImgDisplay& _update_window_pos() {
+      if (_is_closed) _window_x = _window_y = -1;
+      else {
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)_width - 1; rect.bottom = (LONG)_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - _width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - _height - border1);
+        GetWindowRect(_window,&rect);
+        _window_x = rect.left + border1;
+        _window_y = rect.top + border2;
+      }
+      return *this;
+    }
+
+    void _init_fullscreen() {
+      _background_window = 0;
+      if (!_is_fullscreen || _is_closed) _curr_mode.dmSize = 0;
+      else {
+        DEVMODE mode;
+        unsigned int imode = 0, ibest = 0, bestbpp = 0, bw = ~0U, bh = ~0U;
+        for (mode.dmSize = sizeof(DEVMODE), mode.dmDriverExtra = 0; EnumDisplaySettings(0,imode,&mode); ++imode) {
+          const unsigned int nw = mode.dmPelsWidth, nh = mode.dmPelsHeight;
+          if (nw>=_width && nh>=_height && mode.dmBitsPerPel>=bestbpp && nw<=bw && nh<=bh) {
+            bestbpp = mode.dmBitsPerPel;
+            ibest = imode;
+            bw = nw; bh = nh;
+          }
+        }
+        if (bestbpp) {
+          _curr_mode.dmSize = sizeof(DEVMODE); _curr_mode.dmDriverExtra = 0;
+          EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&_curr_mode);
+          EnumDisplaySettings(0,ibest,&mode);
+          ChangeDisplaySettings(&mode,0);
+        } else _curr_mode.dmSize = 0;
+
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        if (sx!=_width || sy!=_height) {
+          CLIENTCREATESTRUCT background_ccs;
+          _background_window = CreateWindowA("MDICLIENT","",WS_POPUP | WS_VISIBLE, 0,0,sx,sy,0,0,0,&background_ccs);
+          SetForegroundWindow(_background_window);
+        }
+      }
+    }
+
+    void _desinit_fullscreen() {
+      if (!_is_fullscreen) return;
+      if (_background_window) DestroyWindow(_background_window);
+      _background_window = 0;
+      if (_curr_mode.dmSize) ChangeDisplaySettings(&_curr_mode,0);
+      _is_fullscreen = false;
+    }
+
+    CImgDisplay& _assign(const unsigned int dimw, const unsigned int dimh, const char *const ptitle=0,
+                         const unsigned int normalization_type=3,
+                         const bool fullscreen_flag=false, const bool closed_flag=false) {
+
+      // Allocate space for window title
+      const char *const nptitle = ptitle?ptitle:"";
+      const unsigned int s = (unsigned int)std::strlen(nptitle) + 1;
+      char *const tmp_title = s?new char[s]:0;
+      if (s) std::memcpy(tmp_title,nptitle,s*sizeof(char));
+
+      // Destroy previous window if existing
+      if (!is_empty()) assign();
+
+      // Set display variables
+      _width = std::min(dimw,(unsigned int)screen_width());
+      _height = std::min(dimh,(unsigned int)screen_height());
+      _normalization = normalization_type<4?normalization_type:3;
+      _is_fullscreen = fullscreen_flag;
+      _window_x = _window_y = 0;
+      _is_closed = closed_flag;
+      _is_cursor_visible = true;
+      _is_mouse_tracked = false;
+      _title = tmp_title;
+      flush();
+      if (_is_fullscreen) _init_fullscreen();
+
+      // Create event thread
+      void *const arg = (void*)(new void*[2]);
+      ((void**)arg)[0] = (void*)this;
+      ((void**)arg)[1] = (void*)_title;
+      _mutex = CreateMutex(0,FALSE,0);
+      _is_created = CreateEvent(0,FALSE,FALSE,0);
+      _thread = CreateThread(0,0,_events_thread,arg,0,0);
+      WaitForSingleObject(_is_created,INFINITE);
+      return *this;
+    }
+
+    CImgDisplay& assign() {
+      if (is_empty()) return flush();
+      DestroyWindow(_window);
+      TerminateThread(_thread,0);
+      delete[] _data;
+      delete[] _title;
+      _data = 0;
+      _title = 0;
+      if (_is_fullscreen) _desinit_fullscreen();
+      _width = _height = _normalization = _window_width = _window_height = 0;
+      _window_x = _window_y = 0;
+      _is_fullscreen = false;
+      _is_closed = true;
+      _min = _max = 0;
+      _title = 0;
+      flush();
+      return *this;
+    }
+
+    CImgDisplay& assign(const unsigned int dimw, const unsigned int dimh, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!dimw || !dimh) return assign();
+      _assign(dimw,dimh,title,normalization_type,fullscreen_flag,closed_flag);
+      _min = _max = 0;
+      std::memset(_data,0,sizeof(unsigned int)*_width*_height);
+      return paint();
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!img) return assign();
+      CImg<T> tmp;
+      const CImg<T>& nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                           (img._height - 1)/2,
+                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return display(nimg);
+    }
+
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list, const char *const title=0,
+                        const unsigned int normalization_type=3,
+                        const bool fullscreen_flag=false, const bool closed_flag=false) {
+      if (!list) return assign();
+      CImg<T> tmp;
+      const CImg<T> img = list>'x', &nimg = (img._depth==1)?img:(tmp=img.get_projections2d((img._width - 1)/2,
+                                                                                           (img._height - 1)/2,
+                                                                                           (img._depth - 1)/2));
+      _assign(nimg._width,nimg._height,title,normalization_type,fullscreen_flag,closed_flag);
+      if (_normalization==2) _min = (float)nimg.min_max(_max);
+      return display(nimg);
+    }
+
+    CImgDisplay& assign(const CImgDisplay& disp) {
+      if (!disp) return assign();
+      _assign(disp._width,disp._height,disp._title,disp._normalization,disp._is_fullscreen,disp._is_closed);
+      std::memcpy(_data,disp._data,sizeof(unsigned int)*_width*_height);
+      return paint();
+    }
+
+    CImgDisplay& resize(const int nwidth, const int nheight, const bool force_redraw=true) {
+      if (!nwidth || !nheight || (is_empty() && (nwidth<0 || nheight<0))) return assign();
+      if (is_empty()) return assign(nwidth,nheight);
+      const unsigned int
+        tmpdimx = (nwidth>0)?nwidth:(-nwidth*_width/100),
+        tmpdimy = (nheight>0)?nheight:(-nheight*_height/100),
+        dimx = tmpdimx?tmpdimx:1,
+        dimy = tmpdimy?tmpdimy:1;
+      if (_width!=dimx || _height!=dimy || _window_width!=dimx || _window_height!=dimy) {
+        if (_window_width!=dimx || _window_height!=dimy) {
+          RECT rect; rect.left = rect.top = 0; rect.right = (LONG)dimx - 1; rect.bottom = (LONG)dimy - 1;
+          AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+          const int cwidth = rect.right - rect.left + 1, cheight = rect.bottom - rect.top + 1;
+          SetWindowPos(_window,0,0,0,cwidth,cheight,SWP_NOMOVE | SWP_NOZORDER | SWP_NOCOPYBITS);
+        }
+        if (_width!=dimx || _height!=dimy) {
+          unsigned int *const ndata = new unsigned int[dimx*dimy];
+          if (force_redraw) _render_resize(_data,_width,_height,ndata,dimx,dimy);
+          else std::memset(ndata,0x80,sizeof(unsigned int)*dimx*dimy);
+          delete[] _data;
+          _data = ndata;
+          _bmi.bmiHeader.biWidth = (LONG)dimx;
+          _bmi.bmiHeader.biHeight = -(int)dimy;
+          _width = dimx;
+          _height = dimy;
+        }
+        _window_width = dimx; _window_height = dimy;
+        show();
+      }
+      _is_resized = false;
+      if (_is_fullscreen) move((screen_width() - width())/2,(screen_height() - height())/2);
+      if (force_redraw) return paint();
+      return *this;
+    }
+
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      if (is_empty()) return *this;
+      if (force_redraw) {
+        const cimg_ulong buf_size = (cimg_ulong)_width*_height*4;
+        void *odata = std::malloc(buf_size);
+        if (odata) {
+          std::memcpy(odata,_data,buf_size);
+          assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+          std::memcpy(_data,odata,buf_size);
+          std::free(odata);
+        }
+        return paint();
+      }
+      return assign(_width,_height,_title,_normalization,!_is_fullscreen,false);
+    }
+
+    CImgDisplay& show() {
+      if (is_empty() || !_is_closed) return *this;
+      _is_closed = false;
+      if (_is_fullscreen) _init_fullscreen();
+      ShowWindow(_window,SW_SHOW);
+      _update_window_pos();
+      return paint();
+    }
+
+    CImgDisplay& close() {
+      if (is_empty() || _is_closed) return *this;
+      _is_closed = true;
+      if (_is_fullscreen) _desinit_fullscreen();
+      ShowWindow(_window,SW_HIDE);
+      _window_x = _window_y = 0;
+      return *this;
+    }
+
+    CImgDisplay& move(const int posx, const int posy) {
+      if (is_empty()) return *this;
+      if (_window_x!=posx || _window_y!=posy) {
+        if (!_is_fullscreen) {
+          RECT rect;
+          rect.left = rect.top = 0; rect.right = (LONG)_window_width - 1; rect.bottom = (LONG)_window_height - 1;
+          AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+          const int
+            border1 = (int)((rect.right - rect.left + 1 -_width)/2),
+            border2 = (int)(rect.bottom - rect.top + 1 - _height - border1);
+          SetWindowPos(_window,0,posx - border1,posy - border2,0,0,SWP_NOSIZE | SWP_NOZORDER);
+        } else SetWindowPos(_window,0,posx,posy,0,0,SWP_NOSIZE | SWP_NOZORDER);
+        _window_x = posx;
+        _window_y = posy;
+        show();
+      }
+      _is_moved = false;
+      return *this;
+    }
+
+    CImgDisplay& show_mouse() {
+      if (is_empty()) return *this;
+      _is_cursor_visible = true;
+      return *this;
+    }
+
+    CImgDisplay& hide_mouse() {
+      if (is_empty()) return *this;
+      _is_cursor_visible = false;
+      return *this;
+    }
+
+    CImgDisplay& set_mouse(const int posx, const int posy) {
+      if (is_empty() || _is_closed || posx<0 || posy<0) return *this;
+      _update_window_pos();
+      const int res = (int)SetCursorPos(_window_x + posx,_window_y + posy);
+      if (res) { _mouse_x = posx; _mouse_y = posy; }
+      return *this;
+    }
+
+    CImgDisplay& set_title(const char *const format, ...) {
+      if (is_empty()) return *this;
+      char *const tmp = new char[1024];
+      va_list ap;
+      va_start(ap, format);
+      cimg_vsnprintf(tmp,1024,format,ap);
+      va_end(ap);
+      if (!std::strcmp(_title,tmp)) { delete[] tmp; return *this; }
+      delete[] _title;
+      const unsigned int s = (unsigned int)std::strlen(tmp) + 1;
+      _title = new char[s];
+      std::memcpy(_title,tmp,s*sizeof(char));
+      SetWindowTextA(_window, tmp);
+      delete[] tmp;
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "display(): Empty specified image.",
+                                    cimgdisplay_instance);
+      if (is_empty()) return assign(img);
+      return render(img).paint();
+    }
+
+    CImgDisplay& paint() {
+      if (_is_closed) return *this;
+      WaitForSingleObject(_mutex,INFINITE);
+      SetDIBitsToDevice(_hdc,0,0,_width,_height,0,0,0,_height,_data,&_bmi,DIB_RGB_COLORS);
+      ReleaseMutex(_mutex);
+      return *this;
+    }
+
+    template<typename T>
+    CImgDisplay& render(const CImg<T>& img) {
+      if (!img)
+        throw CImgArgumentException(_cimgdisplay_instance
+                                    "render(): Empty specified image.",
+                                    cimgdisplay_instance);
+
+      if (is_empty()) return *this;
+      if (img._depth!=1) return render(img.get_projections2d((img._width - 1)/2,(img._height - 1)/2,
+                                                             (img._depth - 1)/2));
+
+      const T
+        *data1 = img._data,
+        *data2 = (img._spectrum>=2)?img.data(0,0,0,1):data1,
+        *data3 = (img._spectrum>=3)?img.data(0,0,0,2):data1;
+
+      WaitForSingleObject(_mutex,INFINITE);
+      unsigned int
+        *const ndata = (img._width==_width && img._height==_height)?_data:
+        new unsigned int[(size_t)img._width*img._height],
+        *ptrd = ndata;
+
+      if (!_normalization || (_normalization==3 && cimg::type<T>::string()==cimg::type<unsigned char>::string())) {
+        _min = _max = 0;
+        switch (img._spectrum) {
+        case 1 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char val = (unsigned char)*(data1++);
+            *(ptrd++) = (unsigned int)((val<<16) | (val<<8) | val);
+          }
+        } break;
+        case 2 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)*(data1++),
+              G = (unsigned char)*(data2++);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8));
+          }
+        } break;
+        default : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)*(data1++),
+              G = (unsigned char)*(data2++),
+              B = (unsigned char)*(data3++);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8) | B);
+          }
+        }
+        }
+      } else {
+        if (_normalization==3) {
+          if (cimg::type<T>::is_float()) _min = (float)img.min_max(_max);
+          else { _min = (float)cimg::type<T>::min(); _max = (float)cimg::type<T>::max(); }
+        } else if ((_min>_max) || _normalization==1) _min = (float)img.min_max(_max);
+        const float delta = _max - _min, mm = 255/(delta?delta:1.0f);
+        switch (img._spectrum) {
+        case 1 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((val<<16) | (val<<8) | val);
+          }
+        } break;
+        case 2 : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)((*(data1++) - _min)*mm),
+              G = (unsigned char)((*(data2++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8));
+          }
+        } break;
+        default : {
+          for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            const unsigned char
+              R = (unsigned char)((*(data1++) - _min)*mm),
+              G = (unsigned char)((*(data2++) - _min)*mm),
+              B = (unsigned char)((*(data3++) - _min)*mm);
+            *(ptrd++) = (unsigned int)((R<<16) | (G<<8) | B);
+          }
+        }
+        }
+      }
+      if (ndata!=_data) { _render_resize(ndata,img._width,img._height,_data,_width,_height); delete[] ndata; }
+      ReleaseMutex(_mutex);
+      return *this;
+    }
+
+    template<typename T>
+    static void screenshot(const int x0, const int y0, const int x1, const int y1, CImg<T>& img) {
+      img.assign();
+      HDC hScreen = GetDC(GetDesktopWindow());
+      if (hScreen) {
+        const int
+          width = GetDeviceCaps(hScreen,HORZRES),
+          height = GetDeviceCaps(hScreen,VERTRES);
+        int _x0 = x0, _y0 = y0, _x1 = x1, _y1 = y1;
+        if (_x0>_x1) cimg::swap(_x0,_x1);
+        if (_y0>_y1) cimg::swap(_y0,_y1);
+        if (_x1>=0 && _x0<width && _y1>=0 && _y0<height) {
+          _x0 = std::max(_x0,0);
+          _y0 = std::max(_y0,0);
+          _x1 = std::min(_x1,width - 1);
+          _y1 = std::min(_y1,height - 1);
+          const int bw = _x1 - _x0 + 1, bh = _y1 - _y0 + 1;
+          HDC hdcMem = CreateCompatibleDC(hScreen);
+          if (hdcMem) {
+            HBITMAP hBitmap = CreateCompatibleBitmap(hScreen,bw,bh);
+            if (hBitmap) {
+              HGDIOBJ hOld = SelectObject(hdcMem,hBitmap);
+              if (hOld && BitBlt(hdcMem,0,0,bw,bh,hScreen,_x0,_y0,SRCCOPY) && SelectObject(hdcMem,hOld)) {
+                BITMAPINFOHEADER bmi;
+                bmi.biSize = sizeof(BITMAPINFOHEADER);
+                bmi.biWidth = bw;
+                bmi.biHeight = -bh;
+                bmi.biPlanes = 1;
+                bmi.biBitCount = 32;
+                bmi.biCompression = BI_RGB;
+                bmi.biSizeImage = 0;
+                bmi.biXPelsPerMeter = bmi.biYPelsPerMeter = 0;
+                bmi.biClrUsed = bmi.biClrImportant = 0;
+                unsigned char *buf = new unsigned char[4*bw*bh];
+                if (GetDIBits(hdcMem,hBitmap,0,bh,buf,(BITMAPINFO*)&bmi,DIB_RGB_COLORS)) {
+                  img.assign(bw,bh,1,3);
+                  const unsigned char *ptrs = buf;
+                  T *pR = img.data(0,0,0,0), *pG = img.data(0,0,0,1), *pB = img.data(0,0,0,2);
+                  cimg_forXY(img,x,y) {
+                    *(pR++) = (T)ptrs[2];
+                    *(pG++) = (T)ptrs[1];
+                    *(pB++) = (T)ptrs[0];
+                    ptrs+=4;
+                  }
+                }
+                delete[] buf;
+              }
+              DeleteObject(hBitmap);
+            }
+            DeleteDC(hdcMem);
+          }
+        }
+        ReleaseDC(GetDesktopWindow(),hScreen);
+      }
+      if (img.is_empty())
+        throw CImgDisplayException("CImgDisplay::screenshot(): Failed to take screenshot "
+                                   "with coordinates (%d,%d)-(%d,%d).",
+                                   x0,y0,x1,y1);
+    }
+
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      if (is_empty()) { img.assign(); return *this; }
+      const unsigned int *ptrs = _data;
+      img.assign(_width,_height,1,3);
+      T
+        *data1 = img.data(0,0,0,0),
+        *data2 = img.data(0,0,0,1),
+        *data3 = img.data(0,0,0,2);
+      for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+        const unsigned int val = *(ptrs++);
+        *(data1++) = (T)(unsigned char)(val>>16);
+        *(data2++) = (T)(unsigned char)((val>>8)&0xFF);
+        *(data3++) = (T)(unsigned char)(val&0xFF);
+      }
+      return *this;
+    }
+#endif
+
+    //@}
+  };
+
+  /*
+   #--------------------------------------
+   #
+   #
+   #
+   # Definition of the CImg<T> structure
+   #
+   #
+   #
+   #--------------------------------------
+   */
+
+  //! Class representing an image (up to 4 dimensions wide), each pixel being of type \c T.
+  /**
+     This is the main class of the %CImg Library. It declares and constructs
+     an image, allows access to its pixel values, and is able to perform various image operations.
+
+     \par Image representation
+
+     A %CImg image is defined as an instance of the container \c CImg<T>, which contains a regular grid of pixels,
+     each pixel value being of type \c T. The image grid can have up to 4 dimensions: width, height, depth
+     and number of channels.
+     Usually, the three first dimensions are used to describe spatial coordinates <tt>(x,y,z)</tt>,
+     while the number of channels is rather used as a vector-valued dimension
+     (it may describe the R,G,B color channels for instance).
+     If you need a fifth dimension, you can use image lists \c CImgList<T> rather than simple images \c CImg<T>.
+
+     Thus, the \c CImg<T> class is able to represent volumetric images of vector-valued pixels,
+     as well as images with less dimensions (1d scalar signal, 2d color images, ...).
+     Most member functions of the class CImg<\c T> are designed to handle this maximum case of (3+1) dimensions.
+
+     Concerning the pixel value type \c T:
+     fully supported template types are the basic C++ types: <tt>unsigned char, char, short, unsigned int, int,
+     unsigned long, long, float, double, ... </tt>.
+     Typically, fast image display can be done using <tt>CImg<unsigned char></tt> images,
+     while complex image processing algorithms may be rather coded using <tt>CImg<float></tt> or <tt>CImg<double></tt>
+     images that have floating-point pixel values. The default value for the template T is \c float.
+     Using your own template types may be possible. However, you will certainly have to define the complete set
+     of arithmetic and logical operators for your class.
+
+     \par Image structure
+
+     The \c CImg<T> structure contains \e six fields:
+     - \c _width defines the number of \a columns of the image (size along the X-axis).
+     - \c _height defines the number of \a rows of the image (size along the Y-axis).
+     - \c _depth defines the number of \a slices of the image (size along the Z-axis).
+     - \c _spectrum defines the number of \a channels of the image (size along the C-axis).
+     - \c _data defines a \a pointer to the \a pixel \a data (of type \c T).
+     - \c _is_shared is a boolean that tells if the memory buffer \c data is shared with
+       another image.
+
+     You can access these fields publicly although it is recommended to use the dedicated functions
+     width(), height(), depth(), spectrum() and ptr() to do so.
+     Image dimensions are not limited to a specific range (as long as you got enough available memory).
+     A value of \e 1 usually means that the corresponding dimension is \a flat.
+     If one of the dimensions is \e 0, or if the data pointer is null, the image is considered as \e empty.
+     Empty images should not contain any pixel data and thus, will not be processed by CImg member functions
+     (a CImgInstanceException will be thrown instead).
+     Pixel data are stored in memory, in a non interlaced mode (See \ref cimg_storage).
+
+     \par Image declaration and construction
+
+     Declaring an image can be done by using one of the several available constructors.
+     Here is a list of the most used:
+
+     - Construct images from arbitrary dimensions:
+         - <tt>CImg<char> img;</tt> declares an empty image.
+         - <tt>CImg<unsigned char> img(128,128);</tt> declares a 128x128 greyscale image with
+         \c unsigned \c char pixel values.
+         - <tt>CImg<double> img(3,3);</tt> declares a 3x3 matrix with \c double coefficients.
+         - <tt>CImg<unsigned char> img(256,256,1,3);</tt> declares a 256x256x1x3 (color) image
+         (colors are stored as an image with three channels).
+         - <tt>CImg<double> img(128,128,128);</tt> declares a 128x128x128 volumetric and greyscale image
+         (with \c double pixel values).
+         - <tt>CImg<> img(128,128,128,3);</tt> declares a 128x128x128 volumetric color image
+         (with \c float pixels, which is the default value of the template parameter \c T).
+         - \b Note: images pixels are <b>not automatically initialized to 0</b>. You may use the function \c fill() to
+         do it, or use the specific constructor taking 5 parameters like this:
+         <tt>CImg<> img(128,128,128,3,0);</tt> declares a 128x128x128 volumetric color image with all pixel values to 0.
+
+     - Construct images from filenames:
+         - <tt>CImg<unsigned char> img("image.jpg");</tt> reads a JPEG color image from the file "image.jpg".
+         - <tt>CImg<float> img("analyze.hdr");</tt> reads a volumetric image (ANALYZE7.5 format) from the
+         file "analyze.hdr".
+         - \b Note: You need to install <a href="http://www.imagemagick.org">ImageMagick</a>
+         to be able to read common compressed image formats (JPG,PNG, ...) (See \ref cimg_files_io).
+
+     - Construct images from C-style arrays:
+         - <tt>CImg<int> img(data_buffer,256,256);</tt> constructs a 256x256 greyscale image from a \c int* buffer
+         \c data_buffer (of size 256x256=65536).
+         - <tt>CImg<unsigned char> img(data_buffer,256,256,1,3);</tt> constructs a 256x256 color image
+         from a \c unsigned \c char* buffer \c data_buffer (where R,G,B channels follow each others).
+
+         The complete list of constructors can be found <a href="#constructors">here</a>.
+
+     \par Most useful functions
+
+     The \c CImg<T> class contains a lot of functions that operates on images.
+     Some of the most useful are:
+
+     - operator()(): Read or write pixel values.
+     - display(): displays the image in a new window.
+  **/
+  template<typename T>
+  struct CImg {
+
+    unsigned int _width, _height, _depth, _spectrum;
+    bool _is_shared;
+    T *_data;
+
+    //! Simple iterator type, to loop through each pixel value of an image instance.
+    /**
+       \note
+       - The \c CImg<T>::iterator type is defined to be a <tt>T*</tt>.
+       - You will seldom have to use iterators in %CImg, most classical operations
+         being achieved (often in a faster way) using methods of \c CImg<T>.
+       \par Example
+       \code
+       CImg<float> img("reference.jpg");                                         // Load image from file.
+       // Set all pixels to '0', with a CImg iterator.
+       for (CImg<float>::iterator it = img.begin(), it<img.end(); ++it) *it = 0;
+       img.fill(0);                                                              // Do the same with a built-in method.
+       \endcode
+   **/
+    typedef T* iterator;
+
+    //! Simple const iterator type, to loop through each pixel value of a \c const image instance.
+    /**
+       \note
+       - The \c CImg<T>::const_iterator type is defined to be a \c const \c T*.
+       - You will seldom have to use iterators in %CImg, most classical operations
+         being achieved (often in a faster way) using methods of \c CImg<T>.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");                                    // Load image from file.
+       float sum = 0;
+       // Compute sum of all pixel values, with a CImg iterator.
+       for (CImg<float>::iterator it = img.begin(), it<img.end(); ++it) sum+=*it;
+       const float sum2 = img.sum();                                              // Do the same with a built-in method.
+       \endcode
+    **/
+    typedef const T* const_iterator;
+
+    //! Pixel value type.
+    /**
+       Refer to the type of the pixel values of an image instance.
+       \note
+       - The \c CImg<T>::value_type type of a \c CImg<T> is defined to be a \c T.
+       - \c CImg<T>::value_type is actually not used in %CImg methods. It has been mainly defined for
+         compatibility with STL naming conventions.
+    **/
+    typedef T value_type;
+
+    // Define common types related to template type T.
+    typedef typename cimg::superset<T,bool>::type Tbool;
+    typedef typename cimg::superset<T,unsigned char>::type Tuchar;
+    typedef typename cimg::superset<T,char>::type Tchar;
+    typedef typename cimg::superset<T,unsigned short>::type Tushort;
+    typedef typename cimg::superset<T,short>::type Tshort;
+    typedef typename cimg::superset<T,unsigned int>::type Tuint;
+    typedef typename cimg::superset<T,int>::type Tint;
+    typedef typename cimg::superset<T,cimg_ulong>::type Tulong;
+    typedef typename cimg::superset<T,cimg_long>::type Tlong;
+    typedef typename cimg::superset<T,float>::type Tfloat;
+    typedef typename cimg::superset<T,double>::type Tdouble;
+    typedef typename cimg::last<T,bool>::type boolT;
+    typedef typename cimg::last<T,unsigned char>::type ucharT;
+    typedef typename cimg::last<T,char>::type charT;
+    typedef typename cimg::last<T,unsigned short>::type ushortT;
+    typedef typename cimg::last<T,short>::type shortT;
+    typedef typename cimg::last<T,unsigned int>::type uintT;
+    typedef typename cimg::last<T,int>::type intT;
+    typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+    typedef typename cimg::last<T,cimg_long>::type longT;
+    typedef typename cimg::last<T,cimg_uint64>::type uint64T;
+    typedef typename cimg::last<T,cimg_int64>::type int64T;
+    typedef typename cimg::last<T,float>::type floatT;
+    typedef typename cimg::last<T,double>::type doubleT;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+#ifdef cimg_plugin
+#include cimg_plugin
+#endif
+#ifdef cimg_plugin1
+#include cimg_plugin1
+#endif
+#ifdef cimg_plugin2
+#include cimg_plugin2
+#endif
+#ifdef cimg_plugin3
+#include cimg_plugin3
+#endif
+#ifdef cimg_plugin4
+#include cimg_plugin4
+#endif
+#ifdef cimg_plugin5
+#include cimg_plugin5
+#endif
+#ifdef cimg_plugin6
+#include cimg_plugin6
+#endif
+#ifdef cimg_plugin7
+#include cimg_plugin7
+#endif
+#ifdef cimg_plugin8
+#include cimg_plugin8
+#endif
+
+    //@}
+    //---------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //---------------------------------------------------------
+
+    //! Destroy image.
+    /**
+       \note
+       - The pixel buffer data() is deallocated if necessary, e.g. for non-empty and non-shared image instances.
+       - Destroying an empty or shared image does nothing actually.
+       \warning
+       - When destroying a non-shared image, make sure that you will \e not operate on a remaining shared image
+         that shares its buffer with the destroyed instance, in order to avoid further invalid memory access
+         (to a deallocated buffer).
+    **/
+    ~CImg() {
+      if (!_is_shared) delete[] _data;
+    }
+
+    //! Construct empty image.
+    /**
+       \note
+       - An empty image has no pixel data and all of its dimensions width(), height(), depth(), spectrum()
+         are set to \c 0, as well as its pixel buffer pointer data().
+       - An empty image may be re-assigned afterwards, e.g. with the family of
+         assign(unsigned int,unsigned int,unsigned int,unsigned int) methods,
+         or by operator=(const CImg<t>&). In all cases, the type of pixels stays \c T.
+       - An empty image is never shared.
+       \par Example
+       \code
+       CImg<float> img1, img2;      // Construct two empty images.
+       img1.assign(256,256,1,3);    // Re-assign 'img1' to be a 256x256x1x3 (color) image.
+       img2 = img1.get_rand(0,255); // Re-assign 'img2' to be a random-valued version of 'img1'.
+       img2.assign();               // Re-assign 'img2' to be an empty image again.
+       \endcode
+    **/
+    CImg():_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {}
+
+    //! Construct image with specified size.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \note
+       - It is able to create only \e non-shared images, and allocates thus a pixel buffer data()
+         for each constructed image instance.
+       - Setting one dimension \c size_x,\c size_y,\c size_z or \c size_c to \c 0 leads to the construction of
+         an \e empty image.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values during construction (e.g. with \c 0), use constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) instead.
+       \par Example
+       \code
+       CImg<float> img1(256,256,1,3);   // Construct a 256x256x1x3 (color) image, filled with garbage values.
+       CImg<float> img2(256,256,1,3,0); // Construct a 256x256x1x3 (color) image, filled with value '0'.
+       \endcode
+    **/
+    explicit CImg(const unsigned int size_x, const unsigned int size_y=1,
+                  const unsigned int size_z=1, const unsigned int size_c=1):
+      _is_shared(false) {
+      size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value Initialization value.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int),
+         but it also fills the pixel buffer with the specified \c value.
+       \warning
+       - It cannot be used to construct a vector-valued image and initialize it with \e vector-valued pixels
+         (e.g. RGB vector, for color images).
+         For this task, you may use fillC() after construction.
+    **/
+    CImg(const unsigned int size_x, const unsigned int size_y,
+         const unsigned int size_z, const unsigned int size_c, const T& value):
+      _is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(value);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of integers.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c,
+       with pixels of type \c T, and initialize pixel
+       values from the specified sequence of integers \c value0,\c value1,\c ...
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value0 First value of the initialization sequence (must be an \e integer).
+       \param value1 Second value of the initialization sequence (must be an \e integer).
+       \param ...
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with a sequence of specified integer values.
+       \warning
+       - You must specify \e exactly \c size_x*\c size_y*\c size_z*\c size_c integers in the initialization sequence.
+         Otherwise, the constructor may crash or fill your image pixels with garbage.
+       \par Example
+       \code
+       const CImg<float> img(2,2,1,3,      // Construct a 2x2 color (RGB) image.
+                             0,255,0,255,  // Set the 4 values for the red component.
+                             0,0,255,255,  // Set the 4 values for the green component.
+                             64,64,64,64); // Set the 4 values for the blue component.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const int value0, const int value1, ...):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+#define _CImg_stdarg(img,a0,a1,N,t) { \
+        size_t _siz = (size_t)N; \
+        if (_siz--) { \
+          va_list ap; \
+          va_start(ap,a1); \
+          T *ptrd = (img)._data; \
+          *(ptrd++) = (T)a0; \
+          if (_siz--) { \
+            *(ptrd++) = (T)a1; \
+            for ( ; _siz; --_siz) *(ptrd++) = (T)va_arg(ap,t); \
+          } \
+          va_end(ap); \
+        } \
+      }
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,int);
+    }
+
+#if cimg_use_cpp11==1
+    //! Construct image with specified size and initialize pixel values from an initializer list of integers.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c,
+       with pixels of type \c T, and initialize pixel
+       values from the specified initializer list of integers { \c value0,\c value1,\c ... }
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param { value0, value1, ... } Initialization list
+       \param repeat_values Tells if the value filling process is repeated over the image.
+
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with a sequence of specified integer values.
+       \par Example
+       \code
+       const CImg<float> img(2,2,1,3,      // Construct a 2x2 color (RGB) image.
+                             { 0,255,0,255,    // Set the 4 values for the red component.
+                               0,0,255,255,    // Set the 4 values for the green component.
+                               64,64,64,64 }); // Set the 4 values for the blue component.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+    **/
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+#define _cimg_constructor_cpp11(repeat_values) \
+  auto it = values.begin(); \
+  size_t siz = size(); \
+  if (repeat_values) for (T *ptrd = _data; siz--; ) { \
+    *(ptrd++) = (T)(*(it++)); if (it==values.end()) it = values.begin(); } \
+  else { siz = std::min(siz,values.size()); for (T *ptrd = _data; siz--; ) *(ptrd++) = (T)(*(it++)); }
+      assign(size_x,size_y,size_z,size_c);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y,size_z);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x, const unsigned int size_y,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    template<typename t>
+    CImg(const unsigned int size_x,
+         std::initializer_list<t> values,
+         const bool repeat_values=true):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x);
+      _cimg_constructor_cpp11(repeat_values);
+    }
+
+    //! Construct single channel 1D image with pixel values and width obtained from an initializer list of integers.
+    /**
+       Construct a new image instance of size \c width x \c 1 x \c 1 x \c 1,
+       with pixels of type \c T, and initialize pixel
+       values from the specified initializer list of integers { \c value0,\c value1,\c ... }. Image width is
+       given by the size of the initializer list.
+       \param { value0, value1, ... } Initialization list
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int) with height=1, depth=1, and spectrum=1,
+         but it also fills the pixel buffer with a sequence of specified integer values.
+       \par Example
+       \code
+       const CImg<float> img = {10,20,30,20,10 }; // Construct a 5x1 image with one channel, and set its pixel values.
+       img.resize(150,150).display();
+       \endcode
+       \image html ref_constructor1.jpg
+     **/
+    template<typename t>
+    CImg(const std::initializer_list<t> values):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(values.size(),1,1,1);
+      auto it = values.begin();
+      unsigned int siz = _width;
+      for (T *ptrd = _data; siz--; ) *(ptrd++) = (T)(*(it++));
+    }
+
+    template<typename t>
+    CImg<T> & operator=(std::initializer_list<t> values) {
+      _cimg_constructor_cpp11(siz>values.size());
+      return *this;
+    }
+#endif
+
+    //! Construct image with specified size and initialize pixel values from a sequence of doubles.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initialize pixel values from the specified sequence of doubles \c value0,\c value1,\c ...
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value0 First value of the initialization sequence (must be a \e double).
+       \param value1 Second value of the initialization sequence (must be a \e double).
+       \param ...
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int,int,int,...), but
+         takes a sequence of double values instead of integers.
+       \warning
+       - You must specify \e exactly \c dx*\c dy*\c dz*\c dc doubles in the initialization sequence.
+         Otherwise, the constructor may crash or fill your image with garbage.
+         For instance, the code below will probably crash on most platforms:
+         \code
+         const CImg<float> img(2,2,1,1, 0.5,0.5,255,255); // FAIL: The two last arguments are 'int', not 'double'!
+         \endcode
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const double value0, const double value1, ...):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,double);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a value string.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified string \c values.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param values Value string describing the way pixel values are set.
+       \param repeat_values Tells if the value filling process is repeated over the image.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with values described in the value string \c values.
+       - Value string \c values may describe two different filling processes:
+         - Either \c values is a sequences of values assigned to the image pixels, as in <tt>"1,2,3,7,8,2"</tt>.
+           In this case, set \c repeat_values to \c true to periodically fill the image with the value sequence.
+         - Either, \c values is a formula, as in <tt>"cos(x/10)*sin(y/20)"</tt>.
+           In this case, parameter \c repeat_values is pointless.
+       - For both cases, specifying \c repeat_values is mandatory.
+         It disambiguates the possible overloading of constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) with \c T being a <tt>const char*</tt>.
+       - A \c CImgArgumentException is thrown when an invalid value string \c values is specified.
+       \par Example
+       \code
+       const CImg<float> img1(129,129,1,3,"0,64,128,192,255",true), // Construct image from a value sequence.
+                         img2(129,129,1,3,"if(c==0,255*abs(cos(x/10)),1.8*y)",false); // Construct image from a formula.
+       (img1,img2).display();
+       \endcode
+       \image html ref_constructor2.jpg
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const char *const values, const bool repeat_values):_is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(values,repeat_values);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified \c t* memory buffer.
+       \param values Pointer to the input memory buffer.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param is_shared Tells if input memory buffer must be shared by the current instance.
+       \note
+       - If \c is_shared is \c false, the image instance allocates its own pixel buffer,
+         and values from the specified input buffer are copied to the instance buffer.
+         If buffer types \c T and \c t are different, a regular static cast is performed during buffer copy.
+       - Otherwise, the image instance does \e not allocate a new buffer, and uses the input memory buffer as its
+         own pixel buffer. This case requires that types \c T and \c t are the same. Later, destroying such a shared
+         image will not deallocate the pixel buffer, this task being obviously charged to the initial buffer allocator.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - You must take care when operating on a shared image, since it may have an invalid pixel buffer pointer data()
+         (e.g. already deallocated).
+       \par Example
+       \code
+       unsigned char tab[256*256] = { 0 };
+       CImg<unsigned char> img1(tab,256,256,1,1,false), // Construct new non-shared image from buffer 'tab'.
+                           img2(tab,256,256,1,1,true);  // Construct new shared-image from buffer 'tab'.
+       tab[1024] = 255;                                 // Here, 'img2' is indirectly modified, but not 'img1'.
+       \endcode
+    **/
+    template<typename t>
+    CImg(const t *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false):_is_shared(false) {
+      if (is_shared) {
+        _width = _height = _depth = _spectrum = 0; _data = 0;
+        throw CImgArgumentException(_cimg_instance
+                                    "CImg(): Invalid construction request of a (%u,%u,%u,%u) shared instance "
+                                    "from a (%s*) buffer (pixel types are different).",
+                                    cimg_instance,
+                                    size_x,size_y,size_z,size_c,CImg<t>::pixel_type());
+      }
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+
+        }
+        const t *ptrs = values; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \specialization.
+    CImg(const T *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = is_shared;
+        if (_is_shared) _data = const_cast<T*>(values);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                        size_x,size_y,size_z,size_c);
+          }
+          std::memcpy(_data,values,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Construct image from reading an image file.
+    /**
+       Construct a new image instance with pixels of type \c T, and initialize pixel values with the data read from
+       an image file.
+       \param filename Filename, as a C-string.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it reads the image
+         dimensions and pixel values from the specified image file.
+       - The recognition of the image file format by %CImg higly depends on the tools installed on your system
+         and on the external libraries you used to link your code against.
+       - Considered pixel type \c T should better fit the file format specification, or data loss may occur during
+         file load (e.g. constructing a \c CImg<unsigned char> from a float-valued image file).
+       - A \c CImgIOException is thrown when the specified \c filename cannot be read, or if the file format is not
+         recognized.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       img.display();
+       \endcode
+       \image html ref_image.jpg
+    **/
+    explicit CImg(const char *const filename):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(filename);
+    }
+
+    //! Construct image copy.
+    /**
+       Construct a new image instance with pixels of type \c T, as a copy of an existing \c CImg<t> instance.
+       \param img Input image to copy.
+       \note
+       - Constructed copy has the same size width() x height() x depth() x spectrum() and pixel values as the
+         input image \c img.
+       - If input image \c img is \e shared and if types \c T and \c t are the same, the constructed copy is also
+         \e shared, and shares its pixel buffer with \c img.
+         Modifying a pixel value in the constructed copy will thus also modifies it in the input image \c img.
+         This behavior is needful to allow functions to return shared images.
+       - Otherwise, the constructed copy allocates its own pixel buffer, and copies pixel values from the input
+         image \c img into its buffer. The copied pixel values may be eventually statically casted if types \c T and
+         \c t are different.
+       - Constructing a copy from an image \c img when types \c t and \c T are the same is significantly faster than
+         with different types.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. not enough available memory).
+    **/
+    template<typename t>
+    CImg(const CImg<t>& img):_is_shared(false) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                      img._width,img._height,img._depth,img._spectrum);
+        }
+        const t *ptrs = img._data; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image copy \specialization.
+    CImg(const CImg<T>& img) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        _is_shared = img._is_shared;
+        if (_is_shared) _data = const_cast<T*>(img._data);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                        img._width,img._height,img._depth,img._spectrum);
+
+          }
+          std::memcpy(_data,img._data,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Advanced copy constructor.
+    /**
+       Construct a new image instance with pixels of type \c T, as a copy of an existing \c CImg<t> instance,
+       while forcing the shared state of the constructed copy.
+       \param img Input image to copy.
+       \param is_shared Tells about the shared state of the constructed copy.
+       \note
+       - Similar to CImg(const CImg<t>&), except that it allows to decide the shared state of
+         the constructed image, which does not depend anymore on the shared state of the input image \c img:
+         - If \c is_shared is \c true, the constructed copy will share its pixel buffer with the input image \c img.
+           For that case, the pixel types \c T and \c t \e must be the same.
+         - If \c is_shared is \c false, the constructed copy will allocate its own pixel buffer, whether the input
+           image \c img is shared or not.
+       - A \c CImgArgumentException is thrown when a shared copy is requested with different pixel types \c T and \c t.
+    **/
+    template<typename t>
+    CImg(const CImg<t>& img, const bool is_shared):_is_shared(false) {
+      if (is_shared) {
+        _width = _height = _depth = _spectrum = 0; _data = 0;
+        throw CImgArgumentException(_cimg_instance
+                                    "CImg(): Invalid construction request of a shared instance from a "
+                                    "CImg<%s> image (%u,%u,%u,%u,%p) (pixel types are different).",
+                                    cimg_instance,
+                                    CImg<t>::pixel_type(),img._width,img._height,img._depth,img._spectrum,img._data);
+      }
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                      img._width,img._height,img._depth,img._spectrum);
+        }
+        const t *ptrs = img._data; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Advanced copy constructor \specialization.
+    CImg(const CImg<T>& img, const bool is_shared) {
+      const size_t siz = (size_t)img.size();
+      if (img._data && siz) {
+        _width = img._width; _height = img._height; _depth = img._depth; _spectrum = img._spectrum;
+        _is_shared = is_shared;
+        if (_is_shared) _data = const_cast<T*>(img._data);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                        img._width,img._height,img._depth,img._spectrum);
+          }
+          std::memcpy(_data,img._data,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Construct image with dimensions borrowed from another image.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from some dimensions of an existing
+       \c CImg<t> instance.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions C-string describing the image size along the X,Y,Z and C-dimensions.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it takes the image dimensions
+         (\e not its pixel values) from an existing \c CImg<t> instance.
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values (e.g. with \c 0), use constructor CImg(const CImg<t>&,const char*,T)
+         instead.
+       \par Example
+       \code
+       const CImg<float> img1(256,128,1,3),      // 'img1' is a 256x128x1x3 image.
+                         img2(img1,"xyzc"),      // 'img2' is a 256x128x1x3 image.
+                         img3(img1,"y,x,z,c"),   // 'img3' is a 128x256x1x3 image.
+                         img4(img1,"c,x,y,3",0), // 'img4' is a 3x128x256x3 image (with pixels initialized to '0').
+       \endcode
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from the dimensions of an existing
+       \c CImg<t> instance, and set all pixel values to specified \c value.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions String describing the image size along the X,Y,Z and V-dimensions.
+       \param value Value used for initialization.
+       \note
+       - Similar to CImg(const CImg<t>&,const char*), but it also fills the pixel buffer with the specified \c value.
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions, const T& value):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window.
+    /**
+       Construct a new image instance with pixels of type \c T, as a snapshot of an existing \c CImgDisplay instance.
+       \param disp Input display window.
+       \note
+       - The width() and height() of the constructed image instance are the same as the specified \c CImgDisplay.
+       - The depth() and spectrum() of the constructed image instance are respectively set to \c 1 and \c 3
+         (i.e. a 2d color image).
+       - The image pixels are read as 8-bits RGB values.
+     **/
+    explicit CImg(const CImgDisplay &disp):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      disp.snapshot(*this);
+    }
+
+    // Constructor and assignment operator for rvalue references (c++11).
+    // This avoids an additional image copy for methods returning new images. Can save RAM for big images !
+#if cimg_use_cpp11==1
+    CImg(CImg<T>&& img):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      swap(img);
+    }
+    CImg<T>& operator=(CImg<T>&& img) {
+      if (_is_shared) return assign(img);
+      return img.swap(*this);
+    }
+#endif
+
+    //! Construct empty image \inplace.
+    /**
+       In-place version of the default constructor CImg(). It simply resets the instance to an empty image.
+    **/
+    CImg<T>& assign() {
+      if (!_is_shared) delete[] _data;
+      _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0;
+      return *this;
+    }
+
+    //! Construct image with specified size \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!siz) return assign();
+      const size_t curr_siz = (size_t)size();
+      if (siz!=curr_siz) {
+        if (_is_shared)
+          throw CImgArgumentException(_cimg_instance
+                                      "assign(): Invalid assignement request of shared instance from specified "
+                                      "image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      size_x,size_y,size_z,size_c);
+        else {
+          delete[] _data;
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "assign(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                        size_x,size_y,size_z,size_c);
+          }
+        }
+      }
+      _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,T).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const T& value) {
+      return assign(size_x,size_y,size_z,size_c).fill(value);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of integers \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,int,int,...).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const int value0, const int value1, ...) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,int);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of doubles \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,double,double,...).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const double value0, const double value1, ...) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,double);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a value string \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,const char*,bool).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const char *const values, const bool repeat_values) {
+      return assign(size_x,size_y,size_z,size_c).fill(values,repeat_values);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \inplace.
+    /**
+       In-place version of the constructor CImg(const t*,unsigned int,unsigned int,unsigned int,unsigned int).
+    **/
+    template<typename t>
+    CImg<T>& assign(const t *const values, const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      assign(size_x,size_y,size_z,size_c);
+      const t *ptrs = values; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \specialization.
+    CImg<T>& assign(const T *const values, const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      const size_t curr_siz = (size_t)size();
+      if (values==_data && siz==curr_siz) return assign(size_x,size_y,size_z,size_c);
+      if (_is_shared || values + siz<_data || values>=_data + size()) {
+        assign(size_x,size_y,size_z,size_c);
+        if (_is_shared) std::memmove((void*)_data,(void*)values,siz*sizeof(T));
+        else std::memcpy((void*)_data,(void*)values,siz*sizeof(T));
+      } else {
+        T *new_data = 0;
+        try { new_data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "assign(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        std::memcpy((void*)new_data,(void*)values,siz*sizeof(T));
+        delete[] _data; _data = new_data; _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+      }
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \overloading.
+    template<typename t>
+    CImg<T>& assign(const t *const values, const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const bool is_shared) {
+      if (is_shared)
+        throw CImgArgumentException(_cimg_instance
+                                    "assign(): Invalid assignment request of shared instance from (%s*) buffer"
+                                    "(pixel types are different).",
+                                    cimg_instance,
+                                    CImg<t>::pixel_type());
+      return assign(values,size_x,size_y,size_z,size_c);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \overloading.
+    CImg<T>& assign(const T *const values, const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const bool is_shared) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      if (!is_shared) { if (_is_shared) assign(); assign(values,size_x,size_y,size_z,size_c); }
+      else {
+        if (!_is_shared) {
+          if (values + siz<_data || values>=_data + size()) assign();
+          else cimg::warn(_cimg_instance
+                          "assign(): Shared image instance has overlapping memory.",
+                          cimg_instance);
+        }
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = true;
+        _data = const_cast<T*>(values);
+      }
+      return *this;
+    }
+
+    //! Construct image from reading an image file \inplace.
+    /**
+       In-place version of the constructor CImg(const char*).
+    **/
+    CImg<T>& assign(const char *const filename) {
+      return load(filename);
+    }
+
+    //! Construct image copy \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum);
+    }
+
+    //! In-place version of the advanced copy constructor.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,bool).
+     **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const bool is_shared) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum,is_shared);
+    }
+
+    //! Construct image with dimensions borrowed from another image \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions) {
+      if (!dimensions || !*dimensions) return assign(img._width,img._height,img._depth,img._spectrum);
+      unsigned int siz[4] = { 0,1,1,1 }, k = 0;
+      CImg<charT> item(256);
+      for (const char *s = dimensions; *s && k<4; ++k) {
+        if (cimg_sscanf(s,"%255[^0-9%xyzvwhdcXYZVWHDC]",item._data)>0) s+=std::strlen(item);
+        if (*s) {
+          unsigned int val = 0; char sep = 0;
+          if (cimg_sscanf(s,"%u%c",&val,&sep)>0) {
+            if (sep=='%') siz[k] = val*(k==0?_width:k==1?_height:k==2?_depth:_spectrum)/100;
+            else siz[k] = val;
+            while (*s>='0' && *s<='9') ++s;
+            if (sep=='%') ++s;
+          } else switch (cimg::lowercase(*s)) {
+          case 'x' : case 'w' : siz[k] = img._width; ++s; break;
+          case 'y' : case 'h' : siz[k] = img._height; ++s; break;
+          case 'z' : case 'd' : siz[k] = img._depth; ++s; break;
+          case 'c' : case 's' : siz[k] = img._spectrum; ++s; break;
+          default :
+            throw CImgArgumentException(_cimg_instance
+                                        "assign(): Invalid character '%c' detected in specified dimension string '%s'.",
+                                        cimg_instance,
+                                        *s,dimensions);
+          }
+        }
+      }
+      return assign(siz[0],siz[1],siz[2],siz[3]);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*,T).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions, const T& value) {
+      return assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window \inplace.
+    /**
+       In-place version of the constructor CImg(const CImgDisplay&).
+    **/
+    CImg<T>& assign(const CImgDisplay &disp) {
+      disp.snapshot(*this);
+      return *this;
+    }
+
+    //! Construct empty image \inplace.
+    /**
+       Equivalent to assign().
+       \note
+       - It has been defined for compatibility with STL naming conventions.
+    **/
+    CImg<T>& clear() {
+      return assign();
+    }
+
+    //! Transfer content of an image instance into another one.
+    /**
+       Transfer the dimensions and the pixel buffer content of an image instance into another one,
+       and replace instance by an empty image. It avoids the copy of the pixel buffer
+       when possible.
+       \param img Destination image.
+       \note
+       - Pixel types \c T and \c t of source and destination images can be different, though the process is
+         designed to be instantaneous when \c T and \c t are the same.
+       \par Example
+       \code
+       CImg<float> src(256,256,1,3,0), // Construct a 256x256x1x3 (color) image filled with value '0'.
+                   dest(16,16);        // Construct a 16x16x1x1 (scalar) image.
+       src.move_to(dest);              // Now, 'src' is empty and 'dest' is the 256x256x1x3 image.
+       \endcode
