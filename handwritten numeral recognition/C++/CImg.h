@@ -376,4 +376,199 @@ extern "C" {
 #include "minc_1_simple_rw.h"
 #endif
 
-// Configur
+// Configure Zlib support.
+// (http://www.zlib.net)
+//
+// Define 'cimg_use_zlib' to enable Zlib support.
+//
+// Zlib library may be used to allow compressed data in '.cimgz' files
+// (see methods 'CImg[List]<T>::{load,save}_cimg()').
+#ifdef cimg_use_zlib
+extern "C" {
+#include "zlib.h"
+}
+#endif
+
+// Configure libcurl support.
+// (http://curl.haxx.se/libcurl/)
+//
+// Define 'cimg_use_curl' to enable libcurl support.
+//
+// Libcurl may be used to get a native support of file downloading from the network.
+// (see method 'cimg::load_network()'.)
+#ifdef cimg_use_curl
+#include "curl/curl.h"
+#endif
+
+// Configure Magick++ support.
+// (http://www.imagemagick.org/Magick++)
+//
+// Define 'cimg_use_magick' to enable Magick++ support.
+//
+// Magick++ library may be used to get a native support of various image file formats.
+// (see methods 'CImg<T>::{load,save}()').
+#ifdef cimg_use_magick
+#include "Magick++.h"
+#endif
+
+// Configure FFTW3 support.
+// (http://www.fftw.org)
+//
+// Define 'cimg_use_fftw3' to enable libFFTW3 support.
+//
+// FFTW3 library may be used to efficiently compute the Fast Fourier Transform
+// of image data, without restriction on the image size.
+// (see method 'CImg[List]<T>::FFT()').
+#ifdef cimg_use_fftw3
+extern "C" {
+#include "fftw3.h"
+}
+#endif
+
+// Configure LibBoard support.
+// (http://libboard.sourceforge.net/)
+//
+// Define 'cimg_use_board' to enable Board support.
+//
+// Board library may be used to draw 3d objects in vector-graphics canvas
+// that can be saved as '.ps' or '.svg' files afterwards.
+// (see method 'CImg<T>::draw_object3d()').
+#ifdef cimg_use_board
+#ifdef None
+#undef None
+#define _cimg_redefine_None
+#endif
+#include "Board.h"
+#endif
+
+// Configure OpenEXR support.
+// (http://www.openexr.com/)
+//
+// Define 'cimg_use_openexr' to enable OpenEXR support.
+//
+// OpenEXR library may be used to get a native support of '.exr' files.
+// (see methods 'CImg<T>::{load,save}_exr()').
+#ifdef cimg_use_openexr
+#include "ImfRgbaFile.h"
+#include "ImfInputFile.h"
+#include "ImfChannelList.h"
+#include "ImfMatrixAttribute.h"
+#include "ImfArray.h"
+#endif
+
+// Lapack configuration.
+// (http://www.netlib.org/lapack)
+//
+// Define 'cimg_use_lapack' to enable LAPACK support.
+//
+// Lapack library may be used in several CImg methods to speed up
+// matrix computations (eigenvalues, inverse, ...).
+#ifdef cimg_use_lapack
+extern "C" {
+  extern void sgetrf_(int*, int*, float*, int*, int*, int*);
+  extern void sgetri_(int*, float*, int*, int*, float*, int*, int*);
+  extern void sgetrs_(char*, int*, int*, float*, int*, int*, float*, int*, int*);
+  extern void sgesvd_(char*, char*, int*, int*, float*, int*, float*, float*, int*, float*, int*, float*, int*, int*);
+  extern void ssyev_(char*, char*, int*, float*, int*, float*, float*, int*, int*);
+  extern void dgetrf_(int*, int*, double*, int*, int*, int*);
+  extern void dgetri_(int*, double*, int*, int*, double*, int*, int*);
+  extern void dgetrs_(char*, int*, int*, double*, int*, int*, double*, int*, int*);
+  extern void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*,
+                      int*, double*, int*, double*, int*, int*);
+  extern void dsyev_(char*, char*, int*, double*, int*, double*, double*, int*, int*);
+  extern void dgels_(char*, int*,int*,int*,double*,int*,double*,int*,double*,int*,int*);
+  extern void sgels_(char*, int*,int*,int*,float*,int*,float*,int*,float*,int*,int*);
+}
+#endif
+
+// Check if min/max/PI macros are defined.
+//
+// CImg does not compile if macros 'min', 'max' or 'PI' are defined,
+// because it redefines functions min(), max() and const variable PI in the cimg:: namespace.
+// so it '#undef' these macros if necessary, and restore them to reasonable
+// values at the end of this file.
+#ifdef min
+#undef min
+#define _cimg_redefine_min
+#endif
+#ifdef max
+#undef max
+#define _cimg_redefine_max
+#endif
+#ifdef PI
+#undef PI
+#define _cimg_redefine_PI
+#endif
+
+// Define 'cimg_library' namespace suffix.
+//
+// You may want to add a suffix to the 'cimg_library' namespace, for instance if you need to work
+// with several versions of the library at the same time.
+#ifdef cimg_namespace_suffix
+#define __cimg_library_suffixed(s) cimg_library_##s
+#define _cimg_library_suffixed(s) __cimg_library_suffixed(s)
+#define cimg_library_suffixed _cimg_library_suffixed(cimg_namespace_suffix)
+#else
+#define cimg_library_suffixed cimg_library
+#endif
+
+/*------------------------------------------------------------------------------
+  #
+  # Define user-friendly macros.
+  #
+  # These CImg macros are prefixed by 'cimg_' and can be used safely in your own
+  # code. They are useful to parse command line options, or to write image loops.
+  #
+  ------------------------------------------------------------------------------*/
+
+// Macros to define program usage, and retrieve command line arguments.
+#define cimg_usage(usage) cimg_library_suffixed::cimg::option((char*)0,argc,argv,(char*)0,usage,false)
+#define cimg_help(str) cimg_library_suffixed::cimg::option((char*)0,argc,argv,str,(char*)0)
+#define cimg_option(name,defaut,usage) cimg_library_suffixed::cimg::option(name,argc,argv,defaut,usage)
+
+// Macros to define and manipulate local neighborhoods.
+#define CImg_2x2(I,T) T I[4]; \
+                      T& I##cc = I[0]; T& I##nc = I[1]; \
+                      T& I##cn = I[2]; T& I##nn = I[3]; \
+                      I##cc = I##nc = \
+                      I##cn = I##nn = 0
+
+#define CImg_3x3(I,T) T I[9]; \
+                      T& I##pp = I[0]; T& I##cp = I[1]; T& I##np = I[2]; \
+                      T& I##pc = I[3]; T& I##cc = I[4]; T& I##nc = I[5]; \
+                      T& I##pn = I[6]; T& I##cn = I[7]; T& I##nn = I[8]; \
+                      I##pp = I##cp = I##np = \
+                      I##pc = I##cc = I##nc = \
+                      I##pn = I##cn = I##nn = 0
+
+#define CImg_4x4(I,T) T I[16]; \
+                      T& I##pp = I[0]; T& I##cp = I[1]; T& I##np = I[2]; T& I##ap = I[3]; \
+                      T& I##pc = I[4]; T& I##cc = I[5]; T& I##nc = I[6]; T& I##ac = I[7]; \
+                      T& I##pn = I[8]; T& I##cn = I[9]; T& I##nn = I[10]; T& I##an = I[11]; \
+                      T& I##pa = I[12]; T& I##ca = I[13]; T& I##na = I[14]; T& I##aa = I[15]; \
+                      I##pp = I##cp = I##np = I##ap = \
+                      I##pc = I##cc = I##nc = I##ac = \
+                      I##pn = I##cn = I##nn = I##an = \
+                      I##pa = I##ca = I##na = I##aa = 0
+
+#define CImg_5x5(I,T) T I[25]; \
+                      T& I##bb = I[0]; T& I##pb = I[1]; T& I##cb = I[2]; T& I##nb = I[3]; T& I##ab = I[4]; \
+                      T& I##bp = I[5]; T& I##pp = I[6]; T& I##cp = I[7]; T& I##np = I[8]; T& I##ap = I[9]; \
+                      T& I##bc = I[10]; T& I##pc = I[11]; T& I##cc = I[12]; T& I##nc = I[13]; T& I##ac = I[14]; \
+                      T& I##bn = I[15]; T& I##pn = I[16]; T& I##cn = I[17]; T& I##nn = I[18]; T& I##an = I[19]; \
+                      T& I##ba = I[20]; T& I##pa = I[21]; T& I##ca = I[22]; T& I##na = I[23]; T& I##aa = I[24]; \
+                      I##bb = I##pb = I##cb = I##nb = I##ab = \
+                      I##bp = I##pp = I##cp = I##np = I##ap = \
+                      I##bc = I##pc = I##cc = I##nc = I##ac = \
+                      I##bn = I##pn = I##cn = I##nn = I##an = \
+                      I##ba = I##pa = I##ca = I##na = I##aa = 0
+
+#define CImg_2x2x2(I,T) T I[8]; \
+                      T& I##ccc = I[0]; T& I##ncc = I[1]; \
+                      T& I##cnc = I[2]; T& I##nnc = I[3]; \
+                      T& I##ccn = I[4]; T& I##ncn = I[5]; \
+                      T& I##cnn = I[6]; T& I##nnn = I[7]; \
+                      I##ccc = I##ncc = \
+                      I##cnc = I##nnc = \
+                      I##ccn = I##ncn = \
+                      I##cnn = 
