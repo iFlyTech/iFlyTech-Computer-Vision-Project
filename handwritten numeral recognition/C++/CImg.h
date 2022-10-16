@@ -2219,4 +2219,170 @@ namespace cimg_library_suffixed {
        \param mode Desired exception mode. Possible values are:
        - \c 0: Hide library messages (quiet mode).
        - \c 1: Print library messages on the console.
-       - \c 2: Disp
+       - \c 2: Display library messages on a dialog window (default behavior).
+       - \c 3: Do as \c 1 + add extra debug warnings (slow down the code!).
+       - \c 4: Do as \c 2 + add extra debug warnings (slow down the code!).
+     **/
+    inline unsigned int& exception_mode(const unsigned int mode) {
+      return _exception_mode(mode,true);
+    }
+
+    //! Return current \CImg exception mode.
+    /**
+       \note By default, return the value of configuration macro \c cimg_verbosity
+    **/
+    inline unsigned int& exception_mode() {
+      return _exception_mode(0,false);
+    }
+
+    //! Set current \CImg openmp mode.
+    /**
+       The way openmp-based methods are handled by \CImg can be changed dynamically, using this function.
+       \param mode Desired openmp mode. Possible values are:
+       - \c 0: Never parallelize (quiet mode).
+       - \c 1: Always parallelize.
+       - \c 2: Adaptive parallelization mode (default behavior).
+     **/
+    inline unsigned int& _openmp_mode(const unsigned int value, const bool is_set) {
+      static unsigned int mode = 2;
+      if (is_set)  { cimg::mutex(0); mode = value<2?value:2; cimg::mutex(0,0); }
+      return mode;
+    }
+
+    inline unsigned int& openmp_mode(const unsigned int mode) {
+      return _openmp_mode(mode,true);
+    }
+
+    //! Return current \CImg openmp mode.
+    inline unsigned int& openmp_mode() {
+      return _openmp_mode(0,false);
+    }
+
+#define cimg_openmp_if(cond) if (cimg::openmp_mode()==1 || (cimg::openmp_mode()>1 && (cond)))
+
+    // Display a simple dialog box, and wait for the user's response.
+    inline int dialog(const char *const title, const char *const msg, const char *const button1_label="OK",
+                      const char *const button2_label=0, const char *const button3_label=0,
+                      const char *const button4_label=0, const char *const button5_label=0,
+                      const char *const button6_label=0, const bool centering=false);
+
+    // Evaluate math expression.
+    inline double eval(const char *const expression,
+                       const double x=0, const double y=0, const double z=0, const double c=0);
+
+  }
+
+  /*---------------------------------------
+    #
+    # Define the CImgException structures
+    #
+    --------------------------------------*/
+  //! Instances of \c CImgException are thrown when errors are encountered in a \CImg function call.
+  /**
+     \par Overview
+
+      CImgException is the base class of all exceptions thrown by \CImg (except \b CImgAbortException).
+      CImgException is never thrown itself. Derived classes that specify the type of errord are thrown instead.
+      These classes can be:
+
+      - \b CImgAbortException: Thrown when a computationally-intensive function is aborted by an external signal.
+        This is the only \c non-derived exception class.
+
+      - \b CImgArgumentException: Thrown when one argument of a called \CImg function is invalid.
+      This is probably one of the most thrown exception by \CImg.
+      For instance, the following example throws a \c CImgArgumentException:
+      \code
+      CImg<float> img(100,100,1,3); // Define a 100x100 color image with float-valued pixels.
+      img.mirror('e');              // Try to mirror image along the (non-existing) 'e'-axis.
+      \endcode
+
+      - \b CImgDisplayException: Thrown when something went wrong during the display of images in CImgDisplay instances.
+
+      - \b CImgInstanceException: Thrown when an instance associated to a called \CImg method does not fit
+      the function requirements. For instance, the following example throws a \c CImgInstanceException:
+      \code
+      const CImg<float> img;           // Define an empty image.
+      const float value = img.at(0);   // Try to read first pixel value (does not exist).
+      \endcode
+
+      - \b CImgIOException: Thrown when an error occured when trying to load or save image files.
+      This happens when trying to read files that do not exist or with invalid formats.
+      For instance, the following example throws a \c CImgIOException:
+      \code
+      const CImg<float> img("missing_file.jpg");  // Try to load a file that does not exist.
+      \endcode
+
+      - \b CImgWarningException: Thrown only if configuration macro \c cimg_strict_warnings is set, and
+      when a \CImg function has to display a warning message (see cimg::warn()).
+
+      It is not recommended to throw CImgException instances by yourself,
+      since they are expected to be thrown only by \CImg.
+      When an error occurs in a library function call, \CImg may display error messages on the screen or on the
+      standard output, depending on the current \CImg exception mode.
+      The \CImg exception mode can be get and set by functions cimg::exception_mode() and
+      cimg::exception_mode(unsigned int).
+
+      \par Exceptions handling
+
+      In all cases, when an error occurs in \CImg, an instance of the corresponding exception class is thrown.
+      This may lead the program to break (this is the default behavior), but you can bypass this behavior by
+      handling the exceptions by yourself,
+      using a usual <tt>try { ... } catch () { ... }</tt> bloc, as in the following example:
+      \code
+      #define "CImg.h"
+      using namespace cimg_library;
+      int main() {
+        cimg::exception_mode(0);                                    // Enable quiet exception mode.
+        try {
+          ...                                                       // Here, do what you want to stress CImg.
+        } catch (CImgException &e) {                                // You succeeded: something went wrong!
+          std::fprintf(stderr,"CImg Library Error: %s",e.what());   // Display your custom error message.
+          ...                                                       // Do what you want now to save the ship!
+          }
+        }
+      \endcode
+  **/
+  struct CImgException : public std::exception {
+#define _cimg_exception_err(etype,disp_flag) \
+  std::va_list ap, ap2; \
+  va_start(ap,format); va_start(ap2,format); \
+  int size = cimg_vsnprintf(0,0,format,ap2); \
+  if (size++>=0) { \
+    delete[] _message; \
+    _message = new char[size]; \
+    cimg_vsnprintf(_message,size,format,ap); \
+    if (cimg::exception_mode()) { \
+      std::fprintf(cimg::output(),"\n%s[CImg] *** %s ***%s %s\n",cimg::t_red,etype,cimg::t_normal,_message); \
+      if (cimg_display && disp_flag && !(cimg::exception_mode()%2)) try { cimg::dialog(etype,_message,"Abort"); } \
+      catch (CImgException&) {} \
+      if (cimg::exception_mode()>=3) cimg_library_suffixed::cimg::info(); \
+    } \
+  } \
+  va_end(ap); va_end(ap2); \
+
+    char *_message;
+    CImgException() { _message = new char[1]; *_message = 0; }
+    CImgException(const char *const format, ...):_message(0) { _cimg_exception_err("CImgException",true); }
+    CImgException(const CImgException& e):std::exception(e) {
+      const size_t size = std::strlen(e._message);
+      _message = new char[size + 1];
+      std::strncpy(_message,e._message,size);
+      _message[size] = 0;
+    }
+    ~CImgException() throw() { delete[] _message; }
+    CImgException& operator=(const CImgException& e) {
+      const size_t size = std::strlen(e._message);
+      _message = new char[size + 1];
+      std::strncpy(_message,e._message,size);
+      _message[size] = 0;
+      return *this;
+    }
+    //! Return a C-string containing the error message associated to the thrown exception.
+    const char *what() const throw() { return _message; }
+  };
+
+  // The CImgAbortException class is used to throw an exception when
+  // a computationally-intensive function has been aborted by an external signal.
+  struct CImgAbortException : public std::exception {
+    char *_message;
+    C
