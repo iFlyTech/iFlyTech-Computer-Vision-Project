@@ -2032,4 +2032,191 @@ extern "C" {
    (I[18] = (T)(img)(_p1##x,_p1##y,_n1##z,c)), \
    (I[21] = (T)(img)(_p1##x,y,_n1##z,c)), \
    (I[24] = (T)(img)(_p1##x,_n1##y,_n1##z,c)), \
-   (I[1] = (T
+   (I[1] = (T)(img)(x,_p1##y,_p1##z,c)), \
+   (I[4] = (T)(img)(x,y,_p1##z,c)),  \
+   (I[7] = (T)(img)(x,_n1##y,_p1##z,c)), \
+   (I[10] = (T)(img)(x,_p1##y,z,c)), \
+   (I[13] = (T)(img)(x,y,z,c)), \
+   (I[16] = (T)(img)(x,_n1##y,z,c)), \
+   (I[19] = (T)(img)(x,_p1##y,_n1##z,c)), \
+   (I[22] = (T)(img)(x,y,_n1##z,c)), \
+   (I[25] = (T)(img)(x,_n1##y,_n1##z,c)), \
+   x + 1>=(int)(img)._width?(img).width() - 1:x + 1); \
+   x<=(int)(x1) && ((_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,_p1##z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,_p1##z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,_p1##z,c)), \
+   (I[11] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[14] = (T)(img)(_n1##x,y,z,c)), \
+   (I[17] = (T)(img)(_n1##x,_n1##y,z,c)), \
+   (I[20] = (T)(img)(_n1##x,_p1##y,_n1##z,c)), \
+   (I[23] = (T)(img)(_n1##x,y,_n1##z,c)), \
+   (I[26] = (T)(img)(_n1##x,_n1##y,_n1##z,c)),1)) || \
+   x==--_n1##x); \
+   I[0] = I[1], I[1] = I[2], I[3] = I[4], I[4] = I[5], I[6] = I[7], I[7] = I[8], \
+   I[9] = I[10], I[10] = I[11], I[12] = I[13], I[13] = I[14], I[15] = I[16], I[16] = I[17], \
+   I[18] = I[19], I[19] = I[20], I[21] = I[22], I[22] = I[23], I[24] = I[25], I[25] = I[26], \
+   _p1##x = x++, ++_n1##x)
+
+#define cimglist_for(list,l) for (int l = 0; l<(int)(list)._width; ++l)
+#define cimglist_for_in(list,l0,l1,l) \
+  for (int l = (int)(l0)<0?0:(int)(l0), _max##l = (unsigned int)l1<(list)._width?(int)(l1):(int)(list)._width - 1; \
+  l<=_max##l; ++l)
+
+#define cimglist_apply(list,fn) cimglist_for(list,__##fn) (list)[__##fn].fn
+
+// Macros used to display error messages when exceptions are thrown.
+// You should not use these macros is your own code.
+#define _cimgdisplay_instance "[instance(%u,%u,%u,%c%s%c)] CImgDisplay::"
+#define cimgdisplay_instance _width,_height,_normalization,_title?'\"':'[',_title?_title:"untitled",_title?'\"':']'
+#define _cimg_instance "[instance(%u,%u,%u,%u,%p,%sshared)] CImg<%s>::"
+#define cimg_instance _width,_height,_depth,_spectrum,_data,_is_shared?"":"non-",pixel_type()
+#define _cimglist_instance "[instance(%u,%u,%p)] CImgList<%s>::"
+#define cimglist_instance _width,_allocated_width,_data,pixel_type()
+
+/*------------------------------------------------
+ #
+ #
+ #  Define cimg_library:: namespace
+ #
+ #
+ -------------------------------------------------*/
+//! Contains <i>all classes and functions</i> of the \CImg library.
+/**
+   This namespace is defined to avoid functions and class names collisions
+   that could happen with the inclusion of other C++ header files.
+   Anyway, it should not happen often and you should reasonnably start most of your
+   \CImg-based programs with
+   \code
+   #include "CImg.h"
+   using namespace cimg_library;
+   \endcode
+   to simplify the declaration of \CImg Library objects afterwards.
+**/
+namespace cimg_library_suffixed {
+
+  // Declare the four classes of the CImg Library.
+  template<typename T=float> struct CImg;
+  template<typename T=float> struct CImgList;
+  struct CImgDisplay;
+  struct CImgException;
+
+  // Declare cimg:: namespace.
+  // This is an uncomplete namespace definition here. It only contains some
+  // necessary stuff to ensure a correct declaration order of the classes and functions
+  // defined afterwards.
+  namespace cimg {
+
+    // Define ascii sequences for colored terminal output.
+#ifdef cimg_use_vt100
+    static const char t_normal[] = { 0x1b, '[', '0', ';', '0', ';', '0', 'm', 0 };
+    static const char t_black[] = { 0x1b, '[', '0', ';', '3', '0', ';', '5', '9', 'm', 0 };
+    static const char t_red[] = { 0x1b, '[', '0', ';', '3', '1', ';', '5', '9', 'm', 0 };
+    static const char t_green[] = { 0x1b, '[', '0', ';', '3', '2', ';', '5', '9', 'm', 0 };
+    static const char t_yellow[] = { 0x1b, '[', '0', ';', '3', '3', ';', '5', '9', 'm', 0 };
+    static const char t_blue[] = { 0x1b, '[', '0', ';', '3', '4', ';', '5', '9', 'm', 0 };
+    static const char t_magenta[] = { 0x1b, '[', '0', ';', '3', '5', ';', '5', '9', 'm', 0 };
+    static const char t_cyan[] = { 0x1b, '[', '0', ';', '3', '6', ';', '5', '9', 'm', 0 };
+    static const char t_white[] = { 0x1b, '[', '0', ';', '3', '7', ';', '5', '9', 'm', 0 };
+    static const char t_bold[] = { 0x1b, '[', '1', 'm', 0 };
+    static const char t_underscore[] = { 0x1b, '[', '4', 'm', 0 };
+#else
+    static const char t_normal[] = { 0 };
+    static const char *const t_black = cimg::t_normal,
+      *const t_red = cimg::t_normal,
+      *const t_green = cimg::t_normal,
+      *const t_yellow = cimg::t_normal,
+      *const t_blue = cimg::t_normal,
+      *const t_magenta = cimg::t_normal,
+      *const t_cyan = cimg::t_normal,
+      *const t_white = cimg::t_normal,
+      *const t_bold = cimg::t_normal,
+      *const t_underscore = cimg::t_normal;
+#endif
+
+    inline std::FILE* output(std::FILE *file=0);
+    inline void info();
+
+    //! Avoid warning messages due to unused parameters. Do nothing actually.
+    template<typename T>
+    inline void unused(const T&, ...) {}
+
+    // [internal] Lock/unlock a mutex for managing concurrent threads.
+    // 'lock_mode' can be { 0=unlock | 1=lock | 2=trylock }.
+    // 'n' can be in [0,31] but mutex range [0,15] is reserved by CImg.
+    inline int mutex(const unsigned int n, const int lock_mode=1);
+
+    inline unsigned int& _exception_mode(const unsigned int value, const bool is_set) {
+      static unsigned int mode = cimg_verbosity;
+      if (is_set) { cimg::mutex(0); mode = value<4?value:4; cimg::mutex(0,0); }
+      return mode;
+    }
+
+    // Mandatory because Microsoft's _snprintf() and _vsnprintf() do not add the '\0' character
+    // at the end of the string.
+#if cimg_OS==2 && defined(_MSC_VER)
+    inline int _snprintf(char *const s, const size_t size, const char *const format, ...) {
+      va_list ap;
+      va_start(ap,format);
+      const int result = _vsnprintf(s,size,format,ap);
+      va_end(ap);
+      return result;
+    }
+
+    inline int _vsnprintf(char *const s, const size_t size, const char *const format, va_list ap) {
+      int result = -1;
+      cimg::mutex(6);
+      if (size) result = _vsnprintf_s(s,size,_TRUNCATE,format,ap);
+      if (result==-1) result = _vscprintf(format,ap);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    // Mutex-protected version of sscanf, sprintf and snprintf.
+    // Used only MacOSX, as it seems those functions are not re-entrant on MacOSX.
+#elif defined(__MACOSX__) || defined(__APPLE__)
+    inline int _sscanf(const char *const s, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsscanf(s,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _sprintf(char *const s, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsprintf(s,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _snprintf(char *const s, const size_t n, const char *const format, ...) {
+      cimg::mutex(6);
+      va_list args;
+      va_start(args,format);
+      const int result = std::vsnprintf(s,n,format,args);
+      va_end(args);
+      cimg::mutex(6,0);
+      return result;
+    }
+
+    inline int _vsnprintf(char *const s, const size_t size, const char* format, va_list ap) {
+      cimg::mutex(6);
+      const int result = std::vsnprintf(s,size,format,ap);
+      cimg::mutex(6,0);
+      return result;
+    }
+#endif
+
+    //! Set current \CImg exception mode.
+    /**
+       The way error messages are handled by \CImg can be changed dynamically, using this function.
+       \param mode Desired exception mode. Possible values are:
+       - \c 0: Hide library messages (quiet mode).
+       - \c 1: Print library messages on the console.
+       - \c 2: Disp
