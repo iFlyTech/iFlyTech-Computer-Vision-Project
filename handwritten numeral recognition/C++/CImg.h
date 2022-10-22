@@ -2385,4 +2385,156 @@ namespace cimg_library_suffixed {
   // a computationally-intensive function has been aborted by an external signal.
   struct CImgAbortException : public std::exception {
     char *_message;
-    C
+    CImgAbortException() { _message = new char[1]; *_message = 0; }
+    CImgAbortException(const char *const format, ...):_message(0) { _cimg_exception_err("CImgAbortException",true); }
+    CImgAbortException(const CImgAbortException& e):std::exception(e) {
+      const size_t size = std::strlen(e._message);
+      _message = new char[size + 1];
+      std::strncpy(_message,e._message,size);
+      _message[size] = 0;
+    }
+    ~CImgAbortException() throw() { delete[] _message; }
+    CImgAbortException& operator=(const CImgAbortException& e) {
+      const size_t size = std::strlen(e._message);
+      _message = new char[size + 1];
+      std::strncpy(_message,e._message,size);
+      _message[size] = 0;
+      return *this;
+    }
+    //! Return a C-string containing the error message associated to the thrown exception.
+    const char *what() const throw() { return _message; }
+  };
+
+  // The CImgArgumentException class is used to throw an exception related
+  // to invalid arguments encountered in a library function call.
+  struct CImgArgumentException : public CImgException {
+    CImgArgumentException(const char *const format, ...) { _cimg_exception_err("CImgArgumentException",true); }
+  };
+
+  // The CImgDisplayException class is used to throw an exception related
+  // to display problems encountered in a library function call.
+  struct CImgDisplayException : public CImgException {
+    CImgDisplayException(const char *const format, ...) { _cimg_exception_err("CImgDisplayException",false); }
+  };
+
+  // The CImgInstanceException class is used to throw an exception related
+  // to an invalid instance encountered in a library function call.
+  struct CImgInstanceException : public CImgException {
+    CImgInstanceException(const char *const format, ...) { _cimg_exception_err("CImgInstanceException",true); }
+  };
+
+  // The CImgIOException class is used to throw an exception related
+  // to input/output file problems encountered in a library function call.
+  struct CImgIOException : public CImgException {
+    CImgIOException(const char *const format, ...) { _cimg_exception_err("CImgIOException",true); }
+  };
+
+  // The CImgWarningException class is used to throw an exception for warnings
+  // encountered in a library function call.
+  struct CImgWarningException : public CImgException {
+    CImgWarningException(const char *const format, ...) { _cimg_exception_err("CImgWarningException",false); }
+  };
+
+  /*-------------------------------------
+    #
+    # Define cimg:: namespace
+    #
+    -----------------------------------*/
+  //! Contains \a low-level functions and variables of the \CImg Library.
+  /**
+     Most of the functions and variables within this namespace are used by the \CImg library for low-level operations.
+     You may use them to access specific const values or environment variables internally used by \CImg.
+     \warning Never write <tt>using namespace cimg_library::cimg;</tt> in your source code. Lot of functions in the
+     <tt>cimg:: namespace</tt> have the same names as standard C functions that may be defined in the global
+     namespace <tt>::</tt>.
+  **/
+  namespace cimg {
+
+    // Define traits that will be used to determine the best data type to work in CImg functions.
+    //
+    template<typename T> struct type {
+      static const char* string() {
+        static const char* s[] = { "unknown",   "unknown8",   "unknown16",  "unknown24",
+                                   "unknown32", "unknown40",  "unknown48",  "unknown56",
+                                   "unknown64", "unknown72",  "unknown80",  "unknown88",
+                                   "unknown96", "unknown104", "unknown112", "unknown120",
+                                   "unknown128" };
+        return s[(sizeof(T)<17)?sizeof(T):0];
+      }
+      static bool is_float() { return false; }
+      static bool is_inf(const T) { return false; }
+      static bool is_nan(const T) { return false; }
+      static T min() { return ~max(); }
+      static T max() { return (T)1<<(8*sizeof(T) - 1); }
+      static T inf() { return max(); }
+      static T cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(T)val; }
+      static const char* format() { return "%s"; }
+      static const char* format(const T& val) { static const char *const s = "unknown"; cimg::unused(val); return s; }
+    };
+
+    template<> struct type<bool> {
+      static const char* string() { static const char *const s = "bool"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const bool) { return false; }
+      static bool is_nan(const bool) { return false; }
+      static bool min() { return false; }
+      static bool max() { return true; }
+      static bool inf() { return max(); }
+      static bool is_inf() { return false; }
+      static bool cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(bool)val; }
+      static const char* format() { return "%s"; }
+      static const char* format(const bool val) { static const char* s[] = { "false", "true" }; return s[val?1:0]; }
+    };
+
+    template<> struct type<unsigned char> {
+      static const char* string() { static const char *const s = "unsigned char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const unsigned char) { return false; }
+      static bool is_nan(const unsigned char) { return false; }
+      static unsigned char min() { return 0; }
+      static unsigned char max() { return (unsigned char)-1; }
+      static unsigned char inf() { return max(); }
+      static unsigned char cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned char)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const unsigned char val) { return (unsigned int)val; }
+    };
+
+#if defined(CHAR_MAX) && CHAR_MAX==255
+    template<> struct type<char> {
+      static const char* string() { static const char *const s = "char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const char) { return false; }
+      static bool is_nan(const char) { return false; }
+      static char min() { return 0; }
+      static char max() { return (char)-1; }
+      static char inf() { return max(); }
+      static char cut(const double val) {
+        return val<(double)min()?min():val>(double)max()?max():(unsigned char)val; }
+      static const char* format() { return "%u"; }
+      static unsigned int format(const char val) { return (unsigned int)val; }
+    };
+#else
+    template<> struct type<char> {
+      static const char* string() { static const char *const s = "char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const char) { return false; }
+      static bool is_nan(const char) { return false; }
+      static char min() { return ~max(); }
+      static char max() { return (char)((unsigned char)-1>>1); }
+      static char inf() { return max(); }
+      static char cut(const double val) { return val<(double)min()?min():val>(double)max()?max():(char)val; }
+      static const char* format() { return "%d"; }
+      static int format(const char val) { return (int)val; }
+    };
+#endif
+
+    template<> struct type<signed char> {
+      static const char* string() { static const char *const s = "signed char"; return s; }
+      static bool is_float() { return false; }
+      static bool is_inf(const signed char) { return false; }
+      static bool is_nan(const signed char) { return false; }
+      static signed char min() { return ~max(); }
+      static signed char max() { return (signed char)((unsigned char)-1>>1); }
+      static signed char inf() { return max(); }
+      static signed char cut(const
