@@ -2841,4 +2841,194 @@ namespace cimg_library_suffixed {
 #ifdef cimg_use_xrandr
         resolutions = 0;
         curr_rotation = 0;
-  
+        curr_resolution = nb_resolutions = 0;
+#endif
+      }
+
+      ~X11_info() {
+        delete[] wins;
+        /*
+          if (events_thread) {
+          pthread_cancel(*events_thread);
+          delete events_thread;
+          }
+          if (display) { } // XCloseDisplay(display); }
+          pthread_cond_destroy(&wait_event);
+          pthread_mutex_unlock(&wait_event_mutex);
+          pthread_mutex_destroy(&wait_event_mutex);
+        */
+      }
+    };
+#if defined(cimg_module)
+    X11_info& X11_attr();
+#elif defined(cimg_main)
+    X11_info& X11_attr() { static X11_info val; return val; }
+#else
+    inline X11_info& X11_attr() { static X11_info val; return val; }
+#endif
+#define cimg_lock_display() cimg::mutex(15)
+#define cimg_unlock_display() cimg::mutex(15,0)
+
+#elif cimg_display==2
+    struct Win32_info {
+      HANDLE wait_event;
+      Win32_info() { wait_event = CreateEvent(0,FALSE,FALSE,0); }
+    };
+#if defined(cimg_module)
+    Win32_info& Win32_attr();
+#elif defined(cimg_main)
+    Win32_info& Win32_attr() { static Win32_info val; return val; }
+#else
+    inline Win32_info& Win32_attr() { static Win32_info val; return val; }
+#endif
+#endif
+
+    struct Mutex_info {
+#if cimg_OS==2
+      HANDLE mutex[32];
+      Mutex_info() { for (unsigned int i = 0; i<32; ++i) mutex[i] = CreateMutex(0,FALSE,0); }
+      void lock(const unsigned int n) { WaitForSingleObject(mutex[n],INFINITE); }
+      void unlock(const unsigned int n) { ReleaseMutex(mutex[n]); }
+      int trylock(const unsigned int) { return 0; }
+#elif defined(_PTHREAD_H)
+      pthread_mutex_t mutex[32];
+      Mutex_info() { for (unsigned int i = 0; i<32; ++i) pthread_mutex_init(&mutex[i],0); }
+      void lock(const unsigned int n) { pthread_mutex_lock(&mutex[n]); }
+      void unlock(const unsigned int n) { pthread_mutex_unlock(&mutex[n]); }
+      int trylock(const unsigned int n) { return pthread_mutex_trylock(&mutex[n]); }
+#else
+      Mutex_info() {}
+      void lock(const unsigned int) {}
+      void unlock(const unsigned int) {}
+      int trylock(const unsigned int) { return 0; }
+#endif
+    };
+#if defined(cimg_module)
+    Mutex_info& Mutex_attr();
+#elif defined(cimg_main)
+    Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
+#else
+    inline Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
+#endif
+
+#if defined(cimg_use_magick)
+    static struct Magick_info {
+      Magick_info() {
+        Magick::InitializeMagick("");
+      }
+    } _Magick_info;
+#endif
+
+#if cimg_display==1
+    // Define keycodes for X11-based graphical systems.
+    const unsigned int keyESC        = XK_Escape;
+    const unsigned int keyF1         = XK_F1;
+    const unsigned int keyF2         = XK_F2;
+    const unsigned int keyF3         = XK_F3;
+    const unsigned int keyF4         = XK_F4;
+    const unsigned int keyF5         = XK_F5;
+    const unsigned int keyF6         = XK_F6;
+    const unsigned int keyF7         = XK_F7;
+    const unsigned int keyF8         = XK_F8;
+    const unsigned int keyF9         = XK_F9;
+    const unsigned int keyF10        = XK_F10;
+    const unsigned int keyF11        = XK_F11;
+    const unsigned int keyF12        = XK_F12;
+    const unsigned int keyPAUSE      = XK_Pause;
+    const unsigned int key1          = XK_1;
+    const unsigned int key2          = XK_2;
+    const unsigned int key3          = XK_3;
+    const unsigned int key4          = XK_4;
+    const unsigned int key5          = XK_5;
+    const unsigned int key6          = XK_6;
+    const unsigned int key7          = XK_7;
+    const unsigned int key8          = XK_8;
+    const unsigned int key9          = XK_9;
+    const unsigned int key0          = XK_0;
+    const unsigned int keyBACKSPACE  = XK_BackSpace;
+    const unsigned int keyINSERT     = XK_Insert;
+    const unsigned int keyHOME       = XK_Home;
+    const unsigned int keyPAGEUP     = XK_Page_Up;
+    const unsigned int keyTAB        = XK_Tab;
+    const unsigned int keyQ          = XK_q;
+    const unsigned int keyW          = XK_w;
+    const unsigned int keyE          = XK_e;
+    const unsigned int keyR          = XK_r;
+    const unsigned int keyT          = XK_t;
+    const unsigned int keyY          = XK_y;
+    const unsigned int keyU          = XK_u;
+    const unsigned int keyI          = XK_i;
+    const unsigned int keyO          = XK_o;
+    const unsigned int keyP          = XK_p;
+    const unsigned int keyDELETE     = XK_Delete;
+    const unsigned int keyEND        = XK_End;
+    const unsigned int keyPAGEDOWN   = XK_Page_Down;
+    const unsigned int keyCAPSLOCK   = XK_Caps_Lock;
+    const unsigned int keyA          = XK_a;
+    const unsigned int keyS          = XK_s;
+    const unsigned int keyD          = XK_d;
+    const unsigned int keyF          = XK_f;
+    const unsigned int keyG          = XK_g;
+    const unsigned int keyH          = XK_h;
+    const unsigned int keyJ          = XK_j;
+    const unsigned int keyK          = XK_k;
+    const unsigned int keyL          = XK_l;
+    const unsigned int keyENTER      = XK_Return;
+    const unsigned int keySHIFTLEFT  = XK_Shift_L;
+    const unsigned int keyZ          = XK_z;
+    const unsigned int keyX          = XK_x;
+    const unsigned int keyC          = XK_c;
+    const unsigned int keyV          = XK_v;
+    const unsigned int keyB          = XK_b;
+    const unsigned int keyN          = XK_n;
+    const unsigned int keyM          = XK_m;
+    const unsigned int keySHIFTRIGHT = XK_Shift_R;
+    const unsigned int keyARROWUP    = XK_Up;
+    const unsigned int keyCTRLLEFT   = XK_Control_L;
+    const unsigned int keyAPPLEFT    = XK_Super_L;
+    const unsigned int keyALT        = XK_Alt_L;
+    const unsigned int keySPACE      = XK_space;
+    const unsigned int keyALTGR      = XK_Alt_R;
+    const unsigned int keyAPPRIGHT   = XK_Super_R;
+    const unsigned int keyMENU       = XK_Menu;
+    const unsigned int keyCTRLRIGHT  = XK_Control_R;
+    const unsigned int keyARROWLEFT  = XK_Left;
+    const unsigned int keyARROWDOWN  = XK_Down;
+    const unsigned int keyARROWRIGHT = XK_Right;
+    const unsigned int keyPAD0       = XK_KP_0;
+    const unsigned int keyPAD1       = XK_KP_1;
+    const unsigned int keyPAD2       = XK_KP_2;
+    const unsigned int keyPAD3       = XK_KP_3;
+    const unsigned int keyPAD4       = XK_KP_4;
+    const unsigned int keyPAD5       = XK_KP_5;
+    const unsigned int keyPAD6       = XK_KP_6;
+    const unsigned int keyPAD7       = XK_KP_7;
+    const unsigned int keyPAD8       = XK_KP_8;
+    const unsigned int keyPAD9       = XK_KP_9;
+    const unsigned int keyPADADD     = XK_KP_Add;
+    const unsigned int keyPADSUB     = XK_KP_Subtract;
+    const unsigned int keyPADMUL     = XK_KP_Multiply;
+    const unsigned int keyPADDIV     = XK_KP_Divide;
+
+#elif cimg_display==2
+    // Define keycodes for Windows.
+    const unsigned int keyESC        = VK_ESCAPE;
+    const unsigned int keyF1         = VK_F1;
+    const unsigned int keyF2         = VK_F2;
+    const unsigned int keyF3         = VK_F3;
+    const unsigned int keyF4         = VK_F4;
+    const unsigned int keyF5         = VK_F5;
+    const unsigned int keyF6         = VK_F6;
+    const unsigned int keyF7         = VK_F7;
+    const unsigned int keyF8         = VK_F8;
+    const unsigned int keyF9         = VK_F9;
+    const unsigned int keyF10        = VK_F10;
+    const unsigned int keyF11        = VK_F11;
+    const unsigned int keyF12        = VK_F12;
+    const unsigned int keyPAUSE      = VK_PAUSE;
+    const unsigned int key1          = '1';
+    const unsigned int key2          = '2';
+    const unsigned int key3          = '3';
+    const unsigned int key4          = '4';
+    const unsigned int key5          = '5';
+    const unsigned int 
