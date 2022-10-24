@@ -2716,4 +2716,129 @@ namespace cimg_library_suffixed {
 
     template<typename T, typename t> struct superset { typedef T type; };
     template<> struct superset<bool,unsigned char> { typedef unsigned char type; };
-    template<> stru
+    template<> struct superset<bool,char> { typedef char type; };
+    template<> struct superset<bool,signed char> { typedef signed char type; };
+    template<> struct superset<bool,unsigned short> { typedef unsigned short type; };
+    template<> struct superset<bool,short> { typedef short type; };
+    template<> struct superset<bool,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<bool,int> { typedef int type; };
+    template<> struct superset<bool,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<bool,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<bool,float> { typedef float type; };
+    template<> struct superset<bool,double> { typedef double type; };
+    template<> struct superset<unsigned char,char> { typedef short type; };
+    template<> struct superset<unsigned char,signed char> { typedef short type; };
+    template<> struct superset<unsigned char,unsigned short> { typedef unsigned short type; };
+    template<> struct superset<unsigned char,short> { typedef short type; };
+    template<> struct superset<unsigned char,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<unsigned char,int> { typedef int type; };
+    template<> struct superset<unsigned char,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned char,float> { typedef float type; };
+    template<> struct superset<unsigned char,double> { typedef double type; };
+    template<> struct superset<signed char,unsigned char> { typedef short type; };
+    template<> struct superset<signed char,char> { typedef short type; };
+    template<> struct superset<signed char,unsigned short> { typedef int type; };
+    template<> struct superset<signed char,short> { typedef short type; };
+    template<> struct superset<signed char,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,int> { typedef int type; };
+    template<> struct superset<signed char,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<signed char,float> { typedef float type; };
+    template<> struct superset<signed char,double> { typedef double type; };
+    template<> struct superset<char,unsigned char> { typedef short type; };
+    template<> struct superset<char,signed char> { typedef short type; };
+    template<> struct superset<char,unsigned short> { typedef int type; };
+    template<> struct superset<char,short> { typedef short type; };
+    template<> struct superset<char,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<char,int> { typedef int type; };
+    template<> struct superset<char,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<char,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<char,float> { typedef float type; };
+    template<> struct superset<char,double> { typedef double type; };
+    template<> struct superset<unsigned short,char> { typedef int type; };
+    template<> struct superset<unsigned short,signed char> { typedef int type; };
+    template<> struct superset<unsigned short,short> { typedef int type; };
+    template<> struct superset<unsigned short,unsigned int> { typedef unsigned int type; };
+    template<> struct superset<unsigned short,int> { typedef int type; };
+    template<> struct superset<unsigned short,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned short,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned short,float> { typedef float type; };
+    template<> struct superset<unsigned short,double> { typedef double type; };
+    template<> struct superset<short,unsigned short> { typedef int type; };
+    template<> struct superset<short,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<short,int> { typedef int type; };
+    template<> struct superset<short,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<short,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<short,float> { typedef float type; };
+    template<> struct superset<short,double> { typedef double type; };
+    template<> struct superset<unsigned int,char> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,signed char> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,short> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,int> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,cimg_uint64> { typedef cimg_uint64 type; };
+    template<> struct superset<unsigned int,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<unsigned int,float> { typedef float type; };
+    template<> struct superset<unsigned int,double> { typedef double type; };
+    template<> struct superset<int,unsigned int> { typedef cimg_int64 type; };
+    template<> struct superset<int,cimg_uint64> { typedef cimg_int64 type; };
+    template<> struct superset<int,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<int,float> { typedef float type; };
+    template<> struct superset<int,double> { typedef double type; };
+    template<> struct superset<cimg_uint64,char> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,signed char> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,short> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,int> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,cimg_int64> { typedef cimg_int64 type; };
+    template<> struct superset<cimg_uint64,float> { typedef double type; };
+    template<> struct superset<cimg_uint64,double> { typedef double type; };
+    template<> struct superset<cimg_int64,float> { typedef double type; };
+    template<> struct superset<cimg_int64,double> { typedef double type; };
+    template<> struct superset<float,double> { typedef double type; };
+
+    template<typename t1, typename t2, typename t3> struct superset2 {
+      typedef typename superset<t1, typename superset<t2,t3>::type>::type type;
+    };
+
+    template<typename t1, typename t2, typename t3, typename t4> struct superset3 {
+      typedef typename superset<t1, typename superset2<t2,t3,t4>::type>::type type;
+    };
+
+    template<typename t1, typename t2> struct last { typedef t2 type; };
+
+#define _cimg_Tt typename cimg::superset<T,t>::type
+#define _cimg_Tfloat typename cimg::superset<T,float>::type
+#define _cimg_Ttfloat typename cimg::superset2<T,t,float>::type
+#define _cimg_Ttdouble typename cimg::superset2<T,t,double>::type
+
+    // Define variables used internally by CImg.
+#if cimg_display==1
+    struct X11_info {
+      unsigned int nb_wins;
+      pthread_t *events_thread;
+      pthread_cond_t wait_event;
+      pthread_mutex_t wait_event_mutex;
+      CImgDisplay **wins;
+      Display *display;
+      unsigned int nb_bits;
+      bool is_blue_first;
+      bool is_shm_enabled;
+      bool byte_order;
+#ifdef cimg_use_xrandr
+      XRRScreenSize *resolutions;
+      Rotation curr_rotation;
+      unsigned int curr_resolution;
+      unsigned int nb_resolutions;
+#endif
+      X11_info():nb_wins(0),events_thread(0),display(0),
+                 nb_bits(0),is_blue_first(false),is_shm_enabled(false),byte_order(false) {
+#ifdef __FreeBSD__
+        XInitThreads();
+#endif
+        wins = new CImgDisplay*[1024];
+        pthread_mutex_init(&wait_event_mutex,0);
+        pthread_cond_init(&wait_event,0);
+#ifdef cimg_use_xrandr
+        resolutions = 0;
+        curr_rotation = 0;
+  
