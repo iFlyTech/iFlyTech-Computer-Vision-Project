@@ -4032,4 +4032,160 @@ namespace cimg_library_suffixed {
 "            /\\ 0W                 HT                                                                                                                  "
 "                                                      I}              *[     NW           6W  :W              ;Z     3V           BW        FW ?W   >W"
 "    NW   0W =W                                                                          7W                                                            "
-"                                                             
+"                                                                             /Z .W                                                                    "
+"                                                                                                                     =}                               "
+"                                                                                                                                                      "
+"                                                                                                                              D" };
+
+    // Define a 40x38 'danger' color logo (used by cimg::dialog()).
+    static const unsigned char logo40x38[4576] = {
+      177,200,200,200,3,123,123,0,36,200,200,200,1,123,123,0,2,255,255,0,1,189,189,189,1,0,0,0,34,200,200,200,
+      1,123,123,0,4,255,255,0,1,189,189,189,1,0,0,0,1,123,123,123,32,200,200,200,1,123,123,0,5,255,255,0,1,0,0,
+      0,2,123,123,123,30,200,200,200,1,123,123,0,6,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,29,200,200,200,
+      1,123,123,0,7,255,255,0,1,0,0,0,2,123,123,123,28,200,200,200,1,123,123,0,8,255,255,0,1,189,189,189,1,0,0,0,
+      2,123,123,123,27,200,200,200,1,123,123,0,9,255,255,0,1,0,0,0,2,123,123,123,26,200,200,200,1,123,123,0,10,255,
+      255,0,1,189,189,189,1,0,0,0,2,123,123,123,25,200,200,200,1,123,123,0,3,255,255,0,1,189,189,189,3,0,0,0,1,189,
+      189,189,3,255,255,0,1,0,0,0,2,123,123,123,24,200,200,200,1,123,123,0,4,255,255,0,5,0,0,0,3,255,255,0,1,189,
+      189,189,1,0,0,0,2,123,123,123,23,200,200,200,1,123,123,0,4,255,255,0,5,0,0,0,4,255,255,0,1,0,0,0,2,123,123,123,
+      22,200,200,200,1,123,123,0,5,255,255,0,5,0,0,0,4,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,21,200,200,200,
+      1,123,123,0,5,255,255,0,5,0,0,0,5,255,255,0,1,0,0,0,2,123,123,123,20,200,200,200,1,123,123,0,6,255,255,0,5,0,0,
+      0,5,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,19,200,200,200,1,123,123,0,6,255,255,0,1,123,123,0,3,0,0,0,1,
+      123,123,0,6,255,255,0,1,0,0,0,2,123,123,123,18,200,200,200,1,123,123,0,7,255,255,0,1,189,189,189,3,0,0,0,1,189,
+      189,189,6,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,17,200,200,200,1,123,123,0,8,255,255,0,3,0,0,0,8,255,255,
+      0,1,0,0,0,2,123,123,123,16,200,200,200,1,123,123,0,9,255,255,0,1,123,123,0,1,0,0,0,1,123,123,0,8,255,255,0,1,189,
+      189,189,1,0,0,0,2,123,123,123,15,200,200,200,1,123,123,0,9,255,255,0,1,189,189,189,1,0,0,0,1,189,189,189,9,255,
+      255,0,1,0,0,0,2,123,123,123,14,200,200,200,1,123,123,0,11,255,255,0,1,0,0,0,10,255,255,0,1,189,189,189,1,0,0,0,2,
+      123,123,123,13,200,200,200,1,123,123,0,23,255,255,0,1,0,0,0,2,123,123,123,12,200,200,200,1,123,123,0,11,255,255,0,
+      1,189,189,189,2,0,0,0,1,189,189,189,9,255,255,0,1,189,189,189,1,0,0,0,2,123,123,123,11,200,200,200,1,123,123,0,11,
+      255,255,0,4,0,0,0,10,255,255,0,1,0,0,0,2,123,123,123,10,200,200,200,1,123,123,0,12,255,255,0,4,0,0,0,10,255,255,0,
+      1,189,189,189,1,0,0,0,2,123,123,123,9,200,200,200,1,123,123,0,12,255,255,0,1,189,189,189,2,0,0,0,1,189,189,189,11,
+      255,255,0,1,0,0,0,2,123,123,123,9,200,200,200,1,123,123,0,27,255,255,0,1,0,0,0,3,123,123,123,8,200,200,200,1,123,
+      123,0,26,255,255,0,1,189,189,189,1,0,0,0,3,123,123,123,9,200,200,200,1,123,123,0,24,255,255,0,1,189,189,189,1,0,0,
+      0,4,123,123,123,10,200,200,200,1,123,123,0,24,0,0,0,5,123,123,123,12,200,200,200,27,123,123,123,14,200,200,200,25,
+      123,123,123,86,200,200,200,91,49,124,118,124,71,32,124,95,49,56,114,52,82,121,0 };
+
+    //! Get/set default output stream for the \CImg library messages.
+    /**
+       \param file Desired output stream. Set to \c 0 to get the currently used output stream only.
+       \return Currently used output stream.
+    **/
+    inline std::FILE* output(std::FILE *file) {
+      cimg::mutex(1);
+      static std::FILE *res = stderr;
+      if (file) res = file;
+      cimg::mutex(1,0);
+      return res;
+    }
+
+    // Return number of available CPU cores.
+    inline unsigned int nb_cpus() {
+      unsigned int res = 1;
+#if cimg_OS==2
+      SYSTEM_INFO sysinfo;
+      GetSystemInfo(&sysinfo);
+      res = (unsigned int)sysinfo.dwNumberOfProcessors;
+#else
+      res = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+      return res?res:1U;
+    }
+
+    // Lock/unlock mutex for CImg multi-thread programming.
+    inline int mutex(const unsigned int n, const int lock_mode) {
+      switch (lock_mode) {
+      case 0 : cimg::Mutex_attr().unlock(n); return 0;
+      case 1 : cimg::Mutex_attr().lock(n); return 0;
+      default : return cimg::Mutex_attr().trylock(n);
+      }
+    }
+
+    //! Display a warning message on the default output stream.
+    /**
+       \param format C-string containing the format of the message, as with <tt>std::printf()</tt>.
+       \note If configuration macro \c cimg_strict_warnings is set, this function throws a
+       \c CImgWarningException instead.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       cimg::warn("%s",warning_message);
+       \endcode
+       instead of
+       \code
+       cimg::warn(warning_message);
+       \endcode
+       if \c warning_message can be arbitrary, to prevent nasty memory access.
+    **/
+    inline void warn(const char *const format, ...) {
+      if (cimg::exception_mode()>=1) {
+        char *const message = new char[16384];
+        std::va_list ap;
+        va_start(ap,format);
+        cimg_vsnprintf(message,16384,format,ap);
+        va_end(ap);
+#ifdef cimg_strict_warnings
+        throw CImgWarningException(message);
+#else
+        std::fprintf(cimg::output(),"\n%s[CImg] *** Warning ***%s%s\n",cimg::t_red,cimg::t_normal,message);
+#endif
+        delete[] message;
+      }
+    }
+
+    // Execute an external system command.
+    /**
+       \param command C-string containing the command line to execute.
+       \param module_name Module name.
+       \return Status value of the executed command, whose meaning is OS-dependent.
+       \note This function is similar to <tt>std::system()</tt>
+       but it does not open an extra console windows
+       on Windows-based systems.
+    **/
+    inline int system(const char *const command, const char *const module_name=0) {
+      cimg::unused(module_name);
+#ifdef cimg_no_system_calls
+      return -1;
+#else
+#if cimg_OS==1
+      const unsigned int l = (unsigned int)std::strlen(command);
+      if (l) {
+        char *const ncommand = new char[l + 16];
+        std::strncpy(ncommand,command,l);
+        std::strcpy(ncommand + l," 2> /dev/null"); // Make command silent.
+        const int out_val = std::system(ncommand);
+        delete[] ncommand;
+        return out_val;
+      } else return -1;
+#elif cimg_OS==2
+      PROCESS_INFORMATION pi;
+      STARTUPINFO si;
+      std::memset(&pi,0,sizeof(PROCESS_INFORMATION));
+      std::memset(&si,0,sizeof(STARTUPINFO));
+      GetStartupInfo(&si);
+      si.cb = sizeof(si);
+      si.wShowWindow = SW_HIDE;
+      si.dwFlags |= SW_HIDE | STARTF_USESHOWWINDOW;
+      const BOOL res = CreateProcess((LPCTSTR)module_name,(LPTSTR)command,0,0,FALSE,0,0,0,&si,&pi);
+      if (res) {
+        WaitForSingleObject(pi.hProcess,INFINITE);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        return 0;
+      } else return std::system(command);
+#endif
+#endif
+    }
+
+    //! Return a reference to a temporary variable of type T.
+    template<typename T>
+    inline T& temporary(const T&) {
+      static T temp;
+      return temp;
+    }
+
+    //! Exchange values of variables \c a and \c b.
+    template<typename T>
+    inline void swap(T& a, T& b) { T t = a; a = b; b = t; }
+
+    //! Exchange values of variables (\c a1,\c a2) and (\c b1,\c b2).
+    template<typename T1, typename T2>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
+      ci
