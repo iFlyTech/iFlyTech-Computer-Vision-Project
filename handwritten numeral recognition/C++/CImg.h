@@ -4188,4 +4188,193 @@ namespace cimg_library_suffixed {
     //! Exchange values of variables (\c a1,\c a2) and (\c b1,\c b2).
     template<typename T1, typename T2>
     inline void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
-      ci
+      cimg::swap(a1,b1); cimg::swap(a2,b2);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,\c a3) and (\c b1,\c b2,\c b3).
+    template<typename T1, typename T2, typename T3>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3) {
+      cimg::swap(a1,b1,a2,b2); cimg::swap(a3,b3);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a4) and (\c b1,\c b2,...,\c b4).
+    template<typename T1, typename T2, typename T3, typename T4>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4) {
+      cimg::swap(a1,b1,a2,b2,a3,b3); cimg::swap(a4,b4);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a5) and (\c b1,\c b2,...,\c b5).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4); cimg::swap(a5,b5);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a6) and (\c b1,\c b2,...,\c b6).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5); cimg::swap(a6,b6);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a7) and (\c b1,\c b2,...,\c b7).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6); cimg::swap(a7,b7);
+    }
+
+    //! Exchange values of variables (\c a1,\c a2,...,\c a8) and (\c b1,\c b2,...,\c b8).
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+    inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+                     T7& a7, T7& b7, T8& a8, T8& b8) {
+      cimg::swap(a1,b1,a2,b2,a3,b3,a4,b4,a5,b5,a6,b6,a7,b7); cimg::swap(a8,b8);
+    }
+
+    //! Return the endianness of the current architecture.
+    /**
+       \return \c false for <i>Little Endian</i> or \c true for <i>Big Endian</i>.
+    **/
+    inline bool endianness() {
+      const int x = 1;
+      return ((unsigned char*)&x)[0]?false:true;
+    }
+
+    //! Reverse endianness of all elements in a memory buffer.
+    /**
+       \param[in,out] buffer Memory buffer whose endianness must be reversed.
+       \param size Number of buffer elements to reverse.
+    **/
+    template<typename T>
+    inline void invert_endianness(T* const buffer, const cimg_ulong size) {
+      if (size) switch (sizeof(T)) {
+        case 1 : break;
+        case 2 : { for (unsigned short *ptr = (unsigned short*)buffer + size; ptr>(unsigned short*)buffer; ) {
+              const unsigned short val = *(--ptr);
+              *ptr = (unsigned short)((val>>8)|((val<<8)));
+            }
+        } break;
+        case 4 : { for (unsigned int *ptr = (unsigned int*)buffer + size; ptr>(unsigned int*)buffer; ) {
+              const unsigned int val = *(--ptr);
+              *ptr = (val>>24)|((val>>8)&0xff00)|((val<<8)&0xff0000)|(val<<24);
+            }
+        } break;
+        default : { for (T* ptr = buffer + size; ptr>buffer; ) {
+              unsigned char *pb = (unsigned char*)(--ptr), *pe = pb + sizeof(T);
+              for (int i = 0; i<(int)sizeof(T)/2; ++i) swap(*(pb++),*(--pe));
+            }
+        }
+        }
+    }
+
+    //! Reverse endianness of a single variable.
+    /**
+       \param[in,out] a Variable to reverse.
+       \return Reference to reversed variable.
+    **/
+    template<typename T>
+    inline T& invert_endianness(T& a) {
+      invert_endianness(&a,1);
+      return a;
+    }
+
+    // Conversion functions to get more precision when trying to store unsigned ints values as floats.
+    inline unsigned int float2uint(const float f) {
+      int tmp = 0;
+      std::memcpy(&tmp,&f,sizeof(float));
+      if (tmp>=0) return (unsigned int)f;
+      unsigned int u;
+      // use memcpy instead of assignment to avoid undesired optimizations by C++-compiler.
+      std::memcpy(&u,&f,sizeof(float));
+      return ((u)<<1)>>1; // set sign bit to 0.
+    }
+
+    inline float uint2float(const unsigned int u) {
+      if (u<(1U<<19)) return (float)u;  // Consider safe storage of unsigned int as floats until 19bits (i.e 524287).
+      float f;
+      const unsigned int v = u|(1U<<(8*sizeof(unsigned int)-1)); // set sign bit to 1.
+      // use memcpy instead of simple assignment to avoid undesired optimizations by C++-compiler.
+      std::memcpy(&f,&v,sizeof(float));
+      return f;
+    }
+
+    //! Return the value of a system timer, with a millisecond precision.
+    /**
+       \note The timer does not necessarily starts from \c 0.
+    **/
+    inline cimg_ulong time() {
+#if cimg_OS==1
+      struct timeval st_time;
+      gettimeofday(&st_time,0);
+      return (cimg_ulong)(st_time.tv_usec/1000 + st_time.tv_sec*1000);
+#elif cimg_OS==2
+      SYSTEMTIME st_time;
+      GetLocalTime(&st_time);
+      return (cimg_ulong)(st_time.wMilliseconds + 1000*(st_time.wSecond + 60*(st_time.wMinute + 60*st_time.wHour)));
+#else
+      return 0;
+#endif
+    }
+
+    // Implement a tic/toc mechanism to display elapsed time of algorithms.
+    inline cimg_ulong tictoc(const bool is_tic);
+
+    //! Start tic/toc timer for time measurement between code instructions.
+    /**
+       \return Current value of the timer (same value as time()).
+    **/
+    inline cimg_ulong tic() {
+      return cimg::tictoc(true);
+    }
+
+    //! End tic/toc timer and displays elapsed time from last call to tic().
+    /**
+       \return Time elapsed (in ms) since last call to tic().
+    **/
+    inline cimg_ulong toc() {
+      return cimg::tictoc(false);
+    }
+
+    //! Sleep for a given numbers of milliseconds.
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \note This function frees the CPU ressources during the sleeping time.
+       It can be used to temporize your program properly, without wasting CPU time.
+    **/
+    inline void sleep(const unsigned int milliseconds) {
+#if cimg_OS==1
+      struct timespec tv;
+      tv.tv_sec = milliseconds/1000;
+      tv.tv_nsec = (milliseconds%1000)*1000000;
+      nanosleep(&tv,0);
+#elif cimg_OS==2
+      Sleep(milliseconds);
+#endif
+    }
+
+    inline unsigned int _wait(const unsigned int milliseconds, cimg_ulong& timer) {
+      if (!timer) timer = cimg::time();
+      const cimg_ulong current_time = cimg::time();
+      if (current_time>=timer + milliseconds) { timer = current_time; return 0; }
+      const unsigned int time_diff = (unsigned int)(timer + milliseconds - current_time);
+      timer = current_time + time_diff;
+      cimg::sleep(time_diff);
+      return time_diff;
+    }
+
+    //! Wait for a given number of milliseconds since the last call to wait().
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \return Number of milliseconds elapsed since the last call to wait().
+       \note Same as sleep() with a waiting time computed with regard to the last call
+       of wait(). It may be used to temporize your program properly, without wasting CPU time.
+    **/
+    inline cimg_long wait(const unsigned int milliseconds) {
+      cimg::mutex(3);
+      static cimg_ulong timer = 0;
+      if (!timer) timer = cimg::time();
+      cimg::mutex(3,0);
+      return _wait(milliseconds,timer);
+    }
+
+    // Random number generators.
+    // CImg may use its own Random Number Generator (RNG) if configuration macro 'cimg_use_rng' is set.
+    // Use it for instance when you have to deal with concurrent threads trying to call std::srand()
