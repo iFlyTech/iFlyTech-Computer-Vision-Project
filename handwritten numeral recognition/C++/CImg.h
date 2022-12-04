@@ -4637,4 +4637,202 @@ namespace cimg_library_suffixed {
     inline int mod(const unsigned short x, const unsigned short m) {
       return x%m;
     }
-    inline int mod(const short x, co
+    inline int mod(const short x, const short m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline int mod(const unsigned int x, const unsigned int m) {
+      return (int)(x%m);
+    }
+    inline int mod(const int x, const int m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+    inline cimg_int64 mod(const cimg_uint64 x, const cimg_uint64 m) {
+      return x%m;
+    }
+    inline cimg_int64 mod(const cimg_int64 x, const cimg_int64 m) {
+      return x>=0?x%m:(x%m?m + x%m:0);
+    }
+
+    //! Return the min-mod of two values.
+    /**
+       \note <i>minmod(\p a,\p b)</i> is defined to be:
+       - <i>minmod(\p a,\p b) = min(\p a,\p b)</i>, if \p a and \p b have the same sign.
+       - <i>minmod(\p a,\p b) = 0</i>, if \p a and \p b have different signs.
+    **/
+    template<typename T>
+    inline T minmod(const T& a, const T& b) {
+      return a*b<=0?0:(a>0?(a<b?a:b):(a<b?b:a));
+    }
+
+    //! Return base-2 logarithm of a value.
+    inline double log2(const double x) {
+      const double base = std::log(2.0);
+      return std::log(x)/base;
+    }
+
+    //! Return rounded value.
+    /**
+       \param x Value to be rounded.
+       \param y Rounding precision.
+       \param rounding_type Type of rounding operation (\c 0 = nearest, \c -1 = backward, \c 1 = forward).
+       \return Rounded value, having the same type as input value \c x.
+    **/
+    template<typename T>
+    inline T round(const T& x, const double y=1, const int rounding_type=0) {
+      if (y<=0) return x;
+      const double sx = (double)x/y, floor = std::floor(sx), delta =  sx - floor;
+      return (T)(y*(rounding_type<0?floor:rounding_type>0?std::ceil(sx):delta<0.5?floor:std::ceil(sx)));
+    }
+
+    inline double _pythagore(double a, double b) {
+      const double absa = cimg::abs(a), absb = cimg::abs(b);
+      if (absa>absb) { const double tmp = absb/absa; return absa*std::sqrt(1.0 + tmp*tmp); }
+      else { const double tmp = absa/absb; return absb==0?0:absb*std::sqrt(1.0 + tmp*tmp); }
+    }
+
+    //! Return sqrt(x^2 + y^2).
+    inline double hypot(const double x, const double y) {
+      double nx = cimg::abs(x), ny = cimg::abs(y), t;
+      if (nx<ny) { t = nx; nx = ny; } else t = ny;
+      if (nx>0) { t/=nx; return nx*std::sqrt(1+t*t); }
+      return 0;
+    }
+
+    //! Convert ascii character to lower case.
+    inline char uncase(const char x) {
+      return (char)((x<'A'||x>'Z')?x:x - 'A' + 'a');
+    }
+
+    //! Convert C-string to lower case.
+    inline void uncase(char *const str) {
+      if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = uncase(*ptr);
+    }
+
+    //! Read value in a C-string.
+    /**
+       \param str C-string containing the float value to read.
+       \return Read value.
+       \note Same as <tt>std::atof()</tt> extended to manage the retrieval of fractions from C-strings,
+       as in <em>"1/2"</em>.
+    **/
+    inline double atof(const char *const str) {
+      double x = 0, y = 1;
+      return str && cimg_sscanf(str,"%lf/%lf",&x,&y)>0?x/y:0;
+    }
+
+    //! Compare the first \p l characters of two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \param l Number of characters to compare.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strncasecmp(const char *const str1, const char *const str2, const int l) {
+      if (!l) return 0;
+      if (!str1) return str2?-1:0;
+      const char *nstr1 = str1, *nstr2 = str2;
+      int k, diff = 0; for (k = 0; k<l && !(diff = uncase(*nstr1) - uncase(*nstr2)); ++k) { ++nstr1; ++nstr2; }
+      return k!=l?diff:0;
+    }
+
+    //! Compare two C-strings, ignoring the case.
+    /**
+       \param str1 C-string.
+       \param str2 C-string.
+       \return \c 0 if the two strings are equal, something else otherwise.
+       \note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
+    **/
+    inline int strcasecmp(const char *const str1, const char *const str2) {
+      if (!str1) return str2?-1:0;
+      const int
+        l1 = (int)std::strlen(str1),
+        l2 = (int)std::strlen(str2);
+      return cimg::strncasecmp(str1,str2,1 + (l1<l2?l1:l2));
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(char *const str, const unsigned int l=64,
+                              const bool is_ending=true) {
+      if (!str) return str;
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) return str;
+      if (is_ending) std::strcpy(str + nl - 5,"(...)");
+      else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strcpy(str + ll,"(...)");
+        std::memmove(str + ll + 5,str + ls - lr,lr);
+      }
+      str[nl] = 0;
+      return str;
+    }
+
+    //! Ellipsize a string.
+    /**
+       \param str C-string.
+       \param res output C-string.
+       \param l Max number of characters.
+       \param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
+    **/
+    inline char *strellipsize(const char *const str, char *const res, const unsigned int l=64,
+                              const bool is_ending=true) {
+      const unsigned int nl = l<5?5:l, ls = (unsigned int)std::strlen(str);
+      if (ls<=nl) { std::strcpy(res,str); return res; }
+      if (is_ending) {
+        std::strncpy(res,str,nl - 5);
+        std::strcpy(res + nl -5,"(...)");
+      } else {
+        const unsigned int ll = (nl - 5)/2 + 1 - (nl%2), lr = nl - ll - 5;
+        std::strncpy(res,str,ll);
+        std::strcpy(res + ll,"(...)");
+        std::strncpy(res + ll + 5,str + ls - lr,lr);
+      }
+      res[nl] = 0;
+      return res;
+    }
+
+    //! Remove delimiters on the start and/or end of a C-string.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param delimiter Delimiter character code to remove.
+       \param is_symmetric Tells if the removal is done only if delimiters are symmetric
+       (both at the beginning and the end of \c s).
+       \param is_iterative Tells if the removal is done if several iterations are possible.
+       \return \c true if delimiters have been removed, \c false otherwise.
+   **/
+    inline bool strpare(char *const str, const char delimiter=' ',
+                        const bool is_symmetric=false, const bool is_iterative=false) {
+      if (!str) return false;
+      const int l = (int)std::strlen(str);
+      int p, q;
+      if (is_symmetric) for (p = 0, q = l - 1; p<q && str[p]==delimiter && str[q]==delimiter; ) {
+          --q; ++p; if (!is_iterative) break;
+        } else {
+        for (p = 0; p<l && str[p]==delimiter; ) { ++p; if (!is_iterative) break; }
+        for (q = l - 1; q>p && str[q]==delimiter; ) { --q; if (!is_iterative) break; }
+      }
+      const int n = q - p + 1;
+      if (n!=l) { std::memmove(str,str + p,(unsigned int)n); str[n] = 0; return true; }
+      return false;
+    }
+
+    //! Replace reserved characters (for Windows filename) by another character.
+    /**
+       \param[in,out] str C-string to work with (modified at output).
+       \param[in] c Replacement character.
+    **/
+    inline void strwindows_reserved(char *const str, const char c='_') {
+      for (char *s = str; *s; ++s) {
+        const char i = *s;
+        if (i=='<' || i=='>' || i==':' || i=='\"' || i=='/' || i=='\\' || i=='|' || i=='?' || i=='*') *s = c;
+      }
+    }
+
+    //! Replace escape sequences in C-strings by their binary ascii values.
+    /**
+       \param[in,out] str C
