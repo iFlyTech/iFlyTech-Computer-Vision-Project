@@ -4378,3 +4378,263 @@ namespace cimg_library_suffixed {
     // Random number generators.
     // CImg may use its own Random Number Generator (RNG) if configuration macro 'cimg_use_rng' is set.
     // Use it for instance when you have to deal with concurrent threads trying to call std::srand()
+    // at the same time!
+#ifdef cimg_use_rng
+
+#include <stdint.h>
+
+    // Use a custom RNG.
+    inline unsigned int _rand(const unsigned int seed=0, const bool set_seed=false) {
+      static cimg_ulong next = 0xB16B00B5;
+      cimg::mutex(4);
+      if (set_seed) next = (cimg_ulong)seed;
+      next = next*1103515245 + 12345U;
+      cimg::mutex(4,0);
+      return (unsigned int)(next&0xFFFFFFU);
+    }
+
+    inline void srand() {
+      const unsigned int t = (unsigned int)cimg::time();
+#if cimg_OS==1
+      cimg::_rand(t + (unsigned int)getpid(),true);
+#elif cimg_OS==2
+      cimg::_rand(t + (unsigned int)_getpid(),true);
+#else
+      cimg::_rand(t,true);
+#endif
+    }
+
+    inline void srand(const unsigned int seed) {
+      _rand(seed,true);
+    }
+
+    inline double rand(const double val_min, const double val_max) {
+      const double val = cimg::_rand()/16777215.;
+      return val_min + (val_max - val_min)*val;
+    }
+
+#else
+
+    // Use the system RNG.
+    inline void srand() {
+      const unsigned int t = (unsigned int)cimg::time();
+#if cimg_OS==1
+      std::srand(t + (unsigned int)getpid());
+#elif cimg_OS==2
+      std::srand(t + (unsigned int)_getpid());
+#else
+      std::srand(t);
+#endif
+    }
+
+    inline void srand(const unsigned int seed) {
+      std::srand(seed);
+    }
+
+    //! Return a random variable uniformely distributed between [val_min,val_max].
+    /**
+    **/
+    inline double rand(const double val_min, const double val_max) {
+      const double val = (double)std::rand()/RAND_MAX;
+      return val_min + (val_max - val_min)*val;
+    }
+#endif
+
+    //! Return a random variable uniformely distributed between [0,val_max].
+    /**
+     **/
+    inline double rand(const double val_max=1) {
+      return cimg::rand(0,val_max);
+    }
+
+    //! Return a random variable following a gaussian distribution and a standard deviation of 1.
+    /**
+    **/
+    inline double grand() {
+      double x1, w;
+      do {
+        const double x2 = cimg::rand(-1,1);
+        x1 = cimg::rand(-1,1);
+        w = x1*x1 + x2*x2;
+      } while (w<=0 || w>=1.0);
+      return x1*std::sqrt((-2*std::log(w))/w);
+    }
+
+    //! Return a random variable following a Poisson distribution of parameter z.
+    /**
+    **/
+    inline unsigned int prand(const double z) {
+      if (z<=1.0e-10) return 0;
+      if (z>100) return (unsigned int)((std::sqrt(z) * cimg::grand()) + z);
+      unsigned int k = 0;
+      const double y = std::exp(-z);
+      for (double s = 1.0; s>=y; ++k) s*=cimg::rand();
+      return k - 1;
+    }
+
+    //! Bitwise-rotate value on the left.
+    template<typename T>
+    inline T rol(const T& a, const unsigned int n=1) {
+      return n?(T)((a<<n)|(a>>((sizeof(T)<<3) - n))):a;
+    }
+
+    inline float rol(const float a, const unsigned int n=1) {
+      return (float)rol((int)a,n);
+    }
+
+    inline double rol(const double a, const unsigned int n=1) {
+      return (double)rol((cimg_long)a,n);
+    }
+
+    inline double rol(const long double a, const unsigned int n=1) {
+      return (double)rol((cimg_long)a,n);
+    }
+
+    //! Bitwise-rotate value on the right.
+    template<typename T>
+    inline T ror(const T& a, const unsigned int n=1) {
+      return n?(T)((a>>n)|(a<<((sizeof(T)<<3) - n))):a;
+    }
+
+    inline float ror(const float a, const unsigned int n=1) {
+      return (float)ror((int)a,n);
+    }
+
+    inline double ror(const double a, const unsigned int n=1) {
+      return (double)ror((cimg_long)a,n);
+    }
+
+    inline double ror(const long double a, const unsigned int n=1) {
+      return (double)ror((cimg_long)a,n);
+    }
+
+    //! Return absolute value of a value.
+    template<typename T>
+    inline T abs(const T& a) {
+      return a>=0?a:-a;
+    }
+    inline bool abs(const bool a) {
+      return a;
+    }
+    inline int abs(const unsigned char a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned short a) {
+      return (int)a;
+    }
+    inline int abs(const unsigned int a) {
+      return (int)a;
+    }
+    inline int abs(const int a) {
+      return std::abs(a);
+    }
+    inline cimg_int64 abs(const cimg_uint64 a) {
+      return (cimg_int64)a;
+    }
+    inline double abs(const double a) {
+      return std::fabs(a);
+    }
+    inline float abs(const float a) {
+      return (float)std::fabs((double)a);
+    }
+
+    //! Return square of a value.
+    template<typename T>
+    inline T sqr(const T& val) {
+      return val*val;
+    }
+
+    //! Return <tt>1 + log_10(x)</tt> of a value \c x.
+    inline int xln(const int x) {
+      return x>0?(int)(1 + std::log10((double)x)):1;
+    }
+
+    //! Return the minimum between two values.
+    template<typename t1, typename t2>
+    inline typename cimg::superset<t1,t2>::type min(const t1& a, const t2& b) {
+      typedef typename cimg::superset<t1,t2>::type t1t2;
+      return (t1t2)(a<=b?a:b);
+    }
+
+    //! Return the minimum between three values.
+    template<typename t1, typename t2, typename t3>
+    inline typename cimg::superset2<t1,t2,t3>::type min(const t1& a, const t2& b, const t3& c) {
+      typedef typename cimg::superset2<t1,t2,t3>::type t1t2t3;
+      return (t1t2t3)cimg::min(cimg::min(a,b),c);
+    }
+
+    //! Return the minimum between four values.
+    template<typename t1, typename t2, typename t3, typename t4>
+    inline typename cimg::superset3<t1,t2,t3,t4>::type min(const t1& a, const t2& b, const t3& c, const t4& d) {
+      typedef typename cimg::superset3<t1,t2,t3,t4>::type t1t2t3t4;
+      return (t1t2t3t4)cimg::min(cimg::min(a,b,c),d);
+    }
+
+    //! Return the maximum between two values.
+    template<typename t1, typename t2>
+    inline typename cimg::superset<t1,t2>::type max(const t1& a, const t2& b) {
+      typedef typename cimg::superset<t1,t2>::type t1t2;
+      return (t1t2)(a>=b?a:b);
+    }
+
+    //! Return the maximum between three values.
+    template<typename t1, typename t2, typename t3>
+    inline typename cimg::superset2<t1,t2,t3>::type max(const t1& a, const t2& b, const t3& c) {
+      typedef typename cimg::superset2<t1,t2,t3>::type t1t2t3;
+      return (t1t2t3)cimg::max(cimg::max(a,b),c);
+    }
+
+    //! Return the maximum between four values.
+    template<typename t1, typename t2, typename t3, typename t4>
+    inline typename cimg::superset3<t1,t2,t3,t4>::type max(const t1& a, const t2& b, const t3& c, const t4& d) {
+      typedef typename cimg::superset3<t1,t2,t3,t4>::type t1t2t3t4;
+      return (t1t2t3t4)cimg::max(cimg::max(a,b,c),d);
+    }
+
+    //! Return the sign of a value.
+    template<typename T>
+    inline T sign(const T& x) {
+      return (x<0)?(T)(-1):(x==0?(T)0:(T)1);
+    }
+
+    //! Return the nearest power of 2 higher than given value.
+    template<typename T>
+    inline cimg_ulong nearest_pow2(const T& x) {
+      cimg_ulong i = 1;
+      while (x>i) i<<=1;
+      return i;
+    }
+
+    //! Return the sinc of a given value.
+    inline double sinc(const double x) {
+      return x?std::sin(x)/x:1;
+    }
+
+    //! Return the modulo of a value.
+    /**
+       \param x Input value.
+       \param m Modulo value.
+       \note This modulo function accepts negative and floating-points modulo numbers, as well as variables of any type.
+    **/
+    template<typename T>
+    inline T mod(const T& x, const T& m) {
+      const double dx = (double)x, dm = (double)m;
+      return (T)(dx - dm * std::floor(dx / dm));
+    }
+    inline int mod(const bool x, const bool m) {
+      return m?(x?1:0):0;
+    }
+    inline int mod(const unsigned char x, const unsigned char m) {
+      return x%m;
+    }
+    inline int mod(const char x, const char m) {
+#if defined(CHAR_MAX) && CHAR_MAX==255
+      return x%m;
+#else
+      return x>=0?x%m:(x%m?m + x%m:0);
+#endif
+    }
+    inline int mod(const unsigned short x, const unsigned short m) {
+      return x%m;
+    }
+    inline int mod(const short x, co
