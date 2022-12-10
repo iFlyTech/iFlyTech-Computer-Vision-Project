@@ -4835,4 +4835,208 @@ namespace cimg_library_suffixed {
 
     //! Replace escape sequences in C-strings by their binary ascii values.
     /**
-       \param[in,out] str C
+       \param[in,out] str C-string to work with (modified at output).
+    **/
+    inline void strunescape(char *const str) {
+#define cimg_strunescape(ci,co) case ci : *nd = co; ++ns; break;
+      unsigned int val = 0;
+      for (char *ns = str, *nd = str; *ns || (bool)(*nd=0); ++nd) if (*ns=='\\') switch (*(++ns)) {
+            cimg_strunescape('a','\a');
+            cimg_strunescape('b','\b');
+            cimg_strunescape('e',0x1B);
+            cimg_strunescape('f','\f');
+            cimg_strunescape('n','\n');
+            cimg_strunescape('r','\r');
+            cimg_strunescape('t','\t');
+            cimg_strunescape('v','\v');
+            cimg_strunescape('\\','\\');
+            cimg_strunescape('\'','\'');
+            cimg_strunescape('\"','\"');
+            cimg_strunescape('\?','\?');
+          case 0 : *nd = 0; break;
+          case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' :
+            cimg_sscanf(ns,"%o",&val); while (*ns>='0' && *ns<='7') ++ns;
+            *nd = (char)val; break;
+          case 'x' :
+            cimg_sscanf(++ns,"%x",&val);
+            while ((*ns>='0' && *ns<='9') || (*ns>='a' && *ns<='f') || (*ns>='A' && *ns<='F')) ++ns;
+            *nd = (char)val; break;
+          default : *nd = *(ns++);
+          } else *nd = *(ns++);
+    }
+
+    // Return a temporary string describing the size of a memory buffer.
+    inline const char *strbuffersize(const cimg_ulong size);
+
+    // Return string that identifies the running OS.
+    inline const char *stros() {
+#if defined(linux) || defined(__linux) || defined(__linux__)
+      static const char *const str = "Linux";
+#elif defined(sun) || defined(__sun)
+      static const char *const str = "Sun OS";
+#elif defined(BSD) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined (__DragonFly__)
+      static const char *const str = "BSD";
+#elif defined(sgi) || defined(__sgi)
+      static const char *const str = "Irix";
+#elif defined(__MACOSX__) || defined(__APPLE__)
+      static const char *const str = "Mac OS";
+#elif defined(unix) || defined(__unix) || defined(__unix__)
+      static const char *const str = "Generic Unix";
+#elif defined(_MSC_VER) || defined(WIN32)  || defined(_WIN32) || defined(__WIN32__) || \
+  defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+      static const char *const str = "Windows";
+#else
+      const char
+        *const _str1 = std::getenv("OSTYPE"),
+        *const _str2 = _str1?_str1:std::getenv("OS"),
+        *const str = _str2?_str2:"Unknown OS";
+#endif
+      return str;
+    }
+
+    //! Return the basename of a filename.
+    inline const char* basename(const char *const s, const char separator=cimg_file_separator)  {
+      const char *p = 0, *np = s;
+      while (np>=s && (p=np)) np = std::strchr(np,separator) + 1;
+      return p;
+    }
+
+    // Return a random filename.
+    inline const char* filenamerand() {
+      cimg::mutex(6);
+      static char randomid[9];
+      cimg::srand();
+      for (unsigned int k = 0; k<8; ++k) {
+        const int v = (int)cimg::rand(65535)%3;
+        randomid[k] = (char)(v==0?('0' + ((int)cimg::rand(65535)%10)):
+                             (v==1?('a' + ((int)cimg::rand(65535)%26)):('A' + ((int)cimg::rand(65535)%26))));
+      }
+      cimg::mutex(6,0);
+      return randomid;
+    }
+
+    // Convert filename as a Windows-style filename (short path name).
+    inline void winformat_string(char *const str) {
+      if (str && *str) {
+#if cimg_OS==2
+        char *const nstr = new char[MAX_PATH];
+        if (GetShortPathNameA(str,nstr,MAX_PATH)) std::strcpy(str,nstr);
+        delete[] nstr;
+#endif
+      }
+    }
+
+    //! Open a file.
+    /**
+       \param path Path of the filename to open.
+       \param mode C-string describing the opening mode.
+       \return Opened file.
+       \note Same as <tt>std::fopen()</tt> but throw a \c CImgIOException when
+       the specified file cannot be opened, instead of returning \c 0.
+    **/
+    inline std::FILE *fopen(const char *const path, const char *const mode) {
+      if (!path)
+        throw CImgArgumentException("cimg::fopen(): Specified file path is (null).");
+      if (!mode)
+        throw CImgArgumentException("cimg::fopen(): File '%s', specified mode is (null).",
+                                    path);
+      std::FILE *res = 0;
+      if (*path=='-' && (!path[1] || path[1]=='.')) {
+        res = (*mode=='r')?stdin:stdout;
+#if cimg_OS==2
+        if (*mode && mode[1]=='b') { // Force stdin/stdout to be in binary mode.
+          if (_setmode(_fileno(res),0x8000)==-1) res = 0;
+        }
+#endif
+      } else res = std::fopen(path,mode);
+      if (!res) throw CImgIOException("cimg::fopen(): Failed to open file '%s' with mode '%s'.",
+                                      path,mode);
+      return res;
+    }
+
+    //! Close a file.
+    /**
+       \param file File to close.
+       \return \c 0 if file has been closed properly, something else otherwise.
+       \note Same as <tt>std::fclose()</tt> but display a warning message if
+       the file has not been closed properly.
+    **/
+    inline int fclose(std::FILE *file) {
+      if (!file) warn("cimg::fclose(): Specified file is (null).");
+      if (!file || file==stdin || file==stdout) return 0;
+      const int errn = std::fclose(file);
+      if (errn!=0) warn("cimg::fclose(): Error code %d returned during file closing.",
+                        errn);
+      return errn;
+    }
+
+    //! Version of 'fseek()' that supports >=64bits offsets everywhere (for Windows).
+    inline int fseek(FILE *stream, cimg_long offset, int origin) {
+#if cimg_OS==2
+      return _fseeki64(stream,(__int64)offset,origin);
+#else
+      return std::fseek(stream,offset,origin);
+#endif
+    }
+
+    //! Version of 'ftell()' that supports >=64bits offsets everywhere (for Windows).
+    inline cimg_long ftell(FILE *stream) {
+#if cimg_OS==2
+      return (cimg_long)_ftelli64(stream);
+#else
+      return (cimg_long)std::ftell(stream);
+#endif
+    }
+
+    //! Check if a path is a directory.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_directory(const char *const path) {
+      if (!path || !*path) return false;
+#if cimg_OS==1
+      struct stat st_buf;
+      return (!stat(path,&st_buf) && S_ISDIR(st_buf.st_mode));
+#elif cimg_OS==2
+      const unsigned int res = (unsigned int)GetFileAttributesA(path);
+      return res==INVALID_FILE_ATTRIBUTES?false:(res&16);
+#endif
+    }
+
+    //! Check if a path is a file.
+    /**
+       \param path Specified path to test.
+    **/
+    inline bool is_file(const char *const path) {
+      if (!path || !*path) return false;
+      std::FILE *const file = std::fopen(path,"rb");
+      if (!file) return false;
+      std::fclose(file);
+      return !is_directory(path);
+    }
+
+    //! Get last write time of a given file or directory.
+    /**
+       \param path Specified path to get attributes from.
+       \param attr Type of requested time attribute.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+       \return -1 if requested attribute could not be read.
+    **/
+    inline int fdate(const char *const path, const unsigned int attr) {
+      int res = -1;
+      if (!path || !*path || attr>6) return -1;
+      cimg::mutex(6);
+#if cimg_OS==2
+      HANDLE file = CreateFileA(path,GENERIC_READ,0,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+      if (file!=INVALID_HANDLE_VALUE) {
+        FILETIME _ft;
+        SYSTEMTIME ft;
+        if (GetFileTime(file,0,0,&_ft) && FileTimeToSystemTime(&_ft,&ft))
+          res = (int)(attr==0?ft.wYear:attr==1?ft.wMonth:attr==2?ft.wDay:attr==3?ft.wDayOfWeek:
+                      attr==4?ft.wHour:attr==5?ft.wMinute:ft.wSecond);
+        CloseHandle(file);
+      }
+#else
+      struct stat st_buf;
+      if (!stat(path,&st_buf)) {
+        const t
