@@ -5039,4 +5039,179 @@ namespace cimg_library_suffixed {
 #else
       struct stat st_buf;
       if (!stat(path,&st_buf)) {
-        const t
+        const time_t _ft = st_buf.st_mtime;
+        const struct tm& ft = *std::localtime(&_ft);
+        res = (int)(attr==0?ft.tm_year + 1900:attr==1?ft.tm_mon + 1:attr==2?ft.tm_mday:attr==3?ft.tm_wday:
+                    attr==4?ft.tm_hour:attr==5?ft.tm_min:ft.tm_sec);
+      }
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    //! Get current local time.
+    /**
+       \param attr Type of requested time attribute.
+                   Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
+    **/
+    inline int date(const unsigned int attr) {
+      int res;
+      cimg::mutex(6);
+#if cimg_OS==2
+      SYSTEMTIME st;
+      GetLocalTime(&st);
+      res = (int)(attr==0?st.wYear:attr==1?st.wMonth:attr==2?st.wDay:attr==3?st.wDayOfWeek:
+                  attr==4?st.wHour:attr==5?st.wMinute:st.wSecond);
+#else
+      time_t _st;
+      std::time(&_st);
+      struct tm *st = std::localtime(&_st);
+      res = (int)(attr==0?st->tm_year + 1900:attr==1?st->tm_mon + 1:attr==2?st->tm_mday:attr==3?st->tm_wday:
+                  attr==4?st->tm_hour:attr==5?st->tm_min:st->tm_sec);
+#endif
+      cimg::mutex(6,0);
+      return res;
+    }
+
+    // Get/set path to store temporary files.
+    inline const char* temporary_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the <i>Program Files/</i> directory (Windows only).
+#if cimg_OS==2
+    inline const char* programfiles_path(const char *const user_path=0, const bool reinit_path=false);
+#endif
+
+    // Get/set path to the ImageMagick's \c convert binary.
+    inline const char* imagemagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the GraphicsMagick's \c gm binary.
+    inline const char* graphicsmagick_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the XMedcon's \c medcon binary.
+    inline const char* medcon_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the FFMPEG's \c ffmpeg binary.
+    inline const char *ffmpeg_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gzip binary.
+    inline const char *gzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c gunzip binary.
+    inline const char *gunzip_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c dcraw binary.
+    inline const char *dcraw_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c wget binary.
+    inline const char *wget_path(const char *const user_path=0, const bool reinit_path=false);
+
+    // Get/set path to the \c curl binary.
+    inline const char *curl_path(const char *const user_path=0, const bool reinit_path=false);
+
+    //! Split filename into two C-strings \c body and \c extension.
+    /**
+       filename and body must not overlap!
+    **/
+    inline const char *split_filename(const char *const filename, char *const body=0) {
+      if (!filename) { if (body) *body = 0; return 0; }
+      const char *p = 0; for (const char *np = filename; np>=filename && (p=np); np = std::strchr(np,'.') + 1) {}
+      if (p==filename) {
+        if (body) std::strcpy(body,filename);
+        return filename + std::strlen(filename);
+      }
+      const unsigned int l = (unsigned int)(p - filename - 1);
+      if (body) { if (l) std::memcpy(body,filename,l); body[l] = 0; }
+      return p;
+    }
+
+    //! Generate a numbered version of a filename.
+    inline char* number_filename(const char *const filename, const int number,
+                                 const unsigned int digits, char *const str) {
+      if (!filename) { if (str) *str = 0; return 0; }
+      char *const format = new char[1024], *const body = new char[1024];
+      const char *const ext = cimg::split_filename(filename,body);
+      if (*ext) cimg_snprintf(format,1024,"%%s_%%.%ud.%%s",digits);
+      else cimg_snprintf(format,1024,"%%s_%%.%ud",digits);
+      cimg_sprintf(str,format,body,number,ext);
+      delete[] format; delete[] body;
+      return str;
+    }
+
+    //! Read data from file.
+    /**
+       \param[out] ptr Pointer to memory buffer that will contain the binary data read from file.
+       \param nmemb Number of elements to read.
+       \param stream File to read data from.
+       \return Number of read elements.
+       \note Same as <tt>std::fread()</tt> but may display warning message if all elements could not be read.
+    **/
+    template<typename T>
+    inline size_t fread(T *const ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fread(): Invalid reading request of %u %s%s from file %p to buffer %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",stream,ptr);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_read = nmemb, al_read = 0, l_to_read = 0, l_al_read = 0;
+      do {
+        l_to_read = (to_read*sizeof(T))<wlimitT?to_read:wlimit;
+        l_al_read = std::fread((void*)(ptr + al_read),sizeof(T),l_to_read,stream);
+        al_read+=l_al_read;
+        to_read-=l_al_read;
+      } while (l_to_read==l_al_read && to_read>0);
+      if (to_read>0)
+        warn("cimg::fread(): Only %lu/%lu elements could be read from file.",
+             (unsigned long)al_read,(unsigned long)nmemb);
+      return al_read;
+    }
+
+    //! Write data to file.
+    /**
+       \param ptr Pointer to memory buffer containing the binary data to write on file.
+       \param nmemb Number of elements to write.
+       \param[out] stream File to write data on.
+       \return Number of written elements.
+       \note Similar to <tt>std::fwrite</tt> but may display warning messages if all elements could not be written.
+    **/
+    template<typename T>
+    inline size_t fwrite(const T *ptr, const size_t nmemb, std::FILE *stream) {
+      if (!ptr || !stream)
+        throw CImgArgumentException("cimg::fwrite(): Invalid writing request of %u %s%s from buffer %p to file %p.",
+                                    nmemb,cimg::type<T>::string(),nmemb>1?"s":"",ptr,stream);
+      if (!nmemb) return 0;
+      const size_t wlimitT = 63*1024*1024, wlimit = wlimitT/sizeof(T);
+      size_t to_write = nmemb, al_write = 0, l_to_write = 0, l_al_write = 0;
+      do {
+        l_to_write = (to_write*sizeof(T))<wlimitT?to_write:wlimit;
+        l_al_write = std::fwrite((void*)(ptr + al_write),sizeof(T),l_to_write,stream);
+        al_write+=l_al_write;
+        to_write-=l_al_write;
+      } while (l_to_write==l_al_write && to_write>0);
+      if (to_write>0)
+        warn("cimg::fwrite(): Only %lu/%lu elements could be written in file.",
+             (unsigned long)al_write,(unsigned long)nmemb);
+      return al_write;
+    }
+
+    //! Create an empty file.
+    /**
+       \param file Input file (can be \c 0 if \c filename is set).
+       \param filename Filename, as a C-string (can be \c 0 if \c file is set).
+    **/
+    inline void fempty(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException("cimg::fempty(): Specified filename is (null).");
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      if (!file) cimg::fclose(nfile);
+    }
+
+    // Try to guess format from an image file.
+    inline const char *ftype(std::FILE *const file, const char *const filename);
+
+    // Load file from network as a local temporary file.
+    inline char *load_network(const char *const url, char *const filename_local,
+                              const unsigned int timeout=0, const bool try_fallback=false,
+                              const char *const referer=0);
+
+    //! Return options specified on the command line.
+    inline const char* option(const char *co
