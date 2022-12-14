@@ -5394,4 +5394,223 @@ namespace cimg_library_suffixed {
 #endif
                    cimg::t_normal);
       std::fprintf(cimg::output(),"  > Using JPEG library:     %s%-13s%s %s('cimg_use_jpeg' %s)%s\n",
-                   c
+                   cimg::t_bold,
+#ifdef cimg_use_jpeg
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using TIFF library:     %s%-13s%s %s('cimg_use_tiff' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_tiff
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using Magick++ library: %s%-13s%s %s('cimg_use_magick' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_magick
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using FFTW3 library:    %s%-13s%s %s('cimg_use_fftw3' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_fftw3
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using LAPACK library:   %s%-13s%s %s('cimg_use_lapack' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_lapack
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      char *const tmp = new char[1024];
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::imagemagick_path());
+      std::fprintf(cimg::output(),"  > Path of ImageMagick:    %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::graphicsmagick_path());
+      std::fprintf(cimg::output(),"  > Path of GraphicsMagick: %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::medcon_path());
+      std::fprintf(cimg::output(),"  > Path of 'medcon':       %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      cimg_snprintf(tmp,1024,"\"%.1020s\"",cimg::temporary_path());
+      std::fprintf(cimg::output(),"  > Temporary path:         %s%-13s%s\n",
+                   cimg::t_bold,
+                   tmp,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"\n");
+      delete[] tmp;
+    }
+
+    // Declare LAPACK function signatures if LAPACK support is enabled.
+#ifdef cimg_use_lapack
+    template<typename T>
+    inline void getrf(int &N, T *lapA, int *IPIV, int &INFO) {
+      dgetrf_(&N,&N,lapA,&N,IPIV,&INFO);
+    }
+
+    inline void getrf(int &N, float *lapA, int *IPIV, int &INFO) {
+      sgetrf_(&N,&N,lapA,&N,IPIV,&INFO);
+    }
+
+    template<typename T>
+    inline void getri(int &N, T *lapA, int *IPIV, T* WORK, int &LWORK, int &INFO) {
+      dgetri_(&N,lapA,&N,IPIV,WORK,&LWORK,&INFO);
+    }
+
+    inline void getri(int &N, float *lapA, int *IPIV, float* WORK, int &LWORK, int &INFO) {
+      sgetri_(&N,lapA,&N,IPIV,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void gesvd(char &JOB, int &M, int &N, T *lapA, int &MN,
+                      T *lapS, T *lapU, T *lapV, T *WORK, int &LWORK, int &INFO) {
+      dgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    inline void gesvd(char &JOB, int &M, int &N, float *lapA, int &MN,
+                      float *lapS, float *lapU, float *lapV, float *WORK, int &LWORK, int &INFO) {
+      sgesvd_(&JOB,&JOB,&M,&N,lapA,&MN,lapS,lapU,&M,lapV,&N,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void getrs(char &TRANS, int &N, T *lapA, int *IPIV, T *lapB, int &INFO) {
+      int one = 1;
+      dgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    inline void getrs(char &TRANS, int &N, float *lapA, int *IPIV, float *lapB, int &INFO) {
+      int one = 1;
+      sgetrs_(&TRANS,&N,&one,lapA,&N,IPIV,lapB,&N,&INFO);
+    }
+
+    template<typename T>
+    inline void syev(char &JOB, char &UPLO, int &N, T *lapA, T *lapW, T *WORK, int &LWORK, int &INFO) {
+      dsyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    inline void syev(char &JOB, char &UPLO, int &N, float *lapA, float *lapW, float *WORK, int &LWORK, int &INFO) {
+      ssyev_(&JOB,&UPLO,&N,lapA,&N,lapW,WORK,&LWORK,&INFO);
+    }
+
+    template<typename T>
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, T* lapA, int &LDA,
+                      T* lapB, int &LDB, T* WORK, int &LWORK, int &INFO){
+      dgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+    inline void sgels(char & TRANS, int &M, int &N, int &NRHS, float* lapA, int &LDA,
+                      float* lapB, int &LDB, float* WORK, int &LWORK, int &INFO){
+      sgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
+    }
+
+#endif
+
+    // End of the 'cimg' namespace
+  }
+
+  /*------------------------------------------------
+   #
+   #
+   #   Definition of mathematical operators and
+   #   external functions.
+   #
+   #
+   -------------------------------------------------*/
+
+#define _cimg_create_ext_operators(typ) \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator+(const typ val, const CImg<T>& img) { \
+    return img + val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator-(const typ val, const CImg<T>& img) { \
+    typedef typename cimg::superset<T,typ>::type Tt; \
+    return CImg<Tt>(img._width,img._height,img._depth,img._spectrum,val)-=img; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator*(const typ val, const CImg<T>& img) { \
+    return img*val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator/(const typ val, const CImg<T>& img) { \
+    return val*img.get_invert(); \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator&(const typ val, const CImg<T>& img) { \
+    return img & val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator|(const typ val, const CImg<T>& img) { \
+    return img | val; \
+  } \
+  template<typename T> \
+  inline CImg<typename cimg::superset<T,typ>::type> operator^(const typ val, const CImg<T>& img) { \
+    return img ^ val; \
+  } \
+  template<typename T> \
+  inline bool operator==(const typ val, const CImg<T>& img) {   \
+    return img == val; \
+  } \
+  template<typename T> \
+  inline bool operator!=(const typ val, const CImg<T>& img) { \
+    return img != val; \
+  }
+
+  _cimg_create_ext_operators(bool)
+  _cimg_create_ext_operators(unsigned char)
+  _cimg_create_ext_operators(char)
+  _cimg_create_ext_operators(signed char)
+  _cimg_create_ext_operators(unsigned short)
+  _cimg_create_ext_operators(short)
+  _cimg_create_ext_operators(unsigned int)
+  _cimg_create_ext_operators(int)
+  _cimg_create_ext_operators(cimg_uint64)
+  _cimg_create_ext_operators(cimg_int64)
+  _cimg_create_ext_operators(float)
+  _cimg_create_ext_operators(double)
+  _cimg_create_ext_operators(long double)
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator+(const char *const expression, const CImg<T>& img) {
+    return img + expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator-(const char *const expression, const CImg<T>& img) {
+    return CImg<_cimg_Tfloat>(img,false).fill(expression,true)-=img;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator*(const char *const expression, const CImg<T>& img) {
+    return img*expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
+    return expression*img.get
