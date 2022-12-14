@@ -5214,4 +5214,184 @@ namespace cimg_library_suffixed {
                               const char *const referer=0);
 
     //! Return options specified on the command line.
-    inline const char* option(const char *co
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage, const bool reset_static) {
+      static bool first = true, visu = false;
+      if (reset_static) { first = true; return 0; }
+      const char *res = 0;
+      if (first) {
+        first = false;
+        visu = cimg::option("-h",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("-help",argc,argv,(char*)0,(char*)0,false)!=0;
+        visu |= cimg::option("--help",argc,argv,(char*)0,(char*)0,false)!=0;
+      }
+      if (!name && visu) {
+        if (usage) {
+          std::fprintf(cimg::output(),"\n %s%s%s",cimg::t_red,cimg::basename(argv[0]),cimg::t_normal);
+          std::fprintf(cimg::output(),": %s",usage);
+          std::fprintf(cimg::output()," (%s, %s)\n\n",__DATE__,__TIME__);
+        }
+        if (defaut) std::fprintf(cimg::output(),"%s\n",defaut);
+      }
+      if (name) {
+        if (argc>0) {
+          int k = 0;
+          while (k<argc && std::strcmp(argv[k],name)) ++k;
+          res = (k++==argc?defaut:(k==argc?argv[--k]:argv[k]));
+        } else res = defaut;
+        if (visu && usage) std::fprintf(cimg::output(),"    %s%-16s%s %-24s %s%s%s\n",
+                                        cimg::t_bold,name,cimg::t_normal,res?res:"0",
+                                        cimg::t_green,usage,cimg::t_normal);
+      }
+      return res;
+    }
+
+    inline const char* option(const char *const name, const int argc, const char *const *const argv,
+                              const char *const defaut, const char *const usage=0) {
+      return option(name,argc,argv,defaut,usage,false);
+    }
+
+    inline bool option(const char *const name, const int argc, const char *const *const argv,
+                       const bool defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const bool res = s?(cimg::strcasecmp(s,"false") && cimg::strcasecmp(s,"off") && cimg::strcasecmp(s,"0")):defaut;
+      cimg::option(name,0,0,res?"true":"false",usage);
+      return res;
+    }
+
+    inline int option(const char *const name, const int argc, const char *const *const argv,
+                      const int defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const int res = s?std::atoi(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%d",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline char option(const char *const name, const int argc, const char *const *const argv,
+                       const char defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const char res = s?*s:defaut;
+      char tmp[8];
+      *tmp = res; tmp[1] = 0;
+      cimg::option(name,0,0,tmp,usage);
+      return res;
+    }
+
+    inline float option(const char *const name, const int argc, const char *const *const argv,
+                        const float defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const float res = s?(float)cimg::atof(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%g",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    inline double option(const char *const name, const int argc, const char *const *const argv,
+                         const double defaut, const char *const usage=0) {
+      const char *const s = cimg::option(name,argc,argv,(char*)0);
+      const double res = s?cimg::atof(s):defaut;
+      char *const tmp = new char[256];
+      cimg_snprintf(tmp,256,"%g",res);
+      cimg::option(name,0,0,tmp,usage);
+      delete[] tmp;
+      return res;
+    }
+
+    //! Print information about \CImg environement variables.
+    /**
+       \note Output is done on the default output stream.
+    **/
+    inline void info() {
+      std::fprintf(cimg::output(),"\n %s%sCImg Library %u.%u.%u%s, compiled %s ( %s ) with the following flags:\n\n",
+                   cimg::t_red,cimg::t_bold,cimg_version/100,(cimg_version/10)%10,cimg_version%10,
+                   cimg::t_normal,__DATE__,__TIME__);
+
+      std::fprintf(cimg::output(),"  > Operating System:       %s%-13s%s %s('cimg_OS'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_OS==1?"Unix":(cimg_OS==2?"Windows":"Unknow"),
+                   cimg::t_normal,cimg::t_green,
+                   cimg_OS,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > CPU endianness:         %s%s Endian%s\n",
+                   cimg::t_bold,
+                   cimg::endianness()?"Big":"Little",
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Verbosity mode:         %s%-13s%s %s('cimg_verbosity'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_verbosity==0?"Quiet":
+                   cimg_verbosity==1?"Console":
+                   cimg_verbosity==2?"Dialog":
+                   cimg_verbosity==3?"Console+Warnings":"Dialog+Warnings",
+                   cimg::t_normal,cimg::t_green,
+                   cimg_verbosity,
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Stricts warnings:       %s%-13s%s %s('cimg_strict_warnings' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_strict_warnings
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using VT100 messages:   %s%-13s%s %s('cimg_use_vt100' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_vt100
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Display type:           %s%-13s%s %s('cimg_display'=%d)%s\n",
+                   cimg::t_bold,
+                   cimg_display==0?"No display":cimg_display==1?"X11":cimg_display==2?"Windows GDI":"Unknown",
+                   cimg::t_normal,cimg::t_green,
+                   cimg_display,
+                   cimg::t_normal);
+
+#if cimg_display==1
+      std::fprintf(cimg::output(),"  > Using XShm for X11:     %s%-13s%s %s('cimg_use_xshm' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_xshm
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+
+      std::fprintf(cimg::output(),"  > Using XRand for X11:    %s%-13s%s %s('cimg_use_xrandr' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_xrandr
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+#endif
+      std::fprintf(cimg::output(),"  > Using OpenMP:           %s%-13s%s %s('cimg_use_openmp' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_openmp
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+      std::fprintf(cimg::output(),"  > Using PNG library:      %s%-13s%s %s('cimg_use_png' %s)%s\n",
+                   cimg::t_bold,
+#ifdef cimg_use_png
+                   "Yes",cimg::t_normal,cimg::t_green,"defined",
+#else
+                   "No",cimg::t_normal,cimg::t_green,"undefined",
+#endif
+                   cimg::t_normal);
+      std::fprintf(cimg::output(),"  > Using JPEG library:     %s%-13s%s %s('cimg_use_jpeg' %s)%s\n",
+                   c
