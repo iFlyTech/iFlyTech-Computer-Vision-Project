@@ -5613,4 +5613,251 @@ namespace cimg_library_suffixed {
 
   template<typename T>
   inline CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
-    return expression*img.get
+    return expression*img.get_invert();
+  }
+
+  template<typename T>
+  inline CImg<T> operator&(const char *const expression, const CImg<T>& img) {
+    return img & expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator|(const char *const expression, const CImg<T>& img) {
+    return img | expression;
+  }
+
+  template<typename T>
+  inline CImg<T> operator^(const char *const expression, const CImg<T>& img) {
+    return img ^ expression;
+  }
+
+  template<typename T>
+  inline bool operator==(const char *const expression, const CImg<T>& img) {
+    return img==expression;
+  }
+
+  template<typename T>
+  inline bool operator!=(const char *const expression, const CImg<T>& img) {
+    return img!=expression;
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sqr(const CImg<T>& instance) {
+    return instance.get_sqr();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sqrt(const CImg<T>& instance) {
+    return instance.get_sqrt();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> exp(const CImg<T>& instance) {
+    return instance.get_exp();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log(const CImg<T>& instance) {
+    return instance.get_log();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log2(const CImg<T>& instance) {
+    return instance.get_log2();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> log10(const CImg<T>& instance) {
+    return instance.get_log10();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> abs(const CImg<T>& instance) {
+    return instance.get_abs();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sign(const CImg<T>& instance) {
+    return instance.get_sign();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> cos(const CImg<T>& instance) {
+    return instance.get_cos();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sin(const CImg<T>& instance) {
+    return instance.get_sin();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sinc(const CImg<T>& instance) {
+    return instance.get_sinc();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> tan(const CImg<T>& instance) {
+    return instance.get_tan();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> acos(const CImg<T>& instance) {
+    return instance.get_acos();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> asin(const CImg<T>& instance) {
+    return instance.get_asin();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> atan(const CImg<T>& instance) {
+    return instance.get_atan();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> cosh(const CImg<T>& instance) {
+    return instance.get_cosh();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> sinh(const CImg<T>& instance) {
+    return instance.get_sinh();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> tanh(const CImg<T>& instance) {
+    return instance.get_tanh();
+  }
+
+  template<typename T>
+  inline CImg<T> transpose(const CImg<T>& instance) {
+    return instance.get_transpose();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> invert(const CImg<T>& instance) {
+    return instance.get_invert();
+  }
+
+  template<typename T>
+  inline CImg<_cimg_Tfloat> pseudoinvert(const CImg<T>& instance) {
+    return instance.get_pseudoinvert();
+  }
+
+  /*-----------------------------------
+   #
+   # Define the CImgDisplay structure
+   #
+   ----------------------------------*/
+  //! Allow the creation of windows, display images on them and manage user events (keyboard, mouse and windows events).
+  /**
+     CImgDisplay methods rely on a low-level graphic library to perform: it can be either \b X-Window
+     (X11, for Unix-based systems) or \b GDI32 (for Windows-based systems).
+     If both libraries are missing, CImgDisplay will not be able to display images on screen, and will enter
+     a minimal mode where warning messages will be outputed each time the program is trying to call one of the
+     CImgDisplay method.
+
+     The configuration variable \c cimg_display tells about the graphic library used.
+     It is set automatically by \CImg when one of these graphic libraries has been detected.
+     But, you can override its value if necessary. Valid choices are:
+     - 0: Disable display capabilities.
+     - 1: Use \b X-Window (X11) library.
+     - 2: Use \b GDI32 library.
+
+     Remember to link your program against \b X11 or \b GDI32 libraries if you use CImgDisplay.
+  **/
+  struct CImgDisplay {
+    cimg_ulong _timer, _fps_frames, _fps_timer;
+    unsigned int _width, _height, _normalization;
+    float _fps_fps, _min, _max;
+    bool _is_fullscreen;
+    char *_title;
+    unsigned int _window_width, _window_height, _button, *_keys, *_released_keys;
+    int _window_x, _window_y, _mouse_x, _mouse_y, _wheel;
+    bool _is_closed, _is_resized, _is_moved, _is_event,
+      _is_keyESC, _is_keyF1, _is_keyF2, _is_keyF3, _is_keyF4, _is_keyF5, _is_keyF6, _is_keyF7,
+      _is_keyF8, _is_keyF9, _is_keyF10, _is_keyF11, _is_keyF12, _is_keyPAUSE, _is_key1, _is_key2,
+      _is_key3, _is_key4, _is_key5, _is_key6, _is_key7, _is_key8, _is_key9, _is_key0,
+      _is_keyBACKSPACE, _is_keyINSERT, _is_keyHOME, _is_keyPAGEUP, _is_keyTAB, _is_keyQ, _is_keyW, _is_keyE,
+      _is_keyR, _is_keyT, _is_keyY, _is_keyU, _is_keyI, _is_keyO, _is_keyP, _is_keyDELETE,
+      _is_keyEND, _is_keyPAGEDOWN, _is_keyCAPSLOCK, _is_keyA, _is_keyS, _is_keyD, _is_keyF, _is_keyG,
+      _is_keyH, _is_keyJ, _is_keyK, _is_keyL, _is_keyENTER, _is_keySHIFTLEFT, _is_keyZ, _is_keyX,
+      _is_keyC, _is_keyV, _is_keyB, _is_keyN, _is_keyM, _is_keySHIFTRIGHT, _is_keyARROWUP, _is_keyCTRLLEFT,
+      _is_keyAPPLEFT, _is_keyALT, _is_keySPACE, _is_keyALTGR, _is_keyAPPRIGHT, _is_keyMENU, _is_keyCTRLRIGHT,
+      _is_keyARROWLEFT, _is_keyARROWDOWN, _is_keyARROWRIGHT, _is_keyPAD0, _is_keyPAD1, _is_keyPAD2, _is_keyPAD3,
+      _is_keyPAD4, _is_keyPAD5, _is_keyPAD6, _is_keyPAD7, _is_keyPAD8, _is_keyPAD9, _is_keyPADADD, _is_keyPADSUB,
+      _is_keyPADMUL, _is_keyPADDIV;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+
+#ifdef cimgdisplay_plugin
+#include cimgdisplay_plugin
+#endif
+#ifdef cimgdisplay_plugin1
+#include cimgdisplay_plugin1
+#endif
+#ifdef cimgdisplay_plugin2
+#include cimgdisplay_plugin2
+#endif
+#ifdef cimgdisplay_plugin3
+#include cimgdisplay_plugin3
+#endif
+#ifdef cimgdisplay_plugin4
+#include cimgdisplay_plugin4
+#endif
+#ifdef cimgdisplay_plugin5
+#include cimgdisplay_plugin5
+#endif
+#ifdef cimgdisplay_plugin6
+#include cimgdisplay_plugin6
+#endif
+#ifdef cimgdisplay_plugin7
+#include cimgdisplay_plugin7
+#endif
+#ifdef cimgdisplay_plugin8
+#include cimgdisplay_plugin8
+#endif
+
+    //@}
+    //--------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //--------------------------------------------------------
+
+    //! Destructor.
+    /**
+       \note If the associated window is visible on the screen, it is closed by the call to the destructor.
+    **/
+    ~CImgDisplay() {
+      assign();
+      delete[] _keys;
+      delete[] _released_keys;
+    }
+
+    //! Construct an empty display.
+    /**
+       \note Constructing an empty CImgDisplay instance does not make a window appearing on the screen, until
+       display of valid data is performed.
+       \par Example
+       \code
+       CImgDisplay disp;  // Does actually nothing.
+       ...
+       disp.display(img); // Construct new window and display image in it.
+       \endcode
+    **/
+    CImgDisplay():
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_wind
