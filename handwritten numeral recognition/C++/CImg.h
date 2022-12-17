@@ -5860,4 +5860,184 @@ namespace cimg_library_suffixed {
       _title(0),
       _window_width(0),_window_height(0),_button(0),
       _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
-      _window_x(0),_wind
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign();
+    }
+
+    //! Construct a display with specified dimensions.
+    /** \param width Window width.
+        \param height Window height.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note A black background is initially displayed on the associated window.
+    **/
+    CImgDisplay(const unsigned int width, const unsigned int height,
+                const char *const title=0, const unsigned int normalization=3,
+                const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(width,height,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image.
+    /** \param img Image used as a model to create the window.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note The pixels of the input image are initially displayed on the associated window.
+    **/
+    template<typename T>
+    explicit CImgDisplay(const CImg<T>& img,
+                         const char *const title=0, const unsigned int normalization=3,
+                         const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(img,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image list.
+    /** \param list The images list to display.
+        \param title Window title.
+        \param normalization Normalization type
+        (<tt>0</tt>=none, <tt>1</tt>=always, <tt>2</tt>=once, <tt>3</tt>=pixel type-dependent, see normalization()).
+        \param is_fullscreen Tells if fullscreen mode is enabled.
+        \param is_closed Tells if associated window is initially visible or not.
+        \note All images of the list, appended along the X-axis, are initially displayed on the associated window.
+    **/
+    template<typename T>
+    explicit CImgDisplay(const CImgList<T>& list,
+                         const char *const title=0, const unsigned int normalization=3,
+                         const bool is_fullscreen=false, const bool is_closed=false):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(list,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of an existing one.
+    /**
+        \param disp Display instance to copy.
+        \note The pixel buffer of the input window is initially displayed on the associated window.
+    **/
+    CImgDisplay(const CImgDisplay& disp):
+      _width(0),_height(0),_normalization(0),
+      _min(0),_max(0),
+      _is_fullscreen(false),
+      _title(0),
+      _window_width(0),_window_height(0),_button(0),
+      _keys(new unsigned int[128]),_released_keys(new unsigned int[128]),
+      _window_x(0),_window_y(0),_mouse_x(-1),_mouse_y(-1),_wheel(0),
+      _is_closed(true),_is_resized(false),_is_moved(false),_is_event(false) {
+      assign(disp);
+    }
+
+#if cimg_display==0
+
+    static void _no_display_exception() {
+      throw CImgDisplayException("CImgDisplay(): No display available.");
+    }
+
+    //! Destructor - Empty constructor \inplace.
+    /**
+       \note Replace the current instance by an empty display.
+    **/
+    CImgDisplay& assign() {
+      return flush();
+    }
+
+    //! Construct a display with specified dimensions \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const unsigned int width, const unsigned int height,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      cimg::unused(width,height,title,normalization,is_fullscreen,is_closed);
+      _no_display_exception();
+      return assign();
+    }
+
+    //! Construct a display from an image \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImg<T>& img,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(img._width,img._height,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display from an image list \inplace.
+    /**
+    **/
+    template<typename T>
+    CImgDisplay& assign(const CImgList<T>& list,
+                        const char *const title=0, const unsigned int normalization=3,
+                        const bool is_fullscreen=false, const bool is_closed=false) {
+      _no_display_exception();
+      return assign(list._width,list._width,title,normalization,is_fullscreen,is_closed);
+    }
+
+    //! Construct a display as a copy of another one \inplace.
+    /**
+    **/
+    CImgDisplay& assign(const CImgDisplay &disp) {
+      _no_display_exception();
+      return assign(disp._width,disp._height);
+    }
+
+#endif
+
+    //! Return a reference to an empty display.
+    /**
+       \note Can be useful for writing function prototypes where one of the argument (of type CImgDisplay&)
+       must have a default value.
+       \par Example
+       \code
+       void foo(CImgDisplay& disp=CImgDisplay::empty());
+       \endcode
+    **/
+    static CImgDisplay& empty() {
+      static CImgDisplay _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty display \const.
+    static const CImgDisplay& const_empty() {
+      static const CImgDisplay _empty;
+      return _empty;
+    }
+
+#define cimg_fitscreen(dx,dy,dz) CImgDisplay::_fitscreen(dx,dy,dz,128,-85,false), \
+                                 CImgDisplay::_fitscreen(dx,dy,dz,128,-85,true)
+    static unsigned int _fitscreen(const unsigned int dx, const unsigned int dy, const unsigned int dz,
+                                   const int dmin, const int dmax,const bool return_y) {
+      const unsigned int _nw = dx + (dz>1?dz:0), _nh = dy + (dz>1?dz:0);
+      unsigned int nw = _nw?_nw:1, nh = _nh?_nh:1;
+      const unsigned int
+        sw = (unsigned int)CImgDisplay::screen_width(),
+        sh = (unsigned int)CImgDisplay::screen_height(),
+        mw = dmin<0?(unsigned int)(sw*-dmin/100):(unsigned int)dmin
