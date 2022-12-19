@@ -6222,4 +6222,154 @@ namespace cimg_library_suffixed {
       return false;
     }
 
-    //! Return \c true if key specified by given keycode is being pressed
+    //! Return \c true if key specified by given keycode is being pressed on the associated window, \c false otherwise.
+    /**
+       \param keycode C-string containing the keycode label of the key to test.
+       \note Use it when the key you want to test can be dynamically set by the user.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const char *const keycode = "TAB";
+       while (!disp.is_closed()) {
+         if (disp.is_key(keycode)) { ... }  // Equivalent to 'if (disp.is_keyTAB())'.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool& is_key(const char *const keycode) {
+      static bool f = false;
+      f = false;
+#define _cimg_iskey_test2(k) if (!cimg::strcasecmp(keycode,#k)) return _is_key##k;
+      _cimg_iskey_test2(ESC); _cimg_iskey_test2(F1); _cimg_iskey_test2(F2); _cimg_iskey_test2(F3);
+      _cimg_iskey_test2(F4); _cimg_iskey_test2(F5); _cimg_iskey_test2(F6); _cimg_iskey_test2(F7);
+      _cimg_iskey_test2(F8); _cimg_iskey_test2(F9); _cimg_iskey_test2(F10); _cimg_iskey_test2(F11);
+      _cimg_iskey_test2(F12); _cimg_iskey_test2(PAUSE); _cimg_iskey_test2(1); _cimg_iskey_test2(2);
+      _cimg_iskey_test2(3); _cimg_iskey_test2(4); _cimg_iskey_test2(5); _cimg_iskey_test2(6);
+      _cimg_iskey_test2(7); _cimg_iskey_test2(8); _cimg_iskey_test2(9); _cimg_iskey_test2(0);
+      _cimg_iskey_test2(BACKSPACE); _cimg_iskey_test2(INSERT); _cimg_iskey_test2(HOME);
+      _cimg_iskey_test2(PAGEUP); _cimg_iskey_test2(TAB); _cimg_iskey_test2(Q); _cimg_iskey_test2(W);
+      _cimg_iskey_test2(E); _cimg_iskey_test2(R); _cimg_iskey_test2(T); _cimg_iskey_test2(Y);
+      _cimg_iskey_test2(U); _cimg_iskey_test2(I); _cimg_iskey_test2(O); _cimg_iskey_test2(P);
+      _cimg_iskey_test2(DELETE); _cimg_iskey_test2(END); _cimg_iskey_test2(PAGEDOWN);
+      _cimg_iskey_test2(CAPSLOCK); _cimg_iskey_test2(A); _cimg_iskey_test2(S); _cimg_iskey_test2(D);
+      _cimg_iskey_test2(F); _cimg_iskey_test2(G); _cimg_iskey_test2(H); _cimg_iskey_test2(J);
+      _cimg_iskey_test2(K); _cimg_iskey_test2(L); _cimg_iskey_test2(ENTER);
+      _cimg_iskey_test2(SHIFTLEFT); _cimg_iskey_test2(Z); _cimg_iskey_test2(X); _cimg_iskey_test2(C);
+      _cimg_iskey_test2(V); _cimg_iskey_test2(B); _cimg_iskey_test2(N); _cimg_iskey_test2(M);
+      _cimg_iskey_test2(SHIFTRIGHT); _cimg_iskey_test2(ARROWUP); _cimg_iskey_test2(CTRLLEFT);
+      _cimg_iskey_test2(APPLEFT); _cimg_iskey_test2(ALT); _cimg_iskey_test2(SPACE); _cimg_iskey_test2(ALTGR);
+      _cimg_iskey_test2(APPRIGHT); _cimg_iskey_test2(MENU); _cimg_iskey_test2(CTRLRIGHT);
+      _cimg_iskey_test2(ARROWLEFT); _cimg_iskey_test2(ARROWDOWN); _cimg_iskey_test2(ARROWRIGHT);
+      _cimg_iskey_test2(PAD0); _cimg_iskey_test2(PAD1); _cimg_iskey_test2(PAD2);
+      _cimg_iskey_test2(PAD3); _cimg_iskey_test2(PAD4); _cimg_iskey_test2(PAD5);
+      _cimg_iskey_test2(PAD6); _cimg_iskey_test2(PAD7); _cimg_iskey_test2(PAD8);
+      _cimg_iskey_test2(PAD9); _cimg_iskey_test2(PADADD); _cimg_iskey_test2(PADSUB);
+      _cimg_iskey_test2(PADMUL); _cimg_iskey_test2(PADDIV);
+      return f;
+    }
+
+    //! Return \c true if specified key sequence has been typed on the associated window, \c false otherwise.
+    /**
+       \param keycodes_sequence Buffer of keycodes to test.
+       \param length Number of keys in the \c keycodes_sequence buffer.
+       \param remove_sequence Tells if the key sequence must be removed from the key history, if found.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       const unsigned int key_seq[] = { cimg::keyCTRLLEFT, cimg::keyD };
+       while (!disp.is_closed()) {
+         if (disp.is_key_sequence(key_seq,2)) { ... }  // Test for the 'CTRL+D' keyboard event.
+         disp.wait();
+       }
+       \endcode
+    **/
+    bool is_key_sequence(const unsigned int *const keycodes_sequence, const unsigned int length,
+                         const bool remove_sequence=false) {
+      if (keycodes_sequence && length) {
+        const unsigned int
+          *const ps_end = keycodes_sequence + length - 1,
+          *const pk_end = (unsigned int*)_keys + 1 + 128 - length,
+          k = *ps_end;
+        for (unsigned int *pk = (unsigned int*)_keys; pk<pk_end; ) {
+          if (*(pk++)==k) {
+            bool res = true;
+            const unsigned int *ps = ps_end, *pk2 = pk;
+            for (unsigned int i = 1; i<length; ++i) res = (*(--ps)==*(pk2++));
+            if (res) {
+              if (remove_sequence) std::memset((void*)(pk - 1),0,sizeof(unsigned int)*length);
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+#define _cimg_iskey_def(k) \
+    bool is_key##k() const { \
+      return _is_key##k; \
+    }
+
+    //! Return \c true if the \c ESC key is being pressed on the associated window, \c false otherwise.
+    /**
+       \note Similar methods exist for all keys managed by \CImg (see cimg::keyESC).
+    **/
+    _cimg_iskey_def(ESC); _cimg_iskey_def(F1); _cimg_iskey_def(F2); _cimg_iskey_def(F3);
+    _cimg_iskey_def(F4); _cimg_iskey_def(F5); _cimg_iskey_def(F6); _cimg_iskey_def(F7);
+    _cimg_iskey_def(F8); _cimg_iskey_def(F9); _cimg_iskey_def(F10); _cimg_iskey_def(F11);
+    _cimg_iskey_def(F12); _cimg_iskey_def(PAUSE); _cimg_iskey_def(1); _cimg_iskey_def(2);
+    _cimg_iskey_def(3); _cimg_iskey_def(4); _cimg_iskey_def(5); _cimg_iskey_def(6);
+    _cimg_iskey_def(7); _cimg_iskey_def(8); _cimg_iskey_def(9); _cimg_iskey_def(0);
+    _cimg_iskey_def(BACKSPACE); _cimg_iskey_def(INSERT); _cimg_iskey_def(HOME);
+    _cimg_iskey_def(PAGEUP); _cimg_iskey_def(TAB); _cimg_iskey_def(Q); _cimg_iskey_def(W);
+    _cimg_iskey_def(E); _cimg_iskey_def(R); _cimg_iskey_def(T); _cimg_iskey_def(Y);
+    _cimg_iskey_def(U); _cimg_iskey_def(I); _cimg_iskey_def(O); _cimg_iskey_def(P);
+    _cimg_iskey_def(DELETE); _cimg_iskey_def(END); _cimg_iskey_def(PAGEDOWN);
+    _cimg_iskey_def(CAPSLOCK); _cimg_iskey_def(A); _cimg_iskey_def(S); _cimg_iskey_def(D);
+    _cimg_iskey_def(F); _cimg_iskey_def(G); _cimg_iskey_def(H); _cimg_iskey_def(J);
+    _cimg_iskey_def(K); _cimg_iskey_def(L); _cimg_iskey_def(ENTER);
+    _cimg_iskey_def(SHIFTLEFT); _cimg_iskey_def(Z); _cimg_iskey_def(X); _cimg_iskey_def(C);
+    _cimg_iskey_def(V); _cimg_iskey_def(B); _cimg_iskey_def(N); _cimg_iskey_def(M);
+    _cimg_iskey_def(SHIFTRIGHT); _cimg_iskey_def(ARROWUP); _cimg_iskey_def(CTRLLEFT);
+    _cimg_iskey_def(APPLEFT); _cimg_iskey_def(ALT); _cimg_iskey_def(SPACE); _cimg_iskey_def(ALTGR);
+    _cimg_iskey_def(APPRIGHT); _cimg_iskey_def(MENU); _cimg_iskey_def(CTRLRIGHT);
+    _cimg_iskey_def(ARROWLEFT); _cimg_iskey_def(ARROWDOWN); _cimg_iskey_def(ARROWRIGHT);
+    _cimg_iskey_def(PAD0); _cimg_iskey_def(PAD1); _cimg_iskey_def(PAD2);
+    _cimg_iskey_def(PAD3); _cimg_iskey_def(PAD4); _cimg_iskey_def(PAD5);
+    _cimg_iskey_def(PAD6); _cimg_iskey_def(PAD7); _cimg_iskey_def(PAD8);
+    _cimg_iskey_def(PAD9); _cimg_iskey_def(PADADD); _cimg_iskey_def(PADSUB);
+    _cimg_iskey_def(PADMUL); _cimg_iskey_def(PADDIV);
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //------------------------------------------
+
+#if cimg_display==0
+
+    //! Return width of the screen (current resolution along the X-axis).
+    /**
+    **/
+    static int screen_width() {
+      _no_display_exception();
+      return 0;
+    }
+
+    //! Return height of the screen (current resolution along the Y-axis).
+    /**
+    **/
+    static int screen_height() {
+      _no_display_exception();
+      return 0;
+    }
+
+#endif
+
+    //! Return display width.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the 
