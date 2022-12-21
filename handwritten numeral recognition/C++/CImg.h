@@ -6372,4 +6372,190 @@ namespace cimg_library_suffixed {
     //! Return display width.
     /**
        \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
-       may be different from the actual width of the 
+       may be different from the actual width of the associated window.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return display height.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int height() const {
+      return (int)_height;
+    }
+
+    //! Return normalization type of the display.
+    /**
+       The normalization type tells about how the values of an input image are normalized by the CImgDisplay to be
+       correctly displayed. The range of values for pixels displayed on screen is <tt>[0,255]</tt>.
+       If the range of values of the data to display is different, a normalization may be required for displaying
+       the data in a correct way. The normalization type can be one of:
+       - \c 0: Value normalization is disabled. It is then assumed that all input data to be displayed by the
+       CImgDisplay instance have values in range <tt>[0,255]</tt>.
+       - \c 1: Value normalization is always performed (this is the default behavior).
+       Before displaying an input image, its values will be (virtually) stretched
+       in range <tt>[0,255]</tt>, so that the contrast of the displayed pixels will be maximum.
+       Use this mode for images whose minimum and maximum values are not prescribed to known values
+       (e.g. float-valued images).
+       Note that when normalized versions of images are computed for display purposes, the actual values of these
+       images are not modified.
+       - \c 2: Value normalization is performed once (on the first image display), then the same normalization
+       coefficients are kept for next displayed frames.
+       - \c 3: Value normalization depends on the pixel type of the data to display. For integer pixel types,
+       the normalization is done regarding the minimum/maximum values of the type (no normalization occurs then
+       for <tt>unsigned char</tt>).
+       For float-valued pixel types, the normalization is done regarding the minimum/maximum value of the image
+       data instead.
+    **/
+    unsigned int normalization() const {
+      return _normalization;
+    }
+
+    //! Return title of the associated window as a C-string.
+    /**
+       \note Window title may be not visible, depending on the used window manager or if the current display is
+       in fullscreen mode.
+    **/
+    const char *title() const {
+      return _title?_title:"";
+    }
+
+    //! Return width of the associated window.
+    /**
+       \note The width of the display (i.e. the width of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual width of the associated window.
+    **/
+    int window_width() const {
+      return (int)_window_width;
+    }
+
+    //! Return height of the associated window.
+    /**
+       \note The height of the display (i.e. the height of the pixel data buffer associated to the CImgDisplay instance)
+       may be different from the actual height of the associated window.
+    **/
+    int window_height() const {
+      return (int)_window_height;
+    }
+
+    //! Return X-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_x() const {
+      return _window_x;
+    }
+
+    //! Return Y-coordinate of the associated window.
+    /**
+       \note The returned coordinate corresponds to the location of the upper-left corner of the associated window.
+    **/
+    int window_y() const {
+      return _window_y;
+    }
+
+    //! Return X-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,width()-1].
+    **/
+    int mouse_x() const {
+      return _mouse_x;
+    }
+
+    //! Return Y-coordinate of the mouse pointer.
+    /**
+       \note
+       - If the mouse pointer is outside window area, \c -1 is returned.
+       - Otherwise, the returned value is in the range [0,height()-1].
+    **/
+    int mouse_y() const {
+      return _mouse_y;
+    }
+
+    //! Return current state of the mouse buttons.
+    /**
+       \note Three mouse buttons can be managed. If one button is pressed, its corresponding bit in the returned
+       value is set:
+       - bit \c 0 (value \c 0x1): State of the left mouse button.
+       - bit \c 1 (value \c 0x2): State of the right mouse button.
+       - bit \c 2 (value \c 0x4): State of the middle mouse button.
+
+       Several bits can be activated if more than one button are pressed at the same time.
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.button()&1) { // Left button clicked.
+           ...
+         }
+         if (disp.button()&2) { // Right button clicked.
+           ...
+         }
+         if (disp.button()&4) { // Middle button clicked.
+           ...
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    unsigned int button() const {
+      return _button;
+    }
+
+    //! Return current state of the mouse wheel.
+    /**
+       \note
+       - The returned value can be positive or negative depending on whether the mouse wheel has been scrolled
+       forward or backward.
+       - Scrolling the wheel forward add \c 1 to the wheel value.
+       - Scrolling the wheel backward substract \c 1 to the wheel value.
+       - The returned value cumulates the number of forward of backward scrolls since the creation of the display,
+       or since the last reset of the wheel value (using set_wheel()). It is strongly recommended to quickly reset
+       the wheel counter when an action has been performed regarding the current wheel value.
+       Otherwise, the returned wheel value may be for instance \c 0 despite the fact that many scrolls have been done
+       (as many in forward as in backward directions).
+       \par Example
+       \code
+       CImgDisplay disp(400,400);
+       while (!disp.is_closed()) {
+         if (disp.wheel()) {
+           int counter = disp.wheel();  // Read the state of the mouse wheel.
+           ...                          // Do what you want with 'counter'.
+           disp.set_wheel();            // Reset the wheel value to 0.
+         }
+         disp.wait();
+       }
+       \endcode
+    **/
+    int wheel() const {
+      return _wheel;
+    }
+
+    //! Return one entry from the pressed keys history.
+    /**
+       \param pos Indice to read from the pressed keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a pressed key or \c 0 for a released key.
+       \note
+       - Each CImgDisplay stores a history of the pressed keys in a buffer of size \c 128. When a new key is pressed,
+       its keycode is stored in the pressed keys history. When a key is released, \c 0 is put instead.
+       This means that up to the 64 last pressed keys may be read from the pressed keys history.
+       When a new value is stored, the pressed keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int key(const unsigned int pos=0) const {
+      return pos<128?_keys[pos]:0;
+    }
+
+    //! Return one entry from the released keys history.
+    /**
+       \param pos Indice to read from the released keys history (indice \c 0 corresponds to latest entry).
+       \return Keycode of a released key or \c 0 for a pressed key.
+       \note
+       - Each CImgDisplay stores a history of the released keys in a buffer of size \c 128. When a new 
