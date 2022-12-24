@@ -6956,4 +6956,152 @@ namespace cimg_library_suffixed {
     CImgDisplay& set_key() {
       std::memset((void*)_keys,0,128*sizeof(unsigned int));
       std::memset((void*)_released_keys,0,128*sizeof(unsigned int));
-      _is_keyESC = _is_keyF1 = _is_keyF2 = _is_keyF
+      _is_keyESC = _is_keyF1 = _is_keyF2 = _is_keyF3 = _is_keyF4 = _is_keyF5 = _is_keyF6 = _is_keyF7 = _is_keyF8 =
+        _is_keyF9 = _is_keyF10 = _is_keyF11 = _is_keyF12 = _is_keyPAUSE = _is_key1 = _is_key2 = _is_key3 = _is_key4 =
+        _is_key5 = _is_key6 = _is_key7 = _is_key8 = _is_key9 = _is_key0 = _is_keyBACKSPACE = _is_keyINSERT =
+        _is_keyHOME = _is_keyPAGEUP = _is_keyTAB = _is_keyQ = _is_keyW = _is_keyE = _is_keyR = _is_keyT = _is_keyY =
+        _is_keyU = _is_keyI = _is_keyO = _is_keyP = _is_keyDELETE = _is_keyEND = _is_keyPAGEDOWN = _is_keyCAPSLOCK =
+        _is_keyA = _is_keyS = _is_keyD = _is_keyF = _is_keyG = _is_keyH = _is_keyJ = _is_keyK = _is_keyL =
+        _is_keyENTER = _is_keySHIFTLEFT = _is_keyZ = _is_keyX = _is_keyC = _is_keyV = _is_keyB = _is_keyN =
+        _is_keyM = _is_keySHIFTRIGHT = _is_keyARROWUP = _is_keyCTRLLEFT = _is_keyAPPLEFT = _is_keyALT = _is_keySPACE =
+        _is_keyALTGR = _is_keyAPPRIGHT = _is_keyMENU = _is_keyCTRLRIGHT = _is_keyARROWLEFT = _is_keyARROWDOWN =
+        _is_keyARROWRIGHT = _is_keyPAD0 = _is_keyPAD1 = _is_keyPAD2 = _is_keyPAD3 = _is_keyPAD4 = _is_keyPAD5 =
+        _is_keyPAD6 = _is_keyPAD7 = _is_keyPAD8 = _is_keyPAD9 = _is_keyPADADD = _is_keyPADSUB = _is_keyPADMUL =
+        _is_keyPADDIV = false;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a keyboard press/release event.
+    /**
+       \param keycode Keycode of the associated key.
+       \param is_pressed Tells if the key is considered as pressed or released.
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    CImgDisplay& set_key(const unsigned int keycode, const bool is_pressed=true) {
+#define _cimg_set_key(k) if (keycode==cimg::key##k) _is_key##k = is_pressed;
+      _cimg_set_key(ESC); _cimg_set_key(F1); _cimg_set_key(F2); _cimg_set_key(F3);
+      _cimg_set_key(F4); _cimg_set_key(F5); _cimg_set_key(F6); _cimg_set_key(F7);
+      _cimg_set_key(F8); _cimg_set_key(F9); _cimg_set_key(F10); _cimg_set_key(F11);
+      _cimg_set_key(F12); _cimg_set_key(PAUSE); _cimg_set_key(1); _cimg_set_key(2);
+      _cimg_set_key(3); _cimg_set_key(4); _cimg_set_key(5); _cimg_set_key(6);
+      _cimg_set_key(7); _cimg_set_key(8); _cimg_set_key(9); _cimg_set_key(0);
+      _cimg_set_key(BACKSPACE); _cimg_set_key(INSERT); _cimg_set_key(HOME);
+      _cimg_set_key(PAGEUP); _cimg_set_key(TAB); _cimg_set_key(Q); _cimg_set_key(W);
+      _cimg_set_key(E); _cimg_set_key(R); _cimg_set_key(T); _cimg_set_key(Y);
+      _cimg_set_key(U); _cimg_set_key(I); _cimg_set_key(O); _cimg_set_key(P);
+      _cimg_set_key(DELETE); _cimg_set_key(END); _cimg_set_key(PAGEDOWN);
+      _cimg_set_key(CAPSLOCK); _cimg_set_key(A); _cimg_set_key(S); _cimg_set_key(D);
+      _cimg_set_key(F); _cimg_set_key(G); _cimg_set_key(H); _cimg_set_key(J);
+      _cimg_set_key(K); _cimg_set_key(L); _cimg_set_key(ENTER);
+      _cimg_set_key(SHIFTLEFT); _cimg_set_key(Z); _cimg_set_key(X); _cimg_set_key(C);
+      _cimg_set_key(V); _cimg_set_key(B); _cimg_set_key(N); _cimg_set_key(M);
+      _cimg_set_key(SHIFTRIGHT); _cimg_set_key(ARROWUP); _cimg_set_key(CTRLLEFT);
+      _cimg_set_key(APPLEFT); _cimg_set_key(ALT); _cimg_set_key(SPACE); _cimg_set_key(ALTGR);
+      _cimg_set_key(APPRIGHT); _cimg_set_key(MENU); _cimg_set_key(CTRLRIGHT);
+      _cimg_set_key(ARROWLEFT); _cimg_set_key(ARROWDOWN); _cimg_set_key(ARROWRIGHT);
+      _cimg_set_key(PAD0); _cimg_set_key(PAD1); _cimg_set_key(PAD2);
+      _cimg_set_key(PAD3); _cimg_set_key(PAD4); _cimg_set_key(PAD5);
+      _cimg_set_key(PAD6); _cimg_set_key(PAD7); _cimg_set_key(PAD8);
+      _cimg_set_key(PAD9); _cimg_set_key(PADADD); _cimg_set_key(PADSUB);
+      _cimg_set_key(PADMUL); _cimg_set_key(PADDIV);
+      if (is_pressed) {
+        if (*_keys)
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+        *_keys = keycode;
+        if (*_released_keys) {
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+          *_released_keys = 0;
+        }
+      } else {
+        if (*_keys) {
+          std::memmove((void*)(_keys + 1),(void*)_keys,127*sizeof(unsigned int));
+          *_keys = 0;
+        }
+        if (*_released_keys)
+          std::memmove((void*)(_released_keys + 1),(void*)_released_keys,127*sizeof(unsigned int));
+        *_released_keys = keycode;
+      }
+      _is_event = keycode?true:false;
+      if (keycode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all display events.
+    /**
+       \note Remove all passed events from the current display.
+    **/
+    CImgDisplay& flush() {
+      set_key().set_button().set_wheel();
+      _is_resized = _is_moved = _is_event = false;
+      _fps_timer = _fps_frames = _timer = 0;
+      _fps_fps = 0;
+      return *this;
+    }
+
+    //! Wait for any user event occuring on the current display.
+    CImgDisplay& wait() {
+      wait(*this);
+      return *this;
+    }
+
+    //! Wait for a given number of milliseconds since the last call to wait().
+    /**
+       \param milliseconds Number of milliseconds to wait for.
+       \note Similar to cimg::wait().
+    **/
+    CImgDisplay& wait(const unsigned int milliseconds) {
+      cimg::_wait(milliseconds,_timer);
+      return *this;
+    }
+
+    //! Wait for any event occuring on the display \c disp1.
+    static void wait(CImgDisplay& disp1) {
+      disp1._is_event = false;
+      while (!disp1._is_closed && !disp1._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1 or \c disp2.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2) {
+      disp1._is_event = disp2._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed) &&
+             !disp1._is_event && !disp2._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2 or \c disp3.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3) {
+      disp1._is_event = disp2._is_event = disp3._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3 or \c disp4.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event) wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4 or \c disp5.
+    static void wait(CImgDisplay& disp1, CImgDisplay& disp2, CImgDisplay& disp3, CImgDisplay& disp4,
+                     CImgDisplay& disp5) {
+      disp1._is_event = disp2._is_event = disp3._is_event = disp4._is_event = disp5._is_event = false;
+      while ((!disp1._is_closed || !disp2._is_closed || !disp3._is_closed || !disp4._is_closed || !disp5._is_closed) &&
+             !disp1._is_event && !disp2._is_event && !disp3._is_event && !disp4._is_event && !disp5._is_event)
+        wait_all();
+    }
+
+    //! Wait for any event occuring either on the display \c disp1, \c disp2, \c disp3, \c disp4, ... \c disp6.
+    static void w
