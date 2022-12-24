@@ -6742,4 +6742,218 @@ namespace cimg_library_suffixed {
     //! Resize display to the size of an input image.
     /**
        \param img Input image to take size from.
-       \param fo
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>img.width()</tt> become equal, as well as height() and
+       <tt>img.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    template<typename T>
+    CImgDisplay& resize(const CImg<T>& img, const bool force_redraw=true) {
+      return resize(img._width,img._height,force_redraw);
+    }
+
+    //! Resize display to the size of another CImgDisplay instance.
+    /**
+       \param disp Input display to take size from.
+       \param force_redraw Tells if the previous window content must be resized and updated as well.
+       \note
+       - Calling this method ensures that width() and <tt>disp.width()</tt> become equal, as well as height() and
+       <tt>disp.height()</tt>.
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const CImgDisplay& disp, const bool force_redraw=true) {
+      return resize(disp.width(),disp.height(),force_redraw);
+    }
+
+    // [internal] Render pixel buffer with size (wd,hd) from source buffer of size (ws,hs).
+    template<typename t, typename T>
+    static void _render_resize(const T *ptrs, const unsigned int ws, const unsigned int hs,
+                               t *ptrd, const unsigned int wd, const unsigned int hd) {
+      unsigned int *const offx = new unsigned int[wd], *const offy = new unsigned int[hd + 1], *poffx, *poffy;
+      float s, curr, old;
+      s = (float)ws/wd;
+      poffx = offx; curr = 0; for (unsigned int x = 0; x<wd; ++x) {
+        old = curr; curr+=s; *(poffx++) = (unsigned int)curr - (unsigned int)old;
+      }
+      s = (float)hs/hd;
+      poffy = offy; curr = 0; for (unsigned int y = 0; y<hd; ++y) {
+        old = curr; curr+=s; *(poffy++) = ws*((unsigned int)curr - (unsigned int)old);
+      }
+      *poffy = 0;
+      poffy = offy;
+      for (unsigned int y = 0; y<hd; ) {
+        const T *ptr = ptrs;
+        poffx = offx;
+        for (unsigned int x = 0; x<wd; ++x) { *(ptrd++) = *ptr; ptr+=*(poffx++); }
+        ++y;
+        unsigned int dy = *(poffy++);
+        for ( ; !dy && y<hd; std::memcpy(ptrd,ptrd - wd,sizeof(t)*wd), ++y, ptrd+=wd, dy = *(poffy++)) {}
+        ptrs+=dy;
+      }
+      delete[] offx; delete[] offy;
+    }
+
+    //! Set normalization type.
+    /**
+       \param normalization New normalization mode.
+    **/
+    CImgDisplay& set_normalization(const unsigned int normalization) {
+      _normalization = normalization;
+      _min = _max = 0;
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Set title of the associated window.
+    /**
+       \param format C-string containing the format of the title, as with <tt>std::printf()</tt>.
+       \warning As the first argument is a format string, it is highly recommended to write
+       \code
+       disp.set_title("%s",window_title);
+       \endcode
+       instead of
+       \code
+       disp.set_title(window_title);
+       \endcode
+       if \c window_title can be arbitrary, to prevent nasty memory access.
+    **/
+    CImgDisplay& set_title(const char *const format, ...) {
+      return assign(0,0,format);
+    }
+
+#endif
+
+    //! Enable or disable fullscreen mode.
+    /**
+       \param is_fullscreen Tells is the fullscreen mode must be activated or not.
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note
+       - When the fullscreen mode is enabled, the associated window fills the entire screen but the size of the
+       current display is not modified.
+       - The screen resolution may be switched to fit the associated window size and ensure it appears the largest
+       as possible.
+       For X-Window (X11) users, the configuration flag \c cimg_use_xrandr has to be set to allow the screen
+       resolution change (requires the X11 extensions to be enabled).
+    **/
+    CImgDisplay& set_fullscreen(const bool is_fullscreen, const bool force_redraw=true) {
+      if (is_empty() || _is_fullscreen==is_fullscreen) return *this;
+      return toggle_fullscreen(force_redraw);
+    }
+
+#if cimg_display==0
+
+    //! Toggle fullscreen mode.
+    /**
+       \param force_redraw Tells if the previous window content must be displayed as well.
+       \note Enable fullscreen mode if it was not enabled, and disable it otherwise.
+    **/
+    CImgDisplay& toggle_fullscreen(const bool force_redraw=true) {
+      return assign(_width,_height,0,3,force_redraw);
+    }
+
+    //! Show mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& show_mouse() {
+      return assign();
+    }
+
+    //! Hide mouse pointer.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& hide_mouse() {
+      return assign();
+    }
+
+    //! Move mouse pointer to a specified location.
+    /**
+       \note Depending on the window manager behavior, this method may not succeed
+       (no exceptions are thrown nevertheless).
+    **/
+    CImgDisplay& set_mouse(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Simulate a mouse button release event.
+    /**
+       \note All mouse buttons are considered released at the same time.
+    **/
+    CImgDisplay& set_button() {
+      _button = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a mouse button press or release event.
+    /**
+       \param button Buttons event code, where each button is associated to a single bit.
+       \param is_pressed Tells if the mouse button is considered as pressed or released.
+    **/
+    CImgDisplay& set_button(const unsigned int button, const bool is_pressed=true) {
+      const unsigned int buttoncode = button==1U?1U:button==2U?2U:button==3U?4U:0U;
+      if (is_pressed) _button |= buttoncode; else _button &= ~buttoncode;
+      _is_event = buttoncode?true:false;
+      if (buttoncode) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all mouse wheel events.
+    /**
+       \note Make wheel() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_wheel() {
+      _wheel = 0;
+      _is_event = true;
+#if cimg_display==1
+      pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+      SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      return *this;
+    }
+
+    //! Simulate a wheel event.
+    /**
+       \param amplitude Amplitude of the wheel scrolling to simulate.
+       \note Make wheel() to return \c amplitude, if called afterwards.
+    **/
+    CImgDisplay& set_wheel(const int amplitude) {
+      _wheel+=amplitude;
+      _is_event = amplitude?true:false;
+      if (amplitude) {
+#if cimg_display==1
+        pthread_cond_broadcast(&cimg::X11_attr().wait_event);
+#elif cimg_display==2
+        SetEvent(cimg::Win32_attr().wait_event);
+#endif
+      }
+      return *this;
+    }
+
+    //! Flush all key events.
+    /**
+       \note Make key() to return \c 0, if called afterwards.
+    **/
+    CImgDisplay& set_key() {
+      std::memset((void*)_keys,0,128*sizeof(unsigned int));
+      std::memset((void*)_released_keys,0,128*sizeof(unsigned int));
+      _is_keyESC = _is_keyF1 = _is_keyF2 = _is_keyF
