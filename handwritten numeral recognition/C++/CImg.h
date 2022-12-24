@@ -6558,4 +6558,188 @@ namespace cimg_library_suffixed {
        \param pos Indice to read from the released keys history (indice \c 0 corresponds to latest entry).
        \return Keycode of a released key or \c 0 for a pressed key.
        \note
-       - Each CImgDisplay stores a history of the released keys in a buffer of size \c 128. When a new 
+       - Each CImgDisplay stores a history of the released keys in a buffer of size \c 128. When a new key is released,
+       its keycode is stored in the pressed keys history. When a key is pressed, \c 0 is put instead.
+       This means that up to the 64 last released keys may be read from the released keys history.
+       When a new value is stored, the released keys history is shifted so that the latest entry is always
+       stored at position \c 0.
+       - Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+    **/
+    unsigned int released_key(const unsigned int pos=0) const {
+      return pos<128?_released_keys[pos]:0;
+    }
+
+    //! Return keycode corresponding to the specified string.
+    /**
+       \note Keycode constants are defined in the cimg namespace and are architecture-dependent. Use them to ensure
+       your code stay portable (see cimg::keyESC).
+       \par Example
+       \code
+       const unsigned int keyTAB = CImgDisplay::keycode("TAB");  // Return cimg::keyTAB.
+       \endcode
+    **/
+    static unsigned int keycode(const char *const keycode) {
+#define _cimg_keycode(k) if (!cimg::strcasecmp(keycode,#k)) return cimg::key##k;
+      _cimg_keycode(ESC); _cimg_keycode(F1); _cimg_keycode(F2); _cimg_keycode(F3);
+      _cimg_keycode(F4); _cimg_keycode(F5); _cimg_keycode(F6); _cimg_keycode(F7);
+      _cimg_keycode(F8); _cimg_keycode(F9); _cimg_keycode(F10); _cimg_keycode(F11);
+      _cimg_keycode(F12); _cimg_keycode(PAUSE); _cimg_keycode(1); _cimg_keycode(2);
+      _cimg_keycode(3); _cimg_keycode(4); _cimg_keycode(5); _cimg_keycode(6);
+      _cimg_keycode(7); _cimg_keycode(8); _cimg_keycode(9); _cimg_keycode(0);
+      _cimg_keycode(BACKSPACE); _cimg_keycode(INSERT); _cimg_keycode(HOME);
+      _cimg_keycode(PAGEUP); _cimg_keycode(TAB); _cimg_keycode(Q); _cimg_keycode(W);
+      _cimg_keycode(E); _cimg_keycode(R); _cimg_keycode(T); _cimg_keycode(Y);
+      _cimg_keycode(U); _cimg_keycode(I); _cimg_keycode(O); _cimg_keycode(P);
+      _cimg_keycode(DELETE); _cimg_keycode(END); _cimg_keycode(PAGEDOWN);
+      _cimg_keycode(CAPSLOCK); _cimg_keycode(A); _cimg_keycode(S); _cimg_keycode(D);
+      _cimg_keycode(F); _cimg_keycode(G); _cimg_keycode(H); _cimg_keycode(J);
+      _cimg_keycode(K); _cimg_keycode(L); _cimg_keycode(ENTER);
+      _cimg_keycode(SHIFTLEFT); _cimg_keycode(Z); _cimg_keycode(X); _cimg_keycode(C);
+      _cimg_keycode(V); _cimg_keycode(B); _cimg_keycode(N); _cimg_keycode(M);
+      _cimg_keycode(SHIFTRIGHT); _cimg_keycode(ARROWUP); _cimg_keycode(CTRLLEFT);
+      _cimg_keycode(APPLEFT); _cimg_keycode(ALT); _cimg_keycode(SPACE); _cimg_keycode(ALTGR);
+      _cimg_keycode(APPRIGHT); _cimg_keycode(MENU); _cimg_keycode(CTRLRIGHT);
+      _cimg_keycode(ARROWLEFT); _cimg_keycode(ARROWDOWN); _cimg_keycode(ARROWRIGHT);
+      _cimg_keycode(PAD0); _cimg_keycode(PAD1); _cimg_keycode(PAD2);
+      _cimg_keycode(PAD3); _cimg_keycode(PAD4); _cimg_keycode(PAD5);
+      _cimg_keycode(PAD6); _cimg_keycode(PAD7); _cimg_keycode(PAD8);
+      _cimg_keycode(PAD9); _cimg_keycode(PADADD); _cimg_keycode(PADSUB);
+      _cimg_keycode(PADMUL); _cimg_keycode(PADDIV);
+      return 0;
+    }
+
+    //! Return the current refresh rate, in frames per second.
+    /**
+       \note Returns a significant value when the current instance is used to display successive frames.
+       It measures the delay between successive calls to frames_per_second().
+    **/
+    float frames_per_second() {
+      if (!_fps_timer) _fps_timer = cimg::time();
+      const float delta = (cimg::time() - _fps_timer)/1000.0f;
+      ++_fps_frames;
+      if (delta>=1) {
+        _fps_fps = _fps_frames/delta;
+        _fps_frames = 0;
+        _fps_timer = cimg::time();
+      }
+      return _fps_fps;
+    }
+
+    //@}
+    //---------------------------------------
+    //
+    //! \name Window Manipulation
+    //@{
+    //---------------------------------------
+
+#if cimg_display==0
+
+    //! Display image on associated window.
+    /**
+       \param img Input image to display.
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImg<T>& img) {
+      return assign(img);
+    }
+
+#endif
+
+    //! Display list of images on associated window.
+    /**
+       \param list List of images to display.
+       \param axis Axis used to append the images along, for the visualization (can be \c x, \c y, \c z or \c c).
+       \param align Relative position of aligned images when displaying lists with images of different sizes
+       (\c 0 for upper-left, \c 0.5 for centering and \c 1 for lower-right).
+       \note This method returns immediately.
+    **/
+    template<typename T>
+    CImgDisplay& display(const CImgList<T>& list, const char axis='x', const float align=0) {
+      if (list._width==1) {
+        const CImg<T>& img = list[0];
+        if (img._depth==1 && (img._spectrum==1 || img._spectrum>=3) && _normalization!=1) return display(img);
+      }
+      CImgList<typename CImg<T>::ucharT> visu(list._width);
+      unsigned int dims = 0;
+      cimglist_for(list,l) {
+        const CImg<T>& img = list._data[l];
+        img.__get_select(*this,_normalization,(img._width - 1)/2,(img._height - 1)/2,
+                         (img._depth - 1)/2).move_to(visu[l]);
+        dims = cimg::max(dims,visu[l]._spectrum);
+      }
+      cimglist_for(list,l) if (visu[l]._spectrum<dims) visu[l].resize(-100,-100,-100,dims,1);
+      visu.get_append(axis,align).display(*this);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Show (closed) associated window on the screen.
+    /**
+       \note
+       - Force the associated window of a display to be visible on the screen, even if it has been closed before.
+       - Using show() on a visible display does nothing.
+    **/
+    CImgDisplay& show() {
+      return assign();
+    }
+
+    //! Close (visible) associated window and make it disappear from the screen.
+    /**
+       \note
+       - A closed display only means the associated window is not visible anymore. This does not mean the display has
+       been destroyed.
+       Use show() to make the associated window reappear.
+       - Using close() on a closed display does nothing.
+    **/
+    CImgDisplay& close() {
+      return assign();
+    }
+
+    //! Move associated window to a new location.
+    /**
+       \param pos_x X-coordinate of the new window location.
+       \param pos_y Y-coordinate of the new window location.
+       \note Depending on the window manager behavior, this method may not succeed (no exceptions are thrown
+       nevertheless).
+    **/
+    CImgDisplay& move(const int pos_x, const int pos_y) {
+      return assign(pos_x,pos_y);
+    }
+
+#endif
+
+    //! Resize display to the size of the associated window.
+    /**
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note
+       - Calling this method ensures that width() and window_width() become equal, as well as height() and
+       window_height().
+       - The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const bool force_redraw=true) {
+      resize(window_width(),window_height(),force_redraw);
+      return *this;
+    }
+
+#if cimg_display==0
+
+    //! Resize display to the specified size.
+    /**
+       \param width Requested display width.
+       \param height Requested display height.
+       \param force_redraw Tells if the previous window content must be updated and refreshed as well.
+       \note The associated window is also resized to specified dimensions.
+    **/
+    CImgDisplay& resize(const int width, const int height, const bool force_redraw=true) {
+      return assign(width,height,0,3,force_redraw);
+    }
+
+#endif
+
+    //! Resize display to the size of an input image.
+    /**
+       \param img Input image to take size from.
+       \param fo
