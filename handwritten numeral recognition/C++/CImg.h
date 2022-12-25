@@ -7438,4 +7438,177 @@ namespace cimg_library_suffixed {
         XGetWindowAttributes(dpy,_window,&attr);
         if (attr.map_state!=IsViewable) { XSync(dpy,0); cimg::sleep(10); }
       } while (attr.map_state!=IsViewable);
-      _window_x = attr
+      _window_x = attr.x;
+      _window_y = attr.y;
+    }
+
+    void _paint(const bool wait_expose=true) {
+      if (_is_closed || !_image) return;
+      Display *const dpy = cimg::X11_attr().display;
+      if (wait_expose) { // Send an expose event sticked to display window to force repaint.
+        XEvent event;
+        event.xexpose.type = Expose;
+        event.xexpose.serial = 0;
+        event.xexpose.send_event = 1;
+        event.xexpose.display = dpy;
+        event.xexpose.window = _window;
+        event.xexpose.x = 0;
+        event.xexpose.y = 0;
+        event.xexpose.width = width();
+        event.xexpose.height = height();
+        event.xexpose.count = 0;
+        XSendEvent(dpy,_window,0,0,&event);
+      } else { // Repaint directly (may be called from the expose event).
+        GC gc = DefaultGC(dpy,DefaultScreen(dpy));
+#ifdef cimg_use_xshm
+        if (_shminfo) XShmPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height,1);
+        else XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#else
+        XPutImage(dpy,_window,gc,_image,0,0,0,0,_width,_height);
+#endif
+      }
+    }
+
+    template<typename T>
+    void _resize(T pixel_type, const unsigned int ndimx, const unsigned int ndimy, const bool force_redraw) {
+      Display *const dpy = cimg::X11_attr().display;
+      cimg::unused(pixel_type);
+
+#ifdef cimg_use_xshm
+      if (_shminfo) {
+        XShmSegmentInfo *const nshminfo = new XShmSegmentInfo;
+        XImage *const nimage = XShmCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),
+                                               cimg::X11_attr().nb_bits,ZPixmap,0,nshminfo,ndimx,ndimy);
+        if (!nimage) { delete nshminfo; return; }
+        else {
+          nshminfo->shmid = shmget(IPC_PRIVATE,ndimx*ndimy*sizeof(T),IPC_CREAT | 0777);
+          if (nshminfo->shmid==-1) { XDestroyImage(nimage); delete nshminfo; return; }
+          else {
+            nshminfo->shmaddr = nimage->data = (char*)shmat(nshminfo->shmid,0,0);
+            if (nshminfo->shmaddr==(char*)-1) {
+              shmctl(nshminfo->shmid,IPC_RMID,0); XDestroyImage(nimage); delete nshminfo; return;
+            } else {
+              nshminfo->readOnly = 0;
+              cimg::X11_attr().is_shm_enabled = true;
+              XErrorHandler oldXErrorHandler = XSetErrorHandler(_assign_xshm);
+              XShmAttach(dpy,nshminfo);
+              XFlush(dpy);
+              XSetErrorHandler(oldXErrorHandler);
+              if (!cimg::X11_attr().is_shm_enabled) {
+                shmdt(nshminfo->shmaddr);
+                shmctl(nshminfo->shmid,IPC_RMID,0);
+                XDestroyImage(nimage);
+                delete nshminfo;
+                return;
+              } else {
+                T *const ndata = (T*)nimage->data;
+                if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+                else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+                XShmDetach(dpy,_shminfo);
+                XDestroyImage(_image);
+                shmdt(_shminfo->shmaddr);
+                shmctl(_shminfo->shmid,IPC_RMID,0);
+                delete _shminfo;
+                _shminfo = nshminfo;
+                _image = nimage;
+                _data = (void*)ndata;
+              }
+            }
+          }
+        }
+      } else
+#endif
+        {
+          T *ndata = (T*)std::malloc(ndimx*ndimy*sizeof(T));
+          if (force_redraw) _render_resize((T*)_data,_width,_height,ndata,ndimx,ndimy);
+          else std::memset(ndata,0,sizeof(T)*ndimx*ndimy);
+          _data = (void*)ndata;
+          XDestroyImage(_image);
+          _image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),
+                                cimg::X11_attr().nb_bits,ZPixmap,0,(char*)_data,ndimx,ndimy,8,0);
+        }
+    }
+
+    void _init_fullscreen() {
+      if (!_is_fullscreen || _is_closed) return;
+      Display *const dpy = cimg::X11_attr().display;
+      _background_window = 0;
+
+#ifdef cimg_use_xrandr
+      int foo;
+      if (XRRQueryExtension(dpy,&foo,&foo)) {
+        XRRRotations(dpy,DefaultScreen(dpy),&cimg::X11_attr().curr_rotation);
+        if (!cimg::X11_attr().resolutions) {
+          cimg::X11_attr().resolutions = XRRSizes(dpy,DefaultScreen(dpy),&foo);
+          cimg::X11_attr().nb_resolutions = (unsigned int)foo;
+        }
+        if (cimg::X11_attr().resolutions) {
+          cimg::X11_attr().curr_resolution = 0;
+          for (unsigned int i = 0; i<cimg::X11_attr().nb_resolutions; ++i) {
+            const unsigned int
+              nw = (unsigned int)(cimg::X11_attr().resolutions[i].width),
+              nh = (unsigned int)(cimg::X11_attr().resolutions[i].height);
+            if (nw>=_width && nh>=_height &&
+                nw<=(unsigned int)(cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].width) &&
+                nh<=(unsigned int)(cimg::X11_attr().resolutions[cimg::X11_attr().curr_resolution].height))
+              cimg::X11_attr().curr_resolution = i;
+          }
+          if (cimg::X11_attr().curr_resolution>0) {
+            XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,DefaultRootWindow(dpy));
+            XRRSetScreenConfig(dpy,config,DefaultRootWindow(dpy),
+                               cimg::X11_attr().curr_resolution,cimg::X11_attr().curr_rotation,CurrentTime);
+            XRRFreeScreenConfigInfo(config);
+            XSync(dpy,0);
+          }
+        }
+      }
+      if (!cimg::X11_attr().resolutions)
+        cimg::warn(_cimgdisplay_instance
+                   "init_fullscreen(): Xrandr extension not supported by the X server.",
+                   cimgdisplay_instance);
+#endif
+
+      const unsigned int sx = screen_width(), sy = screen_height();
+      if (sx==_width && sy==_height) return;
+      XSetWindowAttributes winattr;
+      winattr.override_redirect = 1;
+      _background_window = XCreateWindow(dpy,DefaultRootWindow(dpy),0,0,sx,sy,0,0,
+                                         InputOutput,CopyFromParent,CWOverrideRedirect,&winattr);
+      const cimg_ulong buf_size = (cimg_ulong)sx*sy*(cimg::X11_attr().nb_bits==8?1:
+                                                     (cimg::X11_attr().nb_bits==16?2:4));
+      void *background_data = std::malloc(buf_size);
+      std::memset(background_data,0,buf_size);
+      XImage *background_image = XCreateImage(dpy,DefaultVisual(dpy,DefaultScreen(dpy)),cimg::X11_attr().nb_bits,
+                                              ZPixmap,0,(char*)background_data,sx,sy,8,0);
+      XEvent event;
+      XSelectInput(dpy,_background_window,StructureNotifyMask);
+      XMapRaised(dpy,_background_window);
+      do XWindowEvent(dpy,_background_window,StructureNotifyMask,&event);
+      while (event.type!=MapNotify);
+      GC gc = DefaultGC(dpy,DefaultScreen(dpy));
+#ifdef cimg_use_xshm
+      if (_shminfo) XShmPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy,0);
+      else XPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy);
+#else
+      XPutImage(dpy,_background_window,gc,background_image,0,0,0,0,sx,sy);
+#endif
+      XWindowAttributes attr;
+      XGetWindowAttributes(dpy,_background_window,&attr);
+      while (attr.map_state!=IsViewable) XSync(dpy,0);
+      XDestroyImage(background_image);
+    }
+
+    void _desinit_fullscreen() {
+      if (!_is_fullscreen) return;
+      Display *const dpy = cimg::X11_attr().display;
+      XUngrabKeyboard(dpy,CurrentTime);
+#ifdef cimg_use_xrandr
+      if (cimg::X11_attr().resolutions && cimg::X11_attr().curr_resolution) {
+        XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,DefaultRootWindow(dpy));
+        XRRSetScreenConfig(dpy,config,DefaultRootWindow(dpy),0,cimg::X11_attr().curr_rotation,CurrentTime);
+        XRRFreeScreenConfigInfo(config);
+        XSync(dpy,0);
+        cimg::X11_attr().curr_resolution = 0;
+      }
+#endif
+      if (_background_window) XDestroyWindow(dpy,_background_window
