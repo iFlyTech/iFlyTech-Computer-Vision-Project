@@ -8302,4 +8302,198 @@ namespace cimg_library_suffixed {
               break;
             case 2 :
               if (cimg::X11_attr().byte_order==cimg::endianness())
-                for (cimg_ulong xy = (cimg_ulong)img._
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data1++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<8);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data2++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data1++) - _min)*mm)<<8);
+              break;
+            default :
+              if (cimg::X11_attr().byte_order==cimg::endianness())
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data1++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<8) |
+                    (unsigned char)((*(data3++) - _min)*mm);
+              else
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy)
+                  *(ptrd++) =
+                    ((unsigned char)((*(data3++) - _min)*mm)<<24) |
+                    ((unsigned char)((*(data2++) - _min)*mm)<<16) |
+                    ((unsigned char)((*(data1++) - _min)*mm)<<8);
+            }
+          } else {
+            unsigned char *ptrd = (unsigned char*)ndata;
+            switch (img._spectrum) {
+            case 1 :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  (*ptrd++) = 0;
+                  (*ptrd++) = val;
+                  (*ptrd++) = val;
+                  (*ptrd++) = val;
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  const unsigned char val = (unsigned char)((*(data1++) - _min)*mm);
+                  (*ptrd++) = val;
+                  (*ptrd++) = val;
+                  (*ptrd++) = val;
+                  (*ptrd++) = 0;
+                }
+              break;
+            case 2 :
+              if (cimg::X11_attr().byte_order) cimg::swap(data1,data2);
+              for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                (*ptrd++) = 0;
+                (*ptrd++) = (unsigned char)((*(data2++) - _min)*mm);
+                (*ptrd++) = (unsigned char)((*(data1++) - _min)*mm);
+                (*ptrd++) = 0;
+              }
+              break;
+            default :
+              if (cimg::X11_attr().byte_order)
+                for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  (*ptrd++) = 0;
+                  (*ptrd++) = (unsigned char)((*(data1++) - _min)*mm);
+                  (*ptrd++) = (unsigned char)((*(data2++) - _min)*mm);
+                  (*ptrd++) = (unsigned char)((*(data3++) - _min)*mm);
+                } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+                  (*ptrd++) = (unsigned char)((*(data3++) - _min)*mm);
+                  (*ptrd++) = (unsigned char)((*(data2++) - _min)*mm);
+                  (*ptrd++) = (unsigned char)((*(data1++) - _min)*mm);
+                  (*ptrd++) = 0;
+                }
+            }
+          }
+          if (ndata!=_data) {
+            _render_resize(ndata,img._width,img._height,(unsigned int*)_data,_width,_height);
+            delete[] ndata;
+          }
+        }
+        }
+      }
+      cimg_unlock_display();
+      return *this;
+    }
+
+    template<typename T>
+    const CImgDisplay& snapshot(CImg<T>& img) const {
+      if (is_empty()) { img.assign(); return *this; }
+      const unsigned char *ptrs = (unsigned char*)_data;
+      img.assign(_width,_height,1,3);
+      T
+        *data1 = img.data(0,0,0,0),
+        *data2 = img.data(0,0,0,1),
+        *data3 = img.data(0,0,0,2);
+      if (cimg::X11_attr().is_blue_first) cimg::swap(data1,data3);
+      switch (cimg::X11_attr().nb_bits) {
+      case 8 : {
+        for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char val = *(ptrs++);
+          *(data1++) = (T)(val&0xe0);
+          *(data2++) = (T)((val&0x1c)<<3);
+          *(data3++) = (T)(val<<6);
+        }
+      } break;
+      case 16 : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned char val0 = *(ptrs++), val1 = *(ptrs++);
+          *(data1++) = (T)(val0&0xf8);
+          *(data2++) = (T)((val0<<5) | ((val1&0xe0)>>5));
+          *(data3++) = (T)(val1<<3);
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          const unsigned short val0 = *(ptrs++), val1 = *(ptrs++);
+          *(data1++) = (T)(val1&0xf8);
+          *(data2++) = (T)((val1<<5) | ((val0&0xe0)>>5));
+          *(data3++) = (T)(val0<<3);
+        }
+      } break;
+      default : {
+        if (cimg::X11_attr().byte_order) for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+          ++ptrs;
+          *(data1++) = (T)*(ptrs++);
+          *(data2++) = (T)*(ptrs++);
+          *(data3++) = (T)*(ptrs++);
+          } else for (cimg_ulong xy = (cimg_ulong)img._width*img._height; xy>0; --xy) {
+            *(data3++) = (T)*(ptrs++);
+            *(data2++) = (T)*(ptrs++);
+            *(data1++) = (T)*(ptrs++);
+            ++ptrs;
+          }
+      }
+      }
+      return *this;
+    }
+
+    // Windows-based implementation.
+    //-------------------------------
+#elif cimg_display==2
+
+    bool _is_mouse_tracked, _is_cursor_visible;
+    HANDLE _thread, _is_created, _mutex;
+    HWND _window, _background_window;
+    CLIENTCREATESTRUCT _ccs;
+    unsigned int *_data;
+    DEVMODE _curr_mode;
+    BITMAPINFO _bmi;
+    HDC _hdc;
+
+    static int screen_width() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsWidth;
+    }
+
+    static int screen_height() {
+      DEVMODE mode;
+      mode.dmSize = sizeof(DEVMODE);
+      mode.dmDriverExtra = 0;
+      EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&mode);
+      return (int)mode.dmPelsHeight;
+    }
+
+    static void wait_all() {
+      WaitForSingleObject(cimg::Win32_attr().wait_event,INFINITE);
+    }
+
+    static LRESULT APIENTRY _handle_events(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
+#ifdef _WIN64
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLongPtr(window,GWLP_USERDATA);
+#else
+      CImgDisplay *const disp = (CImgDisplay*)GetWindowLong(window,GWL_USERDATA);
+#endif
+      MSG st_msg;
+      switch (msg) {
+      case WM_CLOSE :
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_window_x = disp->_window_y = 0;
+        disp->set_button().set_key(0).set_key(0,false)._is_closed = true;
+        ReleaseMutex(disp->_mutex);
+        ShowWindow(disp->_window,SW_HIDE);
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        return 0;
+      case WM_SIZE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const unsigned int nw = LOWORD(lParam),nh = HIWORD(lParam);
+        if (nw && nh && (nw!=disp->_width || nh!=disp->_height)) {
+          disp->_window_width = nw;
+          disp->_window_height = nh;
+          disp->_mouse_x = disp->_mouse_y = -1;
+          disp->_is_resized = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_MOVE : {
+        while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
+        WaitForSingleObject(disp->_mutex,INFINITE);
+        const int nx = (int)(short)(LOWORD(lParam)), ny = (int)(short)(HIWORD(lParam));
+        if (nx!=disp->_window_x |
