@@ -8496,4 +8496,191 @@ namespace cimg_library_suffixed {
         while (PeekMessage(&st_msg,window,WM_SIZE,WM_SIZE,PM_REMOVE)) {}
         WaitForSingleObject(disp->_mutex,INFINITE);
         const int nx = (int)(short)(LOWORD(lParam)), ny = (int)(short)(HIWORD(lParam));
-        if (nx!=disp->_window_x |
+        if (nx!=disp->_window_x || ny!=disp->_window_y) {
+          disp->_window_x = nx;
+          disp->_window_y = ny;
+          disp->_is_moved = disp->_is_event = true;
+          SetEvent(cimg::Win32_attr().wait_event);
+        }
+        ReleaseMutex(disp->_mutex);
+      } break;
+      case WM_PAINT :
+        disp->paint();
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+        break;
+      case WM_ERASEBKGND :
+        //        return 0;
+        break;
+      case WM_KEYDOWN :
+        disp->set_key((unsigned int)wParam);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_KEYUP :
+        disp->set_key((unsigned int)wParam,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MOUSEMOVE : {
+        while (PeekMessage(&st_msg,window,WM_MOUSEMOVE,WM_MOUSEMOVE,PM_REMOVE)) {}
+        disp->_mouse_x = LOWORD(lParam);
+        disp->_mouse_y = HIWORD(lParam);
+#if (_WIN32_WINNT>=0x0400) && !defined(NOTRACKMOUSEEVENT)
+        if (!disp->_is_mouse_tracked) {
+          TRACKMOUSEEVENT tme;
+          tme.cbSize = sizeof(TRACKMOUSEEVENT);
+          tme.dwFlags = TME_LEAVE;
+          tme.hwndTrack = disp->_window;
+          if (TrackMouseEvent(&tme)) disp->_is_mouse_tracked = true;
+        }
+#endif
+        if (disp->_mouse_x<0 || disp->_mouse_y<0 || disp->_mouse_x>=disp->width() || disp->_mouse_y>=disp->height())
+          disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_event = true;
+        SetEvent(cimg::Win32_attr().wait_event);
+        cimg::mutex(15);
+        if (disp->_is_cursor_visible) while (ShowCursor(TRUE)<0); else while (ShowCursor(FALSE)>=0);
+        cimg::mutex(15,0);
+      } break;
+      case WM_MOUSELEAVE : {
+        disp->_mouse_x = disp->_mouse_y = -1;
+        disp->_is_mouse_tracked = false;
+        cimg::mutex(15);
+        while (ShowCursor(TRUE)<0);
+        cimg::mutex(15,0);
+      } break;
+      case WM_LBUTTONDOWN :
+        disp->set_button(1);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONDOWN :
+        disp->set_button(2);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONDOWN :
+        disp->set_button(3);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_LBUTTONUP :
+        disp->set_button(1,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_RBUTTONUP :
+        disp->set_button(2,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case WM_MBUTTONUP :
+        disp->set_button(3,false);
+        SetEvent(cimg::Win32_attr().wait_event);
+        break;
+      case 0x020A : // WM_MOUSEWHEEL:
+        disp->set_wheel((int)((short)HIWORD(wParam))/120);
+        SetEvent(cimg::Win32_attr().wait_event);
+      }
+      return DefWindowProc(window,msg,wParam,lParam);
+    }
+
+    static DWORD WINAPI _events_thread(void* arg) {
+      CImgDisplay *const disp = (CImgDisplay*)(((void**)arg)[0]);
+      const char *const title = (const char*)(((void**)arg)[1]);
+      MSG msg;
+      delete[] (void**)arg;
+      disp->_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+      disp->_bmi.bmiHeader.biWidth = disp->width();
+      disp->_bmi.bmiHeader.biHeight = -disp->height();
+      disp->_bmi.bmiHeader.biPlanes = 1;
+      disp->_bmi.bmiHeader.biBitCount = 32;
+      disp->_bmi.bmiHeader.biCompression = BI_RGB;
+      disp->_bmi.bmiHeader.biSizeImage = 0;
+      disp->_bmi.bmiHeader.biXPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biYPelsPerMeter = 1;
+      disp->_bmi.bmiHeader.biClrUsed = 0;
+      disp->_bmi.bmiHeader.biClrImportant = 0;
+      disp->_data = new unsigned int[(size_t)disp->_width*disp->_height];
+      if (!disp->_is_fullscreen) { // Normal window
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)disp->_width - 1; rect.bottom = (LONG)disp->_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - disp->_width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - disp->_height - border1);
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_OVERLAPPEDWINDOW | (disp->_is_closed?0:WS_VISIBLE), CW_USEDEFAULT,CW_USEDEFAULT,
+                                     disp->_width + 2*border1, disp->_height + border1 + border2,
+                                     0,0,0,&(disp->_ccs));
+        if (!disp->_is_closed) {
+          GetWindowRect(disp->_window,&rect);
+          disp->_window_x = rect.left + border1;
+          disp->_window_y = rect.top + border2;
+        } else disp->_window_x = disp->_window_y = 0;
+      } else { // Fullscreen window
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        disp->_window = CreateWindowA("MDICLIENT",title?title:" ",
+                                     WS_POPUP | (disp->_is_closed?0:WS_VISIBLE),
+                                      (sx - disp->_width)/2,
+                                      (sy - disp->_height)/2,
+                                     disp->_width,disp->_height,0,0,0,&(disp->_ccs));
+        disp->_window_x = disp->_window_y = 0;
+      }
+      SetForegroundWindow(disp->_window);
+      disp->_hdc = GetDC(disp->_window);
+      disp->_window_width = disp->_width;
+      disp->_window_height = disp->_height;
+      disp->flush();
+#ifdef _WIN64
+      SetWindowLongPtr(disp->_window,GWLP_USERDATA,(LONG_PTR)disp);
+      SetWindowLongPtr(disp->_window,GWLP_WNDPROC,(LONG_PTR)_handle_events);
+#else
+      SetWindowLong(disp->_window,GWL_USERDATA,(LONG)disp);
+      SetWindowLong(disp->_window,GWL_WNDPROC,(LONG)_handle_events);
+#endif
+      SetEvent(disp->_is_created);
+      while (GetMessage(&msg,0,0,0)) DispatchMessage(&msg);
+      return 0;
+    }
+
+    CImgDisplay& _update_window_pos() {
+      if (_is_closed) _window_x = _window_y = -1;
+      else {
+        RECT rect;
+        rect.left = rect.top = 0; rect.right = (LONG)_width - 1; rect.bottom = (LONG)_height - 1;
+        AdjustWindowRect(&rect,WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,false);
+        const int
+          border1 = (int)((rect.right - rect.left + 1 - _width)/2),
+          border2 = (int)(rect.bottom - rect.top + 1 - _height - border1);
+        GetWindowRect(_window,&rect);
+        _window_x = rect.left + border1;
+        _window_y = rect.top + border2;
+      }
+      return *this;
+    }
+
+    void _init_fullscreen() {
+      _background_window = 0;
+      if (!_is_fullscreen || _is_closed) _curr_mode.dmSize = 0;
+      else {
+        DEVMODE mode;
+        unsigned int imode = 0, ibest = 0, bestbpp = 0, bw = ~0U, bh = ~0U;
+        for (mode.dmSize = sizeof(DEVMODE), mode.dmDriverExtra = 0; EnumDisplaySettings(0,imode,&mode); ++imode) {
+          const unsigned int nw = mode.dmPelsWidth, nh = mode.dmPelsHeight;
+          if (nw>=_width && nh>=_height && mode.dmBitsPerPel>=bestbpp && nw<=bw && nh<=bh) {
+            bestbpp = mode.dmBitsPerPel;
+            ibest = imode;
+            bw = nw; bh = nh;
+          }
+        }
+        if (bestbpp) {
+          _curr_mode.dmSize = sizeof(DEVMODE); _curr_mode.dmDriverExtra = 0;
+          EnumDisplaySettings(0,ENUM_CURRENT_SETTINGS,&_curr_mode);
+          EnumDisplaySettings(0,ibest,&mode);
+          ChangeDisplaySettings(&mode,0);
+        } else _curr_mode.dmSize = 0;
+
+        const unsigned int
+          sx = (unsigned int)screen_width(),
+          sy = (unsigned int)screen_height();
+        if (sx!=_width || sy!=_height) {
+          CLIENTCREATESTRUCT background_ccs;
+          _background_window = CreateWindowA("MDICLIENT","
