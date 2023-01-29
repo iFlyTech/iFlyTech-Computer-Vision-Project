@@ -9211,4 +9211,180 @@ namespace cimg_library_suffixed {
     typedef typename cimg::superset<T,int>::type Tint;
     typedef typename cimg::superset<T,cimg_ulong>::type Tulong;
     typedef typename cimg::superset<T,cimg_long>::type Tlong;
-    typedef 
+    typedef typename cimg::superset<T,float>::type Tfloat;
+    typedef typename cimg::superset<T,double>::type Tdouble;
+    typedef typename cimg::last<T,bool>::type boolT;
+    typedef typename cimg::last<T,unsigned char>::type ucharT;
+    typedef typename cimg::last<T,char>::type charT;
+    typedef typename cimg::last<T,unsigned short>::type ushortT;
+    typedef typename cimg::last<T,short>::type shortT;
+    typedef typename cimg::last<T,unsigned int>::type uintT;
+    typedef typename cimg::last<T,int>::type intT;
+    typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+    typedef typename cimg::last<T,cimg_long>::type longT;
+    typedef typename cimg::last<T,cimg_uint64>::type uint64T;
+    typedef typename cimg::last<T,cimg_int64>::type int64T;
+    typedef typename cimg::last<T,float>::type floatT;
+    typedef typename cimg::last<T,double>::type doubleT;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+#ifdef cimg_plugin
+#include cimg_plugin
+#endif
+#ifdef cimg_plugin1
+#include cimg_plugin1
+#endif
+#ifdef cimg_plugin2
+#include cimg_plugin2
+#endif
+#ifdef cimg_plugin3
+#include cimg_plugin3
+#endif
+#ifdef cimg_plugin4
+#include cimg_plugin4
+#endif
+#ifdef cimg_plugin5
+#include cimg_plugin5
+#endif
+#ifdef cimg_plugin6
+#include cimg_plugin6
+#endif
+#ifdef cimg_plugin7
+#include cimg_plugin7
+#endif
+#ifdef cimg_plugin8
+#include cimg_plugin8
+#endif
+
+    //@}
+    //---------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //---------------------------------------------------------
+
+    //! Destroy image.
+    /**
+       \note
+       - The pixel buffer data() is deallocated if necessary, e.g. for non-empty and non-shared image instances.
+       - Destroying an empty or shared image does nothing actually.
+       \warning
+       - When destroying a non-shared image, make sure that you will \e not operate on a remaining shared image
+         that shares its buffer with the destroyed instance, in order to avoid further invalid memory access
+         (to a deallocated buffer).
+    **/
+    ~CImg() {
+      if (!_is_shared) delete[] _data;
+    }
+
+    //! Construct empty image.
+    /**
+       \note
+       - An empty image has no pixel data and all of its dimensions width(), height(), depth(), spectrum()
+         are set to \c 0, as well as its pixel buffer pointer data().
+       - An empty image may be re-assigned afterwards, e.g. with the family of
+         assign(unsigned int,unsigned int,unsigned int,unsigned int) methods,
+         or by operator=(const CImg<t>&). In all cases, the type of pixels stays \c T.
+       - An empty image is never shared.
+       \par Example
+       \code
+       CImg<float> img1, img2;      // Construct two empty images.
+       img1.assign(256,256,1,3);    // Re-assign 'img1' to be a 256x256x1x3 (color) image.
+       img2 = img1.get_rand(0,255); // Re-assign 'img2' to be a random-valued version of 'img1'.
+       img2.assign();               // Re-assign 'img2' to be an empty image again.
+       \endcode
+    **/
+    CImg():_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {}
+
+    //! Construct image with specified size.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \note
+       - It is able to create only \e non-shared images, and allocates thus a pixel buffer data()
+         for each constructed image instance.
+       - Setting one dimension \c size_x,\c size_y,\c size_z or \c size_c to \c 0 leads to the construction of
+         an \e empty image.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values during construction (e.g. with \c 0), use constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) instead.
+       \par Example
+       \code
+       CImg<float> img1(256,256,1,3);   // Construct a 256x256x1x3 (color) image, filled with garbage values.
+       CImg<float> img2(256,256,1,3,0); // Construct a 256x256x1x3 (color) image, filled with value '0'.
+       \endcode
+    **/
+    explicit CImg(const unsigned int size_x, const unsigned int size_y=1,
+                  const unsigned int size_z=1, const unsigned int size_c=1):
+      _is_shared(false) {
+      size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values.
+    /**
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value Initialization value.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int),
+         but it also fills the pixel buffer with the specified \c value.
+       \warning
+       - It cannot be used to construct a vector-valued image and initialize it with \e vector-valued pixels
+         (e.g. RGB vector, for color images).
+         For this task, you may use fillC() after construction.
+    **/
+    CImg(const unsigned int size_x, const unsigned int size_y,
+         const unsigned int size_z, const unsigned int size_c, const T& value):
+      _is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(value);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of integers.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c,
+       with pixels of type \c T, and initialize pixel
+       values from the specified sequence of integers \c value0,\c value1,\c ...
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param value0 First value of the initialization sequence (must be an \e integer).
+       \param value1 Second value of the initialization sequence (must be an \e integer).
+       \param ...
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fi
