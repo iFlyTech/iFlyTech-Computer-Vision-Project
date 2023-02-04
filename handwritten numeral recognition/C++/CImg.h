@@ -9966,4 +9966,176 @@ namespace cimg_library_suffixed {
 
     //! Construct image with specified size and initialize pixel values from a value string \inplace.
     /**
-       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,const c
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,const char*,bool).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const char *const values, const bool repeat_values) {
+      return assign(size_x,size_y,size_z,size_c).fill(values,repeat_values);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \inplace.
+    /**
+       In-place version of the constructor CImg(const t*,unsigned int,unsigned int,unsigned int,unsigned int).
+    **/
+    template<typename t>
+    CImg<T>& assign(const t *const values, const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      assign(size_x,size_y,size_z,size_c);
+      const t *ptrs = values; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \specialization.
+    CImg<T>& assign(const T *const values, const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      const size_t curr_siz = (size_t)size();
+      if (values==_data && siz==curr_siz) return assign(size_x,size_y,size_z,size_c);
+      if (_is_shared || values + siz<_data || values>=_data + size()) {
+        assign(size_x,size_y,size_z,size_c);
+        if (_is_shared) std::memmove(_data,values,siz*sizeof(T));
+        else std::memcpy(_data,values,siz*sizeof(T));
+      } else {
+        T *new_data = 0;
+        try { new_data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "assign(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        std::memcpy(new_data,values,siz*sizeof(T));
+        delete[] _data; _data = new_data; _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+      }
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \overloading.
+    template<typename t>
+    CImg<T>& assign(const t *const values, const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const bool is_shared) {
+      if (is_shared)
+        throw CImgArgumentException(_cimg_instance
+                                    "assign(): Invalid assignment request of shared instance from (%s*) buffer"
+                                    "(pixel types are different).",
+                                    cimg_instance,
+                                    CImg<t>::pixel_type());
+      return assign(values,size_x,size_y,size_z,size_c);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \overloading.
+    CImg<T>& assign(const T *const values, const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const bool is_shared) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!values || !siz) return assign();
+      if (!is_shared) { if (_is_shared) assign(); assign(values,size_x,size_y,size_z,size_c); }
+      else {
+        if (!_is_shared) {
+          if (values + siz<_data || values>=_data + size()) assign();
+          else cimg::warn(_cimg_instance
+                          "assign(): Shared image instance has overlapping memory.",
+                          cimg_instance);
+        }
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = true;
+        _data = const_cast<T*>(values);
+      }
+      return *this;
+    }
+
+    //! Construct image from reading an image file \inplace.
+    /**
+       In-place version of the constructor CImg(const char*).
+    **/
+    CImg<T>& assign(const char *const filename) {
+      return load(filename);
+    }
+
+    //! Construct image copy \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum);
+    }
+
+    //! In-place version of the advanced copy constructor.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,bool).
+     **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const bool is_shared) {
+      return assign(img._data,img._width,img._height,img._depth,img._spectrum,is_shared);
+    }
+
+    //! Construct image with dimensions borrowed from another image \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions) {
+      if (!dimensions || !*dimensions) return assign(img._width,img._height,img._depth,img._spectrum);
+      unsigned int siz[4] = { 0,1,1,1 }, k = 0;
+      CImg<charT> item(256);
+      for (const char *s = dimensions; *s && k<4; ++k) {
+        if (cimg_sscanf(s,"%255[^0-9%xyzvwhdcXYZVWHDC]",item._data)>0) s+=std::strlen(item);
+        if (*s) {
+          unsigned int val = 0; char sep = 0;
+          if (cimg_sscanf(s,"%u%c",&val,&sep)>0) {
+            if (sep=='%') siz[k] = val*(k==0?_width:k==1?_height:k==2?_depth:_spectrum)/100;
+            else siz[k] = val;
+            while (*s>='0' && *s<='9') ++s; if (sep=='%') ++s;
+          } else switch (cimg::uncase(*s)) {
+          case 'x' : case 'w' : siz[k] = img._width; ++s; break;
+          case 'y' : case 'h' : siz[k] = img._height; ++s; break;
+          case 'z' : case 'd' : siz[k] = img._depth; ++s; break;
+          case 'c' : case 's' : siz[k] = img._spectrum; ++s; break;
+          default :
+            throw CImgArgumentException(_cimg_instance
+                                        "assign(): Invalid character '%c' detected in specified dimension string '%s'.",
+                                        cimg_instance,
+                                        *s,dimensions);
+          }
+        }
+      }
+      return assign(siz[0],siz[1],siz[2],siz[3]);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values \inplace.
+    /**
+       In-place version of the constructor CImg(const CImg<t>&,const char*,T).
+    **/
+    template<typename t>
+    CImg<T>& assign(const CImg<t>& img, const char *const dimensions, const T& value) {
+      return assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window \inplace.
+    /**
+       In-place version of the constructor CImg(const CImgDisplay&).
+    **/
+    CImg<T>& assign(const CImgDisplay &disp) {
+      disp.snapshot(*this);
+      return *this;
+    }
+
+    //! Construct empty image \inplace.
+    /**
+       Equivalent to assign().
+       \note
+       - It has been defined for compatibility with STL naming conventions.
+    **/
+    CImg<T>& clear() {
+      return assign();
+    }
+
+    //! Transfer content of an image instance into another one.
+    /**
+       Transfer the dimensions and the pixel buffer content of an image instance into another one,
+       and replace instance by an empty image. It avoids the copy of the pixel buffer
+       when poss
