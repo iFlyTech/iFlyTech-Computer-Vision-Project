@@ -9811,4 +9811,159 @@ namespace cimg_library_suffixed {
           try { _data = new T[siz]; } catch (...) {
             _width = _height = _depth = _spectrum = 0; _data = 0;
             throw CImgInstanceException(_cimg_instance
-             
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*img._width*img._height*img._depth*img._spectrum),
+                                        img._width,img._height,img._depth,img._spectrum);
+          }
+          std::memcpy(_data,img._data,siz*sizeof(T));
+        }
+      } else { _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0; }
+    }
+
+    //! Construct image with dimensions borrowed from another image.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from some dimensions of an existing
+       \c CImg<t> instance.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions C-string describing the image size along the X,Y,Z and C-dimensions.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it takes the image dimensions
+         (\e not its pixel values) from an existing \c CImg<t> instance.
+       - The allocated pixel buffer is \e not filled with a default value, and is likely to contain garbage values.
+         In order to initialize pixel values (e.g. with \c 0), use constructor CImg(const CImg<t>&,const char*,T)
+         instead.
+       \par Example
+       \code
+       const CImg<float> img1(256,128,1,3),      // 'img1' is a 256x128x1x3 image.
+                         img2(img1,"xyzc"),      // 'img2' is a 256x128x1x3 image.
+                         img3(img1,"y,x,z,c"),   // 'img3' is a 128x256x1x3 image.
+                         img4(img1,"c,x,y,3",0), // 'img4' is a 3x128x256x3 image (with pixels initialized to '0').
+       \endcode
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions);
+    }
+
+    //! Construct image with dimensions borrowed from another image and initialize pixel values.
+    /**
+       Construct a new image instance with pixels of type \c T, and size get from the dimensions of an existing
+       \c CImg<t> instance, and set all pixel values to specified \c value.
+       \param img Input image from which dimensions are borrowed.
+       \param dimensions String describing the image size along the X,Y,Z and V-dimensions.
+       \param value Value used for initialization.
+       \note
+       - Similar to CImg(const CImg<t>&,const char*), but it also fills the pixel buffer with the specified \c value.
+     **/
+    template<typename t>
+    CImg(const CImg<t>& img, const char *const dimensions, const T& value):
+      _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      assign(img,dimensions).fill(value);
+    }
+
+    //! Construct image from a display window.
+    /**
+       Construct a new image instance with pixels of type \c T, as a snapshot of an existing \c CImgDisplay instance.
+       \param disp Input display window.
+       \note
+       - The width() and height() of the constructed image instance are the same as the specified \c CImgDisplay.
+       - The depth() and spectrum() of the constructed image instance are respectively set to \c 1 and \c 3
+         (i.e. a 2d color image).
+       - The image pixels are read as 8-bits RGB values.
+     **/
+    explicit CImg(const CImgDisplay &disp):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      disp.snapshot(*this);
+    }
+
+    // Constructor and assignment operator for rvalue references (c++11).
+    // This avoids an additional image copy for methods returning new images. Can save RAM for big images !
+#if defined(cimg_use_cpp11) && cimg_use_cpp11!=0
+    CImg(CImg<T>&& img):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+      swap(img);
+    }
+    CImg<T>& operator=(CImg<T>&& img) {
+      if (_is_shared) return assign(img);
+      return img.swap(*this);
+    }
+#endif
+
+    //! Construct empty image \inplace.
+    /**
+       In-place version of the default constructor CImg(). It simply resets the instance to an empty image.
+    **/
+    CImg<T>& assign() {
+      if (!_is_shared) delete[] _data;
+      _width = _height = _depth = _spectrum = 0; _is_shared = false; _data = 0;
+      return *this;
+    }
+
+    //! Construct image with specified size \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y=1,
+                    const unsigned int size_z=1, const unsigned int size_c=1) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (!siz) return assign();
+      const size_t curr_siz = (size_t)size();
+      if (siz!=curr_siz) {
+        if (_is_shared)
+          throw CImgArgumentException(_cimg_instance
+                                      "assign(): Invalid assignement request of shared instance from specified "
+                                      "image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      size_x,size_y,size_z,size_c);
+        else {
+          delete[] _data;
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "assign(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                        size_x,size_y,size_z,size_c);
+          }
+        }
+      }
+      _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,T).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c, const T& value) {
+      return assign(size_x,size_y,size_z,size_c).fill(value);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of integers \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,int,int,...).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const int value0, const int value1, ...) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,int);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a sequence of doubles \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,double,double,...).
+    **/
+    CImg<T>& assign(const unsigned int size_x, const unsigned int size_y,
+                    const unsigned int size_z, const unsigned int size_c,
+                    const double value0, const double value1, ...) {
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,double);
+      return *this;
+    }
+
+    //! Construct image with specified size and initialize pixel values from a value string \inplace.
+    /**
+       In-place version of the constructor CImg(unsigned int,unsigned int,unsigned int,unsigned int,const c
