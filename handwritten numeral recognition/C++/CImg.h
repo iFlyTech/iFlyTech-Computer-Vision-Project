@@ -9548,4 +9548,129 @@ namespace cimg_library_suffixed {
     CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
          const double value0, const double value1, ...):
       _width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
-      assign(size_x,size_y,s
+      assign(size_x,size_y,size_z,size_c);
+      _CImg_stdarg(*this,value0,value1,(size_t)size_x*size_y*size_z*size_c,double);
+    }
+
+    //! Construct image with specified size and initialize pixel values from a value string.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified string \c values.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param values Value string describing the way pixel values are set.
+       \param repeat_values Tells if the value filling process is repeated over the image.
+       \note
+       - Similar to CImg(unsigned int,unsigned int,unsigned int,unsigned int), but it also fills
+         the pixel buffer with values described in the value string \c values.
+       - Value string \c values may describe two different filling processes:
+         - Either \c values is a sequences of values assigned to the image pixels, as in <tt>"1,2,3,7,8,2"</tt>.
+           In this case, set \c repeat_values to \c true to periodically fill the image with the value sequence.
+         - Either, \c values is a formula, as in <tt>"cos(x/10)*sin(y/20)"</tt>.
+           In this case, parameter \c repeat_values is pointless.
+       - For both cases, specifying \c repeat_values is mandatory.
+         It disambiguates the possible overloading of constructor
+         CImg(unsigned int,unsigned int,unsigned int,unsigned int,T) with \c T being a <tt>const char*</tt>.
+       - A \c CImgArgumentException is thrown when an invalid value string \c values is specified.
+       \par Example
+       \code
+       const CImg<float> img1(129,129,1,3,"0,64,128,192,255",true),                   // Construct image filled from a value sequence.
+                         img2(129,129,1,3,"if(c==0,255*abs(cos(x/10)),1.8*y)",false); // Construct image filled from a formula.
+       (img1,img2).display();
+       \endcode
+       \image html ref_constructor2.jpg
+     **/
+    CImg(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z, const unsigned int size_c,
+         const char *const values, const bool repeat_values):_is_shared(false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+        }
+        fill(values,repeat_values);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer.
+    /**
+       Construct a new image instance of size \c size_x x \c size_y x \c size_z x \c size_c, with pixels of type \c T,
+       and initializes pixel values from the specified \c t* memory buffer.
+       \param values Pointer to the input memory buffer.
+       \param size_x Image width().
+       \param size_y Image height().
+       \param size_z Image depth().
+       \param size_c Image spectrum() (number of channels).
+       \param is_shared Tells if input memory buffer must be shared by the current instance.
+       \note
+       - If \c is_shared is \c false, the image instance allocates its own pixel buffer,
+         and values from the specified input buffer are copied to the instance buffer.
+         If buffer types \c T and \c t are different, a regular static cast is performed during buffer copy.
+       - Otherwise, the image instance does \e not allocate a new buffer, and uses the input memory buffer as its
+         own pixel buffer. This case requires that types \c T and \c t are the same. Later, destroying such a shared
+         image will not deallocate the pixel buffer, this task being obviously charged to the initial buffer allocator.
+       - A \c CImgInstanceException is thrown when the pixel buffer cannot be allocated
+         (e.g. when requested size is too big for available memory).
+       \warning
+       - You must take care when operating on a shared image, since it may have an invalid pixel buffer pointer data()
+         (e.g. already deallocated).
+       \par Example
+       \code
+       unsigned char tab[256*256] = { 0 };
+       CImg<unsigned char> img1(tab,256,256,1,1,false), // Construct new non-shared image from buffer 'tab'.
+                           img2(tab,256,256,1,1,true);  // Construct new shared-image from buffer 'tab'.
+       tab[1024] = 255;                                 // Here, 'img2' is indirectly modified, but not 'img1'.
+       \endcode
+    **/
+    template<typename t>
+    CImg(const t *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false):_is_shared(false) {
+      if (is_shared) {
+        _width = _height = _depth = _spectrum = 0; _data = 0;
+        throw CImgArgumentException(_cimg_instance
+                                    "CImg(): Invalid construction request of a (%u,%u,%u,%u) shared instance "
+                                    "from a (%s*) buffer (pixel types are different).",
+                                    cimg_instance,
+                                    size_x,size_y,size_z,size_c,CImg<t>::pixel_type());
+      }
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c;
+        try { _data = new T[siz]; } catch (...) {
+          _width = _height = _depth = _spectrum = 0; _data = 0;
+          throw CImgInstanceException(_cimg_instance
+                                      "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                      cimg_instance,
+                                      cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                      size_x,size_y,size_z,size_c);
+
+        }
+        const t *ptrs = values; cimg_for(*this,ptrd,T) *ptrd = (T)*(ptrs++);
+      } else { _width = _height = _depth = _spectrum = 0; _data = 0; }
+    }
+
+    //! Construct image with specified size and initialize pixel values from a memory buffer \specialization.
+    CImg(const T *const values, const unsigned int size_x, const unsigned int size_y=1,
+         const unsigned int size_z=1, const unsigned int size_c=1, const bool is_shared=false) {
+      const size_t siz = (size_t)size_x*size_y*size_z*size_c;
+      if (values && siz) {
+        _width = size_x; _height = size_y; _depth = size_z; _spectrum = size_c; _is_shared = is_shared;
+        if (_is_shared) _data = const_cast<T*>(values);
+        else {
+          try { _data = new T[siz]; } catch (...) {
+            _width = _height = _depth = _spectrum = 0; _data = 0;
+            throw CImgInstanceException(_cimg_instance
+                                        "CImg(): Failed to allocate memory (%s) for image (%u,%u,%u,%u).",
+                                        cimg_instance,
+                                        cimg::strbuffersize(sizeof(T)*size_x*size_y*size_z*size_c),
+                                        size_x,size_y,size_z,size_c);
+          }
+          std::memcpy(_data,values,siz*sizeof(T));
+      
