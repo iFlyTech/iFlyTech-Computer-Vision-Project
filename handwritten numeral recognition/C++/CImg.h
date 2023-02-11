@@ -10316,4 +10316,184 @@ namespace cimg_library_suffixed {
       return (*this)(x,y,z,c);
     }
 #else
-    T& operator()(const uns
+    T& operator()(const unsigned int x) {
+      return _data[x];
+    }
+
+    const T& operator()(const unsigned int x) const {
+      return _data[x];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y) {
+      return _data[x + y*_width];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y) const {
+      return _data[x + y*_width];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z) {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height];
+   }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z) const {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c) {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height + c*(ulongT)_width*_height*_depth];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c) const {
+      return _data[x + y*(ulongT)_width + z*(ulongT)_width*_height + c*(ulongT)_width*_height*_depth];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int,
+                  const ulongT wh) {
+      return _data[x + y*_width + z*wh];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int,
+                        const ulongT wh) const {
+      return _data[x + y*_width + z*wh];
+    }
+
+    T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                  const ulongT wh, const ulongT whd) {
+      return _data[x + y*_width + z*wh + c*whd];
+    }
+
+    const T& operator()(const unsigned int x, const unsigned int y, const unsigned int z, const unsigned int c,
+                        const ulongT wh, const ulongT whd) const {
+      return _data[x + y*_width + z*wh + c*whd];
+    }
+#endif
+
+    //! Implicitely cast an image into a \c T*.
+    /**
+       Implicitely cast a \c CImg<T> instance into a \c T* or \c const \c T* pointer, whether the image instance
+       is \e const or not. The returned pointer points on the first value of the image pixel buffer.
+       \note
+       - It simply returns the pointer data() to the pixel buffer.
+       - This implicit conversion is convenient to test the empty state of images (data() being \c 0 in this case), e.g.
+       \code
+       CImg<float> img1(100,100), img2; // 'img1' is a 100x100 image, 'img2' is an empty image.
+       if (img1) {                      // Test succeeds, 'img1' is not an empty image.
+         if (!img2) {                   // Test succeeds, 'img2' is an empty image.
+           std::printf("'img1' is not empty, 'img2' is empty.");
+         }
+       }
+       \endcode
+       - It also allows to use brackets to access pixel values, without need for a \c CImg<T>::operator[](), e.g.
+       \code
+       CImg<float> img(100,100);
+       const float value = img[99]; // Access to value of the last pixel on the first row.
+       img[510] = 255;              // Set pixel value at (10,5).
+       \endcode
+    **/
+    operator T*() {
+      return _data;
+    }
+
+    //! Implicitely cast an image into a \c T* \const.
+    operator const T*() const {
+      return _data;
+    }
+
+    //! Assign a value to all image pixels.
+    /**
+       Assign specified \c value to each pixel value of the image instance.
+       \param value Value that will be assigned to image pixels.
+       \note
+       - The image size is never modified.
+       - The \c value may be casted to pixel type \c T if necessary.
+       \par Example
+       \code
+       CImg<char> img(100,100); // Declare image (with garbage values).
+       img = 0;                 // Set all pixel values to '0'.
+       img = 1.2;               // Set all pixel values to '1' (cast of '1.2' as a 'char').
+       \endcode
+    **/
+    CImg<T>& operator=(const T& value) {
+      return fill(value);
+    }
+
+    //! Assign pixels values from a specified expression.
+    /**
+       Initialize all pixel values from the specified string \c expression.
+       \param expression Value string describing the way pixel values are set.
+       \note
+       - String parameter \c expression may describe different things:
+         - If \c expression is a list of values (as in \c "1,2,3,8,3,2"), or a formula (as in \c "(x*y)%255"),
+           the pixel values are set from specified \c expression and the image size is not modified.
+         - If \c expression is a filename (as in \c "reference.jpg"), the corresponding image file is loaded and
+           replace the image instance. The image size is modified if necessary.
+       \par Example
+       \code
+       CImg<float> img1(100,100), img2(img1), img3(img1); // Declare three 100x100 scalar images with unitialized pixel values.
+       img1 = "0,50,100,150,200,250,200,150,100,50";      // Set pixel values of 'img1' from a value sequence.
+       img2 = "10*((x*y)%25)";                            // Set pixel values of 'img2' from a formula.
+       img3 = "reference.jpg";                            // Set pixel values of 'img3' from a file (image size is modified).
+       (img1,img2,img3).display();
+       \endcode
+       \image html ref_operator_eq.jpg
+    **/
+    CImg<T>& operator=(const char *const expression) {
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+        _fill(expression,true,true,0,0,"operator=",0);
+      } catch (CImgException&) {
+        cimg::exception_mode(omode);
+        load(expression);
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Copy an image into the current image instance.
+    /**
+       Similar to the in-place copy constructor assign(const CImg<t>&).
+    **/
+    template<typename t>
+    CImg<T>& operator=(const CImg<t>& img) {
+      return assign(img);
+    }
+
+    //! Copy an image into the current image instance \specialization.
+    CImg<T>& operator=(const CImg<T>& img) {
+      return assign(img);
+    }
+
+    //! Copy the content of a display window to the current image instance.
+    /**
+       Similar to assign(const CImgDisplay&).
+    **/
+    CImg<T>& operator=(const CImgDisplay& disp) {
+      disp.snapshot(*this);
+      return *this;
+    }
+
+    //! In-place addition operator.
+    /**
+       Add specified \c value to all pixels of an image instance.
+       \param value Value to add.
+       \note
+       - Resulting pixel values are casted to fit the pixel type \c T.
+         For instance, adding \c 0.2 to a \c CImg<char> is possible but does nothing indeed.
+       - Overflow values are treated as with standard C++ numeric types. For instance,
+       \code
+       CImg<unsigned char> img(100,100,1,1,255); // Construct a 100x100 image with pixel values '255'.
+       img+=1;                                   // Add '1' to each pixels -> Overflow.
+       // here all pixels of image 'img' are equal to '0'.
+       \endcode
+       - To prevent value overflow, you may want to consider pixel type \c T as \c float or \c double,
+         and use cut() after addition.
+       \par Example
+       \code
+       CImg<unsigned char> img1("reference.jpg");          // Load a 8-bits RGB image (values in [0,255]).
+       CImg<float> img2(img1);                             // Construct a float-valued copy of 'img1'.
+       img2+=100;                                          // Add '100' to pixel values -> goes out of [0,255] but no problems with floats.
+       img2.cut(0,255);                                    // Cut values in [0,255] to fit the 'unsigned char' constraint.
+       img1 = img2;                                        // Rewrite safe result in 'unsigned char' version 'img1'.
+       const CImg<unsigned char> img3 = (img1 + 100).cut(0,255); // Do the same i
