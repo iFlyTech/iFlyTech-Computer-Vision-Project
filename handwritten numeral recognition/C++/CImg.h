@@ -10696,4 +10696,199 @@ namespace cimg_library_suffixed {
        - If the computed opposite values are out-of-range, they are treated as with standard C++ numeric types.
          For instance, the \c unsigned \c char opposite of \c 1 is \c 255.
        \par Example
-     
+       \code
+       const CImg<unsigned char>
+         img1("reference.jpg"),   // Load a RGB color image.
+         img2 = -img1;            // Compute its opposite (in 'unsigned char').
+       (img1,img2).display();
+       \endcode
+       \image html ref_operator_minus.jpg
+     **/
+    CImg<T> operator-() const {
+      return CImg<T>(_width,_height,_depth,_spectrum,(T)0)-=*this;
+    }
+
+    //! Substraction operator.
+    /**
+       Similar to operator-=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator-(const t value) const {
+      return CImg<_cimg_Tt>(*this,false)-=value;
+    }
+
+    //! Substraction operator.
+    /**
+       Similar to operator-=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    CImg<Tfloat> operator-(const char *const expression) const {
+      return CImg<Tfloat>(*this,false)-=expression;
+    }
+
+    //! Substraction operator.
+    /**
+       Similar to operator-=(const CImg<t>&), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator-(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this,false)-=img;
+    }
+
+    //! In-place multiplication operator.
+    /**
+       Similar to operator+=(const t), except that it performs a multiplication instead of an addition.
+     **/
+    template<typename t>
+    CImg<T>& operator*=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=262144)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(*ptrd * value);
+      return *this;
+    }
+
+    //! In-place multiplication operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a multiplication instead of an addition.
+     **/
+    CImg<T>& operator*=(const char *const expression) {
+      return mul((+*this)._fill(expression,true,true,0,0,"operator*=",this));
+    }
+
+    //! In-place multiplication operator.
+    /**
+       Replace the image instance by the matrix multiplication between the image instance and the specified matrix
+       \c img.
+       \param img Second operand of the matrix multiplication.
+       \note
+       - It does \e not compute a pointwise multiplication between two images. For this purpose, use
+         mul(const CImg<t>&) instead.
+       - The size of the image instance can be modified by this operator.
+       \par Example
+       \code
+       CImg<float> A(2,2,1,1, 1,2,3,4);   // Construct 2x2 matrix A = [1,2;3,4].
+       const CImg<float> X(1,2,1,1, 1,2); // Construct 1x2 vector X = [1;2].
+       A*=X;                              // Assign matrix multiplication A*X to 'A'.
+       // 'A' is now a 1x2 vector whose values are [5;11].
+       \endcode
+    **/
+    template<typename t>
+    CImg<T>& operator*=(const CImg<t>& img) {
+      return ((*this)*img).move_to(*this);
+    }
+
+    //! Multiplication operator.
+    /**
+       Similar to operator*=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator*(const t value) const {
+      return CImg<_cimg_Tt>(*this,false)*=value;
+    }
+
+    //! Multiplication operator.
+    /**
+       Similar to operator*=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    CImg<Tfloat> operator*(const char *const expression) const {
+      return CImg<Tfloat>(*this,false)*=expression;
+    }
+
+    //! Multiplication operator.
+    /**
+       Similar to operator*=(const CImg<t>&), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator*(const CImg<t>& img) const {
+      if (_width!=img._height || _depth!=1 || _spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "operator*(): Invalid multiplication of instance by specified "
+                                    "matrix (%u,%u,%u,%u,%p)",
+                                    cimg_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data);
+      CImg<_cimg_Tt> res(img._width,_height);
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) cimg_openmp_if(size()>1024 && img.size()>1024)
+      cimg_forXY(res,i,j) {
+        _cimg_Ttdouble value = 0; cimg_forX(*this,k) value+=(*this)(k,j)*img(i,k); res(i,j) = (_cimg_Tt)value;
+      }
+#else
+      _cimg_Tt *ptrd = res._data;
+      cimg_forXY(res,i,j) {
+        _cimg_Ttdouble value = 0; cimg_forX(*this,k) value+=(*this)(k,j)*img(i,k); *(ptrd++) = (_cimg_Tt)value;
+      }
+#endif
+      return res;
+    }
+
+    //! In-place division operator.
+    /**
+       Similar to operator+=(const t), except that it performs a division instead of an addition.
+     **/
+    template<typename t>
+    CImg<T>& operator/=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(*ptrd / value);
+      return *this;
+    }
+
+    //! In-place division operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a division instead of an addition.
+     **/
+    CImg<T>& operator/=(const char *const expression) {
+      return div((+*this)._fill(expression,true,true,0,0,"operator/=",this));
+    }
+
+    //! In-place division operator.
+    /**
+       Replace the image instance by the (right) matrix division between the image instance and the specified
+       matrix \c img.
+       \param img Second operand of the matrix division.
+       \note
+       - It does \e not compute a pointwise division between two images. For this purpose, use
+         div(const CImg<t>&) instead.
+       - It returns the matrix operation \c A*inverse(img).
+       - The size of the image instance can be modified by this operator.
+     **/
+    template<typename t>
+    CImg<T>& operator/=(const CImg<t>& img) {
+      return (*this*img.get_invert()).move_to(*this);
+    }
+
+    //! Division operator.
+    /**
+       Similar to operator/=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator/(const t value) const {
+      return CImg<_cimg_Tt>(*this,false)/=value;
+    }
+
+    //! Division operator.
+    /**
+       Similar to operator/=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    CImg<Tfloat> operator/(const char *const expression) const {
+      return CImg<Tfloat>(*this,false)/=expression;
+    }
+
+    //! Division operator.
+    /**
+       Similar to operator/=(const CImg<t>&), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+    **/
+    template<typename t>
+    CImg<_cimg_Tt> operator/(const CIm
