@@ -10496,4 +10496,204 @@ namespace cimg_library_suffixed {
        img2+=100;                                          // Add '100' to pixel values -> goes out of [0,255] but no problems with floats.
        img2.cut(0,255);                                    // Cut values in [0,255] to fit the 'unsigned char' constraint.
        img1 = img2;                                        // Rewrite safe result in 'unsigned char' version 'img1'.
-       const CImg<unsigned char> img3 = (img1 + 100).cut(0,255); // Do the same i
+       const CImg<unsigned char> img3 = (img1 + 100).cut(0,255); // Do the same in a more simple and elegant way.
+       (img1,img2,img3).display();
+       \endcode
+       \image html ref_operator_plus.jpg
+     **/
+    template<typename t>
+    CImg<T>& operator+=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(*ptrd + value);
+      return *this;
+    }
+
+    //! In-place addition operator.
+    /**
+       Add values to image pixels, according to the specified string \c expression.
+       \param expression Value string describing the way pixel values are added.
+       \note
+       - Similar to operator=(const char*), except that it adds values to the pixels of the current image instance,
+         instead of assigning them.
+    **/
+    CImg<T>& operator+=(const char *const expression) {
+      return *this+=(+*this)._fill(expression,true,true,0,0,"operator+=",this);
+    }
+
+    //! In-place addition operator.
+    /**
+       Add values to image pixels, according to the values of the input image \c img.
+       \param img Input image to add.
+       \note
+       - The size of the image instance is never modified.
+       - It is not mandatory that input image \c img has the same size as the image instance.
+         If less values are available in \c img, then the values are added periodically. For instance, adding one
+         WxH scalar image (spectrum() equal to \c 1) to one WxH color image (spectrum() equal to \c 3)
+         means each color channel will be incremented with the same values at the same locations.
+       \par Example
+       \code
+       CImg<float> img1("reference.jpg");                                   // Load a RGB color image (img1.spectrum()==3)
+       const CImg<float> img2(img1.width(),img.height(),1,1,"255*(x/w)^2"); // Construct a scalar shading (img2.spectrum()==1).
+       img1+=img2;                                                          // Add shading to each channel of 'img1'.
+       img1.cut(0,255);                                                     // Prevent [0,255] overflow.
+       (img2,img1).display();
+       \endcode
+       \image html ref_operator_plus1.jpg
+    **/
+    template<typename t>
+    CImg<T>& operator+=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this+=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)(*ptrd + *(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)(*ptrd + *(ptrs++));
+      }
+      return *this;
+    }
+
+    //! In-place increment operator (prefix).
+    /**
+       Add \c 1 to all image pixels, and return a reference to the current incremented image instance.
+       \note
+       - Writing \c ++img is equivalent to \c img+=1.
+     **/
+    CImg<T>& operator++() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) ++*ptrd;
+      return *this;
+    }
+
+    //! In-place increment operator (postfix).
+    /**
+       Add \c 1 to all image pixels, and return a new copy of the initial (pre-incremented) image instance.
+       \note
+       - Use the prefixed version operator++() if you don't need a copy of the initial
+         (pre-incremented) image instance, since a useless image copy may be expensive in terms of memory usage.
+     **/
+    CImg<T> operator++(int) {
+      const CImg<T> copy(*this,false);
+      ++*this;
+      return copy;
+    }
+
+    //! Return a non-shared copy of the image instance.
+    /**
+       \note
+       - Use this operator to ensure you get a non-shared copy of an image instance with same pixel type \c T.
+         Indeed, the usual copy constructor CImg<T>(const CImg<T>&) returns a shared copy of a shared input image,
+         and it may be not desirable to work on a regular copy (e.g. for a resize operation) if you have no
+         information about the shared state of the input image.
+       - Writing \c (+img) is equivalent to \c CImg<T>(img,false).
+    **/
+    CImg<T> operator+() const {
+      return CImg<T>(*this,false);
+    }
+
+    //! Addition operator.
+    /**
+       Similar to operator+=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+     **/
+    template<typename t>
+    CImg<_cimg_Tt> operator+(const t value) const {
+      return CImg<_cimg_Tt>(*this,false)+=value;
+    }
+
+    //! Addition operator.
+    /**
+       Similar to operator+=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+     **/
+    CImg<Tfloat> operator+(const char *const expression) const {
+      return CImg<Tfloat>(*this,false)+=expression;
+    }
+
+    //! Addition operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image may be a superset of the initial pixel type \c T, if necessary.
+     **/
+    template<typename t>
+    CImg<_cimg_Tt> operator+(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this,false)+=img;
+    }
+
+    //! In-place substraction operator.
+    /**
+       Similar to operator+=(const t), except that it performs a substraction instead of an addition.
+     **/
+    template<typename t>
+    CImg<T>& operator-=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(*ptrd - value);
+      return *this;
+    }
+
+    //! In-place substraction operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a substraction instead of an addition.
+     **/
+    CImg<T>& operator-=(const char *const expression) {
+      return *this-=(+*this)._fill(expression,true,true,0,0,"operator-=",this);
+    }
+
+    //! In-place substraction operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a substraction instead of an addition.
+     **/
+    template<typename t>
+    CImg<T>& operator-=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this-=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)(*ptrd - *(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)(*ptrd - *(ptrs++));
+      }
+      return *this;
+    }
+
+    //! In-place decrement operator (prefix).
+    /**
+       Similar to operator++(), except that it performs a decrement instead of an increment.
+    **/
+    CImg<T>& operator--() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = *ptrd - (T)1;
+      return *this;
+    }
+
+    //! In-place decrement operator (postfix).
+    /**
+       Similar to operator++(int), except that it performs a decrement instead of an increment.
+    **/
+    CImg<T> operator--(int) {
+      const CImg<T> copy(*this,false);
+      --*this;
+      return copy;
+    }
+
+    //! Replace each pixel by its opposite value.
+    /**
+       \note
+       - If the computed opposite values are out-of-range, they are treated as with standard C++ numeric types.
+         For instance, the \c unsigned \c char opposite of \c 1 is \c 255.
+       \par Example
+     
