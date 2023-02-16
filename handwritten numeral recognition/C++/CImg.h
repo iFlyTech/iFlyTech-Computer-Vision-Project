@@ -11104,4 +11104,210 @@ namespace cimg_library_suffixed {
 
     //! In-place bitwise XOR operator.
     /**
-       Similar to operator+=(const t), except tha
+       Similar to operator+=(const t), except that it performs a bitwise XOR operation instead of an addition.
+       \warning
+       - It does \e not compute the \e power of pixel values. For this purpose, use pow(const t) instead.
+    **/
+    template<typename t>
+    CImg<T>& operator^=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)((ulongT)*ptrd ^ (ulongT)value);
+      return *this;
+    }
+
+    //! In-place bitwise XOR operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a bitwise XOR operation instead of an addition.
+       \warning
+       - It does \e not compute the \e power of pixel values. For this purpose, use pow(const char*) instead.
+    **/
+    CImg<T>& operator^=(const char *const expression) {
+      return *this^=(+*this)._fill(expression,true,true,0,0,"operator^=",this);
+    }
+
+    //! In-place bitwise XOR operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a bitwise XOR operation instead of an addition.
+       \warning
+       - It does \e not compute the \e power of pixel values. For this purpose, use pow(const CImg<t>&) instead.
+    **/
+    template<typename t>
+    CImg<T>& operator^=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this^=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)((ulongT)*ptrd ^ (ulongT)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)((ulongT)*ptrd ^ (ulongT)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Bitwise XOR operator.
+    /**
+       Similar to operator^=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator^(const t value) const {
+      return (+*this)^=value;
+    }
+
+    //! Bitwise XOR operator.
+    /**
+       Similar to operator^=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    CImg<T> operator^(const char *const expression) const {
+      return (+*this)^=expression;
+    }
+
+    //! Bitwise XOR operator.
+    /**
+       Similar to operator^=(const CImg<t>&), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator^(const CImg<t>& img) const {
+      return (+*this)^=img;
+    }
+
+    //! In-place bitwise left shift operator.
+    /**
+       Similar to operator+=(const t), except that it performs a bitwise left shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator<<=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(((longT)*ptrd) << (int)value);
+      return *this;
+    }
+
+    //! In-place bitwise left shift operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a bitwise left shift instead of an addition.
+    **/
+    CImg<T>& operator<<=(const char *const expression) {
+      return *this<<=(+*this)._fill(expression,true,true,0,0,"operator<<=",this);
+    }
+
+    //! In-place bitwise left shift operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a bitwise left shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator<<=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this^=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)((longT)*ptrd << (int)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)((longT)*ptrd << (int)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator<<(const t value) const {
+      return (+*this)<<=value;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    CImg<T> operator<<(const char *const expression) const {
+      return (+*this)<<=expression;
+    }
+
+    //! Bitwise left shift operator.
+    /**
+       Similar to operator<<=(const CImg<t>&), except that it returns a new image instance instead of
+       operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator<<(const CImg<t>& img) const {
+      return (+*this)<<=img;
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const t), except that it performs a bitwise right shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator>>=(const t value) {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)(((longT)*ptrd) >> (int)value);
+      return *this;
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const char*), except that it performs a bitwise right shift instead of an addition.
+    **/
+    CImg<T>& operator>>=(const char *const expression) {
+      return *this>>=(+*this)._fill(expression,true,true,0,0,"operator>>=",this);
+    }
+
+    //! In-place bitwise right shift operator.
+    /**
+       Similar to operator+=(const CImg<t>&), except that it performs a bitwise right shift instead of an addition.
+    **/
+    template<typename t>
+    CImg<T>& operator>>=(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return *this^=+img;
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)((longT)*ptrd >> (int)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)((longT)*ptrd >> (int)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const t), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator>>(const t value) const {
+      return (+*this)>>=value;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const char*), except that it returns a new image instance instead of operating in-place.
+       The pixel type of the returned image is \c T.
+    **/
+    CImg<T> operator>>(const char *const expression) const {
+      return (+*this)>>=expression;
+    }
+
+    //! Bitwise right shift operator.
+    /**
+       Similar to operator>>=(const CImg<t>&), except that it returns a new image instance instead of
+       operating in-place.
+       The pixel type of the retur
