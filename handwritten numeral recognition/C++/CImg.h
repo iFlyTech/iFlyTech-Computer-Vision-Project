@@ -11310,4 +11310,186 @@ namespace cimg_library_suffixed {
     /**
        Similar to operator>>=(const CImg<t>&), except that it returns a new image instance instead of
        operating in-place.
-       The pixel type of the retur
+       The pixel type of the returned image is \c T.
+    **/
+    template<typename t>
+    CImg<T> operator>>(const CImg<t>& img) const {
+      return (+*this)>>=img;
+    }
+
+    //! Bitwise inversion operator.
+    /**
+       Similar to operator-(), except that it compute the bitwise inverse instead of the opposite value.
+    **/
+    CImg<T> operator~() const {
+      CImg<T> res(_width,_height,_depth,_spectrum);
+      const T *ptrs = _data;
+      cimg_for(res,ptrd,T) { const ulongT value = (ulongT)*(ptrs++); *ptrd = (T)~value; }
+      return res;
+    }
+
+    //! Test if all pixels of an image have the same value.
+    /**
+       Return \c true is all pixels of the image instance are equal to the specified \c value.
+       \param value Reference value to compare with.
+    **/
+    template<typename t>
+    bool operator==(const t value) const {
+      if (is_empty()) return false;
+      typedef _cimg_Tt Tt;
+      bool is_equal = true;
+      for (T *ptrd = _data + size(); is_equal && ptrd>_data; is_equal = ((Tt)*(--ptrd)==(Tt)value)) {}
+      return is_equal;
+    }
+
+    //! Test if all pixel values of an image follow a specified expression.
+    /**
+       Return \c true is all pixels of the image instance are equal to the specified \c expression.
+       \param expression Value string describing the way pixel values are compared.
+    **/
+    bool operator==(const char *const expression) const {
+      return *this==(+*this)._fill(expression,true,true,0,0,"operator==",this);
+    }
+
+    //! Test if two images have the same size and values.
+    /**
+       Return \c true if the image instance and the input image \c img have the same dimensions and pixel values,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - The pixel buffer pointers data() of the two compared images do not have to be the same for operator==()
+         to return \c true.
+         Only the dimensions and the pixel values matter. Thus, the comparison can be \c true even for different
+         pixel types \c T and \c t.
+       \par Example
+       \code
+       const CImg<float> img1(1,3,1,1, 0,1,2); // Construct a 1x3 vector [0;1;2] (with 'float' pixel values).
+       const CImg<char> img2(1,3,1,1, 0,1,2);  // Construct a 1x3 vector [0;1;2] (with 'char' pixel values).
+       if (img1==img2) {                       // Test succeeds, image dimensions and values are the same.
+         std::printf("'img1' and 'img2' have same dimensions and values.");
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool operator==(const CImg<t>& img) const {
+      typedef _cimg_Tt Tt;
+      const ulongT siz = size();
+      bool is_equal = true;
+      if (siz!=img.size()) return false;
+      t *ptrs = img._data + siz;
+      for (T *ptrd = _data + siz; is_equal && ptrd>_data; is_equal = ((Tt)*(--ptrd)==(Tt)*(--ptrs))) {}
+      return is_equal;
+    }
+
+    //! Test if pixels of an image are all different from a value.
+    /**
+       Return \c true is all pixels of the image instance are different than the specified \c value.
+       \param value Reference value to compare with.
+    **/
+    template<typename t>
+    bool operator!=(const t value) const {
+      return !((*this)==value);
+    }
+
+    //! Test if all pixel values of an image are different from a specified expression.
+    /**
+       Return \c true is all pixels of the image instance are different to the specified \c expression.
+       \param expression Value string describing the way pixel values are compared.
+    **/
+    bool operator!=(const char *const expression) const {
+      return !((*this)==expression);
+    }
+
+    //! Test if two images have different sizes or values.
+    /**
+       Return \c true if the image instance and the input image \c img have different dimensions or pixel values,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - Writing \c img1!=img2 is equivalent to \c !(img1==img2).
+    **/
+    template<typename t>
+    bool operator!=(const CImg<t>& img) const {
+      return !((*this)==img);
+    }
+
+    //! Construct an image list from two images.
+    /**
+       Return a new list of image (\c CImgList instance) containing exactly two elements:
+         - A copy of the image instance, at position [\c 0].
+         - A copy of the specified image \c img, at position [\c 1].
+
+       \param img Input image that will be the second image of the resulting list.
+       \note
+       - The family of operator,() is convenient to easily create list of images, but it is also \e quite \e slow
+         in practice (see warning below).
+       - Constructed lists contain no shared images. If image instance or input image \c img are shared, they are
+         inserted as new non-shared copies in the resulting list.
+       - The pixel type of the returned list may be a superset of the initial pixel type \c T, if necessary.
+       \warning
+       - Pipelining operator,() \c N times will perform \c N copies of the entire content of a (growing) image list.
+         This may become very expensive in terms of speed and used memory. You should avoid using this technique to
+         build a new CImgList instance from several images, if you are seeking for performance.
+         Fast insertions of images in an image list are possible with
+         CImgList<T>::insert(const CImg<t>&,unsigned int,bool) or move_to(CImgList<t>&,unsigned int).
+       \par Example
+       \code
+       const CImg<float>
+          img1("reference.jpg"),
+          img2 = img1.get_mirror('x'),
+          img3 = img2.get_blur(5);
+       const CImgList<float> list = (img1,img2); // Create list of two elements from 'img1' and 'img2'.
+       (list,img3).display();                    // Display image list containing copies of 'img1','img2' and 'img3'.
+       \endcode
+       \image html ref_operator_comma.jpg
+    **/
+    template<typename t>
+    CImgList<_cimg_Tt> operator,(const CImg<t>& img) const {
+      return CImgList<_cimg_Tt>(*this,img);
+    }
+
+    //! Construct an image list from image instance and an input image list.
+    /**
+       Return a new list of images (\c CImgList instance) containing exactly \c list.size() \c + \c 1 elements:
+         - A copy of the image instance, at position [\c 0].
+         - A copy of the specified image list \c list, from positions [\c 1] to [\c list.size()].
+
+       \param list Input image list that will be appended to the image instance.
+       \note
+       - Similar to operator,(const CImg<t>&) const, except that it takes an image list as an argument.
+    **/
+    template<typename t>
+    CImgList<_cimg_Tt> operator,(const CImgList<t>& list) const {
+      return CImgList<_cimg_Tt>(list,false).insert(*this,0);
+    }
+
+    //! Split image along specified axis.
+    /**
+       Return a new list of images (\c CImgList instance) containing the splitted components
+       of the instance image along the specified axis.
+       \param axis Splitting axis (can be '\c x','\c y','\c z' or '\c c')
+       \note
+       - Similar to get_split(char,int) const, with default second argument.
+       \par Example
+       \code
+       const CImg<unsigned char> img("reference.jpg"); // Load a RGB color image.
+       const CImgList<unsigned char> list = (img<'c'); // Get a list of its three R,G,B channels.
+       (img,list).display();
+       \endcode
+       \image html ref_operator_less.jpg
+    **/
+    CImgList<T> operator<(const char axis) const {
+      return get_split(axis);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //-------------------------------------
+
+    //! Return the type of image pixel values as a C string.
+    /**
+       Return a \c char* string containing the usual type name of the image pixel values
+       (i.e. a stringifi
