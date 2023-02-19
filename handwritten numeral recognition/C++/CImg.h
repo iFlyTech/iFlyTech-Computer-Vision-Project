@@ -11988,4 +11988,167 @@ namespace cimg_library_suffixed {
     **/
     T& atXYZC(const int x, const int y, const int z, const int c) {
       if (is_empty())
-        throw CImgInstanceException(_cimg_instanc
+        throw CImgInstanceException(_cimg_instance
+                                    "atXYZC(): Empty instance.",
+                                    cimg_instance);
+      return _atXYZC(x,y,z,c);
+    }
+
+    T& _atXYZC(const int x, const int y, const int z, const int c) {
+      return (*this)(x<0?0:(x>=width()?width() - 1:x), y<0?0:(y>=height()?height() - 1:y),
+                     z<0?0:(z>=depth()?depth() - 1:z), c<0?0:(c>=spectrum()?spectrum() - 1:c));
+    }
+
+    //! Access to a pixel value, using Neumann boundary conditions \const.
+    const T& atXYZC(const int x, const int y, const int z, const int c) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "atXYZC(): Empty instance.",
+                                    cimg_instance);
+      return _atXYZC(x,y,z,c);
+    }
+
+    const T& _atXYZC(const int x, const int y, const int z, const int c) const {
+      return (*this)(x<0?0:(x>=width()?width() - 1:x), y<0?0:(y>=height()?height() - 1:y),
+                     z<0?0:(z>=depth()?depth() - 1:z), c<0?0:(c>=spectrum()?spectrum() - 1:c));
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Return a linearly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or a specified default value in case of out-of-bounds access along the X-axis.
+       \param fx X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c (\c fx,\c y,\c z,\c c) is outside image bounds.
+       \note
+       - Similar to atX(int,int,int,int,const T), except that the returned pixel value is approximated by
+         a linear interpolation along the X-axis, if corresponding coordinates are not integers.
+       - The type of the returned pixel value is extended to \c float, if the pixel type \c T is not float-valued.
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    Tfloat linear_atX(const float fx, const int y, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1;
+      const float
+        dx = fx - x;
+      const Tfloat
+        Ic = (Tfloat)atX(x,y,z,c,out_value), In = (Tfloat)atXY(nx,y,z,c,out_value);
+      return Ic + dx*(In - Ic);
+    }
+
+    //! Return pixel value, using linear interpolation and Neumann boundary conditions for the X-coordinate.
+    /**
+       Return a linearly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or the value of the nearest pixel location in the image instance in case of out-of-bounds access along
+       the X-axis.
+       \param fx X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Similar to linear_atX(float,int,int,int,const T) const, except that an out-of-bounds access returns
+         the value of the nearest pixel in the image instance, regarding the specified X-coordinate.
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _linear_atX(float,int,int,int).
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    Tfloat linear_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atX(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atX(fx,y,z,c);
+    }
+
+    Tfloat _linear_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx);
+      const unsigned int
+        x = (unsigned int)nfx;
+      const float
+        dx = nfx - x;
+      const unsigned int
+        nx = dx>0?x + 1:x;
+      const Tfloat
+        Ic = (Tfloat)(*this)(x,y,z,c), In = (Tfloat)(*this)(nx,y,z,c);
+      return Ic + dx*(In - Ic);
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int,const T) const, except that the linear interpolation and the
+       boundary checking are achieved both for X and Y-coordinates.
+    **/
+    Tfloat linear_atXY(const float fx, const float fy, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y;
+      const Tfloat
+        Icc = (Tfloat)atXY(x,y,z,c,out_value),  Inc = (Tfloat)atXY(nx,y,z,c,out_value),
+        Icn = (Tfloat)atXY(x,ny,z,c,out_value), Inn = (Tfloat)atXY(nx,ny,z,c,out_value);
+      return Icc + dx*(Inc - Icc + dy*(Icc + Inn - Icn - Inc)) + dy*(Icn - Icc);
+    }
+
+    //! Return pixel value, using linear interpolation and Neumann boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int) const, except that the linear interpolation and the boundary checking
+       are achieved both for X and Y-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _linear_atXY(float,float,int,int).
+    **/
+    Tfloat linear_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "linear_atXY(): Empty instance.",
+                                    cimg_instance);
+
+      return _linear_atXY(fx,fy,z,c);
+    }
+
+    Tfloat _linear_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx),
+        nfy = fy<0?0:(fy>_height - 1?_height - 1:fy);
+      const unsigned int
+        x = (unsigned int)nfx,
+        y = (unsigned int)nfy;
+      const float
+        dx = nfx - x,
+        dy = nfy - y;
+      const unsigned int
+        nx = dx>0?x + 1:x,
+        ny = dy>0?y + 1:y;
+      const Tfloat
+        Icc = (Tfloat)(*this)(x,y,z,c),  Inc = (Tfloat)(*this)(nx,y,z,c),
+        Icn = (Tfloat)(*this)(x,ny,z,c), Inn = (Tfloat)(*this)(nx,ny,z,c);
+      return Icc + dx*(Inc - Icc + dy*(Icc + Inn - Icn - Inc)) + dy*(Icn - Icc);
+    }
+
+    //! Return pixel value, using linear interpolation and Dirichlet boundary conditions for the X,Y and Z-coordinates.
+    /**
+       Similar to linear_atX(float,int,int,int,const T) const, except that the linear interpolation and the
+       boundary checking are achieved both for X,Y and Z-coordinates.
+    **/
+    Tfloat linear_atXYZ(const float fx, const float fy, const float fz, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1,
+        z = (int)fz - (fz>=0?0:1), nz = z + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y,
+        dz = fz - z;
+      const Tfloat
+        Iccc = (Tfloat)atXYZ(x,y,z,c,out_value), Incc = (Tfloat)atXYZ(nx,y,z,c,out_value),
+        Icnc = (Tfloat)atXYZ(x,ny,z,c,out_value), Innc = (Tfloat)atXYZ(nx,ny,z,c,out_value),
+        Iccn = (Tfloat)atXYZ(x,y,nz,c,out_value), Incn = (Tfloat)atXYZ(nx,y,nz,c,out_value),
+        Icnn = (Tfloat)at
