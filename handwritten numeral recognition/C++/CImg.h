@@ -12312,4 +12312,140 @@ namespace cimg_library_suffixed {
             dz*(Icccc + Incnc - Iccnc - Inccc +
                 dc*(Icccn + Incnn + Iccnc + Inccc - Iccnn - Inccn - Icccc - Incnc)) +
             dc*(Icccc + Inccn - Inccc - Icccn)) +
-        dy*(Ic
+        dy*(Icncc - Icccc +
+            dz*(Icccc + Icnnc - Iccnc - Icncc +
+                dc*(Icccn + Icnnn + Iccnc + Icncc - Iccnn - Icncn - Icccc - Icnnc)) +
+            dc*(Icccc + Icncn - Icncc - Icccn)) +
+        dz*(Iccnc - Icccc +
+            dc*(Icccc + Iccnn - Iccnc - Icccn)) +
+        dc*(Icccn - Icccc);
+    }
+
+    //! Return pixel value, using cubic interpolation and Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Return a cubicly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or a specified default value in case of out-of-bounds access along the X-axis.
+       The cubic interpolation uses Hermite splines.
+       \param fx d X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c (\c fx,\c y,\c z,\c c) is outside image bounds.
+       \note
+       - Similar to linear_atX(float,int,int,int,const T) const, except that the returned pixel value is
+         approximated by a \e cubic interpolation along the X-axis.
+       - The type of the returned pixel value is extended to \c float, if the pixel type \c T is not float-valued.
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    Tfloat cubic_atX(const float fx, const int y, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), px = x - 1, nx = x + 1, ax = x + 2;
+      const float
+        dx = fx - x;
+      const Tfloat
+        Ip = (Tfloat)atX(px,y,z,c,out_value), Ic = (Tfloat)atX(x,y,z,c,out_value),
+        In = (Tfloat)atX(nx,y,z,c,out_value), Ia = (Tfloat)atX(ax,y,z,c,out_value);
+      return Ic + 0.5f*(dx*(-Ip + In) + dx*dx*(2*Ip - 5*Ic + 4*In - Ia) + dx*dx*dx*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Dirichlet boundary conditions for the X-coordinate.
+    /**
+       Similar to cubic_atX(float,int,int,int,const T) const, except that you can specify the authorized minimum
+       and maximum of the returned value.
+    **/
+    Tfloat cubic_atX(const float fx, const int y, const int z, const int c, const T& out_value,
+                     const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atX(fx,y,z,c,out_value);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Return pixel value, using cubic interpolation and Neumann boundary conditions for the X-coordinate.
+    /**
+       Return a cubicly-interpolated pixel value of the image instance located at (\c fx,\c y,\c z,\c c),
+       or the value of the nearest pixel location in the image instance in case of out-of-bounds access
+       along the X-axis. The cubic interpolation uses Hermite splines.
+       \param fx X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Similar to cubic_atX(float,int,int,int,const T) const, except that the returned pixel value is
+         approximated by a cubic interpolation along the X-axis.
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+         \c _cubic_atX(float,int,int,int).
+       \warning
+       - There is \e no boundary checking performed for the Y,Z and C-coordinates, so they must be inside image bounds.
+    **/
+    Tfloat cubic_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "cubic_atX(): Empty instance.",
+                                    cimg_instance);
+      return _cubic_atX(fx,y,z,c);
+    }
+
+    Tfloat _cubic_atX(const float fx, const int y=0, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx);
+      const int
+        x = (int)nfx;
+      const float
+        dx = nfx - x;
+      const int
+        px = x - 1<0?0:x - 1, nx = dx>0?x + 1:x, ax = x + 2>=width()?width() - 1:x + 2;
+      const Tfloat
+        Ip = (Tfloat)(*this)(px,y,z,c), Ic = (Tfloat)(*this)(x,y,z,c),
+        In = (Tfloat)(*this)(nx,y,z,c), Ia = (Tfloat)(*this)(ax,y,z,c);
+      return Ic + 0.5f*(dx*(-Ip + In) + dx*dx*(2*Ip - 5*Ic + 4*In - Ia) + dx*dx*dx*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Neumann boundary conditions for the X-coordinate.
+    /**
+       Similar to cubic_atX(float,int,int,int) const, except that you can specify the authorized minimum and maximum
+       of the returned value.
+    **/
+    Tfloat cubic_atX(const float fx, const int y, const int z, const int c,
+                     const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atX(fx,y,z,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    Tfloat _cubic_atX(const float fx, const int y, const int z, const int c,
+                      const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = _cubic_atX(fx,y,z,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Return pixel value, using cubic interpolation and Dirichlet boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to cubic_atX(float,int,int,int,const T) const, except that the cubic interpolation and boundary checking
+       are achieved both for X and Y-coordinates.
+    **/
+    Tfloat cubic_atXY(const float fx, const float fy, const int z, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), px = x - 1, nx = x + 1, ax = x + 2,
+        y = (int)fy - (fy>=0?0:1), py = y - 1, ny = y + 1, ay = y + 2;
+      const float dx = fx - x, dy = fy - y;
+      const Tfloat
+        Ipp = (Tfloat)atXY(px,py,z,c,out_value), Icp = (Tfloat)atXY(x,py,z,c,out_value),
+        Inp = (Tfloat)atXY(nx,py,z,c,out_value), Iap = (Tfloat)atXY(ax,py,z,c,out_value),
+        Ip = Icp + 0.5f*(dx*(-Ipp + Inp) + dx*dx*(2*Ipp - 5*Icp + 4*Inp - Iap) + dx*dx*dx*(-Ipp + 3*Icp - 3*Inp + Iap)),
+        Ipc = (Tfloat)atXY(px,y,z,c,out_value),  Icc = (Tfloat)atXY(x, y,z,c,out_value),
+        Inc = (Tfloat)atXY(nx,y,z,c,out_value),  Iac = (Tfloat)atXY(ax,y,z,c,out_value),
+        Ic = Icc + 0.5f*(dx*(-Ipc + Inc) + dx*dx*(2*Ipc - 5*Icc + 4*Inc - Iac) + dx*dx*dx*(-Ipc + 3*Icc - 3*Inc + Iac)),
+        Ipn = (Tfloat)atXY(px,ny,z,c,out_value), Icn = (Tfloat)atXY(x,ny,z,c,out_value),
+        Inn = (Tfloat)atXY(nx,ny,z,c,out_value), Ian = (Tfloat)atXY(ax,ny,z,c,out_value),
+        In = Icn + 0.5f*(dx*(-Ipn + Inn) + dx*dx*(2*Ipn - 5*Icn + 4*Inn - Ian) + dx*dx*dx*(-Ipn + 3*Icn - 3*Inn + Ian)),
+        Ipa = (Tfloat)atXY(px,ay,z,c,out_value), Ica = (Tfloat)atXY(x,ay,z,c,out_value),
+        Ina = (Tfloat)atXY(nx,ay,z,c,out_value), Iaa = (Tfloat)atXY(ax,ay,z,c,out_value),
+        Ia = Ica + 0.5f*(dx*(-Ipa + Ina) + dx*dx*(2*Ipa - 5*Ica + 4*Ina - Iaa) + dx*dx*dx*(-Ipa + 3*Ica - 3*Ina + Iaa));
+      return Ic + 0.5f*(dy*(-Ip + In) + dy*dy*(2*Ip - 5*Ic + 4*In - Ia) + dy*dy*dy*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Dirichlet boundary conditions for the X,Y-coordinates.
+    /**
+       Similar to cubic_atXY(float,float,int,int,const T) const, except that you can specify the authorized
+       minimum and maximum of the returned value.
+    **/
+    Tfloat cubic_atXY(const float fx, const float fy
