@@ -12448,4 +12448,119 @@ namespace cimg_library_suffixed {
        Similar to cubic_atXY(float,float,int,int,const T) const, except that you can specify the authorized
        minimum and maximum of the returned value.
     **/
-    Tfloat cubic_atXY(const float fx, const float fy
+    Tfloat cubic_atXY(const float fx, const float fy, const int z, const int c, const T& out_value,
+                      const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atXY(fx,fy,z,c,out_value);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Return pixel value, using cubic interpolation and Neumann boundary conditions for the X and Y-coordinates.
+    /**
+       Similar to cubic_atX(float,int,int,int) const, except that the cubic interpolation and boundary checking
+       are achieved for both X and Y-coordinates.
+       \note
+       - If you know your image instance is \e not empty, you may rather use the slightly faster method
+       \c _cubic_atXY(float,float,int,int).
+    **/
+    Tfloat cubic_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "cubic_atXY(): Empty instance.",
+                                    cimg_instance);
+      return _cubic_atXY(fx,fy,z,c);
+    }
+
+    Tfloat _cubic_atXY(const float fx, const float fy, const int z=0, const int c=0) const {
+      const float
+        nfx = fx<0?0:(fx>_width - 1?_width - 1:fx),
+        nfy = fy<0?0:(fy>_height - 1?_height - 1:fy);
+      const int x = (int)nfx, y = (int)nfy;
+      const float dx = nfx - x, dy = nfy - y;
+      const int
+        px = x - 1<0?0:x - 1, nx = dx>0?x + 1:x, ax = x + 2>=width()?width() - 1:x + 2,
+        py = y - 1<0?0:y - 1, ny = dy>0?y + 1:y, ay = y + 2>=height()?height() - 1:y + 2;
+      const Tfloat
+        Ipp = (Tfloat)(*this)(px,py,z,c), Icp = (Tfloat)(*this)(x,py,z,c), Inp = (Tfloat)(*this)(nx,py,z,c),
+        Iap = (Tfloat)(*this)(ax,py,z,c),
+        Ip = Icp + 0.5f*(dx*(-Ipp + Inp) + dx*dx*(2*Ipp - 5*Icp + 4*Inp - Iap) + dx*dx*dx*(-Ipp + 3*Icp - 3*Inp + Iap)),
+        Ipc = (Tfloat)(*this)(px,y,z,c),  Icc = (Tfloat)(*this)(x, y,z,c), Inc = (Tfloat)(*this)(nx,y,z,c),
+        Iac = (Tfloat)(*this)(ax,y,z,c),
+        Ic = Icc + 0.5f*(dx*(-Ipc + Inc) + dx*dx*(2*Ipc - 5*Icc + 4*Inc - Iac) + dx*dx*dx*(-Ipc + 3*Icc - 3*Inc + Iac)),
+        Ipn = (Tfloat)(*this)(px,ny,z,c), Icn = (Tfloat)(*this)(x,ny,z,c), Inn = (Tfloat)(*this)(nx,ny,z,c),
+        Ian = (Tfloat)(*this)(ax,ny,z,c),
+        In = Icn + 0.5f*(dx*(-Ipn + Inn) + dx*dx*(2*Ipn - 5*Icn + 4*Inn - Ian) + dx*dx*dx*(-Ipn + 3*Icn - 3*Inn + Ian)),
+        Ipa = (Tfloat)(*this)(px,ay,z,c), Ica = (Tfloat)(*this)(x,ay,z,c), Ina = (Tfloat)(*this)(nx,ay,z,c),
+        Iaa = (Tfloat)(*this)(ax,ay,z,c),
+        Ia = Ica + 0.5f*(dx*(-Ipa + Ina) + dx*dx*(2*Ipa - 5*Ica + 4*Ina - Iaa) + dx*dx*dx*(-Ipa + 3*Ica - 3*Ina + Iaa));
+      return Ic + 0.5f*(dy*(-Ip + In) + dy*dy*(2*Ip - 5*Ic + 4*In - Ia) + dy*dy*dy*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Neumann boundary conditions for the X,Y-coordinates.
+    /**
+       Similar to cubic_atXY(float,float,int,int) const, except that you can specify the authorized minimum and
+       maximum of the returned value.
+    **/
+    Tfloat cubic_atXY(const float fx, const float fy, const int z, const int c,
+                      const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atXY(fx,fy,z,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    Tfloat _cubic_atXY(const float fx, const float fy, const int z, const int c,
+                       const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = _cubic_atXY(fx,fy,z,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Return pixel value, using cubic interpolation and Dirichlet boundary conditions for the X,Y and Z-coordinates.
+    /**
+       Similar to cubic_atX(float,int,int,int,const T) const, except that the cubic interpolation and boundary checking
+       are achieved both for X,Y and Z-coordinates.
+    **/
+    Tfloat cubic_atXYZ(const float fx, const float fy, const float fz, const int c, const T& out_value) const {
+      const int
+        x = (int)fx - (fx>=0?0:1), px = x - 1, nx = x + 1, ax = x + 2,
+        y = (int)fy - (fy>=0?0:1), py = y - 1, ny = y + 1, ay = y + 2,
+        z = (int)fz - (fz>=0?0:1), pz = z - 1, nz = z + 1, az = z + 2;
+      const float dx = fx - x, dy = fy - y, dz = fz - z;
+      const Tfloat
+        Ippp = (Tfloat)atXYZ(px,py,pz,c,out_value), Icpp = (Tfloat)atXYZ(x,py,pz,c,out_value),
+        Inpp = (Tfloat)atXYZ(nx,py,pz,c,out_value), Iapp = (Tfloat)atXYZ(ax,py,pz,c,out_value),
+        Ipp = Icpp + 0.5f*(dx*(-Ippp + Inpp) + dx*dx*(2*Ippp - 5*Icpp + 4*Inpp - Iapp) +
+                           dx*dx*dx*(-Ippp + 3*Icpp - 3*Inpp + Iapp)),
+        Ipcp = (Tfloat)atXYZ(px,y,pz,c,out_value),  Iccp = (Tfloat)atXYZ(x, y,pz,c,out_value),
+        Incp = (Tfloat)atXYZ(nx,y,pz,c,out_value),  Iacp = (Tfloat)atXYZ(ax,y,pz,c,out_value),
+        Icp = Iccp + 0.5f*(dx*(-Ipcp + Incp) + dx*dx*(2*Ipcp - 5*Iccp + 4*Incp - Iacp) +
+                           dx*dx*dx*(-Ipcp + 3*Iccp - 3*Incp + Iacp)),
+        Ipnp = (Tfloat)atXYZ(px,ny,pz,c,out_value), Icnp = (Tfloat)atXYZ(x,ny,pz,c,out_value),
+        Innp = (Tfloat)atXYZ(nx,ny,pz,c,out_value), Ianp = (Tfloat)atXYZ(ax,ny,pz,c,out_value),
+        Inp = Icnp + 0.5f*(dx*(-Ipnp + Innp) + dx*dx*(2*Ipnp - 5*Icnp + 4*Innp - Ianp) +
+                           dx*dx*dx*(-Ipnp + 3*Icnp - 3*Innp + Ianp)),
+        Ipap = (Tfloat)atXYZ(px,ay,pz,c,out_value), Icap = (Tfloat)atXYZ(x,ay,pz,c,out_value),
+        Inap = (Tfloat)atXYZ(nx,ay,pz,c,out_value), Iaap = (Tfloat)atXYZ(ax,ay,pz,c,out_value),
+        Iap = Icap + 0.5f*(dx*(-Ipap + Inap) + dx*dx*(2*Ipap - 5*Icap + 4*Inap - Iaap) +
+                           dx*dx*dx*(-Ipap + 3*Icap - 3*Inap + Iaap)),
+        Ip = Icp + 0.5f*(dy*(-Ipp + Inp) + dy*dy*(2*Ipp - 5*Icp + 4*Inp - Iap) +
+                         dy*dy*dy*(-Ipp + 3*Icp - 3*Inp + Iap)),
+        Ippc = (Tfloat)atXYZ(px,py,z,c,out_value), Icpc = (Tfloat)atXYZ(x,py,z,c,out_value),
+        Inpc = (Tfloat)atXYZ(nx,py,z,c,out_value), Iapc = (Tfloat)atXYZ(ax,py,z,c,out_value),
+        Ipc = Icpc + 0.5f*(dx*(-Ippc + Inpc) + dx*dx*(2*Ippc - 5*Icpc + 4*Inpc - Iapc) +
+                           dx*dx*dx*(-Ippc + 3*Icpc - 3*Inpc + Iapc)),
+        Ipcc = (Tfloat)atXYZ(px,y,z,c,out_value),  Iccc = (Tfloat)atXYZ(x, y,z,c,out_value),
+        Incc = (Tfloat)atXYZ(nx,y,z,c,out_value),  Iacc = (Tfloat)atXYZ(ax,y,z,c,out_value),
+        Icc = Iccc + 0.5f*(dx*(-Ipcc + Incc) + dx*dx*(2*Ipcc - 5*Iccc + 4*Incc - Iacc) +
+                           dx*dx*dx*(-Ipcc + 3*Iccc - 3*Incc + Iacc)),
+        Ipnc = (Tfloat)atXYZ(px,ny,z,c,out_value), Icnc = (Tfloat)atXYZ(x,ny,z,c,out_value),
+        Innc = (Tfloat)atXYZ(nx,ny,z,c,out_value), Ianc = (Tfloat)atXYZ(ax,ny,z,c,out_value),
+        Inc = Icnc + 0.5f*(dx*(-Ipnc + Innc) + dx*dx*(2*Ipnc - 5*Icnc + 4*Innc - Ianc) +
+                           dx*dx*dx*(-Ipnc + 3*Icnc - 3*Innc + Ianc)),
+        Ipac = (Tfloat)atXYZ(px,ay,z,c,out_value), Icac = (Tfloat)atXYZ(x,ay,z,c,out_value),
+        Inac = (Tfloat)atXYZ(nx,ay,z,c,out_value), Iaac = (Tfloat)atXYZ(ax,ay,z,c,out_value),
+        Iac = Icac + 0.5f*(dx*(-Ipac + Inac) + dx*dx*(2*Ipac - 5*Icac + 4*Inac - Iaac) +
+                           dx*dx*dx*(-Ipac + 3*Icac - 3*Inac + Iaac)),
+        Ic = Icc + 0.5f*(dy*(-Ipc + Inc) + dy*dy*(2*Ipc - 5*Icc + 4*Inc - Iac) +
+                         dy*dy*dy*(-Ipc + 3*Icc - 3*Inc + Iac)),
+        Ippn = (Tfloat)atXYZ(px,py,nz,c,out_value), Icpn = (Tfloat)atXYZ(x,py,nz,c,out_value),
+        Inpn = (Tfloat)atXYZ(nx,py,nz,c,out_value), Iapn = (Tfloat)atXYZ(ax,py,nz,c,out_value),
+        Ipn = Icpn + 0.5f*(dx*(-Ippn + Inpn) + dx*dx*(2*Ippn - 5*Icpn + 4*Inpn - Iapn) +
+                  
