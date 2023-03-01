@@ -12821,4 +12821,205 @@ namespace cimg_library_suffixed {
         if (z>=0 && z<depth()) {
           if (y>=0 && y<height()) {
             if (x>=0 && x<width()) {
-              const float w1 = (1 - d
+              const float w1 = (1 - dx)*(1 - dy)*(1 - dz), w2 = is_added?1:(1 - w1);
+              (*this)(x,y,z,c) = (T)(w1*value + w2*(*this)(x,y,z,c));
+            }
+            if (nx>=0 && nx<width()) {
+              const float w1 = dx*(1 - dy)*(1 - dz), w2 = is_added?1:(1 - w1);
+              (*this)(nx,y,z,c) = (T)(w1*value + w2*(*this)(nx,y,z,c));
+            }
+          }
+          if (ny>=0 && ny<height()) {
+            if (x>=0 && x<width()) {
+              const float w1 = (1 - dx)*dy*(1 - dz), w2 = is_added?1:(1 - w1);
+              (*this)(x,ny,z,c) = (T)(w1*value + w2*(*this)(x,ny,z,c));
+            }
+            if (nx>=0 && nx<width()) {
+              const float w1 = dx*dy*(1 - dz), w2 = is_added?1:(1 - w1);
+              (*this)(nx,ny,z,c) = (T)(w1*value + w2*(*this)(nx,ny,z,c));
+            }
+          }
+        }
+        if (nz>=0 && nz<depth()) {
+          if (y>=0 && y<height()) {
+            if (x>=0 && x<width()) {
+              const float w1 = (1 - dx)*(1 - dy)*dz, w2 = is_added?1:(1 - w1);
+              (*this)(x,y,nz,c) = (T)(w1*value + w2*(*this)(x,y,nz,c));
+            }
+            if (nx>=0 && nx<width()) {
+              const float w1 = dx*(1 - dy)*dz, w2 = is_added?1:(1 - w1);
+              (*this)(nx,y,nz,c) = (T)(w1*value + w2*(*this)(nx,y,nz,c));
+            }
+          }
+          if (ny>=0 && ny<height()) {
+            if (x>=0 && x<width()) {
+              const float w1 = (1 - dx)*dy*dz, w2 = is_added?1:(1 - w1);
+              (*this)(x,ny,nz,c) = (T)(w1*value + w2*(*this)(x,ny,nz,c));
+            }
+            if (nx>=0 && nx<width()) {
+              const float w1 = dx*dy*dz, w2 = is_added?1:(1 - w1);
+              (*this)(nx,ny,nz,c) = (T)(w1*value + w2*(*this)(nx,ny,nz,c));
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Return a C-string containing a list of all values of the image instance.
+    /**
+       Return a new \c CImg<char> image whose buffer data() is a \c char* string describing the list of all pixel values
+       of the image instance (written in base 10), separated by specified \c separator character.
+       \param separator A \c char character which specifies the separator between values in the returned C-string.
+       \param max_size Maximum size of the returned image.
+       \param format For float-values, tell the printf format used to generate the ascii representation of the numbers.
+         (or \c 0 for default representation).
+       \note
+       - The returned image is never empty.
+       - For an empty image instance, the returned string is <tt>""</tt>.
+       - If \c max_size is equal to \c 0, there are no limits on the size of the returned string.
+       - Otherwise, if the maximum number of string characters is exceeded, the value string is cut off
+         and terminated by character \c '\0'. In that case, the returned image size is <tt>max_size + 1</tt>.
+    **/
+    CImg<charT> value_string(const char separator=',', const unsigned int max_size=0,
+                             const char *const format=0) const {
+      if (is_empty()) return CImg<charT>::string("");
+      CImgList<charT> items;
+      CImg<charT> s_item(256); *s_item = 0;
+      const T *ptrs = _data;
+      unsigned int string_size = 0;
+      const char *const _format = format?format:cimg::type<T>::format();
+
+      for (ulongT off = 0, siz = size(); off<siz && string_size<=max_size; ++off) {
+        const unsigned int printed_size = 1U + cimg_snprintf(s_item,s_item._width,_format,
+                                                             cimg::type<T>::format(*(ptrs++)));
+        CImg<charT> item(s_item._data,printed_size);
+        item[printed_size - 1] = separator;
+        item.move_to(items);
+        if (max_size) string_size+=printed_size;
+      }
+      CImg<charT> res;
+      (items>'x').move_to(res);
+      if (max_size && res._width>max_size) res.crop(0,max_size);
+      res.back() = 0;
+      return res;
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Checking
+    //@{
+    //-------------------------------------
+
+    //! Test shared state of the pixel buffer.
+    /**
+       Return \c true if image instance has a shared memory buffer, and \c false otherwise.
+       \note
+       - A shared image do not own his pixel buffer data() and will not deallocate it on destruction.
+       - Most of the time, a \c CImg<T> image instance will \e not be shared.
+       - A shared image can only be obtained by a limited set of constructors and methods (see list below).
+    **/
+    bool is_shared() const {
+      return _is_shared;
+    }
+
+    //! Test if image instance is empty.
+    /**
+       Return \c true, if image instance is empty, i.e. does \e not contain any pixel values, has dimensions
+       \c 0 x \c 0 x \c 0 x \c 0 and a pixel buffer pointer set to \c 0 (null pointer), and \c false otherwise.
+    **/
+    bool is_empty() const {
+      return !(_data && _width && _height && _depth && _spectrum);
+    }
+
+    //! Test if image instance contains a 'inf' value.
+    /**
+       Return \c true, if image instance contains a 'inf' value, and \c false otherwise.
+    **/
+    bool is_inf() const {
+      if (cimg::type<T>::is_float()) cimg_for(*this,p,T) if (cimg::type<T>::is_inf((float)*p)) return true;
+      return false;
+    }
+
+    //! Test if image instance contains a NaN value.
+    /**
+       Return \c true, if image instance contains a NaN value, and \c false otherwise.
+    **/
+    bool is_nan() const {
+      if (cimg::type<T>::is_float()) cimg_for(*this,p,T) if (cimg::type<T>::is_nan((float)*p)) return true;
+      return false;
+    }
+
+    //! Test if image width is equal to specified value.
+    bool is_sameX(const unsigned int size_x) const {
+      return _width==size_x;
+    }
+
+    //! Test if image width is equal to specified value.
+    template<typename t>
+    bool is_sameX(const CImg<t>& img) const {
+      return is_sameX(img._width);
+    }
+
+    //! Test if image width is equal to specified value.
+    bool is_sameX(const CImgDisplay& disp) const {
+      return is_sameX(disp._width);
+    }
+
+    //! Test if image height is equal to specified value.
+    bool is_sameY(const unsigned int size_y) const {
+      return _height==size_y;
+    }
+
+    //! Test if image height is equal to specified value.
+    template<typename t>
+    bool is_sameY(const CImg<t>& img) const {
+      return is_sameY(img._height);
+    }
+
+    //! Test if image height is equal to specified value.
+    bool is_sameY(const CImgDisplay& disp) const {
+      return is_sameY(disp._height);
+    }
+
+    //! Test if image depth is equal to specified value.
+    bool is_sameZ(const unsigned int size_z) const {
+      return _depth==size_z;
+    }
+
+    //! Test if image depth is equal to specified value.
+    template<typename t>
+    bool is_sameZ(const CImg<t>& img) const {
+      return is_sameZ(img._depth);
+    }
+
+    //! Test if image spectrum is equal to specified value.
+    bool is_sameC(const unsigned int size_c) const {
+      return _spectrum==size_c;
+    }
+
+    //! Test if image spectrum is equal to specified value.
+    template<typename t>
+    bool is_sameC(const CImg<t>& img) const {
+      return is_sameC(img._spectrum);
+    }
+
+    //! Test if image width and height are equal to specified values.
+    /**
+       Test if is_sameX(unsigned int) const and is_sameY(unsigned int) const are both verified.
+    **/
+    bool is_sameXY(const unsigned int size_x, const unsigned int size_y) const {
+      return _width==size_x && _height==size_y;
+    }
+
+    //! Test if image width and height are the same as that of another image.
+    /**
+       Test if is_sameX(const CImg<t>&) const and is_sameY(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXY(const CImg<t>& img) const {
+      return is_sameXY(img._width,img._height);
+    }
+
+    //! Test if image w
