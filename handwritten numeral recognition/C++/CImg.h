@@ -12673,4 +12673,152 @@ namespace cimg_library_suffixed {
         Iac = Icac + 0.5f*(dx*(-Ipac + Inac) + dx*dx*(2*Ipac - 5*Icac + 4*Inac - Iaac) +
                            dx*dx*dx*(-Ipac + 3*Icac - 3*Inac + Iaac)),
         Ic = Icc + 0.5f*(dy*(-Ipc + Inc) + dy*dy*(2*Ipc - 5*Icc + 4*Inc - Iac) +
-                         dy*dy*dy
+                         dy*dy*dy*(-Ipc + 3*Icc - 3*Inc + Iac)),
+        Ippn = (Tfloat)(*this)(px,py,nz,c), Icpn = (Tfloat)(*this)(x,py,nz,c),
+        Inpn = (Tfloat)(*this)(nx,py,nz,c), Iapn = (Tfloat)(*this)(ax,py,nz,c),
+        Ipn = Icpn + 0.5f*(dx*(-Ippn + Inpn) + dx*dx*(2*Ippn - 5*Icpn + 4*Inpn - Iapn) +
+                           dx*dx*dx*(-Ippn + 3*Icpn - 3*Inpn + Iapn)),
+        Ipcn = (Tfloat)(*this)(px,y,nz,c),  Iccn = (Tfloat)(*this)(x, y,nz,c),
+        Incn = (Tfloat)(*this)(nx,y,nz,c),  Iacn = (Tfloat)(*this)(ax,y,nz,c),
+        Icn = Iccn + 0.5f*(dx*(-Ipcn + Incn) + dx*dx*(2*Ipcn - 5*Iccn + 4*Incn - Iacn) +
+                           dx*dx*dx*(-Ipcn + 3*Iccn - 3*Incn + Iacn)),
+        Ipnn = (Tfloat)(*this)(px,ny,nz,c), Icnn = (Tfloat)(*this)(x,ny,nz,c),
+        Innn = (Tfloat)(*this)(nx,ny,nz,c), Iann = (Tfloat)(*this)(ax,ny,nz,c),
+        Inn = Icnn + 0.5f*(dx*(-Ipnn + Innn) + dx*dx*(2*Ipnn - 5*Icnn + 4*Innn - Iann) +
+                           dx*dx*dx*(-Ipnn + 3*Icnn - 3*Innn + Iann)),
+        Ipan = (Tfloat)(*this)(px,ay,nz,c), Ican = (Tfloat)(*this)(x,ay,nz,c),
+        Inan = (Tfloat)(*this)(nx,ay,nz,c), Iaan = (Tfloat)(*this)(ax,ay,nz,c),
+        Ian = Ican + 0.5f*(dx*(-Ipan + Inan) + dx*dx*(2*Ipan - 5*Ican + 4*Inan - Iaan) +
+                           dx*dx*dx*(-Ipan + 3*Ican - 3*Inan + Iaan)),
+        In = Icn + 0.5f*(dy*(-Ipn + Inn) + dy*dy*(2*Ipn - 5*Icn + 4*Inn - Ian) +
+                         dy*dy*dy*(-Ipn + 3*Icn - 3*Inn + Ian)),
+        Ippa = (Tfloat)(*this)(px,py,az,c), Icpa = (Tfloat)(*this)(x,py,az,c),
+        Inpa = (Tfloat)(*this)(nx,py,az,c), Iapa = (Tfloat)(*this)(ax,py,az,c),
+        Ipa = Icpa + 0.5f*(dx*(-Ippa + Inpa) + dx*dx*(2*Ippa - 5*Icpa + 4*Inpa - Iapa) +
+                           dx*dx*dx*(-Ippa + 3*Icpa - 3*Inpa + Iapa)),
+        Ipca = (Tfloat)(*this)(px,y,az,c),  Icca = (Tfloat)(*this)(x, y,az,c),
+        Inca = (Tfloat)(*this)(nx,y,az,c),  Iaca = (Tfloat)(*this)(ax,y,az,c),
+        Ica = Icca + 0.5f*(dx*(-Ipca + Inca) + dx*dx*(2*Ipca - 5*Icca + 4*Inca - Iaca) +
+                           dx*dx*dx*(-Ipca + 3*Icca - 3*Inca + Iaca)),
+        Ipna = (Tfloat)(*this)(px,ny,az,c), Icna = (Tfloat)(*this)(x,ny,az,c),
+        Inna = (Tfloat)(*this)(nx,ny,az,c), Iana = (Tfloat)(*this)(ax,ny,az,c),
+        Ina = Icna + 0.5f*(dx*(-Ipna + Inna) + dx*dx*(2*Ipna - 5*Icna + 4*Inna - Iana) +
+                           dx*dx*dx*(-Ipna + 3*Icna - 3*Inna + Iana)),
+        Ipaa = (Tfloat)(*this)(px,ay,az,c), Icaa = (Tfloat)(*this)(x,ay,az,c),
+        Inaa = (Tfloat)(*this)(nx,ay,az,c), Iaaa = (Tfloat)(*this)(ax,ay,az,c),
+        Iaa = Icaa + 0.5f*(dx*(-Ipaa + Inaa) + dx*dx*(2*Ipaa - 5*Icaa + 4*Inaa - Iaaa) +
+                           dx*dx*dx*(-Ipaa + 3*Icaa - 3*Inaa + Iaaa)),
+        Ia = Ica + 0.5f*(dy*(-Ipa + Ina) + dy*dy*(2*Ipa - 5*Ica + 4*Ina - Iaa) +
+                         dy*dy*dy*(-Ipa + 3*Ica - 3*Ina + Iaa));
+      return Ic + 0.5f*(dz*(-Ip + In) + dz*dz*(2*Ip - 5*Ic + 4*In - Ia) + dz*dz*dz*(-Ip + 3*Ic - 3*In + Ia));
+    }
+
+    //! Return damped pixel value, using cubic interpolation and Neumann boundary conditions for the XYZ-coordinates.
+    /**
+       Similar to cubic_atXYZ(float,float,float,int) const, except that you can specify the authorized minimum and
+       maximum of the returned value.
+    **/
+    Tfloat cubic_atXYZ(const float fx, const float fy, const float fz, const int c,
+                       const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = cubic_atXYZ(fx,fy,fz,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    Tfloat _cubic_atXYZ(const float fx, const float fy, const float fz, const int c,
+                        const Tfloat min_value, const Tfloat max_value) const {
+      const Tfloat val = _cubic_atXYZ(fx,fy,fz,c);
+      return val<min_value?min_value:val>max_value?max_value:val;
+    }
+
+    //! Set pixel value, using linear interpolation for the X-coordinates.
+    /**
+       Set pixel value at specified coordinates (\c fx,\c y,\c z,\c c) in the image instance, in a way that
+       the value is spread amongst several neighbors if the pixel coordinates are float-valued.
+       \param value Pixel value to set.
+       \param fx X-coordinate of the pixel value (float-valued).
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param is_added Tells if the pixel value is added to (\c true), or simply replace (\c false) the current image
+         pixel(s).
+       \return A reference to the current image instance.
+       \note
+       - Calling this method with out-of-bounds coordinates does nothing.
+    **/
+    CImg<T>& set_linear_atX(const T& value, const float fx, const int y=0, const int z=0, const int c=0,
+                            const bool is_added=false) {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1;
+      const float
+        dx = fx - x;
+      if (y>=0 && y<height() && z>=0 && z<depth() && c>=0 && c<spectrum()) {
+        if (x>=0 && x<width()) {
+          const float w1 = 1 - dx, w2 = is_added?1:(1 - w1);
+          (*this)(x,y,z,c) = (T)(w1*value + w2*(*this)(x,y,z,c));
+        }
+        if (nx>=0 && nx<width()) {
+          const float w1 = dx, w2 = is_added?1:(1 - w1);
+          (*this)(nx,y,z,c) = (T)(w1*value + w2*(*this)(nx,y,z,c));
+        }
+      }
+      return *this;
+    }
+
+    //! Set pixel value, using linear interpolation for the X and Y-coordinates.
+    /**
+       Similar to set_linear_atX(const T&,float,int,int,int,bool), except that the linear interpolation
+       is achieved both for X and Y-coordinates.
+    **/
+    CImg<T>& set_linear_atXY(const T& value, const float fx, const float fy=0, const int z=0, const int c=0,
+                             const bool is_added=false) {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y;
+      if (z>=0 && z<depth() && c>=0 && c<spectrum()) {
+        if (y>=0 && y<height()) {
+          if (x>=0 && x<width()) {
+            const float w1 = (1 - dx)*(1 - dy), w2 = is_added?1:(1 - w1);
+            (*this)(x,y,z,c) = (T)(w1*value + w2*(*this)(x,y,z,c));
+          }
+          if (nx>=0 && nx<width()) {
+            const float w1 = dx*(1 - dy), w2 = is_added?1:(1 - w1);
+            (*this)(nx,y,z,c) = (T)(w1*value + w2*(*this)(nx,y,z,c));
+          }
+        }
+        if (ny>=0 && ny<height()) {
+          if (x>=0 && x<width()) {
+            const float w1 = (1 - dx)*dy, w2 = is_added?1:(1 - w1);
+            (*this)(x,ny,z,c) = (T)(w1*value + w2*(*this)(x,ny,z,c));
+          }
+          if (nx>=0 && nx<width()) {
+            const float w1 = dx*dy, w2 = is_added?1:(1 - w1);
+            (*this)(nx,ny,z,c) = (T)(w1*value + w2*(*this)(nx,ny,z,c));
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Set pixel value, using linear interpolation for the X,Y and Z-coordinates.
+    /**
+       Similar to set_linear_atXY(const T&,float,float,int,int,bool), except that the linear interpolation
+       is achieved both for X,Y and Z-coordinates.
+    **/
+    CImg<T>& set_linear_atXYZ(const T& value, const float fx, const float fy=0, const float fz=0, const int c=0,
+                              const bool is_added=false) {
+      const int
+        x = (int)fx - (fx>=0?0:1), nx = x + 1,
+        y = (int)fy - (fy>=0?0:1), ny = y + 1,
+        z = (int)fz - (fz>=0?0:1), nz = z + 1;
+      const float
+        dx = fx - x,
+        dy = fy - y,
+        dz = fz - z;
+      if (c>=0 && c<spectrum()) {
+        if (z>=0 && z<depth()) {
+          if (y>=0 && y<height()) {
+            if (x>=0 && x<width()) {
+              const float w1 = (1 - d
