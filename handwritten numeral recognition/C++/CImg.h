@@ -13208,4 +13208,170 @@ namespace cimg_library_suffixed {
        and \c false otherwise.
        \param x X-coordinate of the pixel value.
        \param y Y-coordinate of the pixel value.
-    
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note
+       - Return \c true only if all these conditions are verified:
+         - The image instance is \e not empty.
+         - <tt>0<=x<=\ref width() - 1</tt>.
+         - <tt>0<=y<=\ref height() - 1</tt>.
+         - <tt>0<=z<=\ref depth() - 1</tt>.
+         - <tt>0<=c<=\ref spectrum() - 1</tt>.
+    **/
+    bool containsXYZC(const int x, const int y=0, const int z=0, const int c=0) const {
+      return !is_empty() && x>=0 && x<width() && y>=0 && y<height() && z>=0 && z<depth() && c>=0 && c<spectrum();
+    }
+
+    //! Test if pixel value is inside image bounds and get its X,Y,Z and C-coordinates.
+    /**
+       Return \c true, if specified reference refers to a pixel value inside bounds of the image instance,
+       and \c false otherwise.
+       \param pixel Reference to pixel value to test.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \param[out] c C-coordinate of the pixel value, if test succeeds.
+       \note
+       - Useful to convert an offset to a buffer value into pixel value coordinates:
+       \code
+       const CImg<float> img(100,100,1,3);      // Construct a 100x100 RGB color image.
+       const unsigned long offset = 1249;       // Offset to the pixel (49,12,0,0).
+       unsigned int x,y,z,c;
+       if (img.contains(img[offset],x,y,z,c)) { // Convert offset to (x,y,z,c) coordinates.
+         std::printf("Offset %u refers to pixel located at (%u,%u,%u,%u).\n",
+                     offset,x,y,z,c);
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y, t& z, t& c) const {
+      const ulongT wh = (ulongT)_width*_height, whd = wh*_depth, siz = whd*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = (ulongT)(ppixel - _data);
+      const ulongT nc = off/whd;
+      off%=whd;
+      const ulongT nz = off/wh;
+      off%=wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny; z = (t)nz; c = (t)nc;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X,Y and Z-coordinates.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X,Y and Z-coordinates are set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y, t& z) const {
+      const ulongT wh = (ulongT)_width*_height, whd = wh*_depth, siz = whd*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = ((ulongT)(ppixel - _data))%whd;
+      const ulongT nz = off/wh;
+      off%=wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny; z = (t)nz;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X and Y-coordinates.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X and Y-coordinates are set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x, t& y) const {
+      const ulongT wh = (ulongT)_width*_height, siz = wh*_depth*_spectrum;
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + siz) return false;
+      ulongT off = ((unsigned int)(ppixel - _data))%wh;
+      const ulongT ny = off/_width, nx = off%_width;
+      x = (t)nx; y = (t)ny;
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds and get its X-coordinate.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that only the X-coordinate is set.
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& x) const {
+      const T *const ppixel = &pixel;
+      if (is_empty() || ppixel<_data || ppixel>=_data + size()) return false;
+      x = (t)(((ulongT)(ppixel - _data))%_width);
+      return true;
+    }
+
+    //! Test if pixel value is inside image bounds.
+    /**
+       Similar to contains(const T&,t&,t&,t&,t&) const, except that no pixel coordinates are set.
+    **/
+    bool contains(const T& pixel) const {
+      const T *const ppixel = &pixel;
+      return !is_empty() && ppixel>=_data && ppixel<_data + size();
+    }
+
+    //! Test if pixel buffers of instance and input images overlap.
+    /**
+       Return \c true, if pixel buffers attached to image instance and input image \c img overlap,
+       and \c false otherwise.
+       \param img Input image to compare with.
+       \note
+       - Buffer overlapping may happen when manipulating \e shared images.
+       - If two image buffers overlap, operating on one of the image will probably modify the other one.
+       - Most of the time, \c CImg<T> instances are \e non-shared and do not overlap between each others.
+       \par Example
+       \code
+       const CImg<float>
+         img1("reference.jpg"),             // Load RGB-color image.
+         img2 = img1.get_shared_channel(1); // Get shared version of the green channel.
+       if (img1.is_overlapped(img2)) {      // Test succeeds, 'img1' and 'img2' overlaps.
+         std::printf("Buffers overlap!\n");
+       }
+       \endcode
+    **/
+    template<typename t>
+    bool is_overlapped(const CImg<t>& img) const {
+      const ulongT csiz = size(), isiz = img.size();
+      return !((void*)(_data + csiz)<=(void*)img._data || (void*)_data>=(void*)(img._data + isiz));
+    }
+
+    //! Test if the set {\c *this,\c primitives,\c colors,\c opacities} defines a valid 3d object.
+    /**
+       Return \c true is the 3d object represented by the set {\c *this,\c primitives,\c colors,\c opacities} defines a
+       valid 3d object, and \c false otherwise. The vertex coordinates are defined by the instance image.
+       \param primitives List of primitives of the 3d object.
+       \param colors List of colors of the 3d object.
+       \param opacities List (or image) of opacities of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+       \param[out] error_message C-string to contain the error message, if the test does not succeed.
+       \note
+       - Set \c full_checking to \c false to speed-up the 3d object checking. In this case, only the size of
+         each 3d object component is checked.
+       - Size of the string \c error_message should be at least 128-bytes long, to be able to contain the error message.
+    **/
+    template<typename tp, typename tc, typename to>
+    bool is_object3d(const CImgList<tp>& primitives,
+                     const CImgList<tc>& colors,
+                     const to& opacities,
+                     const bool full_check=true,
+                     char *const error_message=0) const {
+      if (error_message) *error_message = 0;
+
+      // Check consistency for the particular case of an empty 3d object.
+      if (is_empty()) {
+        if (primitives || colors || opacities) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines no vertices but %u primitives, "
+                                          "%u colors and %lu opacities",
+                                          _width,primitives._width,primitives._width,
+                                          colors._width,(unsigned long)opacities.size());
+          return false;
+        }
+        return true;
+      }
+
+      // Check consistency of vertices.
+      if (_height!=3 || _depth>1 || _spectrum>1) { // Check vertices dimensions.
+        if (error_message) cimg_sprintf(error_message,
+                                        "3
