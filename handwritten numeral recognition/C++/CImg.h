@@ -13022,4 +13022,190 @@ namespace cimg_library_suffixed {
       return is_sameXY(img._width,img._height);
     }
 
-    //! Test if image w
+    //! Test if image width and height are the same as that of an existing display window.
+    /**
+       Test if is_sameX(const CImgDisplay&) const and is_sameY(const CImgDisplay&) const are both verified.
+    **/
+    bool is_sameXY(const CImgDisplay& disp) const {
+      return is_sameXY(disp._width,disp._height);
+    }
+
+    //! Test if image width and depth are equal to specified values.
+    /**
+       Test if is_sameX(unsigned int) const and is_sameZ(unsigned int) const are both verified.
+    **/
+    bool is_sameXZ(const unsigned int size_x, const unsigned int size_z) const {
+      return _width==size_x && _depth==size_z;
+    }
+
+    //! Test if image width and depth are the same as that of another image.
+    /**
+       Test if is_sameX(const CImg<t>&) const and is_sameZ(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXZ(const CImg<t>& img) const {
+      return is_sameXZ(img._width,img._depth);
+    }
+
+    //! Test if image width and spectrum are equal to specified values.
+    /**
+       Test if is_sameX(unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameXC(const unsigned int size_x, const unsigned int size_c) const {
+      return _width==size_x && _spectrum==size_c;
+    }
+
+    //! Test if image width and spectrum are the same as that of another image.
+    /**
+       Test if is_sameX(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXC(const CImg<t>& img) const {
+      return is_sameXC(img._width,img._spectrum);
+    }
+
+    //! Test if image height and depth are equal to specified values.
+    /**
+       Test if is_sameY(unsigned int) const and is_sameZ(unsigned int) const are both verified.
+    **/
+    bool is_sameYZ(const unsigned int size_y, const unsigned int size_z) const {
+      return _height==size_y && _depth==size_z;
+    }
+
+    //! Test if image height and depth are the same as that of another image.
+    /**
+       Test if is_sameY(const CImg<t>&) const and is_sameZ(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameYZ(const CImg<t>& img) const {
+      return is_sameYZ(img._height,img._depth);
+    }
+
+    //! Test if image height and spectrum are equal to specified values.
+    /**
+       Test if is_sameY(unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameYC(const unsigned int size_y, const unsigned int size_c) const {
+      return _height==size_y && _spectrum==size_c;
+    }
+
+    //! Test if image height and spectrum are the same as that of another image.
+    /**
+       Test if is_sameY(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameYC(const CImg<t>& img) const {
+      return is_sameYC(img._height,img._spectrum);
+    }
+
+    //! Test if image depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameZ(unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameZC(const unsigned int size_z, const unsigned int size_c) const {
+      return _depth==size_z && _spectrum==size_c;
+    }
+
+    //! Test if image depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameZC(const CImg<t>& img) const {
+      return is_sameZC(img._depth,img._spectrum);
+    }
+
+    //! Test if image width, height and depth are equal to specified values.
+    /**
+       Test if is_sameXY(unsigned int,unsigned int) const and is_sameZ(unsigned int) const are both verified.
+    **/
+    bool is_sameXYZ(const unsigned int size_x, const unsigned int size_y, const unsigned int size_z) const {
+      return is_sameXY(size_x,size_y) && _depth==size_z;
+    }
+
+    //! Test if image width, height and depth are the same as that of another image.
+    /**
+       Test if is_sameXY(const CImg<t>&) const and is_sameZ(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYZ(const CImg<t>& img) const {
+      return is_sameXYZ(img._width,img._height,img._depth);
+    }
+
+    //! Test if image width, height and spectrum are equal to specified values.
+    /**
+       Test if is_sameXY(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameXYC(const unsigned int size_x, const unsigned int size_y, const unsigned int size_c) const {
+      return is_sameXY(size_x,size_y) && _spectrum==size_c;
+    }
+
+    //! Test if image width, height and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXY(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYC(const CImg<t>& img) const {
+      return is_sameXYC(img._width,img._height,img._spectrum);
+    }
+
+    //! Test if image width, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameXZ(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameXZC(const unsigned int size_x, const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameXZ(size_x,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image width, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXZC(const CImg<t>& img) const {
+      return is_sameXZC(img._width,img._depth,img._spectrum);
+    }
+
+    //! Test if image height, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameYZ(unsigned int,unsigned int) const and is_sameC(unsigned int) const are both verified.
+    **/
+    bool is_sameYZC(const unsigned int size_y, const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameYZ(size_y,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image height, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameYZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameYZC(const CImg<t>& img) const {
+      return is_sameYZC(img._height,img._depth,img._spectrum);
+    }
+
+    //! Test if image width, height, depth and spectrum are equal to specified values.
+    /**
+       Test if is_sameXYZ(unsigned int,unsigned int,unsigned int) const and is_sameC(unsigned int) const are both
+       verified.
+    **/
+    bool is_sameXYZC(const unsigned int size_x, const unsigned int size_y,
+                     const unsigned int size_z, const unsigned int size_c) const {
+      return is_sameXYZ(size_x,size_y,size_z) && _spectrum==size_c;
+    }
+
+    //! Test if image width, height, depth and spectrum are the same as that of another image.
+    /**
+       Test if is_sameXYZ(const CImg<t>&) const and is_sameC(const CImg<t>&) const are both verified.
+    **/
+    template<typename t>
+    bool is_sameXYZC(const CImg<t>& img) const {
+      return is_sameXYZC(img._width,img._height,img._depth,img._spectrum);
+    }
+
+    //! Test if specified coordinates are inside image bounds.
+    /**
+       Return \c true if pixel located at (\c x,\c y,\c z,\c c) is inside bounds of the image instance,
+       and \c false otherwise.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+    
