@@ -13374,4 +13374,173 @@ namespace cimg_library_suffixed {
       // Check consistency of vertices.
       if (_height!=3 || _depth>1 || _spectrum>1) { // Check vertices dimensions.
         if (error_message) cimg_sprintf(error_message,
-                                        "3
+                                        "3d object (%u,%u) has invalid vertex dimensions (%u,%u,%u,%u)",
+                                        _width,primitives._width,_width,_height,_depth,_spectrum);
+        return false;
+      }
+      if (colors._width>primitives._width + 1) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "3d object (%u,%u) defines %u colors",
+                                        _width,primitives._width,colors._width);
+        return false;
+      }
+      if (opacities.size()>primitives._width) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "3d object (%u,%u) defines %lu opacities",
+                                        _width,primitives._width,(unsigned long)opacities.size());
+        return false;
+      }
+      if (!full_check) return true;
+
+      // Check consistency of primitives.
+      cimglist_for(primitives,l) {
+        const CImg<tp>& primitive = primitives[l];
+        const unsigned int psiz = primitive.size();
+        switch (psiz) {
+        case 1 : { // Point.
+          const unsigned int i0 = (unsigned int)primitive(0);
+          if (i0>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indice %u in "
+                                            "point primitive [%u]",
+                                            _width,primitives._width,i0,l);
+            return false;
+          }
+        } break;
+        case 5 : { // Sphere.
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          if (i0>=_width || i1>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "sphere primitive [%u]",
+                                            _width,primitives._width,i0,i1,l);
+            return false;
+          }
+        } break;
+        case 2 : // Segment.
+        case 6 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          if (i0>=_width || i1>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u) in "
+                                            "segment primitive [%u]",
+                                            _width,primitives._width,i0,i1,l);
+            return false;
+          }
+        } break;
+        case 3 : // Triangle.
+        case 9 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2);
+          if (i0>=_width || i1>=_width || i2>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u,%u) in "
+                                            "triangle primitive [%u]",
+                                            _width,primitives._width,i0,i1,i2,l);
+            return false;
+          }
+        } break;
+        case 4 : // Quadrangle.
+        case 12 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2),
+            i3 = (unsigned int)primitive(3);
+          if (i0>=_width || i1>=_width || i2>=_width || i3>=_width) {
+            if (error_message) cimg_sprintf(error_message,
+                                            "3d object (%u,%u) refers to invalid vertex indices (%u,%u,%u,%u) in "
+                                            "quadrangle primitive [%u]",
+                                            _width,primitives._width,i0,i1,i2,i3,l);
+            return false;
+          }
+        } break;
+        default :
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines an invalid primitive [%u] of size %u",
+                                          _width,primitives._width,l,(unsigned int)psiz);
+          return false;
+        }
+      }
+
+      // Check consistency of colors.
+      cimglist_for(colors,c) {
+        const CImg<tc>& color = colors[c];
+        if (!color) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines no color for primitive [%u]",
+                                          _width,primitives._width,c);
+          return false;
+        }
+      }
+
+      // Check consistency of light texture.
+      if (colors._width>primitives._width) {
+        const CImg<tc> &light = colors.back();
+        if (!light || light._depth>1) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "3d object (%u,%u) defines an invalid light texture (%u,%u,%u,%u)",
+                                          _width,primitives._width,light._width,
+                                          light._height,light._depth,light._spectrum);
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    //! Test if image instance represents a valid serialization of a 3d object.
+    /**
+       Return \c true if the image instance represents a valid serialization of a 3d object, and \c false otherwise.
+       \param full_check Tells if full checking of the instance must be performed.
+       \param[out] error_message C-string to contain the error message, if the test does not succeed.
+       \note
+       - Set \c full_check to \c false to speed-up the 3d object checking. In this case, only the size of
+         each 3d object component is checked.
+       - Size of the string \c error_message should be at least 128-bytes long, to be able to contain the error message.
+    **/
+    bool is_CImg3d(const bool full_check=true, char *const error_message=0) const {
+      if (error_message) *error_message = 0;
+
+      // Check instance dimension and header.
+      if (_width!=1 || _height<8 || _depth!=1 || _spectrum!=1) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d has invalid dimensions (%u,%u,%u,%u)",
+                                        _width,_height,_depth,_spectrum);
+        return false;
+      }
+      const T *ptrs = _data, *const ptre = end();
+      if (!_is_CImg3d(*(ptrs++),'C') || !_is_CImg3d(*(ptrs++),'I') || !_is_CImg3d(*(ptrs++),'m') ||
+          !_is_CImg3d(*(ptrs++),'g') || !_is_CImg3d(*(ptrs++),'3') || !_is_CImg3d(*(ptrs++),'d')) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d header not found");
+        return false;
+      }
+      const unsigned int
+        nb_points = cimg::float2uint((float)*(ptrs++)),
+        nb_primitives = cimg::float2uint((float)*(ptrs++));
+
+      // Check consistency of number of vertices / primitives.
+      if (!full_check) {
+        const ulongT minimal_size = 8UL + 3*nb_points + 6*nb_primitives;
+        if (_data + minimal_size>ptre) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) has only %lu values, while at least %lu values were expected",
+                                          nb_points,nb_primitives,size(),minimal_size);
+          return false;
+        }
+      }
+
+      // Check consistency of vertex data.
+      if (!nb_points) {
+        if (nb_primitives) {
+          if (error_message) cimg_sprintf(error_message,
+                                          "CImg3d (%u,%u) defines no vertices but %u primitives",
+                                          nb_points,nb_primitives,nb_primitives);
+   
