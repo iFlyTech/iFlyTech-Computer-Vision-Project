@@ -13712,4 +13712,160 @@ namespace cimg_library_suffixed {
         }
         if (ptrs>ptre) {
           if (error_message) cimg_sprintf(error_message,
-                                          "CImg3d (%u,%u) has incomp
+                                          "CImg3d (%u,%u) has incomplete opacity data for primitive [%u]",
+                                          nb_points,nb_primitives,o);
+          return false;
+        }
+      }
+
+      // Check end of data.
+      if (ptrs<ptre) {
+        if (error_message) cimg_sprintf(error_message,
+                                        "CImg3d (%u,%u) contains %u value%s more than expected",
+                                        nb_points,nb_primitives,(unsigned int)(ptre - ptrs),(ptre - ptrs)>1?"s":"");
+        return false;
+      }
+      return true;
+    }
+
+    static bool _is_CImg3d(const T val, const char c) {
+      return val>=(T)c && val<(T)(c + 1);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Mathematical Functions
+    //@{
+    //-------------------------------------
+
+    // Define the math formula parser/compiler and expression evaluator.
+    struct _cimg_math_parser {
+      CImg<doubleT> mem;
+      CImg<intT> memtype;
+      CImgList<ulongT> _code, &code;
+      CImg<ulongT> opcode;
+      const CImg<ulongT> *p_code_begin, *p_code_end, *p_code;
+
+      CImg<charT> expr, pexpr;
+      const CImg<T>& imgin;
+      const CImgList<T>& listin;
+      CImg<T> &imgout;
+      CImgList<T>& listout;
+
+      CImg<doubleT> _img_stats, &img_stats;
+      CImgList<doubleT> _list_stats, &list_stats, _list_median, &list_median;
+      CImg<uintT> mem_img_stats;
+
+      CImg<uintT> level, variable_pos, reserved_label;
+      CImgList<charT> variable_def, function_def, function_body;
+      char *user_function;
+
+      unsigned int mempos, mem_img_median, debug_indent, init_size, result_dim;
+      bool is_parallelizable, need_input_copy;
+      double *result;
+      const char *const calling_function, *s_op, *ss_op;
+      typedef double (*mp_func)(_cimg_math_parser&);
+
+#define _cimg_mp_is_constant(arg) (memtype[arg]==1) // Is constant?
+#define _cimg_mp_is_scalar(arg) (memtype[arg]<2) // Is scalar?
+#define _cimg_mp_is_temp(arg) (!memtype[arg]) // Is temporary scalar?
+#define _cimg_mp_is_variable(arg) (memtype[arg]==-1) // Is scalar variable?
+#define _cimg_mp_is_vector(arg) (memtype[arg]>1) // Is vector?
+#define _cimg_mp_vector_size(arg) (_cimg_mp_is_scalar(arg)?0U:(unsigned int)memtype[arg] - 1) // Vector size
+#define _cimg_mp_calling_function calling_function_s()._data
+#define _cimg_mp_op(s) s_op = s; ss_op = ss
+#define _cimg_mp_check_type(arg,n_arg,mode,N) check_type(arg,n_arg,mode,N,ss,se,saved_char)
+#define _cimg_mp_check_constant(arg,n_arg,is_strict) check_constant(arg,n_arg,is_strict,ss,se,saved_char)
+#define _cimg_mp_check_matrix_square(arg,n_arg) check_matrix_square(arg,n_arg,ss,se,saved_char)
+#define _cimg_mp_check_vector0(dim) check_vector0(dim,ss,se,saved_char)
+#define _cimg_mp_check_list(is_out) check_list(is_out,ss,se,saved_char)
+#define _cimg_mp_defunc(mp) (*(mp_func)(*(mp).opcode))(mp)
+#define _cimg_mp_return(x) { *se = saved_char; s_op = previous_s_op; ss_op = previous_ss_op; return x; }
+#define _cimg_mp_constant(val) _cimg_mp_return(constant((double)(val)))
+#define _cimg_mp_scalar0(op) _cimg_mp_return(scalar0(op))
+#define _cimg_mp_scalar1(op,i1) _cimg_mp_return(scalar1(op,i1))
+#define _cimg_mp_scalar2(op,i1,i2) _cimg_mp_return(scalar2(op,i1,i2))
+#define _cimg_mp_scalar3(op,i1,i2,i3) _cimg_mp_return(scalar3(op,i1,i2,i3))
+#define _cimg_mp_scalar6(op,i1,i2,i3,i4,i5,i6) _cimg_mp_return(scalar6(op,i1,i2,i3,i4,i5,i6))
+#define _cimg_mp_scalar7(op,i1,i2,i3,i4,i5,i6,i7) _cimg_mp_return(scalar7(op,i1,i2,i3,i4,i5,i6,i7))
+#define _cimg_mp_vector1_v(op,i1) _cimg_mp_return(vector1_v(op,i1))
+#define _cimg_mp_vector2_sv(op,i1,i2) _cimg_mp_return(vector2_sv(op,i1,i2))
+#define _cimg_mp_vector2_vs(op,i1,i2) _cimg_mp_return(vector2_vs(op,i1,i2))
+#define _cimg_mp_vector2_vv(op,i1,i2) _cimg_mp_return(vector2_vv(op,i1,i2))
+#define _cimg_mp_vector3_vss(op,i1,i2,i3) _cimg_mp_return(vector3_vss(op,i1,i2,i3))
+
+      // Constructors.
+      _cimg_math_parser(const char *const expression, const char *const funcname=0,
+                        const CImg<T>& img_input=CImg<T>::const_empty(), CImg<T> *const img_output=0,
+                        const CImgList<T> *const list_input=0, CImgList<T> *const list_output=0):
+        code(_code),imgin(img_input),listin(list_input?*list_input:CImgList<T>::const_empty()),
+        imgout(img_output?*img_output:CImg<T>::empty()),listout(list_output?*list_output:CImgList<T>::empty()),
+        img_stats(_img_stats),list_stats(_list_stats),list_median(_list_median),user_function(0),
+        mem_img_median(~0U),debug_indent(0),init_size(0),result_dim(0),is_parallelizable(true),
+        need_input_copy(false),calling_function(funcname?funcname:"cimg_math_parser") {
+        if (!expression || !*expression)
+          throw CImgArgumentException("[_cimg_math_parser] "
+                                      "CImg<%s>::%s: Empty expression.",
+                                      pixel_type(),_cimg_mp_calling_function);
+        const char *_expression = expression;
+        while (*_expression && (*_expression<=' ' || *_expression==';')) ++_expression;
+        CImg<charT>::string(_expression).move_to(expr);
+        char *ps = &expr.back() - 1;
+        while (ps>expr._data && (*ps==' ' || *ps==';')) --ps;
+        *(++ps) = 0; expr._width = (unsigned int)(ps - expr._data + 1);
+
+        // Ease the retrieval of previous non-space characters afterwards.
+        pexpr.assign(expr._width);
+
+        char c, *pe = pexpr._data;
+        for (ps = expr._data, c = ' '; *ps; ++ps) {
+          if (*ps!=' ') c = *ps;
+          *(pe++) = c;
+        }
+        *pe = 0;
+
+        // Count parentheses/brackets level of expression.
+        level.assign(expr._width - 1);
+        int lv = 0;
+        unsigned int *pd = level._data;
+        for (ps = expr._data; *ps && lv>=0; ++ps)
+          *(pd++) = (unsigned int)(*ps=='('||*ps=='['?lv++:*ps==')'||*ps==']'?--lv:lv);
+        if (lv!=0) {
+          cimg::strellipsize(expr,64);
+          throw CImgArgumentException("[_cimg_math_parser] "
+                                      "CImg<%s>::%s: Unbalanced parentheses/brackets, in expression '%s'.",
+                                      pixel_type(),_cimg_mp_calling_function,
+                                      expr._data);
+        }
+
+        // Init constant values.
+        mem.assign(96);
+        memtype.assign(96);
+        double *p_mem = mem._data;
+        for (unsigned int i = 0; i<=10; ++i) *(p_mem++) = (double)i;  // mem[0-10]
+        for (unsigned int i = 1; i<=5; ++i) *(p_mem++) = -(double)i;  // mem[11-15]
+        *(p_mem++) = 0.5; // mem[16]
+        *(p_mem++) = 0; // mem[17] = thread_id
+        *(p_mem++) = (double)imgin._width; // mem[18]
+        *(p_mem++) = (double)imgin._height; // mem[19]
+        *(p_mem++) = (double)imgin._depth; // mem[20]
+        *(p_mem++) = (double)imgin._spectrum; // mem[21]
+        *(p_mem++) = (double)imgin._is_shared; // mem[22]
+        *(p_mem++) = (double)imgin._width*imgin._height; // mem[23]
+        *(p_mem++) = (double)imgin._width*imgin._height*imgin._depth; // mem[24]
+        *(p_mem++) = (double)imgin._width*imgin._height*imgin._depth*imgin._spectrum; // mem[25]
+        *(p_mem++) = cimg::PI; // mem[26]
+        *(p_mem++) = std::exp(1.0); // mem[27]
+        *(p_mem++) = cimg::type<double>::nan(); // mem[28]
+
+        // Then, [29] = x, [30] = y, [31] = z and [32] = c.
+#define _cimg_mp_x 29
+#define _cimg_mp_y 30
+#define _cimg_mp_z 31
+#define _cimg_mp_c 32
+
+        // Set value property :
+        // { -1 = variable | 0 = regular value | 1 = compile time constant | N>1 = constant ptr to vector[N-1] }.
+        std::memset(memtype._data,0,sizeof(int)*memtype._width);
+        int *p_memtype = memtype._data; for (unsigned int i = 0; i<_cimg_mp_x;
