@@ -14026,4 +14026,157 @@ namespace cimg_library_suffixed {
         if (!nb && (*ss=='+' || *ss=='-' || *ss=='i' || *ss=='I' || *ss=='n' || *ss=='N')) {
           is_sth = true;
           s = ss;
-          i
+          if (*s=='+') ++s; else if (*s=='-') { ++s; is_sth = false; }
+          if (!cimg::strcasecmp(s,"inf")) { val = cimg::type<double>::inf(); nb = 1; }
+          else if (!cimg::strcasecmp(s,"nan")) { val = cimg::type<double>::nan(); nb = 1; }
+          if (nb==1 && !is_sth) val = -val;
+        }
+#endif
+        if (nb==1) _cimg_mp_constant(val);
+        if (nb==2 && sep=='%') _cimg_mp_constant(val/100);
+
+        if (ss1==se) switch (*ss) { // One-char variable
+          case 't' : case 'w' : case 'h' : case 'd' : case 's' : case 'r' :
+          case 'x' : case 'y' : case 'z' : case 'c' : case 'e' :
+            _cimg_mp_return(reserved_label[*ss]);
+          case 'u' :
+            if (reserved_label['u']!=~0U) _cimg_mp_return(reserved_label['u']);
+            _cimg_mp_scalar2(mp_u,0,1);
+          case 'g' :
+            if (reserved_label['g']!=~0U) _cimg_mp_return(reserved_label['g']);
+            _cimg_mp_scalar0(mp_g);
+          case 'i' :
+            if (reserved_label['i']!=~0U) _cimg_mp_return(reserved_label['i']);
+            _cimg_mp_scalar0(mp_i);
+          case 'I' :
+            _cimg_mp_op("Variable 'I'");
+            if (reserved_label['I']!=~0U) _cimg_mp_return(reserved_label['I']);
+            _cimg_mp_check_vector0(imgin._spectrum);
+            need_input_copy = true;
+            pos = vector(imgin._spectrum);
+            CImg<ulongT>::vector((ulongT)mp_Joff,pos,0,0).move_to(code);
+            _cimg_mp_return(pos);
+          case 'R' :
+            if (reserved_label['R']!=~0U) _cimg_mp_return(reserved_label['R']);
+            need_input_copy = true;
+            _cimg_mp_scalar6(mp_ixyzc,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,0,0,0);
+          case 'G' :
+            if (reserved_label['G']!=~0U) _cimg_mp_return(reserved_label['G']);
+            need_input_copy = true;
+            _cimg_mp_scalar6(mp_ixyzc,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,1,0,0);
+          case 'B' :
+            if (reserved_label['B']!=~0U) _cimg_mp_return(reserved_label['B']);
+            need_input_copy = true;
+            _cimg_mp_scalar6(mp_ixyzc,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,2,0,0);
+          case 'A' :
+            if (reserved_label['A']!=~0U) _cimg_mp_return(reserved_label['A']);
+            need_input_copy = true;
+            _cimg_mp_scalar6(mp_ixyzc,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,3,0,0);
+          }
+        else if (ss2==se) { // Two-chars variable
+          arg1 = arg2 = ~0U;
+          if (*ss=='w' && *ss1=='h') _cimg_mp_return(reserved_label[0]); // wh
+          if (*ss=='p' && *ss1=='i') _cimg_mp_return(reserved_label[3]); // pi
+          if (*ss=='i') {
+            if (*ss1>='0' && *ss1<='9') { // i0...i9
+              pos = 19 + *ss1 - '0';
+              if (reserved_label[pos]!=~0U) _cimg_mp_return(reserved_label[pos]);
+              need_input_copy = true;
+              _cimg_mp_scalar6(mp_ixyzc,_cimg_mp_x,_cimg_mp_y,_cimg_mp_z,pos - 19,0,0);
+            }
+            switch (*ss1) {
+            case 'm' : arg1 = 4; arg2 = 0; break; // im
+            case 'M' : arg1 = 5; arg2 = 1; break; // iM
+            case 'a' : arg1 = 6; arg2 = 2; break; // ia
+            case 'v' : arg1 = 7; arg2 = 3; break; // iv
+            case 's' : arg1 = 8; arg2 = 12; break; // is
+            case 'p' : arg1 = 9; arg2 = 13; break; // is
+            case 'c' : // ic
+              if (reserved_label[10]!=~0U) _cimg_mp_return(reserved_label[10]);
+              if (mem_img_median==~0U) mem_img_median = imgin?constant(imgin.median()):0;
+              _cimg_mp_return(mem_img_median);
+              break;
+            }
+          }
+          else if (*ss1=='m') switch (*ss) {
+            case 'x' : arg1 = 11; arg2 = 4; break; // xm
+            case 'y' : arg1 = 12; arg2 = 5; break; // ym
+            case 'z' : arg1 = 13; arg2 = 6; break; // zm
+            case 'c' : arg1 = 14; arg2 = 7; break; // cm
+            }
+          else if (*ss1=='M') switch (*ss) {
+            case 'x' : arg1 = 15; arg2 = 8; break; // xM
+            case 'y' : arg1 = 16; arg2 = 9; break; // yM
+            case 'z' : arg1 = 17; arg2 = 10; break; // zM
+            case 'c' : arg1 = 18; arg2 = 11; break; // cM
+            }
+          if (arg1!=~0U) {
+            if (reserved_label[arg1]!=~0U) _cimg_mp_return(reserved_label[arg1]);
+            if (!img_stats) {
+              img_stats.assign(1,14,1,1,0).fill(imgin.get_stats(),false);
+              mem_img_stats.assign(1,14,1,1,~0U);
+            }
+            if (mem_img_stats[arg2]==~0U) mem_img_stats[arg2] = constant(img_stats[arg2]);
+            _cimg_mp_return(mem_img_stats[arg2]);
+          }
+        } else if (ss3==se) { // Three-chars variable
+          if (*ss=='w' && *ss1=='h' && *ss2=='d') _cimg_mp_return(reserved_label[1]); // whd
+        } else if (ss4==se) { // Four-chars variable
+          if (*ss=='w' && *ss1=='h' && *ss2=='d' && *ss3=='s') _cimg_mp_return(reserved_label[2]); // whds
+        }
+
+        pos = ~0U;
+        for (s0 = ss, s = ss1; s<se1; ++s)
+          if (*s==';' && level[s - expr._data]==clevel) { // Separator ';'
+            pos = compile(s0,s,depth,0);
+            s0 = s + 1;
+          }
+        if (pos!=~0U) _cimg_mp_return(compile(s0,se,depth,p_ref));
+
+        // Declare / assign variable, vector value or image value.
+        for (s = ss1, ps = ss, ns = ss2; s<se1; ++s, ++ps, ++ns)
+          if (*s=='=' && *ns!='=' && *ps!='=' && *ps!='>' && *ps!='<' && *ps!='!' &&
+              *ps!='+' && *ps!='-' && *ps!='*' && *ps!='/' && *ps!='%' &&
+              *ps!='>' && *ps!='<' && *ps!='&' && *ps!='|' && *ps!='^' &&
+              level[s - expr._data]==clevel) {
+            variable_name.assign(ss,(unsigned int)(s + 1 - ss)).back() = 0;
+            cimg::strpare(variable_name);
+            const unsigned int l_variable_name = (unsigned int)std::strlen(variable_name);
+            char *const ve1 = ss + l_variable_name - 1;
+            _cimg_mp_op("Operator '='");
+
+            // Assign image value (direct).
+            if (l_variable_name>2 && (*ss=='i' || *ss=='j' || *ss=='I' || *ss=='J') && (*ss1=='(' || *ss1=='[') &&
+                (reserved_label[*ss]==~0U || *ss1=='(' || !_cimg_mp_is_vector(reserved_label[*ss]))) {
+              is_relative = *ss=='j' || *ss=='J';
+
+              if (*ss1=='[' && *ve1==']') { // i/j/I/J[_#ind,offset] = value
+                is_parallelizable = false;
+                if (*ss2=='#') { // Index specified
+                  s0 = ss3; while (s0<ve1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  p1 = compile(ss3,s0++,depth1,0);
+                  _cimg_mp_check_list(true);
+                } else { p1 = ~0U; s0 = ss2; }
+                arg1 = compile(s0,ve1,depth1,0); // Offset
+                arg2 = compile(s + 1,se,depth1,0); // Value to assign
+                if (_cimg_mp_is_vector(arg2)) {
+                  p2 = ~0U; // 'p2' must the dimension of the vector-valued operand if any
+                  if (p1==~0U) p2 = imgin._spectrum;
+                  else if (_cimg_mp_is_constant(p1)) {
+                    p3 = (unsigned int)cimg::mod((int)mem[p1],listin.width());
+                    p2 = listin[p3]._spectrum;
+                  }
+                  _cimg_mp_check_vector0(p2);
+                } else p2 = 0;
+                _cimg_mp_check_type(arg2,2,*ss>='i'?1:3,p2);
+
+                if (p_ref) {
+                  *p_ref = _cimg_mp_is_vector(arg2)?4:2;
+                  p_ref[1] = p1;
+                  p_ref[2] = (unsigned int)is_relative;
+                  p_ref[3] = arg1;
+                  if (_cimg_mp_is_vector(arg2))
+                    set_variable_vector(arg2); // Prevent from being used in further optimization
+                  else if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
+                  if (p1!=~0U && _cimg_mp_is_temp(p1)) memtype[p1] = -1;
+                  if (_cimg_mp_is_tem
