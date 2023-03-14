@@ -14179,4 +14179,147 @@ namespace cimg_library_suffixed {
                     set_variable_vector(arg2); // Prevent from being used in further optimization
                   else if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
                   if (p1!=~0U && _cimg_mp_is_temp(p1)) memtype[p1] = -1;
-                  if (_cimg_mp_is_tem
+                  if (_cimg_mp_is_temp(arg1)) memtype[arg1] = -1;
+                }
+                if (p1!=~0U) {
+                  if (!listout) _cimg_mp_return(arg2);
+                  if (*ss>='i')
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_joff:mp_list_set_ioff),
+                                        arg2,p1,arg1).move_to(code);
+                  else if (_cimg_mp_is_scalar(arg2))
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Joff_s:mp_list_set_Ioff_s),
+                                        arg2,p1,arg1).move_to(code);
+                  else
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Joff_v:mp_list_set_Ioff_v),
+                                        arg2,p1,arg1).move_to(code);
+                } else {
+                  if (!imgout) _cimg_mp_return(arg2);
+                  if (*ss>='i')
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_joff:mp_set_ioff),
+                                        arg2,arg1).move_to(code);
+                  if (_cimg_mp_is_scalar(arg2))
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Joff_s:mp_set_Ioff_s),
+                                        arg2,arg1).move_to(code);
+                  else
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Joff_v:mp_set_Ioff_v),
+                                        arg2,arg1).move_to(code);
+                }
+                _cimg_mp_return(arg2);
+              }
+
+              if (*ss1=='(' && *ve1==')') { // i/j/I/J(_#ind,_x,_y,_z,_c) = value
+                is_parallelizable = false;
+                if (*ss2=='#') { // Index specified
+                  s0 = ss3; while (s0<ve1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  p1 = compile(ss3,s0++,depth1,0);
+                  _cimg_mp_check_list(true);
+                } else { p1 = ~0U; s0 = ss2; }
+                arg1 = is_relative?0U:(unsigned int)_cimg_mp_x;
+                arg2 = is_relative?0U:(unsigned int)_cimg_mp_y;
+                arg3 = is_relative?0U:(unsigned int)_cimg_mp_z;
+                arg4 = is_relative?0U:(unsigned int)_cimg_mp_c;
+                arg5 = compile(s + 1,se,depth1,0); // Value to assign
+                if (s0<ve1) { // X or [ X,_Y,_Z,_C ]
+                  s1 = s0; while (s1<ve1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                  arg1 = compile(s0,s1,depth1,0);
+                  if (_cimg_mp_is_vector(arg1)) { // Coordinates specified as a vector
+                    p2 = _cimg_mp_vector_size(arg1); // Vector size
+                    ++arg1;
+                    if (p2>1) {
+                      arg2 = arg1 + 1;
+                      if (p2>2) {
+                        arg3 = arg2 + 1;
+                        if (p2>3) arg4 = arg3 + 1;
+                      }
+                    }
+                  } else if (s1<ve1) { // Y
+                    s2 = ++s1; while (s2<ve1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                    arg2 = compile(s1,s2,depth1,0);
+                    if (s2<ve1) { // Z
+                      s3 = ++s2; while (s3<ve1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+                      arg3 = compile(s2,s3,depth1,0);
+                      if (s3<ve1) arg4 = compile(++s3,ve1,depth1,0); // C
+                    }
+                  }
+                }
+
+                if (_cimg_mp_is_vector(arg5)) {
+                  p2 = ~0U; // 'p2' must the dimension of the vector-valued operand if any
+                  if (p1==~0U) p2 = imgin._spectrum;
+                  else if (_cimg_mp_is_constant(p1)) {
+                    p3 = (unsigned int)cimg::mod((int)mem[p1],listin.width());
+                    p2 = listin[p3]._spectrum;
+                  }
+                  _cimg_mp_check_vector0(p2);
+                } else p2 = 0;
+                _cimg_mp_check_type(arg5,2,*ss>='i'?1:3,p2);
+
+                if (p_ref) {
+                  *p_ref = _cimg_mp_is_vector(arg5)?5:3;
+                  p_ref[1] = p1;
+                  p_ref[2] = (unsigned int)is_relative;
+                  p_ref[3] = arg1;
+                  p_ref[4] = arg2;
+                  p_ref[5] = arg3;
+                  p_ref[6] = arg4;
+                  if (_cimg_mp_is_vector(arg5))
+                    set_variable_vector(arg5); // Prevent from being used in further optimization
+                  else if (_cimg_mp_is_temp(arg5)) memtype[arg5] = -1;
+                  if (p1!=~0U && _cimg_mp_is_temp(p1)) memtype[p1] = -1;
+                  if (_cimg_mp_is_temp(arg1)) memtype[arg1] = -1;
+                  if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
+                  if (_cimg_mp_is_temp(arg3)) memtype[arg3] = -1;
+                  if (_cimg_mp_is_temp(arg4)) memtype[arg4] = -1;
+                }
+                if (p1!=~0U) {
+                  if (!listout) _cimg_mp_return(arg5);
+                  if (*ss>='i')
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_jxyzc:mp_list_set_ixyzc),
+                                        arg5,p1,arg1,arg2,arg3,arg4).move_to(code);
+                  else if (_cimg_mp_is_scalar(arg5))
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Jxyz_s:mp_list_set_Ixyz_s),
+                                        arg5,p1,arg1,arg2,arg3).move_to(code);
+                  else
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Jxyz_v:mp_list_set_Ixyz_v),
+                                        arg5,p1,arg1,arg2,arg3).move_to(code);
+                } else {
+                  if (!imgout) _cimg_mp_return(arg5);
+                  if (*ss>='i')
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_jxyzc:mp_set_ixyzc),
+                                        arg5,arg1,arg2,arg3,arg4).move_to(code);
+                  else if (_cimg_mp_is_scalar(arg5))
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Jxyz_s:mp_set_Ixyz_s),
+                                        arg5,arg1,arg2,arg3).move_to(code);
+                  else
+                    CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Jxyz_v:mp_set_Ixyz_v),
+                                        arg5,arg1,arg2,arg3).move_to(code);
+                }
+                _cimg_mp_return(arg5);
+              }
+            }
+
+            // Assign vector value (direct).
+            if (l_variable_name>3 && *ve1==']' && *ss!='[') {
+              s0 = ve1; while (s0>ss && *s0!='[') --s0;
+              is_sth = true; // is_valid_variable_name?
+              if (*ss>='0' && *ss<='9') is_sth = false;
+              else for (ns = ss; ns<s0; ++ns)
+                     if (!is_varchar(*ns)) { is_sth = false; break; }
+              if (is_sth && s0>ss) {
+                variable_name[s0 - ss] = 0; // Remove brackets in variable name
+                arg1 = ~0U; // Vector slot
+                arg2 = compile(++s0,ve1,depth1,0); // Index
+                arg3 = compile(s + 1,se,depth1,0); // Value to assign
+                _cimg_mp_check_type(arg3,2,1,0);
+
+                if (variable_name[1]) { // Multi-char variable
+                  cimglist_for(variable_def,i) if (!std::strcmp(variable_name,variable_def[i])) {
+                    arg1 = variable_pos[i]; break;
+                  }
+                } else arg1 = reserved_label[*variable_name]; // Single-char variable
+                if (arg1==~0U) compile(ss,s0 - 1,depth1,0); // Variable does not exist -> error
+                else { // Variable already exists
+                  if (_cimg_mp_is_scalar(arg1)) compile(ss,s,depth1,0); // Variable is not a vector -> error
+                  if (_cimg_mp_is_constant(arg2)) { // Constant index -> return corresponding variable slot directly
+                    nb = (int)mem[arg2];
+      
