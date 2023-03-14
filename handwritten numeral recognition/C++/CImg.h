@@ -13868,4 +13868,162 @@ namespace cimg_library_suffixed {
         // Set value property :
         // { -1 = variable | 0 = regular value | 1 = compile time constant | N>1 = constant ptr to vector[N-1] }.
         std::memset(memtype._data,0,sizeof(int)*memtype._width);
-        int *p_memtype = memtype._data; for (unsigned int i = 0; i<_cimg_mp_x;
+        int *p_memtype = memtype._data; for (unsigned int i = 0; i<_cimg_mp_x; ++i) *(p_memtype++) = 1;
+        memtype[17] = 0;
+
+        mempos = _cimg_mp_c + 1;
+        variable_pos.assign(8);
+        reserved_label.assign(128,1,1,1,~0U);
+        reserved_label['t'] = 17;
+        reserved_label['w'] = 18;
+        reserved_label['h'] = 19;
+        reserved_label['d'] = 20;
+        reserved_label['s'] = 21;
+        reserved_label['r'] = 22;
+        reserved_label[0] = 23; // wh
+        reserved_label[1] = 24; // whd
+        reserved_label[2] = 25; // whds
+        reserved_label[3] = 26; // pi
+        reserved_label['e'] = 27;
+        reserved_label[29] = 0; // interpolation
+        reserved_label[30] = 0; // boundary
+        reserved_label['x'] = _cimg_mp_x;
+        reserved_label['y'] = _cimg_mp_y;
+        reserved_label['z'] = _cimg_mp_z;
+        reserved_label['c'] = _cimg_mp_c;
+        // reserved_label[4-28] store also two-char variables:
+        // [4] = im, [5] = iM, [6] = ia, [7] = iv, [8] = is, [9] = ip, [10] = ic,
+        // [11] = xm, [12] = ym, [13] = zm, [14] = cm, [15] = xM, [16] = yM, [17] = zM, [18]=cM, [19]=i0...[28]=i9,
+
+        // Compile expression into a serie of opcodes.
+        s_op = ""; ss_op = expr._data;
+        const unsigned int ind_result = compile(expr._data,expr._data + expr._width - 1,0,0);
+        p_code_end = code.end();
+
+        // Free resources used for parsing and prepare for evaluation.
+        if (_cimg_mp_is_vector(ind_result)) result_dim = _cimg_mp_vector_size(ind_result);
+        mem.resize(mempos,1,1,1,-1);
+        result = mem._data + ind_result;
+        memtype.assign();
+        level.assign();
+        variable_pos.assign();
+        reserved_label.assign();
+        expr.assign();
+        pexpr.assign();
+        opcode.assign();
+        opcode._width = opcode._depth = opcode._spectrum = 1;
+        opcode._is_shared = true;
+
+        // Execute init() function if any specified.
+        p_code_begin = code._data + init_size;
+        if (init_size) {
+          mem[_cimg_mp_x] = mem[_cimg_mp_y] = mem[_cimg_mp_z] = mem[_cimg_mp_c] = 0;
+          for (p_code = code._data; p_code<p_code_begin; ++p_code) {
+            const CImg<ulongT> &op = *p_code;
+            opcode._data = op._data; opcode._height = op._height;
+            const ulongT target = opcode[1];
+            mem[target] = _cimg_mp_defunc(*this);
+          }
+        }
+      }
+
+      _cimg_math_parser():
+        code(_code),p_code_begin(0),p_code_end(0),
+        imgin(CImg<T>::const_empty()),listin(CImgList<T>::const_empty()),
+        imgout(CImg<T>::empty()),listout(CImgList<T>::empty()),
+        img_stats(_img_stats),list_stats(_list_stats),list_median(_list_median),debug_indent(0),
+        result_dim(0),is_parallelizable(true),need_input_copy(false),calling_function(0) {
+        mem.assign(1 + _cimg_mp_c,1,1,1,0); // Allow to skip 'is_empty?' test in operator()()
+        result = mem._data;
+      }
+
+      _cimg_math_parser(const _cimg_math_parser& mp):
+        mem(mp.mem),code(mp.code),p_code_begin(mp.p_code_begin),p_code_end(mp.p_code_end),
+        imgin(mp.imgin),listin(mp.listin),imgout(mp.imgout),listout(mp.listout),img_stats(mp.img_stats),
+        list_stats(mp.list_stats),list_median(mp.list_median),debug_indent(0),result_dim(mp.result_dim),
+        is_parallelizable(mp.is_parallelizable), need_input_copy(mp.need_input_copy),
+        result(mem._data + (mp.result - mp.mem._data)),calling_function(0) {
+#ifdef cimg_use_openmp
+        mem[17] = omp_get_thread_num();
+#endif
+        opcode._width = opcode._depth = opcode._spectrum = 1;
+        opcode._is_shared = true;
+      }
+
+      // Compilation procedure.
+      unsigned int compile(char *ss, char *se, const unsigned int depth, unsigned int *const p_ref) {
+        if (depth>256) {
+          cimg::strellipsize(expr,64);
+          throw CImgArgumentException("[_cimg_math_parser] "
+                                      "CImg<%s>::%s: Call stack overflow (infinite recursion?), "
+                                      "in expression '%s%s%s'.",
+                                      pixel_type(),_cimg_mp_calling_function,
+                                      (ss - 4)>expr._data?"...":"",
+                                      (ss - 4)>expr._data?ss - 4:expr._data,
+                                      se<&expr.back()?"...":"");
+        }
+
+        const char *const ss0 = ss;
+        char c1, c2, c3, c4;
+
+        if (ss<se) {
+          while (*ss && (*ss<=' ' || *ss==';')) ++ss;
+          while (se>ss && (c1=*(se - 1))>0 && (c1<=' ' || c1==';')) --se;
+        }
+        if (se>ss && *(se - 1)==';') --se;
+        while (*ss=='(' && *(se - 1)==')' && std::strchr(ss,')')==se - 1) { // Detect simple content around parentheses.
+          ++ss; --se;
+        }
+        if (se<=ss || !*ss) {
+          cimg::strellipsize(expr,64);
+          throw CImgArgumentException("[_cimg_math_parser] "
+                                      "CImg<%s>::%s: %s%s Missing %s, in expression '%s%s%s'.",
+                                      pixel_type(),_cimg_mp_calling_function,s_op,*s_op?":":"",
+                                      *s_op=='F'?"argument":"item",
+                                      (ss_op - 4)>expr._data?"...":"",
+                                      (ss_op - 4)>expr._data?ss_op - 4:expr._data,
+                                      ss_op + std::strlen(ss_op)<&expr.back()?"...":"");
+        }
+
+        const char *const previous_s_op = s_op, *const previous_ss_op = ss_op;
+        const unsigned int depth1 = depth + 1;
+        unsigned int pos, p1, p2, p3, arg1, arg2, arg3, arg4, arg5, arg6;
+        char
+          *const se1 = se - 1, *const se2 = se - 2, *const se3 = se - 3,
+          *const ss1 = ss + 1, *const ss2 = ss + 2, *const ss3 = ss + 3, *const ss4 = ss + 4,
+          *const ss5 = ss + 5, *const ss6 = ss + 6, *const ss7 = ss + 7, *const ss8 = ss + 8,
+          *s, *ps, *ns, *s0, *s1, *s2, *s3, sep = 0, end = 0;
+        double val, val1, val2;
+        mp_func op;
+
+        // 'p_ref' is a 'unsigned int[7]' used to return a reference to an image or vector value
+        // linked to the returned memory slot (reference that cannot be determined at compile time).
+        // p_ref[0] can be { 0 = scalar (unlinked) | 1 = vector value | 2 = image value (offset) |
+        //                   3 = image value (coordinates) | 4 = image value as a vector (offsets) |
+        //                   5 = image value as a vector (coordinates) }.
+        // Depending on p_ref[0], the remaining p_ref[k] have the following meaning:
+        // When p_ref[0]==0, p_ref is actually unlinked.
+        // When p_ref[0]==1, p_ref = [ 1, vector_ind, offset ].
+        // When p_ref[0]==2, p_ref = [ 2, image_ind (or ~0U), is_relative, offset ].
+        // When p_ref[0]==3, p_ref = [ 3, image_ind (or ~0U), is_relative, x, y, z, c ].
+        // When p_ref[0]==4, p_ref = [ 4, image_ind (or ~0U), is_relative, offset ].
+        // When p_ref[0]==5, p_ref = [ 5, image_ind (or ~0U), is_relative, x, y, z ].
+        if (p_ref) { *p_ref = 0; p_ref[1] = p_ref[2] = p_ref[3] = p_ref[4] = p_ref[5] = p_ref[6] = ~0U; }
+
+        const char saved_char = *se; *se = 0;
+        const unsigned int clevel = level[ss - expr._data], clevel1 = clevel + 1;
+        bool is_sth, is_relative;
+        CImg<uintT> ref;
+        CImgList<ulongT> _opcode;
+        CImg<charT> variable_name;
+
+        // Look for a single value or a pre-defined variable.
+        int nb = cimg_sscanf(ss,"%lf%c%c",&val,&(sep=0),&(end=0));
+
+#if cimg_OS==2
+        // Check for +/-NaN and +/-inf as Microsoft's sscanf() version is not able
+        // to read those particular values.
+        if (!nb && (*ss=='+' || *ss=='-' || *ss=='i' || *ss=='I' || *ss=='n' || *ss=='N')) {
+          is_sth = true;
+          s = ss;
+          i
