@@ -14322,4 +14322,138 @@ namespace cimg_library_suffixed {
                   if (_cimg_mp_is_scalar(arg1)) compile(ss,s,depth1,0); // Variable is not a vector -> error
                   if (_cimg_mp_is_constant(arg2)) { // Constant index -> return corresponding variable slot directly
                     nb = (int)mem[arg2];
-      
+                    if (nb>=0 && nb<(int)_cimg_mp_vector_size(arg1)) {
+                      arg1+=nb + 1;
+                      CImg<ulongT>::vector((ulongT)mp_copy,arg1,arg3).move_to(code);
+                      _cimg_mp_return(arg1);
+                    }
+                    compile(ss,s,depth1,0); // Out-of-bounds reference -> error
+                  }
+
+                  // Case of non-constant index -> return assigned value + linked reference
+                  if (p_ref) {
+                    *p_ref = 1;
+                    p_ref[1] = arg1;
+                    p_ref[2] = arg2;
+                    if (_cimg_mp_is_temp(arg3)) memtype[arg3] = -1; // Prevent from being used in further optimization
+                    if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
+                  }
+                  CImg<ulongT>::vector((ulongT)mp_vector_set_off,arg3,arg1,_cimg_mp_vector_size(arg1),arg2,arg3).
+                    move_to(code);
+                  _cimg_mp_return(arg3);
+                }
+              }
+            }
+
+            // Assign user-defined macro.
+            if (l_variable_name>2 && *ve1==')' && *ss!='(') {
+              s0 = ve1; while (s0>ss && *s0!='(') --s0;
+              is_sth = std::strncmp(variable_name,"debug(",6) &&
+                std::strncmp(variable_name,"print(",6); // is_valid_function_name?
+              if (*ss>='0' && *ss<='9') is_sth = false;
+              else for (ns = ss; ns<s0; ++ns)
+                     if (!is_varchar(*ns)) { is_sth = false; break; }
+
+              if (is_sth && s0>ss) { // Looks like a valid function declaration
+                s0 = variable_name._data + (s0 - ss);
+                *s0 = 0;
+                s1 = variable_name._data + l_variable_name - 1; // Pointer to closing parenthesis
+                CImg<charT>(variable_name._data,(unsigned int)(s0 - variable_name._data + 1)).move_to(function_def,0);
+                ++s; while (*s && *s<=' ') ++s;
+                CImg<charT>(s,(unsigned int)(se - s + 1)).move_to(function_body,0);
+
+                p1 = 1; // Indice of current parsed argument
+                for (s = s0 + 1; s<=s1; ++p1, s = ns + 1) { // Parse function arguments
+                  if (p1>24) {
+                    *se = saved_char; cimg::strellipsize(variable_name,64); cimg::strellipsize(expr,64);
+                    throw CImgArgumentException("[_cimg_math_parser] "
+                                                "CImg<%s>::%s: %s: Too much specified arguments (>24) when defining "
+                                                "function '%s()', in expression '%s%s%s'.",
+                                                pixel_type(),_cimg_mp_calling_function,s_op,
+                                                variable_name._data,
+                                                (ss - 4)>expr._data?"...":"",
+                                                (ss - 4)>expr._data?ss - 4:expr._data,
+                                                se<&expr.back()?"...":"");
+                  }
+                  while (*s && *s<=' ') ++s;
+                  if (*s==')' && p1==1) break; // Function has no arguments
+
+                  s2 = s; // Start of the argument name
+                  is_sth = true; // is_valid_argument_name?
+                  if (*s>='0' && *s<='9') is_sth = false;
+                  else for (ns = s; ns<s1 && *ns!=',' && *ns>' '; ++ns)
+                         if (!is_varchar(*ns)) { is_sth = false; break; }
+                  s3 = ns; // End of the argument name
+                  while (*ns && *ns<=' ') ++ns;
+                  if (!is_sth || s2==s3 || (*ns!=',' && ns!=s1)) {
+                    *se = saved_char; cimg::strellipsize(variable_name,64); cimg::strellipsize(expr,64);
+                    throw CImgArgumentException("[_cimg_math_parser] "
+                                                "CImg<%s>::%s: %s: %s name specified for argument %u when defining "
+                                                "function '%s()', in expression '%s%s%s'.",
+                                                pixel_type(),_cimg_mp_calling_function,s_op,
+                                                is_sth?"Empty":"Invalid",p1,
+                                                variable_name._data,
+                                                (ss - 4)>expr._data?"...":"",
+                                                (ss - 4)>expr._data?ss - 4:expr._data,
+                                                se<&expr.back()?"...":"");
+                  }
+                  if (ns==s1 || *ns==',') { // New argument found
+                    *s3 = 0;
+                    p2 = (unsigned int)(s3 - s2); // Argument length
+                    p3 = function_body[0]._width - p2 + 1; // Related to copy length
+                    for (ps = std::strstr(function_body[0],s2); ps; ps = std::strstr(ps,s2)) { // Replace by arg number
+                      if (!((ps>function_body[0]._data && is_varchar(*(ps - 1))) ||
+                            (ps + p2<function_body[0].end() && is_varchar(*(ps + p2))))) {
+                        *(ps++) = (char)p1;
+                        if (p2>1) {
+                          std::memmove(ps,ps + p2 - 1,function_body[0]._data + p3 - ps);
+                          function_body[0]._width-=p2 - 1;
+                        }
+                      } else ++ps;
+                    }
+                  }
+                }
+                // Store number of arguments
+                function_def[0].resize(function_def[0]._width + 1,1,1,1,0).back() = (char)(p1 - 1);
+                _cimg_mp_return(28);
+              }
+            }
+
+            // Check if the variable name could be valid. If not, this is probably an lvalue assignment.
+            is_sth = true; // is_valid_variable_name?
+            if (*variable_name>='0' && *variable_name<='9') is_sth = false;
+            else for (ns = variable_name._data; *ns; ++ns)
+                   if (!is_varchar(*ns)) { is_sth = false; break; }
+
+            // Assign variable (direct).
+            if (is_sth) {
+              if (variable_name[1] && !variable_name[2]) { // Two-chars variable
+                c1 = variable_name[0];
+                c2 = variable_name[1];
+                if (c1=='w' && c2=='h') variable_name.fill((char)0,(char)0); // wh
+                else if (c1=='p' && c2=='i') variable_name.fill(3,0); // pi
+                else if (c1=='i') {
+                  if (c2>='0' && c2<='9') variable_name.fill(19 + c2 - '0',0); // i0...i9
+                  else if (c2=='m') variable_name.fill(4,0); // im
+                  else if (c2=='M') variable_name.fill(5,0); // iM
+                  else if (c2=='a') variable_name.fill(6,0); // ia
+                  else if (c2=='v') variable_name.fill(7,0); // iv
+                  else if (c2=='s') variable_name.fill(8,0); // is
+                  else if (c2=='p') variable_name.fill(9,0); // ip
+                  else if (c2=='c') variable_name.fill(10,0); // ic
+                } else if (c2=='m') {
+                  if (c1=='x') variable_name.fill(11,0); // xm
+                  else if (c1=='y') variable_name.fill(12,0); // ym
+                  else if (c1=='z') variable_name.fill(13,0); // zm
+                  else if (c1=='c') variable_name.fill(14,0); // cm
+                } else if (c2=='M') {
+                  if (c1=='x') variable_name.fill(15,0); // xM
+                  else if (c1=='y') variable_name.fill(16,0); // yM
+                  else if (c1=='z') variable_name.fill(17,0); // zM
+                  else if (c1=='c') variable_name.fill(18,0); // cM
+                }
+              } else if (variable_name[1] && variable_name[2] && !variable_name[3]) { // Three-chars variable
+                c1 = variable_name[0];
+                c2 = variable_name[1];
+                c3 = variable_name[2];
+ 
