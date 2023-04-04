@@ -14747,4 +14747,156 @@ namespace cimg_library_suffixed {
             case '-' : op = mp_self_sub; _cimg_mp_op("Operator '-='"); break;
             case '*' : op = mp_self_mul; _cimg_mp_op("Operator '*='"); break;
             case '/' : op = mp_self_div; _cimg_mp_op("Operator '/='"); break;
-            cas
+            case '%' : op = mp_self_modulo; _cimg_mp_op("Operator '%='"); break;
+            case '<' : op = mp_self_bitwise_left_shift; _cimg_mp_op("Operator '<<='"); break;
+            case '>' : op = mp_self_bitwise_right_shift; _cimg_mp_op("Operator '>=='"); break;
+            case '&' : op = mp_self_bitwise_and; _cimg_mp_op("Operator '&='"); break;
+            case '|' : op = mp_self_bitwise_or; _cimg_mp_op("Operator '|='"); break;
+            default : op = mp_self_pow; _cimg_mp_op("Operator '^='"); break;
+            }
+            s1 = *ps=='>' || *ps=='<'?ns:ps;
+
+            ref.assign(7);
+            arg1 = compile(ss,s1,depth1,ref); // Variable slot
+            arg2 = compile(s + 1,se,depth1,0); // Value to apply
+
+            if (*ref>0 && !_cimg_mp_is_temp(arg1)) { // Apply operator on a copy if necessary.
+              if (_cimg_mp_is_vector(arg1)) arg1 = vector_copy(arg1);
+              else arg1 = scalar1(mp_copy,arg1);
+            }
+
+            if (*ref==1) { // Vector value (scalar): V[k] += scalar
+              _cimg_mp_check_type(arg2,2,1,0);
+              arg3 = ref[1]; // Vector slot
+              arg4 = ref[2]; // Index
+              if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+              CImg<ulongT>::vector((ulongT)op,arg1,arg2).move_to(code);
+              CImg<ulongT>::vector((ulongT)mp_vector_set_off,arg1,arg3,(ulongT)_cimg_mp_vector_size(arg3),arg4,arg1).
+                move_to(code);
+              _cimg_mp_return(arg1);
+            }
+
+            if (*ref==2) { // Image value (scalar): i/j[_#ind,off] += scalar
+              _cimg_mp_check_type(arg2,2,1,0);
+              is_parallelizable = false;
+              p1 = ref[1]; // Index
+              is_relative = (bool)ref[2];
+              arg3 = ref[3]; // Offset
+              if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+              CImg<ulongT>::vector((ulongT)op,arg1,arg2).move_to(code);
+              if (p1!=~0U) {
+                if (!listout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_joff:mp_list_set_ioff),
+                                    arg1,p1,arg3).move_to(code);
+              } else {
+                if (!imgout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_set_joff:mp_set_ioff),
+                                    arg1,arg3).move_to(code);
+              }
+              _cimg_mp_return(arg1);
+            }
+
+            if (*ref==3) { // Image value (scalar): i/j(_#ind,_x,_y,_z,_c) += scalar
+              _cimg_mp_check_type(arg2,2,1,0);
+              is_parallelizable = false;
+              p1 = ref[1]; // Index
+              is_relative = (bool)ref[2];
+              arg3 = ref[3]; // X
+              arg4 = ref[4]; // Y
+              arg5 = ref[5]; // Z
+              arg6 = ref[6]; // C
+              if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+              CImg<ulongT>::vector((ulongT)op,arg1,arg2).move_to(code);
+              if (p1!=~0U) {
+                if (!listout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_jxyzc:mp_list_set_ixyzc),
+                                    arg1,p1,arg3,arg4,arg5,arg6).move_to(code);
+              } else {
+                if (!imgout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_set_jxyzc:mp_set_ixyzc),
+                                    arg1,arg3,arg4,arg5,arg6).move_to(code);
+              }
+              _cimg_mp_return(arg1);
+            }
+
+            if (*ref==4) { // Image value (vector): I/J[_#ind,off] += value
+              _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+              is_parallelizable = false;
+              p1 = ref[1]; // Index
+              is_relative = (bool)ref[2];
+              arg3 = ref[3]; // Offset
+              if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+              if (_cimg_mp_is_scalar(arg2)) self_vector_s(arg1,op,arg2); else self_vector_v(arg1,op,arg2);
+              if (p1!=~0U) {
+                if (!listout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Joff_v:mp_list_set_Ioff_v),
+                                    arg1,p1,arg3).move_to(code);
+              } else {
+                if (!imgout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Joff_v:mp_set_Ioff_v),
+                                    arg1,arg3).move_to(code);
+              }
+              _cimg_mp_return(arg1);
+            }
+
+            if (*ref==5) { // Image value (vector): I/J(_#ind,_x,_y,_z,_c) += value
+              _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+              is_parallelizable = false;
+              p1 = ref[1]; // Index
+              is_relative = (bool)ref[2];
+              arg3 = ref[3]; // X
+              arg4 = ref[4]; // Y
+              arg5 = ref[5]; // Z
+              if (p_ref) std::memcpy(p_ref,ref,ref._width*sizeof(unsigned int));
+              if (_cimg_mp_is_scalar(arg2)) self_vector_s(arg1,op,arg2); else self_vector_v(arg1,op,arg2);
+              if (p1!=~0U) {
+                if (!listout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_list_set_Jxyz_v:mp_list_set_Ixyz_v),
+                                    arg1,p1,arg3,arg4,arg5).move_to(code);
+              } else {
+                if (!imgout) _cimg_mp_return(arg1);
+                CImg<ulongT>::vector((ulongT)(is_relative?mp_set_Jxyz_v:mp_set_Ixyz_v),
+                                    arg1,arg3,arg4,arg5).move_to(code);
+              }
+              _cimg_mp_return(arg1);
+            }
+
+            if (_cimg_mp_is_vector(arg1)) { // Vector variable: V += value
+              _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+              if (_cimg_mp_is_vector(arg2)) self_vector_v(arg1,op,arg2); // Vector += vector
+              else self_vector_s(arg1,op,arg2); // Vector += scalar
+              _cimg_mp_return(arg1);
+            }
+
+            if (_cimg_mp_is_variable(arg1)) { // Scalar variable: s += scalar
+              _cimg_mp_check_type(arg2,2,1,0);
+              CImg<ulongT>::vector((ulongT)op,arg1,arg2).move_to(code);
+              _cimg_mp_return(arg1);
+            }
+
+            variable_name.assign(ss,(unsigned int)(s - ss)).back() = 0;
+            *se = saved_char; cimg::strellipsize(expr,64);
+            throw CImgArgumentException("[_cimg_math_parser] "
+                                        "CImg<%s>::%s: %s: Invalid left-hand operand '%s', "
+                                        "in expression '%s%s%s'.",
+                                        pixel_type(),_cimg_mp_calling_function,s_op,
+                                        variable_name._data,
+                                        (ss - 4)>expr._data?"...":"",
+                                        (ss - 4)>expr._data?ss - 4:expr._data,
+                                        se<&expr.back()?"...":"");
+          }
+
+        for (s = ss1; s<se1; ++s)
+          if (*s=='?' && level[s - expr._data]==clevel) { // Ternary operator 'cond?expr1:expr2'
+            _cimg_mp_op("Operator '?:'");
+            s1 = s + 1; while (s1<se1 && (*s1!=':' || level[s1 - expr._data]!=clevel)) ++s1;
+            arg1 = compile(ss,s,depth1,0);
+            _cimg_mp_check_type(arg1,1,1,0);
+            if (_cimg_mp_is_constant(arg1)) {
+              if ((bool)mem[arg1]) return compile(s + 1,*s1!=':'?se:s1,depth1,0);
+              else return *s1!=':'?0:compile(++s1,se,depth1,0);
+            }
+            p2 = code._width;
+            arg2 = compile(s + 1,*s1!=':'?se:s1,depth1,0);
+            p3 = code._width;
+            arg3 = *s1==':'?compile(++s1,se,depth1,0):_ci
