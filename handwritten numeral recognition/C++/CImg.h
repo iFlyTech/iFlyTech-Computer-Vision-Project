@@ -15154,4 +15154,149 @@ namespace cimg_library_suffixed {
           }
 
         for (s = se3, ns = se2; s>ss; --s, --ns)
-          if (*s=='/' && *ns=='/' && level[s - expr._data]==c
+          if (*s=='/' && *ns=='/' && level[s - expr._data]==clevel) { // Complex division ('//')
+            _cimg_mp_op("Operator '//'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg1,1,3,2);
+            _cimg_mp_check_type(arg2,2,3,2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) {
+              pos = vector(2);
+              CImg<ulongT>::vector((ulongT)mp_complex_div_vv,pos,arg1,arg2).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_div,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) {
+              pos = vector(2);
+              CImg<ulongT>::vector((ulongT)mp_complex_div_sv,pos,arg1,arg2).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]/mem[arg2]);
+            _cimg_mp_scalar2(mp_div,arg1,arg2);
+          }
+
+        for (s = se2; s>ss; --s) if (*s=='*' && level[s - expr._data]==clevel) { // Multiplication ('*')
+            _cimg_mp_op("Operator '*'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_mul,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_mul,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_mul,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]*mem[arg2]);
+            _cimg_mp_scalar2(mp_mul,arg1,arg2);
+          }
+
+
+        for (s = se2; s>ss; --s) if (*s=='/' && level[s - expr._data]==clevel) { // Division ('/')
+            _cimg_mp_op("Operator '/'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_div,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_div,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_div,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2)) _cimg_mp_constant(mem[arg1]/mem[arg2]);
+            _cimg_mp_scalar2(mp_div,arg1,arg2);
+          }
+
+        for (s = se2, ns = se1; s>ss; --s, --ns)
+          if (*s=='%' && *ns!='^' && level[s - expr._data]==clevel) { // Modulo ('%')
+            _cimg_mp_op("Operator '%'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_modulo,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_modulo,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_modulo,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+              _cimg_mp_constant(cimg::mod(mem[arg1],mem[arg2]));
+            _cimg_mp_scalar2(mp_modulo,arg1,arg2);
+          }
+
+        if (se1>ss) {
+          if (*ss=='+' && (*ss1!='+' || (ss2<se && *ss2>='0' && *ss2<='9'))) { // Unary plus ('+')
+            _cimg_mp_op("Operator '+'");
+            _cimg_mp_return(compile(ss1,se,depth1,0));
+          }
+
+          if (*ss=='-' && (*ss1!='-' || (ss2<se && *ss2>='0' && *ss2<='9'))) { // Unary minus ('-')
+            _cimg_mp_op("Operator '-'");
+            arg1 = compile(ss1,se,depth1,0);
+            if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_minus,arg1);
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(-mem[arg1]);
+            _cimg_mp_scalar1(mp_minus,arg1);
+          }
+
+          if (*ss=='!') { // Logical not ('!')
+            _cimg_mp_op("Operator '!'");
+            arg1 = compile(ss1,se,depth1,0);
+            if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_logical_not,arg1);
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(!mem[arg1]);
+            _cimg_mp_scalar1(mp_logical_not,arg1);
+          }
+
+          if (*ss=='~') { // Bitwise not ('~')
+            _cimg_mp_op("Operator '~'");
+            arg1 = compile(ss1,se,depth1,0);
+            if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_bitwise_not,arg1);
+            if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(~(ulongT)mem[arg1]);
+            _cimg_mp_scalar1(mp_bitwise_not,arg1);
+          }
+        }
+
+        for (s = se3, ns = se2; s>ss; --s, --ns)
+          if (*s=='^' && *ns=='^' && level[s - expr._data]==clevel) { // Complex power ('^^')
+            _cimg_mp_op("Operator '^^'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 2,se,depth1,0);
+            _cimg_mp_check_type(arg1,1,3,2);
+            _cimg_mp_check_type(arg2,2,3,2);
+            pos = (_cimg_mp_is_vector(arg1) || _cimg_mp_is_vector(arg2))?vector(2):0;
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) {
+              CImg<ulongT>::vector((ulongT)mp_complex_pow_vv,pos,arg1,arg2).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) {
+              CImg<ulongT>::vector((ulongT)mp_complex_pow_vs,pos,arg1,arg2).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) {
+              CImg<ulongT>::vector((ulongT)mp_complex_pow_sv,pos,arg1,arg2).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+              _cimg_mp_constant(std::pow(mem[arg1],mem[arg2]));
+            switch (arg2) {
+            case 0 : _cimg_mp_return(1);
+            case 1 : _cimg_mp_return(arg1);
+            case 2 : _cimg_mp_scalar1(mp_sqr,arg1);
+            case 3 : _cimg_mp_scalar1(mp_pow3,arg1);
+            case 4 : _cimg_mp_scalar1(mp_pow4,arg1);
+            default : _cimg_mp_scalar2(mp_pow,arg1,arg2);
+            }
+          }
+
+        for (s = se2; s>ss; --s)
+          if (*s=='^' && level[s - expr._data]==clevel) { // Power ('^')
+            _cimg_mp_op("Operator '^'");
+            arg1 = compile(ss,s,depth1,0);
+            arg2 = compile(s + 1,se,depth1,0);
+            _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_pow,arg1,arg2);
+            if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_pow,arg1,arg2);
+            if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_pow,arg1,arg2);
+            if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+              _cimg_mp_constant(std::pow(mem[arg1],mem[arg2]));
+            switch (arg2) {
+            case 0 : _cimg_mp_return(1);
+            case 1 : _cimg_mp_return(arg1);
+            case 2 : _cimg_mp_scalar1(mp_sqr,arg1);
+            case 3 : _cimg_mp_scalar1(mp_pow3,arg1);
+            case 4 : _cimg_mp_scalar1(mp_pow4,arg1);
+            default : _cimg_mp_scalar2(mp_pow,arg1,arg2);
+            }
+          }
+
+        is_sth = ss1<se1 && (*ss=='+' || *ss=='-') && *ss1==*ss; // is pre-?
+        if (is_sth || (se2>ss && (*se1=='+' || *se1=='-') && *se2==*se1)) { // Pre/post-decrement and incre
