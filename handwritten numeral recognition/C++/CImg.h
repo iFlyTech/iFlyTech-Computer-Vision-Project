@@ -15604,4 +15604,166 @@ namespace cimg_library_suffixed {
               arg1 = compile(s0,s1,depth1,0);
               if (_cimg_mp_is_vector(arg1)) { // Coordinates specified as a vector
                 p2 = _cimg_mp_vector_size(arg1);
- 
+                ++arg1;
+                if (p2>1) {
+                  arg2 = arg1 + 1;
+                  if (p2>2) arg3 = arg2 + 1;
+                }
+                if (s1<se1) {
+                  s2 = ++s1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                  arg4 = compile(s1,s2,depth1,0);
+                  arg5 = s2<se1?compile(++s2,se1,depth1,0):~0U;
+                }
+              } else if (s1<se1) {
+                s2 = ++s1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                arg2 = compile(s1,s2,depth1,0);
+                if (s2<se1) {
+                  s3 = ++s2; while (s3<se1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+                  arg3 = compile(s2,s3,depth1,0);
+                  if (s3<se1) {
+                    s2 = ++s3; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                    arg4 = compile(s3,s2,depth1,0);
+                    arg5 = s2<se1?compile(++s2,se1,depth1,0):~0U;
+                  }
+                }
+              }
+            }
+            if (p_ref && arg4==~0U && arg5==~0U) {
+              *p_ref = 5;
+              p_ref[1] = p1;
+              p_ref[2] = (unsigned int)is_relative;
+              p_ref[3] = arg1;
+              p_ref[4] = arg2;
+              p_ref[5] = arg3;
+              if (p1!=~0U && _cimg_mp_is_temp(p1)) memtype[p1] = -1; // Prevent from being used in further optimization
+              if (_cimg_mp_is_temp(arg1)) memtype[arg1] = -1;
+              if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
+              if (_cimg_mp_is_temp(arg3)) memtype[arg3] = -1;
+            }
+            p2 = ~0U; // 'p2' must the dimension of the vector-valued operand if any
+            if (p1==~0U) p2 = imgin._spectrum;
+            else if (_cimg_mp_is_constant(p1)) {
+              p3 = (unsigned int)cimg::mod((int)mem[p1],listin.width());
+              p2 = listin[p3]._spectrum;
+            }
+            _cimg_mp_check_vector0(p2);
+            pos = vector(p2);
+            if (p1!=~0U)
+              CImg<ulongT>::vector((ulongT)(is_relative?mp_list_Jxyz:mp_list_Ixyz),
+                                  pos,p1,arg1,arg2,arg3,
+                                  arg4==~0U?reserved_label[29]:arg4,
+                                  arg5==~0U?reserved_label[30]:arg5).move_to(code);
+            else {
+              need_input_copy = true;
+              CImg<ulongT>::vector((ulongT)(is_relative?mp_Jxyz:mp_Ixyz),
+                                  pos,arg1,arg2,arg3,
+                                  arg4==~0U?reserved_label[29]:arg4,
+                                  arg5==~0U?reserved_label[30]:arg5).move_to(code);
+            }
+            _cimg_mp_return(pos);
+          }
+
+          // i/j(_#ind,_x,_y,_z,_c,_interpolation,_boundary)
+          if ((*ss=='i' || *ss=='j') && *ss1=='(') { // Image value as scalar
+            if (*ss2=='#') { // Index specified
+              s0 = ss3; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+              p1 = compile(ss3,s0++,depth1,0);
+            } else { p1 = ~0U; s0 = ss2; }
+            arg1 = is_relative?0U:(unsigned int)_cimg_mp_x;
+            arg2 = is_relative?0U:(unsigned int)_cimg_mp_y;
+            arg3 = is_relative?0U:(unsigned int)_cimg_mp_z;
+            arg4 = is_relative?0U:(unsigned int)_cimg_mp_c;
+            arg5 = arg6 = ~0U;
+            if (s0<se1) {
+              s1 = s0; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(s0,s1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) { // Coordinates specified as a vector
+                p2 = _cimg_mp_vector_size(arg1);
+                ++arg1;
+                if (p2>1) {
+                  arg2 = arg1 + 1;
+                  if (p2>2) {
+                    arg3 = arg2 + 1;
+                    if (p2>3) arg4 = arg3 + 1;
+                  }
+                }
+                if (s1<se1) {
+                  s2 = ++s1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                  arg5 = compile(s1,s2,depth1,0);
+                  arg6 = s2<se1?compile(++s2,se1,depth1,0):~0U;
+                }
+              } else if (s1<se1) {
+                s2 = ++s1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                arg2 = compile(s1,s2,depth1,0);
+                if (s2<se1) {
+                  s3 = ++s2; while (s3<se1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+                  arg3 = compile(s2,s3,depth1,0);
+                  if (s3<se1) {
+                    s2 = ++s3; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                    arg4 = compile(s3,s2,depth1,0);
+                    if (s2<se1) {
+                      s3 = ++s2; while (s3<se1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+                      arg5 = compile(s2,s3,depth1,0);
+                      arg6 = s3<se1?compile(++s3,se1,depth1,0):~0U;
+                    }
+                  }
+                }
+              }
+            }
+            if (p_ref && arg5==~0U && arg6==~0U) {
+              *p_ref = 3;
+              p_ref[1] = p1;
+              p_ref[2] = (unsigned int)is_relative;
+              p_ref[3] = arg1;
+              p_ref[4] = arg2;
+              p_ref[5] = arg3;
+              p_ref[6] = arg4;
+              if (p1!=~0U && _cimg_mp_is_temp(p1)) memtype[p1] = -1; // Prevent from being used in further optimization
+              if (_cimg_mp_is_temp(arg1)) memtype[arg1] = -1;
+              if (_cimg_mp_is_temp(arg2)) memtype[arg2] = -1;
+              if (_cimg_mp_is_temp(arg3)) memtype[arg3] = -1;
+              if (_cimg_mp_is_temp(arg4)) memtype[arg4] = -1;
+            }
+
+            if (p1!=~0U) {
+              if (!listin) _cimg_mp_return(0);
+              pos = scalar7(is_relative?mp_list_jxyzc:mp_list_ixyzc,
+                            p1,arg1,arg2,arg3,arg4,
+                            arg5==~0U?reserved_label[29]:arg5,
+                            arg6==~0U?reserved_label[30]:arg6);
+            } else {
+              if (!imgin) _cimg_mp_return(0);
+              need_input_copy = true;
+              pos = scalar6(is_relative?mp_jxyzc:mp_ixyzc,
+                            arg1,arg2,arg3,arg4,
+                            arg5==~0U?reserved_label[29]:arg5,
+                            arg6==~0U?reserved_label[30]:arg6);
+            }
+            memtype[pos] = -1; // Create it as a variable to prevent from being used in further optimization
+            _cimg_mp_return(pos);
+          }
+
+          // Mathematical functions.
+          switch (*ss) {
+          case 'a' :
+            if (!std::strncmp(ss,"abs(",4)) { // Absolute value
+              _cimg_mp_op("Function 'abs()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_abs,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(cimg::abs(mem[arg1]));
+              _cimg_mp_scalar1(mp_abs,arg1);
+            }
+
+            if (!std::strncmp(ss,"acos(",5)) { // Arccos
+              _cimg_mp_op("Function 'acos()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_acos,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(std::acos(mem[arg1]));
+              _cimg_mp_scalar1(mp_acos,arg1);
+            }
+
+            if (!std::strncmp(ss,"asin(",5)) { // Arcsin
+              _cimg_mp_op("Function 'asin()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_asin,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_con
