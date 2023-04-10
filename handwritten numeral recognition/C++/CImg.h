@@ -16079,4 +16079,160 @@ namespace cimg_library_suffixed {
             if (!std::strncmp(ss,"det(",4)) { // Matrix determinant
               _cimg_mp_op("Function 'det()'");
               arg1 = compile(ss4,se1,depth1,0);
-              _cimg_mp_check_ma
+              _cimg_mp_check_matrix_square(arg1,1);
+              p1 = (unsigned int)std::sqrt((float)_cimg_mp_vector_size(arg1));
+              _cimg_mp_scalar2(mp_det,arg1,p1);
+            }
+
+            if (!std::strncmp(ss,"diag(",5)) { // Diagonal matrix
+              _cimg_mp_op("Function 'diag()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              _cimg_mp_check_type(arg1,1,2,0);
+              p1 = _cimg_mp_vector_size(arg1);
+              pos = vector(p1*p1);
+              CImg<ulongT>::vector((ulongT)mp_diag,pos,arg1,p1).move_to(code);
+              _cimg_mp_return(pos);
+            }
+
+            if (!std::strncmp(ss,"dot(",4)) { // Dot product
+              _cimg_mp_op("Function 'dot()'");
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss4,s1,depth1,0);
+              arg2 = compile(++s1,se1,depth1,0);
+              _cimg_mp_check_type(arg1,1,2,0);
+              _cimg_mp_check_type(arg2,2,2,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_scalar3(mp_dot,arg1,arg2,_cimg_mp_vector_size(arg1));
+              _cimg_mp_scalar2(mp_mul,arg1,arg2);
+            }
+
+            if (!std::strncmp(ss,"dowhile",7) && (*ss7=='(' || (*ss7 && *ss7<=' ' && *ss8=='('))) { // Do..while
+              _cimg_mp_op("Function 'dowhile()'");
+              if (*ss7<=' ') cimg::swap(*ss7,*ss8); // Allow space before opening brace
+              s1 = ss8; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              p1 = code._width;
+              arg1 = compile(ss8,s1,depth1,0);
+              arg2 = s1<se1?compile(++s1,se1,depth1,0):arg1;
+              _cimg_mp_check_type(arg2,2,1,0);
+              CImg<ulongT>::vector((ulongT)mp_dowhile,arg1,arg2,code._width - p1).move_to(code,p1);
+              _cimg_mp_return(arg1);
+            }
+
+            if (!std::strncmp(ss,"draw(",5)) { // Draw image
+              _cimg_mp_op("Function 'draw()'");
+              is_parallelizable = false;
+              if (*ss5=='#') { // Index specified
+                s0 = ss6; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                p1 = compile(ss6,s0++,depth1,0);
+                _cimg_mp_check_list(true);
+              } else { p1 = ~0U; s0 = ss5; }
+              s1 = s0; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(s0,s1,depth1,0);
+              arg2 = is_relative?0U:(unsigned int)_cimg_mp_x;
+              arg3 = is_relative?0U:(unsigned int)_cimg_mp_y;
+              arg4 = is_relative?0U:(unsigned int)_cimg_mp_z;
+              arg5 = is_relative?0U:(unsigned int)_cimg_mp_c;
+              if (s1<se1) {
+                s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                arg2 = compile(++s1,s0,depth1,0);
+                if (_cimg_mp_is_vector(arg2)) { // Coordinates specified as a vector
+                  p2 = _cimg_mp_vector_size(arg2);
+                  ++arg2;
+                  if (p2>1) {
+                    arg3 = arg2 + 1;
+                    if (p2>2) {
+                      arg4 = arg3 + 1;
+                      if (p2>3) arg5 = arg4 + 1;
+                    }
+                  }
+                  ++s0;
+                  is_sth = true;
+                } else {
+                  if (s0<se1) {
+                    is_sth = p1!=~0U;
+                    s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                    arg3 = compile(++s0,s1,depth1,0);
+                    _cimg_mp_check_type(arg3,is_sth?4:3,1,0);
+                    if (s1<se1) {
+                      s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                      arg4 = compile(++s1,s0,depth1,0);
+                      _cimg_mp_check_type(arg4,is_sth?5:4,1,0);
+                      if (s0<se1) {
+                        s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                        arg5 = compile(++s0,s1,depth1,0);
+                        _cimg_mp_check_type(arg5,is_sth?6:5,1,0);
+                        s0 = ++s1;
+                      }
+                    }
+                  }
+                  is_sth = false;
+                }
+              }
+
+              CImg<ulongT>::vector((ulongT)mp_draw,arg1,p1,arg2,arg3,arg4,arg5,0,0,0,0,1,(ulongT)-1,0,1).
+                move_to(opcode);
+
+              arg2 = arg3 = arg4 = arg5 = ~0U;
+              p2 = p1!=~0U?0:1;
+              if (s0<se1) {
+                s1 = s0; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                arg2 = compile(s0,s1,depth1,0);
+                _cimg_mp_check_constant(arg2,p2 + (is_sth?3:6),true);
+                arg2 = (unsigned int)mem[arg2];
+                if (s1<se1) {
+                  s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  arg3 = compile(++s1,s0,depth1,0);
+                  _cimg_mp_check_constant(arg3,p2 + (is_sth?4:7),true);
+                  arg3 = (unsigned int)mem[arg3];
+                  if (s0<se1) {
+                    s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                    arg4 = compile(++s0,s1,depth1,0);
+                    _cimg_mp_check_constant(arg4,p2 + (is_sth?5:8),true);
+                    arg4 = (unsigned int)mem[arg4];
+                    if (s1<se1) {
+                      s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                      arg5 = compile(++s1,s0,depth1,0);
+                      _cimg_mp_check_constant(arg5,p2 + (is_sth?6:9),true);
+                      arg5 = (unsigned int)mem[arg5];
+                    }
+                  }
+                }
+              }
+              if (s0<s1) s0 = s1;
+              if (arg2==~0U || arg3==~0U || arg4==~0U || arg5==~0U) {
+                if (p1!=~0U) {
+                  _cimg_mp_check_constant(p1,1,false);
+                  p1 = (unsigned int)cimg::mod((int)mem[p1],listout.width());
+                }
+                const CImg<T> &img = p1!=~0U?listout[p1]:imgout;
+                if (arg2==~0U) arg2 = img._width;
+                if (arg3==~0U) arg3 = img._height;
+                if (arg4==~0U) arg4 = img._depth;
+                if (arg5==~0U) arg5 = img._spectrum;
+              }
+              if (arg2*arg3*arg4*arg5!=_cimg_mp_vector_size(arg1)) {
+                *se = saved_char; cimg::strellipsize(expr,64);
+                throw CImgArgumentException("[_cimg_math_parser] "
+                                            "CImg<%s>::%s: %s: Type of %s argument ('%s') and specified size "
+                                            "(%u,%u,%u,%u) do not match, in expression '%s%s%s'.",
+                                            pixel_type(),_cimg_mp_calling_function,s_op,
+                                            p1==~0U?"first":"second",s_type(arg1)._data,
+                                            arg2,arg3,arg4,arg5,
+                                            (ss - 4)>expr._data?"...":"",
+                                            (ss - 4)>expr._data?ss - 4:expr._data,
+                                            se<&expr.back()?"...":"");
+              }
+              opcode[7] = (ulongT)arg2;
+              opcode[8] = (ulongT)arg3;
+              opcode[9] = (ulongT)arg4;
+              opcode[10] = (ulongT)arg5;
+
+              if (s0<se1) {
+                s1 = s0 + 1; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+                arg6 = compile(++s0,s1,depth1,0);
+                _cimg_mp_check_type(arg6,0,1,0);
+                opcode[11] = arg6;
+                if (s1<se1) {
+                  s0 = s1 + 1; while (s0<se1 && (*s0!=',' || level[s0 - expr._data]!=clevel1)) ++s0;
+                  p2 = compile(++s1,s0,depth1,0);
+                  _cimg_mp_check_type(p2,0,2,0);
+        
