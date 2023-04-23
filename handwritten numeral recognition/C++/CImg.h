@@ -16539,4 +16539,164 @@ namespace cimg_library_suffixed {
                                             pixel_type(),_cimg_mp_calling_function,s_op,
                                             s_type(arg1)._data,s_type(arg2)._data,p3,
                                             (ss - 4)>expr._data?"...":"",
-                                            (ss - 4)>expr._data?ss - 4:expr._da
+                                            (ss - 4)>expr._data?ss - 4:expr._data,
+                                            se<&expr.back()?"...":"");
+              }
+              pos = vector(arg4*p3);
+              CImg<ulongT>::vector((ulongT)mp_matrix_mul,pos,arg1,arg2,arg4,arg5,p3).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'n' :
+            if (!std::strncmp(ss,"narg(",5)) { // Number of arguments
+              _cimg_mp_op("Function 'narg()'");
+              if (ss5>=se1) _cimg_mp_return(0);
+              arg1 = 0;
+              for (s = ss5; s<se; ++s) {
+                ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                               (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                ++arg1; s = ns;
+              }
+              _cimg_mp_constant(arg1);
+            }
+
+            if ((cimg_sscanf(ss,"norm%u%c",&(arg1=~0U),&sep)==2 && sep=='(') ||
+                !std::strncmp(ss,"norminf(",8)) { // Lp norm
+              _cimg_mp_op("Function 'normP()'");
+              pos = scalar();
+              switch (arg1) {
+              case 0 : CImg<ulongT>::vector((ulongT)mp_norm0,pos).move_to(_opcode); break;
+              case 1 : CImg<ulongT>::vector((ulongT)mp_norm1,pos).move_to(_opcode); break;
+              case 2 : CImg<ulongT>::vector((ulongT)mp_norm2,pos).move_to(_opcode); break;
+              case ~0U : CImg<ulongT>::vector((ulongT)mp_norminf,pos).move_to(_opcode); break;
+              default :
+                CImg<ulongT>::vector((ulongT)mp_normp,pos,(ulongT)(arg1==~0U?-1:(int)arg1)).
+                  move_to(_opcode);
+              }
+              for (s = std::strchr(ss5,'(') + 1; s<se; ++s) {
+                ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                               (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                arg2 = compile(s,ns,depth1,0);
+                if (_cimg_mp_is_vector(arg2))
+                  CImg<ulongT>::sequence((ulongT)_cimg_mp_vector_size(arg2),arg2 + 1,
+                                        arg2 + (ulongT)_cimg_mp_vector_size(arg2)).
+                    move_to(_opcode);
+                else CImg<ulongT>::vector(arg2).move_to(_opcode);
+                s = ns;
+              }
+              (_opcode>'y').move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'p' :
+            if (!std::strncmp(ss,"print(",6)) { // Print expression
+              _cimg_mp_op("Function 'print()'");
+              pos = compile(ss6,se1,depth1,p_ref);
+              *se1 = 0;
+              if (_cimg_mp_is_vector(pos)) // Vector
+                ((CImg<ulongT>::vector((ulongT)mp_vector_print,pos,(ulongT)_cimg_mp_vector_size(pos)),
+                  CImg<ulongT>::string(ss6).unroll('y'))>'y').move_to(code);
+              else // Scalar
+                ((CImg<ulongT>::vector((ulongT)mp_print,pos),
+                  CImg<ulongT>::string(ss6).unroll('y'))>'y').move_to(code);
+              *se1 = ')';
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'r' :
+            if (!std::strncmp(ss,"rol(",4) || !std::strncmp(ss,"ror(",4)) { // Bitwise rotation
+              _cimg_mp_op(ss[2]=='l'?"Function 'rol()'":"Function 'ror()'");
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1-expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss4,s1,depth1,0);
+              arg2 = s1<se1?compile(++s1,se1,depth1,0):1;
+              _cimg_mp_check_type(arg2,2,1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector2_vs(*ss2=='l'?mp_rol:mp_ror,arg1,arg2);
+              if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2))
+                _cimg_mp_constant(*ss2=='l'?cimg::rol(mem[arg1],(unsigned int)mem[arg2]):
+                                  cimg::ror(mem[arg1],(unsigned int)mem[arg2]));
+              _cimg_mp_scalar2(*ss2=='l'?mp_rol:mp_ror,arg1,arg2);
+            }
+
+            if (!std::strncmp(ss,"rot(",4)) { // 2d/3d rotation matrix
+              _cimg_mp_op("Function 'rot()'");
+              s1 = ss4; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss4,s1,depth1,0);
+              if (s1<se1) { // 3d rotation
+                _cimg_mp_check_type(arg1,1,3,3);
+                is_sth = false; // Is coordinates as vector?
+                if (_cimg_mp_is_vector(arg1)) { // Coordinates specified as a vector
+                  is_sth = true;
+                  p2 = _cimg_mp_vector_size(arg1);
+                  ++arg1;
+                  arg2 = arg3 = 0;
+                  if (p2>1) {
+                    arg2 = arg1 + 1;
+                    if (p2>2) arg3 = arg2 + 1;
+                  }
+                  arg4 = compile(++s1,se1,depth1,0);
+                } else {
+                  s2 = s1 + 1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                  arg2 = compile(++s1,s2,depth1,0);
+                  s3 = s2 + 1; while (s3<se1 && (*s3!=',' || level[s3 - expr._data]!=clevel1)) ++s3;
+                  arg3 = compile(++s2,s3,depth1,0);
+                  arg4 = compile(++s3,se1,depth1,0);
+                  _cimg_mp_check_type(arg2,2,1,0);
+                  _cimg_mp_check_type(arg3,3,1,0);
+                }
+                _cimg_mp_check_type(arg4,is_sth?2:4,1,0);
+                pos = vector(9);
+                CImg<ulongT>::vector((ulongT)mp_rot3d,pos,arg1,arg2,arg3,arg4).move_to(code);
+              } else { // 2d rotation
+                _cimg_mp_check_type(arg1,1,1,0);
+                pos = vector(4);
+                CImg<ulongT>::vector((ulongT)mp_rot2d,pos,arg1).move_to(code);
+              }
+              _cimg_mp_return(pos);
+            }
+
+            if (!std::strncmp(ss,"round(",6)) { // Value rounding
+              _cimg_mp_op("Function 'round()'");
+              s1 = ss6; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss6,s1,depth1,0);
+              arg2 = 1;
+              arg3 = 0;
+              if (s1<se1) {
+                s2 = s1 + 1; while (s2<se1 && (*s2!=',' || level[s2 - expr._data]!=clevel1)) ++s2;
+                arg2 = compile(++s1,s2,depth1,0);
+                arg3 = s2<se1?compile(++s2,se1,depth1,0):0;
+              }
+              _cimg_mp_check_type(arg2,2,1,0);
+              _cimg_mp_check_type(arg3,3,1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector3_vss(mp_round,arg1,arg2,arg3);
+              if (_cimg_mp_is_constant(arg1) && _cimg_mp_is_constant(arg2) && _cimg_mp_is_constant(arg3))
+                _cimg_mp_constant(cimg::round(mem[arg1],mem[arg2],(int)mem[arg3]));
+              _cimg_mp_scalar3(mp_round,arg1,arg2,arg3);
+            }
+            break;
+
+          case 's' :
+            if (!std::strncmp(ss,"sign(",5)) { // Sign
+              _cimg_mp_op("Function 'sign()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_sign,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(cimg::sign(mem[arg1]));
+              _cimg_mp_scalar1(mp_sign,arg1);
+            }
+
+            if (!std::strncmp(ss,"sin(",4)) { // Sine
+              _cimg_mp_op("Function 'sin()'");
+              arg1 = compile(ss4,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_sin,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(std::sin(mem[arg1]));
+              _cimg_mp_scalar1(mp_sin,arg1);
+            }
+
+            if (!std::strncmp(ss,"sinc(",5)) { // Sine cardinal
+              _cimg_mp_op("Function 'sinc()'");
+              arg1 = compile(ss5,se1,depth1,0);
+              if (_cimg_mp_is_vector(arg1)) _cimg_mp_vector1_v(mp_sinc,arg1);
+              if (_cimg_mp_is_constant(arg1)) _cimg_mp_constant(cimg::sinc(mem[arg1]));
+              _cimg_mp_scalar1(mp_sinc,ar
