@@ -16849,4 +16849,144 @@ namespace cimg_library_suffixed {
                                             s_type(arg1)._data,p2,
                                             (ss - 4)>expr._data?"...":"",
                                             (ss - 4)>expr._data?ss - 4:expr._data,
-                        
+                                            se<&expr.back()?"...":"");
+              }
+              pos = vector(p3*p2);
+              CImg<ulongT>::vector((ulongT)mp_transp,pos,arg1,p2,p3).move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'u' :
+            if (*ss1=='(') { // Random value with uniform distribution
+              _cimg_mp_op("Function 'u()'");
+              if (*ss2==')') _cimg_mp_scalar2(mp_u,0,1);
+              s1 = ss2; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              arg1 = compile(ss2,s1,depth1,0);
+              if (s1<se1) arg2 = compile(++s1,se1,depth1,0); else { arg2 = arg1; arg1 = 0; }
+              _cimg_mp_check_type(arg2,2,3,_cimg_mp_vector_size(arg1));
+              if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_vv(mp_u,arg1,arg2);
+              if (_cimg_mp_is_vector(arg1) && _cimg_mp_is_scalar(arg2)) _cimg_mp_vector2_vs(mp_u,arg1,arg2);
+              if (_cimg_mp_is_scalar(arg1) && _cimg_mp_is_vector(arg2)) _cimg_mp_vector2_sv(mp_u,arg1,arg2);
+              _cimg_mp_scalar2(mp_u,arg1,arg2);
+            }
+            break;
+
+          case 'v' :
+            if ((cimg_sscanf(ss,"vector%u%c",&(arg1=~0U),&sep)==2 && sep=='(' && arg1>0) ||
+                !std::strncmp(ss,"vector(",7)) { // Vector
+              _cimg_mp_op("Function 'vector()'");
+              arg2 = 0; // Number of specified values.
+              s = std::strchr(ss6,'(') + 1;
+              if (s<se1 || arg1==~0U) for (; s<se; ++s) {
+                  ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                                 (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+                  arg3 = compile(s,ns,depth1,0);
+                  if (_cimg_mp_is_vector(arg3)) {
+                    arg4 = _cimg_mp_vector_size(arg3);
+                    CImg<ulongT>::sequence(arg4,arg3 + 1,arg3 + arg4).move_to(_opcode);
+                    arg2+=arg4;
+                  } else { CImg<ulongT>::vector(arg3).move_to(_opcode); ++arg2; }
+                  s = ns;
+                }
+              if (arg1==~0U) arg1 = arg2;
+              _cimg_mp_check_vector0(arg1);
+              pos = vector(arg1);
+              _opcode.insert(CImg<ulongT>::vector((ulongT)mp_vector_init,pos,arg1),0);
+              (_opcode>'y').move_to(code);
+              _cimg_mp_return(pos);
+            }
+            break;
+
+          case 'w' :
+            if (!std::strncmp(ss,"whiledo",7) && (*ss7=='(' || (*ss7 && *ss7<=' ' && *ss8=='('))) { // While...do
+              _cimg_mp_op("Function 'whiledo()'");
+              if (*ss7<=' ') cimg::swap(*ss7,*ss8); // Allow space before opening brace
+              s1 = ss8; while (s1<se1 && (*s1!=',' || level[s1 - expr._data]!=clevel1)) ++s1;
+              p1 = code._width;
+              arg1 = compile(ss8,s1,depth1,0);
+              p2 = code._width;
+              pos = compile(++s1,se1,depth1,0);
+              _cimg_mp_check_type(arg1,1,1,0);
+              arg2 = _cimg_mp_is_vector(pos)?_cimg_mp_vector_size(pos):0; // Output vector size (or 0 if scalar)
+              CImg<ulongT>::vector((ulongT)mp_whiledo,pos,arg1,p2 - p1,code._width - p2,arg2).move_to(code,p1);
+              _cimg_mp_return(pos);
+            }
+            break;
+          }
+
+          if (!std::strncmp(ss,"min(",4) || !std::strncmp(ss,"max(",4) ||
+              !std::strncmp(ss,"med(",4) || !std::strncmp(ss,"kth(",4) ||
+              !std::strncmp(ss,"arg(",4) || !std::strncmp(ss,"sum(",4) ||
+              !std::strncmp(ss,"std(",4) || !std::strncmp(ss,"var(",4) ||
+              !std::strncmp(ss,"prod(",5) || !std::strncmp(ss,"mean(",5) ||
+              !std::strncmp(ss,"argmin(",7) || !std::strncmp(ss,"argmax(",7)) { // Multi-argument functions
+            _cimg_mp_op(*ss=='a'?(ss[3]=='('?"Function 'arg()'":ss[4]=='i'?"Function 'argmin()'":
+                                  "Function 'argmax()'"):
+                        *ss=='s'?(ss[1]=='u'?"Function 'sum()'":"Function 'std()'"):
+                        *ss=='k'?"Function 'kth()'":
+                        *ss=='p'?"Function 'prod()'":
+                        *ss=='v'?"Function 'var()'":
+                        ss[1]=='i'?"Function 'min()'":
+                        ss[1]=='a'?"Function 'max()'":
+                        ss[2]=='a'?"Function 'mean()'":"Function 'med()'");
+            pos = scalar();
+            CImg<ulongT>::vector((ulongT)(*ss=='a'?(ss[3]=='('?mp_arg:ss[4]=='i'?mp_argmin:mp_argmax):
+                                        *ss=='s'?(ss[1]=='u'?mp_sum:mp_std):
+                                        *ss=='k'?mp_kth:
+                                        *ss=='p'?mp_prod:
+                                        *ss=='v'?mp_var:
+                                        ss[1]=='i'?mp_min:
+                                        ss[1]=='a'?mp_max:
+                                        ss[2]=='a'?mp_mean:
+                                        mp_med),pos).
+              move_to(_opcode);
+            for (s = std::strchr(ss,'(') + 1; s<se; ++s) {
+              ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                             (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+              arg2 = compile(s,ns,depth1,0);
+              if (_cimg_mp_is_vector(arg2))
+                CImg<ulongT>::sequence((ulongT)_cimg_mp_vector_size(arg2),arg2 + 1,
+                                      arg2 + (ulongT)_cimg_mp_vector_size(arg2)).
+                  move_to(_opcode);
+              else CImg<ulongT>::vector(arg2).move_to(_opcode);
+              s = ns;
+            }
+            (_opcode>'y').move_to(code);
+            _cimg_mp_return(pos);
+          }
+
+          // No corresponding built-in function -> Look for a user-defined macro.
+          s0 = strchr(ss,'(');
+          if (s0) {
+            variable_name.assign(ss,s0 - ss + 1).back() = 0;
+            cimglist_for(function_def,l) if (!std::strcmp(function_def[l],variable_name)) {
+              p2 = (unsigned int)function_def[l].back(); // Number of required arguments
+              CImg<charT> _expr = function_body[l]; // Expression to be substituted
+              p1 = 1; // Indice of current parsed argument
+              for (s = s0 + 1; s<=se1; ++p1, s = ns + 1) { // Parse function arguments
+                while (*s && *s<=' ') ++s;
+                if (*s==')' && p1==1) break; // Function has no arguments
+                if (p1>p2) { ++p1; break; }
+                ns = s; while (ns<se && (*ns!=',' || level[ns - expr._data]!=clevel1) &&
+                               (*ns!=')' || level[ns - expr._data]!=clevel)) ++ns;
+
+                variable_name.assign(s,ns - s + 1).back() = 0; // Argument to write
+
+                cimg_forX(_expr,k) if (_expr[k]==(char)p1) { // Perform argument substitution
+                  _expr.resize(_expr._width + variable_name._width,1,1,1,0);
+                  _expr[k++] = '(';
+                  std::memmove(_expr._data + k + variable_name._width,_expr._data + k,
+                               _expr._width - variable_name._width - k);
+                  std::memcpy(_expr._data + k,variable_name,variable_name._width - 1);
+                  k+=variable_name._width - 1;
+                  _expr[k++] = ')';
+                }
+                *ns = 0;
+              }
+
+              if (p1!=p2+1) { // Number of specified argument do not fit
+                *se = saved_char; cimg::strellipsize(variable_name,64); cimg::strellipsize(expr,64);
+                throw CImgArgumentException("[_cimg_math_parser] "
+                                            "CImg<%s>::%s: Function '%s()': Number of specified arguments does not "
+                   
