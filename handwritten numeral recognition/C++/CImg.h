@@ -17309,4 +17309,175 @@ namespace cimg_library_suffixed {
 
       unsigned int scalar7(const mp_func op,
                            const unsigned int arg1, const unsigned int arg2, const unsigned int arg3,
-                           const unsigned int arg4,
+                           const unsigned int arg4, const unsigned int arg5, const unsigned int arg6,
+                           const unsigned int arg7) {
+        const unsigned int pos =
+          arg1>_cimg_mp_c && _cimg_mp_is_temp(arg1)?arg1:
+          arg2>_cimg_mp_c && _cimg_mp_is_temp(arg2)?arg2:
+          arg3>_cimg_mp_c && _cimg_mp_is_temp(arg3)?arg3:
+          arg4>_cimg_mp_c && _cimg_mp_is_temp(arg4)?arg4:
+          arg5>_cimg_mp_c && _cimg_mp_is_temp(arg5)?arg5:
+          arg6>_cimg_mp_c && _cimg_mp_is_temp(arg6)?arg6:
+          arg7>_cimg_mp_c && _cimg_mp_is_temp(arg7)?arg7:scalar();
+        CImg<ulongT>::vector((ulongT)op,pos,arg1,arg2,arg3,arg4,arg5,arg6,arg7).move_to(code);
+        return pos;
+      }
+
+      // Return a string that defines the calling function + the user-defined function scope.
+      CImg<charT> calling_function_s() const {
+        CImg<charT> res;
+        const unsigned int
+          l1 = calling_function?(unsigned int)std::strlen(calling_function):0U,
+          l2 = user_function?(unsigned int)std::strlen(user_function):0U;
+        if (l2) {
+          res.assign(l1 + l2 + 48);
+          cimg_snprintf(res,res._width,"%s(): When substituting function '%s()'",calling_function,user_function);
+        } else {
+          res.assign(l1 + l2 + 4);
+          cimg_snprintf(res,res._width,"%s()",calling_function);
+        }
+        return res;
+      }
+
+      // Return true if specified argument can be a part of an allowed  variable name.
+      bool is_varchar(const char c) const {
+        return (c>='a' && c<='z') || (c>='A' && c<='Z') || (c>='0' && c<='9') || c=='_';
+      }
+
+      // Insert code instructions for processing vectors.
+      bool is_tmp_vector(const unsigned int arg) const {
+        unsigned int siz = _cimg_mp_vector_size(arg);
+        if (siz>8) return false;
+        const int *ptr = memtype.data(arg + 1);
+        bool is_tmp = true;
+        while (siz-->0) if (*(ptr++)) { is_tmp = false; break; }
+        return is_tmp;
+      }
+
+      void set_variable_vector(const unsigned int arg) {
+        unsigned int siz = _cimg_mp_vector_size(arg);
+        int *ptr = memtype.data(arg + 1);
+        while (siz-->0) *(ptr++) = -1;
+      }
+
+      unsigned int vector(const unsigned int siz) { // Insert new vector of specified size in memory
+        if (mempos + siz>=mem._width) {
+          mem.resize(2*mem._width + siz,1,1,1,0);
+          memtype.resize(mem._width,1,1,1,0);
+        }
+        const unsigned int pos = mempos++;
+        mem[pos] = cimg::type<double>::nan();
+        memtype[pos] = siz + 1;
+        mempos+=siz;
+        return pos;
+      }
+
+      unsigned int vector(const unsigned int siz, const double value) { // Insert new initialized vector
+        const unsigned int pos = vector(siz);
+        double *ptr = &mem[pos] + 1;
+        for (unsigned int i = 0; i<siz; ++i) *(ptr++) = value;
+        return pos;
+      }
+
+      unsigned int vector_copy(const unsigned int arg) { // Insert new copy of specified vector in memory
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg),
+          pos = vector(siz);
+        CImg<ulongT>::vector((ulongT)mp_vector_copy,pos,arg,siz).move_to(code);
+        return pos;
+      }
+
+      void self_vector_s(const unsigned int pos, const mp_func op, const unsigned int arg1) {
+        const unsigned int siz = _cimg_mp_vector_size(pos);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_self_map_vector_s,pos,siz,(ulongT)op,arg1).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1).move_to(code[code._width - 1 - siz + k]);
+        }
+      }
+
+      void self_vector_v(const unsigned int pos, const mp_func op, const unsigned int arg1) {
+        const unsigned int siz = _cimg_mp_vector_size(pos);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_self_map_vector_v,pos,siz,(ulongT)op,arg1).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1 + k).move_to(code[code._width - 1 - siz + k]);
+        }
+      }
+
+      unsigned int vector1_v(const mp_func op, const unsigned int arg1) {
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg1),
+          pos = is_tmp_vector(arg1)?arg1:vector(siz);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_vector_map_v,pos,siz,(ulongT)op,arg1).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1 + k).move_to(code[code._width - 1 - siz + k]);
+        }
+        return pos;
+      }
+
+      unsigned int vector2_vv(const mp_func op, const unsigned int arg1, const unsigned int arg2) {
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg1),
+          pos = is_tmp_vector(arg1)?arg1:is_tmp_vector(arg2)?arg2:vector(siz);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_vector_map_vv,pos,siz,(ulongT)op,arg1,arg2).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1 + k,arg2 + k).move_to(code[code._width - 1 - siz + k]);
+        }
+        return pos;
+      }
+
+      unsigned int vector2_vs(const mp_func op, const unsigned int arg1, const unsigned int arg2) {
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg1),
+          pos = is_tmp_vector(arg1)?arg1:vector(siz);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_vector_map_vs,pos,siz,(ulongT)op,arg1,arg2).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1 + k,arg2).move_to(code[code._width - 1 - siz + k]);
+        }
+        return pos;
+      }
+
+      unsigned int vector2_sv(const mp_func op, const unsigned int arg1, const unsigned int arg2) {
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg2),
+          pos = is_tmp_vector(arg2)?arg2:vector(siz);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_vector_map_sv,pos,siz,(ulongT)op,arg1,arg2).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1,arg2 + k).move_to(code[code._width - 1 - siz + k]);
+        }
+        return pos;
+      }
+
+      unsigned int vector3_vss(const mp_func op, const unsigned int arg1, const unsigned int arg2,
+                               const unsigned int arg3) {
+        const unsigned int
+          siz = _cimg_mp_vector_size(arg1),
+          pos = is_tmp_vector(arg1)?arg1:vector(siz);
+        if (siz>24) CImg<ulongT>::vector((ulongT)mp_vector_map_vss,pos,siz,(ulongT)op,arg1,arg2,arg3).move_to(code);
+        else {
+          code.insert(siz);
+          for (unsigned int k = 1; k<=siz; ++k)
+            CImg<ulongT>::vector((ulongT)op,pos + k,arg1 + k,arg2,arg3).move_to(code[code._width - 1 - siz + k]);
+        }
+        return pos;
+      }
+
+      // Check if a memory slot is a positive integer constant scalar value.
+      void check_constant(const unsigned int arg, const unsigned int n_arg,
+                          const bool is_strictly_positive,
+                          const char *const ss, char *const se, const char saved_char) {
+        _cimg_mp_check_type(arg,n_arg,1,0);
+        if (!_cimg_mp_is_constant(arg) || mem[arg]<(is_strictly_positive?1:0) || (double)(int)mem[arg]!=mem[arg]) {
+          const char *s_arg = !n_arg?"":n_arg==1?"First ":n_arg==2?"Second ":n_arg==3?"Third ":
+            n_arg==4?"Fourth ":n_arg==5?"Fifth ":n_arg==6?"Sixth ":n_arg==7?
