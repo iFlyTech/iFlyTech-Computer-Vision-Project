@@ -17624,3 +17624,215 @@ namespace cimg_library_suffixed {
         const unsigned int nb_args = mp.opcode._height - 2, ind = _ind<0?_ind + nb_args:(unsigned int)_ind;
         if (ind>=nb_args) return 0;
         return _mp_arg(ind + 2);
+      }
+
+      static double mp_argmin(_cimg_math_parser& mp) {
+        double val = _mp_arg(2);
+        unsigned int argval = 0;
+        for (unsigned int i = 3; i<mp.opcode._height; ++i) {
+          const double _val = _mp_arg(i);
+          if (_val<val) { val = _val; argval = i - 2; }
+        }
+        return (double)argval;
+      }
+
+      static double mp_argmax(_cimg_math_parser& mp) {
+        double val = _mp_arg(2);
+        unsigned int argval = 0;
+        for (unsigned int i = 3; i<mp.opcode._height; ++i) {
+          const double _val = _mp_arg(i);
+          if (_val>val) { val = _val; argval = i - 2; }
+        }
+        return (double)argval;
+      }
+
+      static double mp_asin(_cimg_math_parser& mp) {
+        return std::asin(_mp_arg(2));
+      }
+
+      static double mp_atan(_cimg_math_parser& mp) {
+        return std::atan(_mp_arg(2));
+      }
+
+      static double mp_atan2(_cimg_math_parser& mp) {
+        return std::atan2(_mp_arg(2),_mp_arg(3));
+      }
+
+      static double mp_bitwise_and(_cimg_math_parser& mp) {
+        return (double)((ulongT)_mp_arg(2) & (ulongT)_mp_arg(3));
+      }
+
+      static double mp_bitwise_left_shift(_cimg_math_parser& mp) {
+        return (double)((longT)_mp_arg(2)<<(unsigned int)_mp_arg(3));
+      }
+
+      static double mp_bitwise_not(_cimg_math_parser& mp) {
+        return (double)~(ulongT)_mp_arg(2);
+      }
+
+      static double mp_bitwise_or(_cimg_math_parser& mp) {
+        return (double)((ulongT)_mp_arg(2) | (ulongT)_mp_arg(3));
+      }
+
+      static double mp_bitwise_right_shift(_cimg_math_parser& mp) {
+        return (double)((longT)_mp_arg(2)>>(unsigned int)_mp_arg(3));
+      }
+
+      static double mp_cbrt(_cimg_math_parser& mp) {
+        return std::pow(_mp_arg(2),1.0/3);
+      }
+
+      static double mp_complex_conj(_cimg_math_parser& mp) {
+        const double *ptrs = &_mp_arg(2) + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        *(ptrd++) = *(ptrs++);
+        *ptrd = -*(ptrs);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_div_sv(_cimg_math_parser& mp) {
+        const double
+          *ptr2 = &_mp_arg(3) + 1,
+          r1 = _mp_arg(2),
+          r2 = *(ptr2++), i2 = *ptr2;
+        double *ptrd = &_mp_arg(1) + 1;
+        const double denom = r2*r2 + i2*i2;
+        *(ptrd++) = r1*r2/denom;
+        *ptrd =  -r1*i2/denom;
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_div_vv(_cimg_math_parser& mp) {
+        const double
+          *ptr1 = &_mp_arg(2) + 1, *ptr2 = &_mp_arg(3) + 1,
+          r1 = *(ptr1++), i1 = *ptr1,
+          r2 = *(ptr2++), i2 = *ptr2;
+        double *ptrd = &_mp_arg(1) + 1;
+        const double denom = r2*r2 + i2*i2;
+        *(ptrd++) = (r1*r2 + i1*i2)/denom;
+        *ptrd = (r2*i1 - r1*i2)/denom;
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_exp(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const double *ptrs = &_mp_arg(2) + 1, r = *(ptrs++), i = *(ptrs), er = std::exp(r);
+        *(ptrd++) = er*std::cos(i);
+        *(ptrd++) = er*std::sin(i);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_log(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const double *ptrs = &_mp_arg(2) + 1, r = *(ptrs++), i = *(ptrs);
+        *(ptrd++) = std::log(std::sqrt(r*r + i*i));
+        *(ptrd++) = std::atan2(i,r);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_mul(_cimg_math_parser& mp) {
+        const double
+          *ptr1 = &_mp_arg(2) + 1, *ptr2 = &_mp_arg(3) + 1,
+          r1 = *(ptr1++), i1 = *ptr1,
+          r2 = *(ptr2++), i2 = *ptr2;
+        double *ptrd = &_mp_arg(1) + 1;
+        *(ptrd++) = r1*r2 - i1*i2;
+        *(ptrd++) = r1*i2 + r2*i1;
+        return cimg::type<double>::nan();
+      }
+
+      static void _mp_complex_pow(const double r1, const double i1,
+                                  const double r2, const double i2,
+                                  double *ptrd) {
+        double ro, io;
+        if (cimg::abs(i2)<1e-15) { // Exponent is real
+          if (cimg::abs(r1)<1e-15 && cimg::abs(i1)<1e-15) {
+            if (cimg::abs(r2)<1e-15) { ro = 1; io = 0; }
+            else ro = io = 0;
+          } else {
+            const double
+              mod1_2 = r1*r1 + i1*i1,
+              phi1 = std::atan2(i1,r1),
+              modo = std::pow(mod1_2,0.5*r2),
+              phio = r2*phi1;
+            ro = modo*std::cos(phio);
+            io = modo*std::sin(phio);
+          }
+        } else { // Exponent is complex
+          if (cimg::abs(r1)<1e-15 && cimg::abs(i1)<1e-15) ro = io = 0;
+          const double
+            mod1_2 = r1*r1 + i1*i1,
+            phi1 = std::atan2(i1,r1),
+            modo = std::pow(mod1_2,0.5*r2)*std::exp(-i2*phi1),
+            phio = r2*phi1 + 0.5*i2*std::log(mod1_2);
+          ro = modo*std::cos(phio);
+          io = modo*std::sin(phio);
+        }
+        *(ptrd++) = ro;
+        *ptrd = io;
+      }
+
+      static double mp_complex_pow_sv(_cimg_math_parser& mp) {
+        const double val1 = _mp_arg(2), *ptr2 = &_mp_arg(3) + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(val1,0,ptr2[0],ptr2[1],ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_pow_vs(_cimg_math_parser& mp) {
+        const double *ptr1 = &_mp_arg(2) + 1, val2 = _mp_arg(3);
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(ptr1[0],ptr1[1],val2,0,ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_complex_pow_vv(_cimg_math_parser& mp) {
+        const double *ptr1 = &_mp_arg(2) + 1, *ptr2 = &_mp_arg(3) + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        _mp_complex_pow(ptr1[0],ptr1[1],ptr2[0],ptr2[1],ptrd);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cos(_cimg_math_parser& mp) {
+        return std::cos(_mp_arg(2));
+      }
+
+      static double mp_cosh(_cimg_math_parser& mp) {
+        return std::cosh(_mp_arg(2));
+      }
+
+      static double mp_crop(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const int x = (int)_mp_arg(3), y = (int)_mp_arg(4), z = (int)_mp_arg(5), c = (int)_mp_arg(6);
+        const unsigned int
+          dx = (unsigned int)mp.opcode[7],
+          dy = (unsigned int)mp.opcode[8],
+          dz = (unsigned int)mp.opcode[9],
+          dc = (unsigned int)mp.opcode[10];
+        const bool boundary_conditions = (bool)_mp_arg(11);
+        unsigned int ind = (unsigned int)mp.opcode[2];
+        if (ind!=~0U) ind = (unsigned int)cimg::mod((int)_mp_arg(2),mp.listin.width());
+        const CImg<T> &img = ind==~0U?mp.imgin:mp.listin[ind];
+        if (!img) std::memset(ptrd,0,dx*dy*dz*dc*sizeof(double));
+        else CImg<double>(ptrd,dx,dy,dz,dc,true) = img.get_crop(x,y,z,c,
+                                                                x + dx - 1,y + dy - 1,
+                                                                z + dz - 1,c + dc - 1,
+                                                                boundary_conditions);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cross(_cimg_math_parser& mp) {
+        CImg<doubleT>
+          vout(&_mp_arg(1) + 1,1,3,1,1,true),
+          v1(&_mp_arg(2) + 1,1,3,1,1,true),
+          v2(&_mp_arg(3) + 1,1,3,1,1,true);
+        (vout = v1).cross(v2);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_cut(_cimg_math_parser& mp) {
+        double val = _mp_arg(2), cmin = _mp_arg(3), cmax = _mp_arg(4);
+        return val<cmin?cmin:val>cmax?cmax:val;
+      }
+
+      
