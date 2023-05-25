@@ -19355,4 +19355,196 @@ namespace cimg_library_suffixed {
         return vals.variance();
       }
 
-      static double mp_vect
+      static double mp_vector_copy(_cimg_math_parser& mp) {
+        std::memcpy(&_mp_arg(1) + 1,&_mp_arg(2) + 1,sizeof(double)*mp.opcode[3]);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_crop(_cimg_math_parser& mp) {
+        double *const ptrd = &_mp_arg(1) + 1;
+        const double *const ptrs = &_mp_arg(2) + 1;
+        const unsigned int p1 = mp.opcode[3], p2 = mp.opcode[4];
+        std::memcpy(ptrd,ptrs + p1,p2*sizeof(double));
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_init(_cimg_math_parser& mp) {
+        unsigned int
+          ptrs = 3U,
+          ptrd = (unsigned int)mp.opcode[1] + 1,
+          siz = (unsigned int)mp.opcode[2];
+        switch (mp.opcode._height) {
+        case 3 : std::memset(mp.mem._data + ptrd,0,siz*sizeof(double)); break; // 0 values given
+        case 4 : { const double val = _mp_arg(ptrs); while (siz-->0) mp.mem[ptrd++] = val; } break;
+        default : while (siz-->0) { mp.mem[ptrd++] = _mp_arg(ptrs++); if (ptrs>=mp.opcode._height) ptrs = 3U; }
+        }
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_map_sv(_cimg_math_parser& mp) { // Operator(scalar,vector)
+        unsigned int
+          siz = (unsigned int)mp.opcode[2],
+          ptrs = (unsigned int)mp.opcode[5] + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        mp_func op = (mp_func)mp.opcode[3];
+        CImg<ulongT> l_opcode(4);
+        l_opcode[2] = mp.opcode[4]; // Scalar argument1
+        l_opcode.swap(mp.opcode);
+        ulongT &argument2 = mp.opcode[3];
+        while (siz-->0) { argument2 = ptrs++; *(ptrd++) = (*op)(mp); }
+        l_opcode.swap(mp.opcode);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_map_v(_cimg_math_parser& mp) { // Operator(vector)
+        unsigned int
+          siz = (unsigned int)mp.opcode[2],
+          ptrs = (unsigned int)mp.opcode[4] + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        mp_func op = (mp_func)mp.opcode[3];
+        CImg<ulongT> l_opcode(1,3);
+        l_opcode.swap(mp.opcode);
+        ulongT &argument = mp.opcode[2];
+        while (siz-->0) { argument = ptrs++; *(ptrd++) = (*op)(mp); }
+        l_opcode.swap(mp.opcode);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_map_vs(_cimg_math_parser& mp) { // Operator(vector,scalar)
+        unsigned int
+          siz = (unsigned int)mp.opcode[2],
+          ptrs = (unsigned int)mp.opcode[4] + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        mp_func op = (mp_func)mp.opcode[3];
+        CImg<ulongT> l_opcode(1,4);
+        l_opcode[3] = mp.opcode[5]; // Scalar argument2
+        l_opcode.swap(mp.opcode);
+        ulongT &argument1 = mp.opcode[2];
+        while (siz-->0) { argument1 = ptrs++; *(ptrd++) = (*op)(mp); }
+        l_opcode.swap(mp.opcode);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_map_vss(_cimg_math_parser& mp) { // Operator(vector,scalar,scalar)
+        unsigned int
+          siz = (unsigned int)mp.opcode[2],
+          ptrs = (unsigned int)mp.opcode[4] + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        mp_func op = (mp_func)mp.opcode[3];
+        CImg<ulongT> l_opcode(1,5);
+        l_opcode[3] = mp.opcode[5]; // Scalar argument2
+        l_opcode[4] = mp.opcode[6]; // Scalar argument3
+        l_opcode.swap(mp.opcode);
+        ulongT &argument1 = mp.opcode[2];
+        while (siz-->0) { argument1 = ptrs++; *(ptrd++) = (*op)(mp); }
+        l_opcode.swap(mp.opcode);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_map_vv(_cimg_math_parser& mp) { // Operator(vector,vector)
+        unsigned int
+          siz = (unsigned int)mp.opcode[2],
+          ptrs1 = (unsigned int)mp.opcode[4] + 1,
+          ptrs2 = (unsigned int)mp.opcode[5] + 1;
+        double *ptrd = &_mp_arg(1) + 1;
+        mp_func op = (mp_func)mp.opcode[3];
+        CImg<ulongT> l_opcode(1,4);
+        l_opcode.swap(mp.opcode);
+        ulongT &argument1 = mp.opcode[2], &argument2 = mp.opcode[3];
+        while (siz-->0) { argument1 = ptrs1++; argument2 = ptrs2++; *(ptrd++) = (*op)(mp); }
+        l_opcode.swap(mp.opcode);
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_vector_off(_cimg_math_parser& mp) {
+        const unsigned int
+          ptr = mp.opcode[2] + 1,
+          siz = (int)mp.opcode[3];
+        const int off = (int)_mp_arg(4);
+        return off>=0 && off<(int)siz?mp.mem[ptr + off]:cimg::type<double>::nan();
+      }
+
+      static double mp_vector_set_off(_cimg_math_parser& mp) {
+        const unsigned int
+          ptr = mp.opcode[2] + 1,
+          siz = mp.opcode[3];
+        const int off = (int)_mp_arg(4);
+        if (off>=0 && off<(int)siz) mp.mem[ptr + off] = _mp_arg(5);
+        return _mp_arg(5);
+      }
+
+      static double mp_vector_print(_cimg_math_parser& mp) {
+#ifdef cimg_use_openmp
+#pragma omp critical
+#endif
+        {
+          CImg<charT> expr(mp.opcode._height - 3);
+          const ulongT *ptrs = mp.opcode._data + 3;
+          cimg_for(expr,ptrd,char) *ptrd = (char)*(ptrs++);
+          cimg::strellipsize(expr);
+          unsigned int
+            ptr = mp.opcode[1] + 1,
+            siz = mp.opcode[2];
+          cimg::mutex(6);
+          std::fprintf(cimg::output(),"\n[_cimg_math_parser] %s = [",expr._data);
+          while (siz-->0) std::fprintf(cimg::output(),"%g%s",mp.mem[ptr++],siz?",":"");
+          std::fputc(']',cimg::output());
+          std::fflush(cimg::output());
+          cimg::mutex(6,0);
+        }
+        return cimg::type<double>::nan();
+      }
+
+      static double mp_whiledo(_cimg_math_parser& mp) { // Used also by 'for()'
+        const ulongT
+          mem_proc = mp.opcode[1],
+          mem_cond = mp.opcode[2];
+        const CImg<ulongT>
+          *const p_cond = ++mp.p_code,
+          *const p_proc = p_cond + mp.opcode[3],
+          *const p_end = p_proc + mp.opcode[4];
+        const unsigned int vsiz = mp.opcode[5];
+        bool is_first_iter = true, is_cond = false;
+        do {
+          for (mp.p_code = p_cond; mp.p_code<p_proc; ++mp.p_code) { // Evaluate loop condition
+            const CImg<ulongT> &op = *mp.p_code;
+            mp.opcode._data = op._data; mp.opcode._height = op._height;
+            const ulongT target = mp.opcode[1];
+            mp.mem[target] = _cimg_mp_defunc(mp);
+          }
+          is_cond = (bool)mp.mem[mem_cond];
+          if (is_cond) { // Evaluate loop iteration
+            for ( ; mp.p_code<p_end; ++mp.p_code) {
+              const CImg<ulongT> &op = *mp.p_code;
+              mp.opcode._data = op._data; mp.opcode._height = op._height;
+              const ulongT target = mp.opcode[1];
+              mp.mem[target] = _cimg_mp_defunc(mp);
+            }
+            is_first_iter = false;
+          }
+        } while (is_cond);
+        mp.p_code = p_end - 1;
+        if (vsiz && is_first_iter) std::memset(&mp.mem[mem_proc] + 1,0,vsiz*sizeof(double));
+        return is_first_iter?0:mp.mem[mem_proc];
+      }
+
+      static double mp_Ioff(_cimg_math_parser& mp) {
+        double *ptrd = &_mp_arg(1) + 1;
+        const unsigned int
+          boundary_conditions = (unsigned int)_mp_arg(3);
+        const CImg<T> &img = mp.imgin;
+        const longT
+          off = (longT)_mp_arg(2),
+          whd = (longT)img.width()*img.height()*img.depth();
+        const T *ptrs;
+        if (off<0 || off>=whd)
+          switch (boundary_conditions) {
+          case 2 : // Periodic boundary
+            if (!img) {
+              ptrs = &img[cimg::mod(off,whd)];
+              cimg_forC(img,c) { *(ptrd++) = *ptrs; ptrs+=whd; }
+            } else std::memset(ptrd,0,img._spectrum*sizeof(double));
+            return cimg::type<double>::nan();
+          case 1 : // Neumann boundary
+            if (img) {
+              ptrs = off<
