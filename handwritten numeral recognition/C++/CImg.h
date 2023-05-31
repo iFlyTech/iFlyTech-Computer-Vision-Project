@@ -19935,4 +19935,200 @@ namespace cimg_library_suffixed {
        - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
     **/
     CImg<T>& tan() {
-      if (is_empty()) return 
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::tan((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the tangent of each pixel value \newinstance.
+    CImg<Tfloat> get_tan() const {
+      return CImg<Tfloat>(*this,false).tan();
+    }
+
+    //! Compute the hyperbolic cosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic cosine
+       \f$\mathrm{cosh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& cosh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::cosh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic cosine of each pixel value \newinstance.
+    CImg<Tfloat> get_cosh() const {
+      return CImg<Tfloat>(*this,false).cosh();
+    }
+
+    //! Compute the hyperbolic sine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic sine
+       \f$\mathrm{sinh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sinh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::sinh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic sine of each pixel value \newinstance.
+    CImg<Tfloat> get_sinh() const {
+      return CImg<Tfloat>(*this,false).sinh();
+    }
+
+    //! Compute the hyperbolic tangent of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its hyperbolic tangent
+       \f$\mathrm{tanh}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& tanh() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::tanh((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the hyperbolic tangent of each pixel value \newinstance.
+    CImg<Tfloat> get_tanh() const {
+      return CImg<Tfloat>(*this,false).tanh();
+    }
+
+    //! Compute the arccosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arccosine
+       \f$\mathrm{acos}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& acos() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::acos((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the arccosine of each pixel value \newinstance.
+    CImg<Tfloat> get_acos() const {
+      return CImg<Tfloat>(*this,false).acos();
+    }
+
+    //! Compute the arcsine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arcsine
+       \f$\mathrm{asin}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& asin() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::asin((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the arcsine of each pixel value \newinstance.
+    CImg<Tfloat> get_asin() const {
+      return CImg<Tfloat>(*this,false).asin();
+    }
+
+    //! Compute the arctangent of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arctangent
+       \f$\mathrm{atan}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& atan() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::atan((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the arctangent of each pixel value \newinstance.
+    CImg<Tfloat> get_atan() const {
+      return CImg<Tfloat>(*this,false).atan();
+    }
+
+    //! Compute the arctangent2 of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its arctangent2
+       \f$\mathrm{atan2}(I_{(x,y,z,c)})\f$.
+       \param img Image whose pixel values specify the second argument of the \c atan2() function.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+       \par Example
+       \code
+       const CImg<float>
+          img_x(100,100,1,1,"x-w/2",false),   // Define an horizontal centered gradient, from '-width/2' to 'width/2'.
+          img_y(100,100,1,1,"y-h/2",false),   // Define a vertical centered gradient, from '-height/2' to 'height/2'.
+          img_atan2 = img_y.get_atan2(img_x); // Compute atan2(y,x) for each pixel value.
+       (img_x,img_y,img_atan2).display();
+       \endcode
+    **/
+    template<typename t>
+    CImg<T>& atan2(const CImg<t>& img) {
+      const ulongT siz = size(), isiz = img.size();
+      if (siz && isiz) {
+        if (is_overlapped(img)) return atan2(+img);
+        T *ptrd = _data, *const ptre = _data + siz;
+        if (siz>isiz) for (ulongT n = siz/isiz; n; --n)
+          for (const t *ptrs = img._data, *ptrs_end = ptrs + isiz; ptrs<ptrs_end; ++ptrd)
+            *ptrd = (T)std::atan2((double)*ptrd,(double)*(ptrs++));
+        for (const t *ptrs = img._data; ptrd<ptre; ++ptrd) *ptrd = (T)std::atan2((double)*ptrd,(double)*(ptrs++));
+      }
+      return *this;
+    }
+
+    //! Compute the arctangent2 of each pixel value \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_atan2(const CImg<t>& img) const {
+      return CImg<Tfloat>(*this,false).atan2(img);
+    }
+
+    //! In-place pointwise multiplication.
+    /**
+       Compute the pointwise multiplication between the image instance and the specified input image \c img.
+       \param img Input image, as the second operand of the multiplication.
+       \note
+       - Similar to operator+=(const CImg<t>&), except that it performs a pointwise multiplication
+         instead of an addition.
+       - It does \e not perform a \e matrix multiplication. For this purpose, use operator*=(const CImg<t>&) instead.
+       \par Example
+       \code
+       CImg<float>
+         img("reference.jpg"),
+         shade(img.width,img.height(),1,1,"-(x-w/2)^2-(y-h/2)^2",false);
+       shade.normalize(0,1);
+       (img,shade,img.get_mul(shade)).d
