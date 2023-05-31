@@ -19729,4 +19729,210 @@ namespace cimg_library_suffixed {
     /**
        Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its exponential \f$e^{I_{(x,y,z,c)}}\f$.
        \note
-       - The \inplace of this method statically casts t
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& exp() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::exp((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the exponential of each pixel value \newinstance.
+    CImg<Tfloat> get_exp() const {
+      return CImg<Tfloat>(*this,false).exp();
+    }
+
+    //! Compute the logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its logarithm
+       \f$\mathrm{log}_{e}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=262144)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::log((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log() const {
+      return CImg<Tfloat>(*this,false).log();
+    }
+
+    //! Compute the base-2 logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its base-2 logarithm
+       \f$\mathrm{log}_{2}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log2() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::log2((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the base-10 logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log2() const {
+      return CImg<Tfloat>(*this,false).log2();
+    }
+
+    //! Compute the base-10 logarithm of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its base-10 logarithm
+       \f$\mathrm{log}_{10}(I_{(x,y,z,c)})\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& log10() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=4096)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::log10((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the base-10 logarithm of each pixel value \newinstance.
+    CImg<Tfloat> get_log10() const {
+      return CImg<Tfloat>(*this,false).log10();
+    }
+
+    //! Compute the absolute value of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its absolute value \f$|I_{(x,y,z,c)}|\f$.
+       \note
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& abs() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=524288)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::abs(*ptrd);
+      return *this;
+    }
+
+    //! Compute the absolute value of each pixel value \newinstance.
+    CImg<Tfloat> get_abs() const {
+      return CImg<Tfloat>(*this,false).abs();
+    }
+
+    //! Compute the sign of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sign
+       \f$\mathrm{sign}(I_{(x,y,z,c)})\f$.
+       \note
+       - The sign is set to:
+         - \c 1 if pixel value is strictly positive.
+         - \c -1 if pixel value is strictly negative.
+         - \c 0 if pixel value is equal to \c 0.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sign() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=32768)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = cimg::sign(*ptrd);
+      return *this;
+    }
+
+    //! Compute the sign of each pixel value \newinstance.
+    CImg<Tfloat> get_sign() const {
+      return CImg<Tfloat>(*this,false).sign();
+    }
+
+    //! Compute the cosine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its cosine \f$\cos(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being in \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& cos() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::cos((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the cosine of each pixel value \newinstance.
+    CImg<Tfloat> get_cos() const {
+      return CImg<Tfloat>(*this,false).cos();
+    }
+
+    //! Compute the sine of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sine \f$\sin(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being in \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sin() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)std::sin((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the sine of each pixel value \newinstance.
+    CImg<Tfloat> get_sin() const {
+      return CImg<Tfloat>(*this,false).sin();
+    }
+
+    //! Compute the sinc of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its sinc
+       \f$\mathrm{sinc}(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being exin \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& sinc() {
+      if (is_empty()) return *this;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=2048)
+#endif
+      cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::sinc((double)*ptrd);
+      return *this;
+    }
+
+    //! Compute the sinc of each pixel value \newinstance.
+    CImg<Tfloat> get_sinc() const {
+      return CImg<Tfloat>(*this,false).sinc();
+    }
+
+    //! Compute the tangent of each pixel value.
+    /**
+       Replace each pixel value \f$I_{(x,y,z,c)}\f$ of the image instance by its tangent \f$\tan(I_{(x,y,z,c)})\f$.
+       \note
+       - Pixel values are regarded as being exin \e radian.
+       - The \inplace of this method statically casts the computed values to the pixel type \c T.
+       - The \newinstance returns a \c CImg<float> image, if the pixel type \c T is \e not float-valued.
+    **/
+    CImg<T>& tan() {
+      if (is_empty()) return 
