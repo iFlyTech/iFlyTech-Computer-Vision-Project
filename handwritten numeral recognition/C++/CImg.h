@@ -20548,3 +20548,226 @@ namespace cimg_library_suffixed {
     const T& min() const {
       if (is_empty())
         throw CImgInstanceException(_cimg_instance
+                                    "min(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_min = _data;
+      T min_value = *ptr_min;
+      cimg_for(*this,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value.
+    /**
+     **/
+    T& max() {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_max = _data;
+      T max_value = *ptr_max;
+      cimg_for(*this,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value \const.
+    const T& max() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_max = _data;
+      T max_value = *ptr_max;
+      cimg_for(*this,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      return *ptr_max;
+    }
+
+    //! Return a reference to the minimum pixel value as well as the maximum pixel value.
+    /**
+       \param[out] max_val Maximum pixel value.
+    **/
+    template<typename t>
+    T& min_max(t& max_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min_max(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_min = _data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val<min_value) { min_value = val; ptr_min = ptrs; }
+        if (val>max_value) max_value = val;
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value as well as the maximum pixel value \const.
+    template<typename t>
+    const T& min_max(t& max_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "min_max(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_min = _data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val<min_value) { min_value = val; ptr_min = ptrs; }
+        if (val>max_value) max_value = val;
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value as well as the minimum pixel value.
+    /**
+       \param[out] min_val Minimum pixel value.
+    **/
+    template<typename t>
+    T& max_min(t& min_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max_min(): Empty instance.",
+                                    cimg_instance);
+      T *ptr_max = _data;
+      T max_value = *ptr_max, min_value = max_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val>max_value) { max_value = val; ptr_max = ptrs; }
+        if (val<min_value) min_value = val;
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value as well as the minimum pixel value \const.
+    template<typename t>
+    const T& max_min(t& min_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "max_min(): Empty instance.",
+                                    cimg_instance);
+      const T *ptr_max = _data;
+      T max_value = *ptr_max, min_value = max_value;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        if (val>max_value) { max_value = val; ptr_max = ptrs; }
+        if (val<min_value) min_value = val;
+      }
+      min_val = (t)min_value;
+      return *ptr_max;
+    }
+
+    //! Return the kth smallest pixel value.
+    /**
+       \param k Rank of the search smallest element.
+    **/
+    T kth_smallest(const unsigned int k) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "kth_smallest(): Empty instance.",
+                                    cimg_instance);
+      CImg<T> arr(*this);
+      unsigned int l = 0, ir = size() - 1;
+      for ( ; ; ) {
+        if (ir<=l + 1) {
+          if (ir==l + 1 && arr[ir]<arr[l]) cimg::swap(arr[l],arr[ir]);
+          return arr[k];
+        } else {
+          const unsigned int mid = (l + ir)>>1;
+          cimg::swap(arr[mid],arr[l + 1]);
+          if (arr[l]>arr[ir]) cimg::swap(arr[l],arr[ir]);
+          if (arr[l + 1]>arr[ir]) cimg::swap(arr[l + 1],arr[ir]);
+          if (arr[l]>arr[l + 1]) cimg::swap(arr[l],arr[l + 1]);
+          unsigned int i = l + 1, j = ir;
+          const T pivot = arr[l + 1];
+          for ( ; ; ) {
+            do ++i; while (arr[i]<pivot);
+            do --j; while (arr[j]>pivot);
+            if (j<i) break;
+            cimg::swap(arr[i],arr[j]);
+          }
+          arr[l + 1] = arr[j];
+          arr[j] = pivot;
+          if (j>=k) ir = j - 1;
+          if (j<=k) l = i;
+        }
+      }
+    }
+
+    //! Return the median pixel value.
+    /**
+     **/
+    T median() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "median(): Empty instance.",
+                                    cimg_instance);
+      const unsigned int s = size();
+      const T res = kth_smallest(s>>1);
+      return (s%2)?res:((res + kth_smallest((s>>1) - 1))/2);
+    }
+
+    //! Return the product of all the pixel values.
+    /**
+     **/
+    double product() const {
+      if (is_empty()) return 0;
+      double res = 1;
+      cimg_for(*this,ptrs,T) res*=(double)*ptrs;
+      return res;
+    }
+
+    //! Return the sum of all the pixel values.
+    /**
+     **/
+    double sum() const {
+      double res = 0;
+      cimg_for(*this,ptrs,T) res+=(double)*ptrs;
+      return res;
+    }
+
+    //! Return the average pixel value.
+    /**
+     **/
+    double mean() const {
+      double res = 0;
+      cimg_for(*this,ptrs,T) res+=(double)*ptrs;
+      return res/size();
+    }
+
+    //! Return the variance of the pixel values.
+    /**
+       \param variance_method Method used to estimate the variance. Can be:
+       - \c 0: Second moment, computed as
+       \f$1/N \sum\limits_{k=1}^{N} (x_k - \bar x)^2 =
+       1/N \left( \sum\limits_{k=1}^N x_k^2 - \left( \sum\limits_{k=1}^N x_k \right)^2 / N \right)\f$
+       with \f$ \bar x = 1/N \sum\limits_{k=1}^N x_k \f$.
+       - \c 1: Best unbiased estimator, computed as \f$\frac{1}{N - 1} \sum\limits_{k=1}^{N} (x_k - \bar x)^2 \f$.
+       - \c 2: Least median of squares.
+       - \c 3: Least trimmed of squares.
+    **/
+    double variance(const unsigned int variance_method=1) const {
+      double foo;
+      return variance_mean(variance_method,foo);
+    }
+
+    //! Return the variance as well as the average of the pixel values.
+    /**
+       \param variance_method Method used to estimate the variance (see variance(const unsigned int) const).
+       \param[out] mean Average pixel value.
+    **/
+    template<typename t>
+    double variance_mean(const unsigned int variance_method, t& mean) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "variance_mean(): Empty instance.",
+                                    cimg_instance);
+
+      double variance = 0, average = 0;
+      const ulongT siz = size();
+      switch (variance_method) {
+      case 0 : { // Least mean square (standard definition)
+      
