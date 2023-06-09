@@ -20954,4 +20954,197 @@ namespace cimg_library_suffixed {
         }
       _cimg_math_parser mp(expression + (*expression=='>' || *expression=='<' ||
                                          *expression=='*' || *expression==':'?1:0),"eval",
-                           *this,img_output,list_inputs,list_ou
+                           *this,img_output,list_inputs,list_outputs);
+      return mp(x,y,z,c);
+    }
+
+    //! Evaluate math formula.
+    /**
+       \param[out] output Contains values of output vector returned by the evaluated expression
+         (or is empty if the returned type is scalar).
+       \param expression Math formula, as a C-string.
+       \param x Value of the pre-defined variable \c x.
+       \param y Value of the pre-defined variable \c y.
+       \param z Value of the pre-defined variable \c z.
+       \param c Value of the pre-defined variable \c c.
+       \param list_inputs A list of input images attached to the specified math formula.
+       \param list_outputs A pointer to a list of output images attached to the specified math formula.
+    **/
+    template<typename t>
+    void eval(CImg<t> &output, const char *const expression,
+              const double x=0, const double y=0, const double z=0, const double c=0,
+              const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      _eval(output,this,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    //! Evaluate math formula \const.
+    template<typename t>
+    void eval(CImg<t>& output, const char *const expression,
+              const double x=0, const double y=0, const double z=0, const double c=0,
+              const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      _eval(output,0,expression,x,y,z,c,list_inputs,list_outputs);
+    }
+
+    template<typename t>
+    void _eval(CImg<t>& output, CImg<T> *const img_output, const char *const expression,
+               const double x, const double y, const double z, const double c,
+               const CImgList<T> *const list_inputs, CImgList<T> *const list_outputs) const {
+      if (!expression) { output.assign(1); *output = 0; }
+      if (!expression[1]) switch (*expression) { // Single-char optimization.
+        case 'w' : output.assign(1); *output = (t)_width;
+        case 'h' : output.assign(1); *output = (t)_height;
+        case 'd' : output.assign(1); *output = (t)_depth;
+        case 's' : output.assign(1); *output = (t)_spectrum;
+        case 'r' : output.assign(1); *output = (t)_is_shared;
+        }
+      _cimg_math_parser mp(expression + (*expression=='>' || *expression=='<' ||
+                                         *expression=='*' || *expression==':'?1:0),"eval",
+                           *this,img_output,list_inputs,list_outputs);
+      output.assign(1,cimg::max(1U,mp.result_dim));
+      mp(x,y,z,c,output._data);
+    }
+
+    //! Evaluate math formula on a set of variables.
+    /**
+       \param expression Math formula, as a C-string.
+       \param xyzc Set of values (x,y,z,c) used for the evaluation.
+    **/
+    template<typename t>
+    CImg<doubleT> eval(const char *const expression, const CImg<t>& xyzc,
+                       const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      return _eval(this,expression,xyzc,list_inputs,list_outputs);
+    }
+
+    //! Evaluate math formula on a set of variables \const.
+    template<typename t>
+    CImg<doubleT> eval(const char *const expression, const CImg<t>& xyzc,
+                       const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      return _eval(0,expression,xyzc,list_inputs,list_outputs);
+    }
+
+    template<typename t>
+    CImg<doubleT> _eval(CImg<T> *const output, const char *const expression, const CImg<t>& xyzc,
+                        const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) const {
+      CImg<doubleT> res(1,xyzc.size()/4);
+      if (!expression) return res.fill(0);
+      _cimg_math_parser mp(expression,"eval",*this,output,list_inputs,list_outputs);
+#ifdef cimg_use_openmp
+#pragma omp parallel if (res._height>=512 && std::strlen(expression)>=6)
+      {
+        _cimg_math_parser _mp = omp_get_thread_num()?mp:_cimg_math_parser(), &lmp = omp_get_thread_num()?_mp:mp;
+#pragma omp for
+        for (unsigned int i = 0; i<res._height; ++i) {
+          const unsigned int i4 = 4*i;
+          const double
+            x = (double)xyzc[i4], y = (double)xyzc[i4 + 1],
+            z = (double)xyzc[i4 + 2], c = (double)xyzc[i4 + 3];
+          res[i] = lmp(x,y,z,c);
+        }
+      }
+#else
+      const t *ps = xyzc._data;
+      cimg_for(res,pd,double) {
+        const double x = (double)*(ps++), y = (double)*(ps++), z = (double)*(ps++), c = (double)*(ps++);
+        *pd = mp(x,y,z,c);
+      }
+#endif
+      return res;
+    }
+
+    //! Compute statistics vector from the pixel values.
+    /*
+       \param variance_method Method used to compute the variance (see variance(const unsigned int) const).
+       \return Statistics vector as
+         <tt>[min; max; mean; variance; xmin; ymin; zmin; cmin; xmax; ymax; zmax; cmax; sum; product]</tt>.
+    **/
+    CImg<Tdouble> get_stats(const unsigned int variance_method=1) const {
+      if (is_empty()) return CImg<doubleT>();
+      const ulongT siz = size();
+      const T *const odata = _data;
+      const T *pm = odata, *pM = odata;
+      double S = 0, S2 = 0, P = _data?1:0;
+      T m = *pm, M = m;
+      cimg_for(*this,ptrs,T) {
+        const T val = *ptrs;
+        const double _val = (double)val;
+        if (val<m) { m = val; pm = ptrs; }
+        if (val>M) { M = val; pM = ptrs; }
+        S+=_val;
+        S2+=_val*_val;
+        P*=_val;
+      }
+      const double
+        mean_value = S/siz,
+        _variance_value = variance_method==0?(S2 - S*S/siz)/siz:
+        (variance_method==1?(siz>1?(S2 - S*S/siz)/(siz - 1):0):
+         variance(variance_method)),
+        variance_value = _variance_value>0?_variance_value:0;
+      int
+        xm = 0, ym = 0, zm = 0, cm = 0,
+        xM = 0, yM = 0, zM = 0, cM = 0;
+      contains(*pm,xm,ym,zm,cm);
+      contains(*pM,xM,yM,zM,cM);
+      return CImg<Tdouble>(1,14).fill((double)m,(double)M,mean_value,variance_value,
+                                      (double)xm,(double)ym,(double)zm,(double)cm,
+                                      (double)xM,(double)yM,(double)zM,(double)cM,
+                                      S,P);
+    }
+
+    //! Compute statistics vector from the pixel values \inplace.
+    CImg<T>& stats(const unsigned int variance_method=1) {
+      return get_stats(variance_method).move_to(*this);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Vector / Matrix Operations
+    //@{
+    //-------------------------------------
+
+    //! Compute norm of the image, viewed as a matrix.
+    /**
+       \param magnitude_type Norm type. Can be:
+       - \c -1: Linf-norm
+       - \c 0: L2-norm
+       - \c 1: L1-norm
+    **/
+    double magnitude(const int magnitude_type=2) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "magnitude(): Empty instance.",
+                                    cimg_instance);
+      double res = 0;
+      switch (magnitude_type) {
+      case -1 : {
+        cimg_for(*this,ptrs,T) { const double val = (double)cimg::abs(*ptrs); if (val>res) res = val; }
+      } break;
+      case 1 : {
+        cimg_for(*this,ptrs,T) res+=(double)cimg::abs(*ptrs);
+      } break;
+      default : {
+        cimg_for(*this,ptrs,T) res+=(double)cimg::sqr(*ptrs);
+        res = (double)std::sqrt(res);
+      }
+      }
+      return res;
+    }
+
+    //! Compute the trace of the image, viewed as a matrix.
+    /**
+     **/
+    double trace() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "trace(): Empty instance.",
+                                    cimg_instance);
+      double res = 0;
+      cimg_forX(*this,k) res+=(double)(*this)(k,k);
+      return res;
+    }
+
+    //! Compute the determinant of the image, viewed as a matrix.
+    /**
+     **/
+    double det() const {
+      if (is_empty() || _width!=_height || _d
