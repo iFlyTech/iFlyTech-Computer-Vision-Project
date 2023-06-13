@@ -21147,4 +21147,221 @@ namespace cimg_library_suffixed {
     /**
      **/
     double det() const {
-      if (is_empty() || _width!=_height || _d
+      if (is_empty() || _width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "det(): Instance is not a square matrix.",
+                                    cimg_instance);
+
+      switch (_width) {
+      case 1 : return (double)((*this)(0,0));
+      case 2 : return (double)((*this)(0,0))*(double)((*this)(1,1)) - (double)((*this)(0,1))*(double)((*this)(1,0));
+      case 3 : {
+        const double
+          a = (double)_data[0], d = (double)_data[1], g = (double)_data[2],
+          b = (double)_data[3], e = (double)_data[4], h = (double)_data[5],
+          c = (double)_data[6], f = (double)_data[7], i = (double)_data[8];
+        return i*a*e - a*h*f - i*b*d + b*g*f + c*d*h - c*g*e;
+      }
+      default : {
+        CImg<Tfloat> lu(*this);
+        CImg<uintT> indx;
+        bool d;
+        lu._LU(indx,d);
+        double res = d?(double)1:(double)-1;
+        cimg_forX(lu,i) res*=lu(i,i);
+        return res;
+      }
+      }
+    }
+
+    //! Compute the dot product between instance and argument, viewed as matrices.
+    /**
+       \param img Image used as a second argument of the dot product.
+    **/
+    template<typename t>
+    double dot(const CImg<t>& img) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "dot(): Empty instance.",
+                                    cimg_instance);
+      if (!img)
+        throw CImgArgumentException(_cimg_instance
+                                    "dot(): Empty specified image.",
+                                    cimg_instance);
+
+      const ulongT nb = cimg::min(size(),img.size());
+      double res = 0;
+      for (ulongT off = 0; off<nb; ++off) res+=(double)_data[off]*(double)img[off];
+      return res;
+    }
+
+    //! Get vector-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    CImg<T> get_vector_at(const unsigned int x, const unsigned int y=0, const unsigned int z=0) const {
+      CImg<T> res;
+      if (res._height!=_spectrum) res.assign(1,_spectrum);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      const T *ptrs = data(x,y,z);
+      T *ptrd = res._data;
+      cimg_forC(*this,c) { *(ptrd++) = *ptrs; ptrs+=whd; }
+      return res;
+    }
+
+    //! Get (square) matrix-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \note - The spectrum() of the image must be a square.
+     **/
+    CImg<T> get_matrix_at(const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) const {
+      const int n = (int)std::sqrt((double)_spectrum);
+      const T *ptrs = data(x,y,z,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      CImg<T> res(n,n);
+      T *ptrd = res._data;
+      cimg_forC(*this,c) { *(ptrd++) = *ptrs; ptrs+=whd; }
+      return res;
+    }
+
+    //! Get tensor-valued pixel located at specified position.
+    /**
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    CImg<T> get_tensor_at(const unsigned int x, const unsigned int y=0, const unsigned int z=0) const {
+      const T *ptrs = data(x,y,z,0);
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (_spectrum==6)
+        return tensor(*ptrs,*(ptrs + whd),*(ptrs + 2*whd),*(ptrs + 3*whd),*(ptrs + 4*whd),*(ptrs + 5*whd));
+      if (_spectrum==3)
+        return tensor(*ptrs,*(ptrs + whd),*(ptrs + 2*whd));
+      return tensor(*ptrs);
+    }
+
+    //! Set vector-valued pixel at specified position.
+    /**
+       \param vec Vector to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_vector_at(const CImg<t>& vec, const unsigned int x, const unsigned int y=0, const unsigned int z=0) {
+      if (x<_width && y<_height && z<_depth) {
+        const t *ptrs = vec._data;
+        const ulongT whd = (ulongT)_width*_height*_depth;
+        T *ptrd = data(x,y,z);
+        for (unsigned int k = cimg::min((unsigned int)vec.size(),_spectrum); k; --k) {
+          *ptrd = (T)*(ptrs++); ptrd+=whd;
+        }
+      }
+      return *this;
+    }
+
+    //! Set (square) matrix-valued pixel at specified position.
+    /**
+       \param mat Matrix to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_matrix_at(const CImg<t>& mat, const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) {
+      return set_vector_at(mat,x,y,z);
+    }
+
+    //! Set tensor-valued pixel at specified position.
+    /**
+       \param ten Tensor to put on the instance image.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+    **/
+    template<typename t>
+    CImg<T>& set_tensor_at(const CImg<t>& ten, const unsigned int x=0, const unsigned int y=0, const unsigned int z=0) {
+      T *ptrd = data(x,y,z,0);
+      const ulongT siz = (ulongT)_width*_height*_depth;
+      if (ten._height==2) {
+        *ptrd = (T)ten[0]; ptrd+=siz;
+        *ptrd = (T)ten[1]; ptrd+=siz;
+        *ptrd = (T)ten[3];
+      }
+      else {
+        *ptrd = (T)ten[0]; ptrd+=siz;
+        *ptrd = (T)ten[1]; ptrd+=siz;
+        *ptrd = (T)ten[2]; ptrd+=siz;
+        *ptrd = (T)ten[4]; ptrd+=siz;
+        *ptrd = (T)ten[5]; ptrd+=siz;
+        *ptrd = (T)ten[8];
+      }
+      return *this;
+    }
+
+    //! Unroll pixel values along axis \c y.
+    /**
+       \note Equivalent to \code unroll('y'); \endcode.
+    **/
+    CImg<T>& vector() {
+      return unroll('y');
+    }
+
+    //! Unroll pixel values along axis \c y \newinstance.
+    CImg<T> get_vector() const {
+      return get_unroll('y');
+    }
+
+    //! Resize image to become a scalar square matrix.
+    /**
+     **/
+    CImg<T>& matrix() {
+      const ulongT siz = size();
+      switch (siz) {
+      case 1 : break;
+      case 4 : _width = _height = 2; break;
+      case 9 : _width = _height = 3; break;
+      case 16 : _width = _height = 4; break;
+      case 25 : _width = _height = 5; break;
+      case 36 : _width = _height = 6; break;
+      case 49 : _width = _height = 7; break;
+      case 64 : _width = _height = 8; break;
+      case 81 : _width = _height = 9; break;
+      case 100 : _width = _height = 10; break;
+      default : {
+        ulongT i = 11, i2 = i*i;
+        while (i2<siz) { i2+=2*i + 1; ++i; }
+        if (i2==siz) _width = _height = i;
+        else throw CImgInstanceException(_cimg_instance
+                                         "matrix(): Invalid instance size %u (should be a square integer).",
+                                         cimg_instance,
+                                         siz);
+      }
+      }
+      return *this;
+    }
+
+    //! Resize image to become a scalar square matrix \newinstance.
+    CImg<T> get_matrix() const {
+      return (+*this).matrix();
+    }
+
+    //! Resize image to become a symmetric tensor.
+    /**
+     **/
+    CImg<T>& tensor() {
+      return get_tensor().move_to(*this);
+    }
+
+    //! Resize image to become a symmetric tensor \newinstance.
+    CImg<T> get_tensor() const {
+      CImg<T> res;
+      const ulongT siz = size();
+      switch (siz) {
+      case 1 : break;
+      case 3 :
+        res.assign(2,2);
