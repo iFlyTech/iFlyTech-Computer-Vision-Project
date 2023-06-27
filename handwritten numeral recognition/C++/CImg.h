@@ -21570,4 +21570,194 @@ namespace cimg_library_suffixed {
     //! Compute the Moore-Penrose pseudo-inverse of the instance image, viewed as a matrix \newinstance.
     CImg<Tfloat> get_pseudoinvert() const {
       CImg<Tfloat> U, S, V;
-      SVD(
+      SVD(U,S,V);
+      const Tfloat tolerance = (sizeof(Tfloat)<=4?5.96e-8f:1.11e-16f)*cimg::max(_width,_height)*S.max();
+      cimg_forX(V,x) {
+        const Tfloat s = S(x), invs = s>tolerance?1/s:(Tfloat)0;
+        cimg_forY(V,y) V(x,y)*=invs;
+      }
+      return V*U.transpose();
+    }
+
+    //! Solve a system of linear equations.
+    /**
+       \param A Matrix of the linear system.
+       \note Solve \c AX=B where \c B=*this.
+    **/
+    template<typename t>
+    CImg<T>& solve(const CImg<t>& A) {
+      if (_depth!=1 || _spectrum!=1 || _height!=A._height || A._depth!=1 || A._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "solve(): Instance and specified matrix (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    A._width,A._height,A._depth,A._spectrum,A._data);
+      typedef _cimg_Ttfloat Ttfloat;
+      if (A._width==A._height) { // Classical linear system
+        if (_width!=1) {
+          CImg<T> res(_width,A._width);
+          cimg_forX(*this,i) res.draw_image(i,get_column(i).solve(A));
+          return res.move_to(*this);
+        }
+#ifdef cimg_use_lapack
+        char TRANS = 'N';
+        int INFO, N = _height, LWORK = 4*N, *const IPIV = new int[N];
+        Ttfloat
+          *const lapA = new Ttfloat[N*N],
+          *const lapB = new Ttfloat[N],
+          *const WORK = new Ttfloat[LWORK];
+        cimg_forXY(A,k,l) lapA[k*N + l] = (Ttfloat)(A(k,l));
+        cimg_forY(*this,i) lapB[i] = (Ttfloat)((*this)(i));
+        cimg::getrf(N,lapA,IPIV,INFO);
+        if (INFO)
+          cimg::warn(_cimg_instance
+                     "solve(): LAPACK library function dgetrf_() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+
+        if (!INFO) {
+          cimg::getrs(TRANS,N,lapA,IPIV,lapB,INFO);
+          if (INFO)
+            cimg::warn(_cimg_instance
+                       "solve(): LAPACK library function dgetrs_() returned error code %d.",
+                       cimg_instance,
+                       INFO);
+        }
+        if (!INFO) cimg_forY(*this,i) (*this)(i) = (T)(lapB[i]); else fill(0);
+        delete[] IPIV; delete[] lapA; delete[] lapB; delete[] WORK;
+#else
+        CImg<Ttfloat> lu(A,false);
+        CImg<Ttfloat> indx;
+        bool d;
+        lu._LU(indx,d);
+        _solve(lu,indx);
+#endif
+      } else { // Least-square solution for non-square systems.
+#ifdef cimg_use_lapack
+        if (_width!=1) {
+          CImg<T> res(_width,A._width);
+          cimg_forX(*this,i) res.draw_image(i,get_column(i).solve(A));
+          return res.move_to(*this);
+        }
+        char TRANS = 'N';
+        int INFO, N = A._width, M = A._height, LWORK = -1, LDA = M, LDB = M, NRHS = _width;
+        Ttfloat WORK_QUERY;
+        Ttfloat
+          * const lapA = new Ttfloat[M*N],
+          * const lapB = new Ttfloat[M*NRHS];
+        cimg::sgels(TRANS, M, N, NRHS, lapA, LDA, lapB, LDB, &WORK_QUERY, LWORK, INFO);
+        LWORK = (int) WORK_QUERY;
+        Ttfloat *const WORK = new Ttfloat[LWORK];
+        cimg_forXY(A,k,l) lapA[k*M + l] = (Ttfloat)(A(k,l));
+        cimg_forXY(*this,k,l) lapB[k*M + l] = (Ttfloat)((*this)(k,l));
+        cimg::sgels(TRANS, M, N, NRHS, lapA, LDA, lapB, LDB, WORK, LWORK, INFO);
+        if (INFO != 0)
+          cimg::warn(_cimg_instance
+                     "solve(): LAPACK library function sgels() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+        assign(NRHS, N);
+        if (!INFO)
+          cimg_forXY(*this,k,l) (*this)(k,l) = (T)lapB[k*M + l];
+        else
+          assign(A.get_pseudoinvert()*(*this));
+        delete[] lapA; delete[] lapB; delete[] WORK;
+#else
+        assign(A.get_pseudoinvert()*(*this));
+#endif
+      }
+      return *this;
+    }
+
+    //! Solve a system of linear equations \newinstance.
+    template<typename t>
+    CImg<_cimg_Ttfloat> get_solve(const CImg<t>& A) const {
+      return CImg<_cimg_Ttfloat>(*this,false).solve(A);
+    }
+
+    template<typename t, typename ti>
+    CImg<T>& _solve(const CImg<t>& A, const CImg<ti>& indx) {
+      typedef _cimg_Ttfloat Ttfloat;
+      const int N = (int)size();
+      int ii = -1;
+      Ttfloat sum;
+      for (int i = 0; i<N; ++i) {
+        const int ip = (int)indx[i];
+        Ttfloat sum = (*this)(ip);
+        (*this)(ip) = (*this)(i);
+        if (ii>=0) for (int j = ii; j<=i - 1; ++j) sum-=A(j,i)*(*this)(j);
+        else if (sum!=0) ii = i;
+        (*this)(i) = (T)sum;
+      }
+      for (int i = N - 1; i>=0; --i) {
+        sum = (*this)(i);
+        for (int j = i + 1; j<N; ++j) sum-=A(j,i)*(*this)(j);
+        (*this)(i) = (T)(sum/A(i,i));
+      }
+      return *this;
+    }
+
+    //! Solve a tridiagonal system of linear equations.
+    /**
+       \param A Coefficients of the tridiagonal system.
+       A is a tridiagonal matrix A = [ b0,c0,0,...; a1,b1,c1,0,... ; ... ; ...,0,aN,bN ],
+       stored as a 3 columns matrix
+       \note Solve AX=B where \c B=*this, using the Thomas algorithm.
+    **/
+    template<typename t>
+    CImg<T>& solve_tridiagonal(const CImg<t>& A) {
+      const unsigned int siz = (unsigned int)size();
+      if (A._width!=3 || A._height!=siz)
+        throw CImgArgumentException(_cimg_instance
+                                    "solve_tridiagonal(): Instance and tridiagonal matrix "
+                                    "(%u,%u,%u,%u,%p) have incompatible dimensions.",
+                                    cimg_instance,
+                                    A._width,A._height,A._depth,A._spectrum,A._data);
+      typedef _cimg_Ttfloat Ttfloat;
+      const Ttfloat epsilon = 1e-4f;
+      CImg<Ttfloat> B = A.get_column(1), V(*this,false);
+      for (int i = 1; i<(int)siz; ++i) {
+        const Ttfloat m = A(0,i)/(B[i - 1]?B[i - 1]:epsilon);
+        B[i] -= m*A(2,i - 1);
+        V[i] -= m*V[i - 1];
+      }
+      (*this)[siz - 1] = (T)(V[siz - 1]/(B[siz - 1]?B[siz - 1]:epsilon));
+      for (int i = (int)siz - 2; i>=0; --i) (*this)[i] = (T)((V[i] - A(2,i)*(*this)[i + 1])/(B[i]?B[i]:epsilon));
+      return *this;
+    }
+
+    //! Solve a tridiagonal system of linear equations \newinstance.
+    template<typename t>
+    CImg<_cimg_Ttfloat> get_solve_tridiagonal(const CImg<t>& A) const {
+      return CImg<_cimg_Ttfloat>(*this,false).solve_tridiagonal(A);
+    }
+
+    //! Compute eigenvalues and eigenvectors of the instance image, viewed as a matrix.
+    /**
+       \param[out] val Vector of the estimated eigenvalues, in decreasing order.
+       \param[out] vec Matrix of the estimated eigenvectors, sorted by columns.
+    **/
+    template<typename t>
+    const CImg<T>& eigen(CImg<t>& val, CImg<t> &vec) const {
+      if (is_empty()) { val.assign(); vec.assign(); }
+      else {
+        if (_width!=_height || _depth>1 || _spectrum>1)
+          throw CImgInstanceException(_cimg_instance
+                                      "eigen(): Instance is not a square matrix.",
+                                      cimg_instance);
+
+        if (val.size()<(ulongT)_width) val.assign(1,_width);
+        if (vec.size()<(ulongT)_width*_width) vec.assign(_width,_width);
+        switch (_width) {
+        case 1 : { val[0] = (t)(*this)[0]; vec[0] = (t)1; } break;
+        case 2 : {
+          const double a = (*this)[0], b = (*this)[1], c = (*this)[2], d = (*this)[3], e = a + d;
+          double f = e*e - 4*(a*d - b*c);
+          if (f<0)
+            cimg::warn(_cimg_instance
+                       "eigen(): Complex eigenvalues found.",
+                       cimg_instance);
+
+          f = std::sqrt(f);
+          const double l1 = 0.5*(e-f), l2 = 0.5*(e+f);
+          const double theta1
