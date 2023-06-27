@@ -21365,3 +21365,209 @@ namespace cimg_library_suffixed {
       case 1 : break;
       case 3 :
         res.assign(2,2);
+        res(0,0) = (*this)(0);
+        res(1,0) = res(0,1) = (*this)(1);
+        res(1,1) = (*this)(2);
+        break;
+      case 6 :
+        res.assign(3,3);
+        res(0,0) = (*this)(0);
+        res(1,0) = res(0,1) = (*this)(1);
+        res(2,0) = res(0,2) = (*this)(2);
+        res(1,1) = (*this)(3);
+        res(2,1) = res(1,2) = (*this)(4);
+        res(2,2) = (*this)(5);
+        break;
+      default :
+        throw CImgInstanceException(_cimg_instance
+                                    "tensor(): Invalid instance size (does not define a 1x1, 2x2 or 3x3 tensor).",
+                                    cimg_instance);
+      }
+      return res;
+    }
+
+    //! Resize image to become a diagonal matrix.
+    /**
+       \note Transform the image as a diagonal matrix so that each of its initial value becomes a diagonal coefficient.
+    **/
+    CImg<T>& diagonal() {
+      return get_diagonal().move_to(*this);
+    }
+
+    //! Resize image to become a diagonal matrix \newinstance.
+    CImg<T> get_diagonal() const {
+      if (is_empty()) return *this;
+      CImg<T> res(size(),size(),1,1,0);
+      cimg_foroff(*this,off) res(off,off) = (*this)(off);
+      return res;
+    }
+
+    //! Replace the image by an identity matrix.
+    /**
+       \note If the instance image is not square, it is resized to a square matrix using its maximum
+       dimension as a reference.
+    **/
+    CImg<T>& identity_matrix() {
+      return identity_matrix(cimg::max(_width,_height)).move_to(*this);
+    }
+
+    //! Replace the image by an identity matrix \newinstance.
+    CImg<T> get_identity_matrix() const {
+      return identity_matrix(cimg::max(_width,_height));
+    }
+
+    //! Fill image with a linear sequence of values.
+    /**
+       \param a0 Starting value of the sequence.
+       \param a1 Ending value of the sequence.
+    **/
+    CImg<T>& sequence(const T& a0, const T& a1) {
+      if (is_empty()) return *this;
+      const unsigned int siz = size() - 1;
+      T* ptr = _data;
+      if (siz) {
+        const double delta = (double)a1 - (double)a0;
+        cimg_foroff(*this,l) *(ptr++) = (T)(a0 + delta*l/siz);
+      } else *ptr = a0;
+      return *this;
+    }
+
+    //! Fill image with a linear sequence of values \newinstance.
+    CImg<T> get_sequence(const T& a0, const T& a1) const {
+      return (+*this).sequence(a0,a1);
+    }
+
+    //! Transpose the image, viewed as a matrix.
+    /**
+       \note Equivalent to \code permute_axes("yxzc"); \endcode
+    **/
+    CImg<T>& transpose() {
+      if (_width==1) { _width = _height; _height = 1; return *this; }
+      if (_height==1) { _height = _width; _width = 1; return *this; }
+      if (_width==_height) {
+        cimg_forYZC(*this,y,z,c) for (int x = y; x<width(); ++x) cimg::swap((*this)(x,y,z,c),(*this)(y,x,z,c));
+        return *this;
+      }
+      return get_transpose().move_to(*this);
+    }
+
+    //! Transpose the image, viewed as a matrix \newinstance.
+    CImg<T> get_transpose() const {
+      return get_permute_axes("yxzc");
+    }
+
+    //! Compute the cross product between two \c 1x3 images, viewed as 3d vectors.
+    /**
+       \param img Image used as the second argument of the cross product.
+       \note The first argument of the cross product is \c *this.
+     **/
+    template<typename t>
+    CImg<T>& cross(const CImg<t>& img) {
+      if (_width!=1 || _height<3 || img._width!=1 || img._height<3)
+        throw CImgInstanceException(_cimg_instance
+                                    "cross(): Instance and/or specified image (%u,%u,%u,%u,%p) are not 3d vectors.",
+                                    cimg_instance,
+                                    img._width,img._height,img._depth,img._spectrum,img._data);
+
+      const T x = (*this)[0], y = (*this)[1], z = (*this)[2];
+      (*this)[0] = (T)(y*img[2] - z*img[1]);
+      (*this)[1] = (T)(z*img[0] - x*img[2]);
+      (*this)[2] = (T)(x*img[1] - y*img[0]);
+      return *this;
+    }
+
+    //! Compute the cross product between two \c 1x3 images, viewed as 3d vectors \newinstance.
+    template<typename t>
+    CImg<_cimg_Tt> get_cross(const CImg<t>& img) const {
+      return CImg<_cimg_Tt>(*this).cross(img);
+    }
+
+    //! Invert the instance image, viewed as a matrix.
+    /**
+       \param use_LU Choose the inverting algorithm. Can be:
+       - \c true: LU-based matrix inversion.
+       - \c false: SVD-based matrix inversion.
+    **/
+    CImg<T>& invert(const bool use_LU=true) {
+      if (_width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "invert(): Instance is not a square matrix.",
+                                    cimg_instance);
+#ifdef cimg_use_lapack
+      int INFO = (int)use_LU, N = _width, LWORK = 4*N, *const IPIV = new int[N];
+      Tfloat
+        *const lapA = new Tfloat[N*N],
+        *const WORK = new Tfloat[LWORK];
+      cimg_forXY(*this,k,l) lapA[k*N + l] = (Tfloat)((*this)(k,l));
+      cimg::getrf(N,lapA,IPIV,INFO);
+      if (INFO)
+        cimg::warn(_cimg_instance
+                   "invert(): LAPACK function dgetrf_() returned error code %d.",
+                   cimg_instance,
+                   INFO);
+      else {
+        cimg::getri(N,lapA,IPIV,WORK,LWORK,INFO);
+        if (INFO)
+          cimg::warn(_cimg_instance
+                     "invert(): LAPACK function dgetri_() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+      }
+      if (!INFO) cimg_forXY(*this,k,l) (*this)(k,l) = (T)(lapA[k*N + l]); else fill(0);
+      delete[] IPIV; delete[] lapA; delete[] WORK;
+#else
+      const double dete = _width>3?-1.0:det();
+      if (dete!=0.0 && _width==2) {
+        const double
+          a = _data[0], c = _data[1],
+          b = _data[2], d = _data[3];
+        _data[0] = (T)(d/dete); _data[1] = (T)(-c/dete);
+        _data[2] = (T)(-b/dete); _data[3] = (T)(a/dete);
+      } else if (dete!=0.0 && _width==3) {
+        const double
+          a = _data[0], d = _data[1], g = _data[2],
+          b = _data[3], e = _data[4], h = _data[5],
+          c = _data[6], f = _data[7], i = _data[8];
+        _data[0] = (T)((i*e-f*h)/dete), _data[1] = (T)((g*f-i*d)/dete), _data[2] = (T)((d*h-g*e)/dete);
+        _data[3] = (T)((h*c-i*b)/dete), _data[4] = (T)((i*a-c*g)/dete), _data[5] = (T)((g*b-a*h)/dete);
+        _data[6] = (T)((b*f-e*c)/dete), _data[7] = (T)((d*c-a*f)/dete), _data[8] = (T)((a*e-d*b)/dete);
+      } else {
+        if (use_LU) { // LU-based inverse computation
+          CImg<Tfloat> A(*this), indx, col(1,_width);
+          bool d;
+          A._LU(indx,d);
+          cimg_forX(*this,j) {
+            col.fill(0);
+            col(j) = 1;
+            col._solve(A,indx);
+            cimg_forX(*this,i) (*this)(j,i) = (T)col(i);
+          }
+        } else { // SVD-based inverse computation
+          CImg<Tfloat> U(_width,_width), S(1,_width), V(_width,_width);
+          SVD(U,S,V,false);
+          U.transpose();
+          cimg_forY(S,k) if (S[k]!=0) S[k]=1/S[k];
+          S.diagonal();
+          *this = V*S*U;
+        }
+      }
+#endif
+      return *this;
+    }
+
+    //! Invert the instance image, viewed as a matrix \newinstance.
+    CImg<Tfloat> get_invert(const bool use_LU=true) const {
+      return CImg<Tfloat>(*this,false).invert(use_LU);
+    }
+
+    //! Compute the Moore-Penrose pseudo-inverse of the instance image, viewed as a matrix.
+    /**
+    **/
+    CImg<T>& pseudoinvert() {
+      return get_pseudoinvert().move_to(*this);
+    }
+
+    //! Compute the Moore-Penrose pseudo-inverse of the instance image, viewed as a matrix \newinstance.
+    CImg<Tfloat> get_pseudoinvert() const {
+      CImg<Tfloat> U, S, V;
+      SVD(
