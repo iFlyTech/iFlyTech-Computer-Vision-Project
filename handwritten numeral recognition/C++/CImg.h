@@ -21760,4 +21760,196 @@ namespace cimg_library_suffixed {
 
           f = std::sqrt(f);
           const double l1 = 0.5*(e-f), l2 = 0.5*(e+f);
-          const double theta1
+          const double theta1 = std::atan2(l2-a,b), theta2 = std::atan2(l1-a,b);
+          val[0] = (t)l2;
+          val[1] = (t)l1;
+          vec(0,0) = (t)std::cos(theta1);
+          vec(0,1) = (t)std::sin(theta1);
+          vec(1,0) = (t)std::cos(theta2);
+          vec(1,1) = (t)std::sin(theta2);
+        } break;
+        default :
+          throw CImgInstanceException(_cimg_instance
+                                      "eigen(): Eigenvalues computation of general matrices is limited "
+                                      "to 2x2 matrices.",
+                                      cimg_instance);
+        }
+      }
+      return *this;
+    }
+
+    //! Compute eigenvalues and eigenvectors of the instance image, viewed as a matrix.
+    /**
+       \return A list of two images <tt>[val; vec]</tt>, whose meaning is similar as in eigen(CImg<t>&,CImg<t>&) const.
+    **/
+    CImgList<Tfloat> get_eigen() const {
+      CImgList<Tfloat> res(2);
+      eigen(res[0],res[1]);
+      return res;
+    }
+
+    //! Compute eigenvalues and eigenvectors of the instance image, viewed as a symmetric matrix.
+    /**
+       \param[out] val Vector of the estimated eigenvalues, in decreasing order.
+       \param[out] vec Matrix of the estimated eigenvectors, sorted by columns.
+    **/
+    template<typename t>
+    const CImg<T>& symmetric_eigen(CImg<t>& val, CImg<t>& vec) const {
+      if (is_empty()) { val.assign(); vec.assign(); }
+      else {
+#ifdef cimg_use_lapack
+        char JOB = 'V', UPLO = 'U';
+        int N = _width, LWORK = 4*N, INFO;
+        Tfloat
+          *const lapA = new Tfloat[N*N],
+          *const lapW = new Tfloat[N],
+          *const WORK = new Tfloat[LWORK];
+        cimg_forXY(*this,k,l) lapA[k*N + l] = (Tfloat)((*this)(k,l));
+        cimg::syev(JOB,UPLO,N,lapA,lapW,WORK,LWORK,INFO);
+        if (INFO)
+          cimg::warn(_cimg_instance
+                     "symmetric_eigen(): LAPACK library function dsyev_() returned error code %d.",
+                     cimg_instance,
+                     INFO);
+
+        val.assign(1,N);
+        vec.assign(N,N);
+        if (!INFO) {
+          cimg_forY(val,i) val(i) = (T)lapW[N - 1 -i];
+          cimg_forXY(vec,k,l) vec(k,l) = (T)(lapA[(N - 1 - k)*N + l]);
+        } else { val.fill(0); vec.fill(0); }
+        delete[] lapA; delete[] lapW; delete[] WORK;
+#else
+        if (_width!=_height || _depth>1 || _spectrum>1)
+          throw CImgInstanceException(_cimg_instance
+                                      "eigen(): Instance is not a square matrix.",
+                                      cimg_instance);
+
+        val.assign(1,_width);
+        if (vec._data) vec.assign(_width,_width);
+        if (_width<3) {
+          eigen(val,vec);
+          if (_width==2) { vec[1] = -vec[2]; vec[3] = vec[0]; } // Force orthogonality for 2x2 matrices.
+          return *this;
+        }
+        CImg<t> V(_width,_width);
+        Tfloat M = 0, m = (Tfloat)min_max(M), maxabs = cimg::max((Tfloat)1.0f,cimg::abs(m),cimg::abs(M));
+        (CImg<Tfloat>(*this,false)/=maxabs).SVD(vec,val,V,false);
+        if (maxabs!=1) val*=maxabs;
+
+        bool is_ambiguous = false;
+        float eig = 0;
+        cimg_forY(val,p) {       // check for ambiguous cases.
+          if (val[p]>eig) eig = (float)val[p];
+          t scal = 0;
+          cimg_forY(vec,y) scal+=vec(p,y)*V(p,y);
+          if (cimg::abs(scal)<0.9f) is_ambiguous = true;
+          if (scal<0) val[p] = -val[p];
+        }
+        if (is_ambiguous) {
+          ++(eig*=2);
+          SVD(vec,val,V,false,40,eig);
+          val-=eig;
+        }
+        CImg<intT> permutations;  // sort eigenvalues in decreasing order
+        CImg<t> tmp(_width);
+        val.sort(permutations,false);
+        cimg_forY(vec,k) {
+          cimg_forY(permutations,y) tmp(y) = vec(permutations(y),k);
+          std::memcpy(vec.data(0,k),tmp._data,sizeof(t)*_width);
+        }
+#endif
+      }
+      return *this;
+    }
+
+    //! Compute eigenvalues and eigenvectors of the instance image, viewed as a symmetric matrix.
+    /**
+       \return A list of two images <tt>[val; vec]</tt>, whose meaning are similar as in
+         symmetric_eigen(CImg<t>&,CImg<t>&) const.
+    **/
+    CImgList<Tfloat> get_symmetric_eigen() const {
+      CImgList<Tfloat> res(2);
+      symmetric_eigen(res[0],res[1]);
+      return res;
+    }
+
+    //! Sort pixel values and get sorting permutations.
+    /**
+       \param[out] permutations Permutation map used for the sorting.
+       \param is_increasing Tells if pixel values are sorted in an increasing (\c true) or decreasing (\c false) way.
+    **/
+    template<typename t>
+    CImg<T>& sort(CImg<t>& permutations, const bool is_increasing=true) {
+      permutations.assign(_width,_height,_depth,_spectrum);
+      if (is_empty()) return *this;
+      cimg_foroff(permutations,off) permutations[off] = (t)off;
+      return _quicksort(0,size() - 1,permutations,is_increasing,true);
+    }
+
+    //! Sort pixel values and get sorting permutations \newinstance.
+    template<typename t>
+    CImg<T> get_sort(CImg<t>& permutations, const bool is_increasing=true) const {
+      return (+*this).sort(permutations,is_increasing);
+    }
+
+    //! Sort pixel values.
+    /**
+       \param is_increasing Tells if pixel values are sorted in an increasing (\c true) or decreasing (\c false) way.
+       \param axis Tells if the value sorting must be done along a specific axis. Can be:
+       - \c 0: All pixel values are sorted, independently on their initial position.
+       - \c 'x': Image columns are sorted, according to the first value in each column.
+       - \c 'y': Image rows are sorted, according to the first value in each row.
+       - \c 'z': Image slices are sorted, according to the first value in each slice.
+       - \c 'c': Image channels are sorted, according to the first value in each channel.
+    **/
+    CImg<T>& sort(const bool is_increasing=true, const char axis=0) {
+      if (is_empty()) return *this;
+      CImg<uintT> perm;
+      switch (cimg::uncase(axis)) {
+      case 0 :
+        _quicksort(0,size() - 1,perm,is_increasing,false);
+        break;
+      case 'x' : {
+        perm.assign(_width);
+        get_crop(0,0,0,0,_width - 1,0,0,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(perm[x],y,z,c);
+      } break;
+      case 'y' : {
+        perm.assign(_height);
+        get_crop(0,0,0,0,0,_height - 1,0,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,perm[y],z,c);
+      } break;
+      case 'z' : {
+        perm.assign(_depth);
+        get_crop(0,0,0,0,0,0,_depth - 1,0).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,y,perm[z],c);
+      } break;
+      case 'c' : {
+        perm.assign(_spectrum);
+        get_crop(0,0,0,0,0,0,0,_spectrum - 1).sort(perm,is_increasing);
+        CImg<T> img(*this,false);
+        cimg_forXYZC(*this,x,y,z,c) (*this)(x,y,z,c) = img(x,y,z,perm[c]);
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "sort(): Invalid specified axis '%c' "
+                                    "(should be { x | y | z | c }).",
+                                    cimg_instance,axis);
+      }
+      return *this;
+    }
+
+    //! Sort pixel values \newinstance.
+    CImg<T> get_sort(const bool is_increasing=true, const char axis=0) const {
+      return (+*this).sort(is_increasing,axis);
+    }
+
+    template<typename t>
+    CImg<T>& _quicksort(const int indm, const int indM, CImg<t>& permutations,
+                        const bool is_increasing, const bool is_permutations) {
+      if (indm<indM) {
+        const int mid =
