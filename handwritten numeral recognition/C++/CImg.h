@@ -21952,4 +21952,186 @@ namespace cimg_library_suffixed {
     CImg<T>& _quicksort(const int indm, const int indM, CImg<t>& permutations,
                         const bool is_increasing, const bool is_permutations) {
       if (indm<indM) {
-        const int mid =
+        const int mid = (indm + indM)/2;
+        if (is_increasing) {
+          if ((*this)[indm]>(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+          if ((*this)[mid]>(*this)[indM]) {
+            cimg::swap((*this)[indM],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indM],permutations[mid]);
+          }
+          if ((*this)[indm]>(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+        } else {
+          if ((*this)[indm]<(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+          if ((*this)[mid]<(*this)[indM]) {
+            cimg::swap((*this)[indM],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indM],permutations[mid]);
+          }
+          if ((*this)[indm]<(*this)[mid]) {
+            cimg::swap((*this)[indm],(*this)[mid]);
+            if (is_permutations) cimg::swap(permutations[indm],permutations[mid]);
+          }
+        }
+        if (indM - indm>=3) {
+          const T pivot = (*this)[mid];
+          int i = indm, j = indM;
+          if (is_increasing) {
+            do {
+              while ((*this)[i]<pivot) ++i;
+              while ((*this)[j]>pivot) --j;
+              if (i<=j) {
+                if (is_permutations) cimg::swap(permutations[i],permutations[j]);
+                cimg::swap((*this)[i++],(*this)[j--]);
+              }
+            } while (i<=j);
+          } else {
+            do {
+              while ((*this)[i]>pivot) ++i;
+              while ((*this)[j]<pivot) --j;
+              if (i<=j) {
+                if (is_permutations) cimg::swap(permutations[i],permutations[j]);
+                cimg::swap((*this)[i++],(*this)[j--]);
+              }
+            } while (i<=j);
+          }
+          if (indm<j) _quicksort(indm,j,permutations,is_increasing,is_permutations);
+          if (i<indM) _quicksort(i,indM,permutations,is_increasing,is_permutations);
+        }
+      }
+      return *this;
+    }
+
+    //! Compute the SVD of the instance image, viewed as a general matrix.
+    /**
+       Compute the SVD decomposition \c *this=U*S*V' where \c U and \c V are orthogonal matrices
+       and \c S is a diagonal matrix. \c V' denotes the matrix transpose of \c V.
+       \param[out] U First matrix of the SVD product.
+       \param[out] S Coefficients of the second (diagonal) matrix of the SVD product.
+         These coefficients are stored as a vector.
+       \param[out] V Third matrix of the SVD product.
+       \param sorting Tells if the diagonal coefficients are sorted (in decreasing order).
+       \param max_iteration Maximum number of iterations considered for the algorithm convergence.
+       \param lambda Epsilon used for the algorithm convergence.
+       \note The instance matrix can be computed from \c U,\c S and \c V by
+       \code
+       const CImg<> A;  // Input matrix (assumed to contain some values).
+       CImg<> U,S,V;
+       A.SVD(U,S,V)
+       \endcode
+    **/
+    template<typename t>
+    const CImg<T>& SVD(CImg<t>& U, CImg<t>& S, CImg<t>& V, const bool sorting=true,
+                       const unsigned int max_iteration=40, const float lambda=0) const {
+      if (is_empty()) { U.assign(); S.assign(); V.assign(); }
+      else {
+        U = *this;
+        if (lambda!=0) {
+          const unsigned int delta = cimg::min(U._width,U._height);
+          for (unsigned int i = 0; i<delta; ++i) U(i,i) = (t)(U(i,i) + lambda);
+        }
+        if (S.size()<_width) S.assign(1,_width);
+        if (V._width<_width || V._height<_height) V.assign(_width,_width);
+        CImg<t> rv1(_width);
+        t anorm = 0, c, f, g = 0, h, s, scale = 0;
+        int l = 0, nm = 0;
+
+        cimg_forX(U,i) {
+          l = i + 1; rv1[i] = scale*g; g = s = scale = 0;
+          if (i<height()) {
+            for (int k = i; k<height(); ++k) scale+=cimg::abs(U(i,k));
+            if (scale) {
+              for (int k = i; k<height(); ++k) { U(i,k)/=scale; s+=U(i,k)*U(i,k); }
+              f = U(i,i); g = (t)((f>=0?-1:1)*std::sqrt(s)); h=f*g-s; U(i,i) = f-g;
+              for (int j = l; j<width(); ++j) {
+                s = 0;
+                for (int k=i; k<height(); ++k) s+=U(i,k)*U(j,k);
+                f = s/h;
+                for (int k = i; k<height(); ++k) U(j,k)+=f*U(i,k);
+              }
+              for (int k = i; k<height(); ++k) U(i,k)*=scale;
+            }
+          }
+          S[i]=scale*g;
+
+          g = s = scale = 0;
+          if (i<height() && i!=width() - 1) {
+            for (int k = l; k<width(); ++k) scale+=cimg::abs(U(k,i));
+            if (scale) {
+              for (int k = l; k<width(); ++k) { U(k,i)/= scale; s+=U(k,i)*U(k,i); }
+              f = U(l,i); g = (t)((f>=0?-1:1)*std::sqrt(s)); h = f*g-s; U(l,i) = f-g;
+              for (int k = l; k<width(); ++k) rv1[k]=U(k,i)/h;
+              for (int j = l; j<height(); ++j) {
+                s = 0;
+                for (int k = l; k<width(); ++k) s+=U(k,j)*U(k,i);
+                for (int k = l; k<width(); ++k) U(k,j)+=s*rv1[k];
+              }
+              for (int k = l; k<width(); ++k) U(k,i)*=scale;
+            }
+          }
+          anorm = (t)cimg::max((float)anorm,(float)(cimg::abs(S[i]) + cimg::abs(rv1[i])));
+        }
+
+        for (int i = width() - 1; i>=0; --i) {
+          if (i<width()-1) {
+            if (g) {
+              for (int j = l; j<width(); ++j) V(i,j) =(U(j,i)/U(l,i))/g;
+              for (int j = l; j<width(); ++j) {
+                s = 0;
+                for (int k = l; k<width(); ++k) s+=U(k,i)*V(j,k);
+                for (int k = l; k<width(); ++k) V(j,k)+=s*V(i,k);
+              }
+            }
+            for (int j = l; j<width(); ++j) V(j,i) = V(i,j) = (t)0.0;
+          }
+          V(i,i) = (t)1.0; g = rv1[i]; l = i;
+        }
+
+        for (int i = cimg::min(width(),height()) - 1; i>=0; --i) {
+          l = i + 1; g = S[i];
+          for (int j = l; j<width(); ++j) U(j,i) = 0;
+          if (g) {
+            g = 1/g;
+            for (int j = l; j<width(); ++j) {
+              s = 0; for (int k = l; k<height(); ++k) s+=U(i,k)*U(j,k);
+              f = (s/U(i,i))*g;
+              for (int k = i; k<height(); ++k) U(j,k)+=f*U(i,k);
+            }
+            for (int j = i; j<height(); ++j) U(i,j)*= g;
+          } else for (int j = i; j<height(); ++j) U(i,j) = 0;
+          ++U(i,i);
+        }
+
+        for (int k = width() - 1; k>=0; --k) {
+          for (unsigned int its = 0; its<max_iteration; ++its) {
+            bool flag = true;
+            for (l = k; l>=1; --l) {
+              nm = l - 1;
+              if ((cimg::abs(rv1[l]) + anorm)==anorm) { flag = false; break; }
+              if ((cimg::abs(S[nm]) + anorm)==anorm) break;
+            }
+            if (flag) {
+              c = 0; s = 1;
+              for (int i = l; i<=k; ++i) {
+                f = s*rv1[i]; rv1[i] = c*rv1[i];
+                if ((cimg::abs(f) + anorm)==anorm) break;
+                g = S[i]; h = (t)cimg::_pythagore(f,g); S[i] = h; h = 1/h; c = g*h; s = -f*h;
+                cimg_forY(U,j) { const t y = U(nm,j), z = U(i,j); U(nm,j) = y*c + z*s; U(i,j) = z*c - y*s; }
+              }
+            }
+
+            const t z = S[k];
+            if (l==k) { if (z<0) { S[k] = -z; cimg_forX(U,j) V(k,j) = -V(k,j); } break; }
+            nm = k - 1;
+            t x = S[l], y = S[nm];
+            g = rv1[nm]; h = rv1[k];
+            f = ((y - z)*(y + z)+(g - h)*(g + h))/cimg::max((t)1e-25,2*h*y);
+            g = (t)cimg::_pythagore(f,1.0);
+            f = ((x - z)*(x + z)+h*((y/(f + (f>=0?g:-g))) - h))/cimg::max((t
