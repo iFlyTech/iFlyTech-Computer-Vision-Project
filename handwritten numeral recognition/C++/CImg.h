@@ -22134,4 +22134,191 @@ namespace cimg_library_suffixed {
             g = rv1[nm]; h = rv1[k];
             f = ((y - z)*(y + z)+(g - h)*(g + h))/cimg::max((t)1e-25,2*h*y);
             g = (t)cimg::_pythagore(f,1.0);
-            f = ((x - z)*(x + z)+h*((y/(f + (f>=0?g:-g))) - h))/cimg::max((t
+            f = ((x - z)*(x + z)+h*((y/(f + (f>=0?g:-g))) - h))/cimg::max((t)1e-25,x);
+            c = s = 1;
+            for (int j = l; j<=nm; ++j) {
+              const int i = j + 1;
+              g = rv1[i]; h = s*g; g = c*g;
+              t y = S[i];
+              t z = (t)cimg::_pythagore(f,h);
+              rv1[j] = z; c = f/cimg::max((t)1e-25,z); s = h/cimg::max((t)1e-25,z);
+              f = x*c + g*s; g = g*c - x*s; h = y*s; y*=c;
+              cimg_forX(U,jj) { const t x = V(j,jj), z = V(i,jj); V(j,jj) = x*c + z*s; V(i,jj) = z*c - x*s; }
+              z = (t)cimg::_pythagore(f,h); S[j] = z;
+              if (z) { z = 1/cimg::max((t)1e-25,z); c = f*z; s = h*z; }
+              f = c*g + s*y; x = c*y - s*g;
+              cimg_forY(U,jj) { const t y = U(j,jj); z = U(i,jj); U(j,jj) = y*c + z*s; U(i,jj) = z*c - y*s; }
+            }
+            rv1[l] = 0; rv1[k]=f; S[k]=x;
+          }
+        }
+
+        if (sorting) {
+          CImg<intT> permutations;
+          CImg<t> tmp(_width);
+          S.sort(permutations,false);
+          cimg_forY(U,k) {
+            cimg_forY(permutations,y) tmp(y) = U(permutations(y),k);
+            std::memcpy(U.data(0,k),tmp._data,sizeof(t)*_width);
+          }
+          cimg_forY(V,k) {
+            cimg_forY(permutations,y) tmp(y) = V(permutations(y),k);
+            std::memcpy(V.data(0,k),tmp._data,sizeof(t)*_width);
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Compute the SVD of the instance image, viewed as a general matrix.
+    /**
+       \return A list of three images <tt>[U; S; V]</tt>, whose meaning is similar as in
+         SVD(CImg<t>&,CImg<t>&,CImg<t>&,bool,unsigned int,float) const.
+    **/
+    CImgList<Tfloat> get_SVD(const bool sorting=true,
+                             const unsigned int max_iteration=40, const float lambda=0) const {
+      CImgList<Tfloat> res(3);
+      SVD(res[0],res[1],res[2],sorting,max_iteration,lambda);
+      return res;
+    }
+
+    // [internal] Compute the LU decomposition of a permuted matrix.
+    template<typename t>
+    CImg<T>& _LU(CImg<t>& indx, bool& d) {
+      const int N = width();
+      int imax = 0;
+      CImg<Tfloat> vv(N);
+      indx.assign(N);
+      d = true;
+      cimg_forX(*this,i) {
+        Tfloat vmax = 0;
+        cimg_forX(*this,j) {
+          const Tfloat tmp = cimg::abs((*this)(j,i));
+          if (tmp>vmax) vmax = tmp;
+        }
+        if (vmax==0) { indx.fill(0); return fill(0); }
+        vv[i] = 1/vmax;
+      }
+      cimg_forX(*this,j) {
+        for (int i = 0; i<j; ++i) {
+          Tfloat sum=(*this)(j,i);
+          for (int k = 0; k<i; ++k) sum-=(*this)(k,i)*(*this)(j,k);
+          (*this)(j,i) = (T)sum;
+        }
+        Tfloat vmax = 0;
+        for (int i = j; i<width(); ++i) {
+          Tfloat sum=(*this)(j,i);
+          for (int k = 0; k<j; ++k) sum-=(*this)(k,i)*(*this)(j,k);
+          (*this)(j,i) = (T)sum;
+          const Tfloat tmp = vv[i]*cimg::abs(sum);
+          if (tmp>=vmax) { vmax=tmp; imax=i; }
+        }
+        if (j!=imax) {
+          cimg_forX(*this,k) cimg::swap((*this)(k,imax),(*this)(k,j));
+          d =!d;
+          vv[imax] = vv[j];
+        }
+        indx[j] = (t)imax;
+        if ((*this)(j,j)==0) (*this)(j,j) = (T)1e-20;
+        if (j<N) {
+          const Tfloat tmp = 1/(Tfloat)(*this)(j,j);
+          for (int i = j + 1; i<N; ++i) (*this)(j,i) = (T)((*this)(j,i)*tmp);
+        }
+      }
+      return *this;
+    }
+
+    //! Compute minimal path in a graph, using the Dijkstra algorithm.
+    /**
+       \param distance An object having operator()(unsigned int i, unsigned int j) which returns distance
+         between two nodes (i,j).
+       \param nb_nodes Number of graph nodes.
+       \param starting_node Indice of the starting node.
+       \param ending_node Indice of the ending node (set to ~0U to ignore ending node).
+       \param previous_node Array that gives the previous node indice in the path to the starting node
+         (optional parameter).
+       \return Array of distances of each node to the starting node.
+    **/
+    template<typename tf, typename t>
+    static CImg<T> dijkstra(const tf& distance, const unsigned int nb_nodes,
+                            const unsigned int starting_node, const unsigned int ending_node,
+                            CImg<t>& previous_node) {
+      if (starting_node>=nb_nodes)
+        throw CImgArgumentException("CImg<%s>::dijkstra(): Specified indice of starting node %u is higher "
+                                    "than number of nodes %u.",
+                                    pixel_type(),starting_node,nb_nodes);
+      CImg<T> dist(1,nb_nodes,1,1,cimg::type<T>::max());
+      dist(starting_node) = 0;
+      previous_node.assign(1,nb_nodes,1,1,(t)-1);
+      previous_node(starting_node) = (t)starting_node;
+      CImg<uintT> Q(nb_nodes);
+      cimg_forX(Q,u) Q(u) = (unsigned int)u;
+      cimg::swap(Q(starting_node),Q(0));
+      unsigned int sizeQ = nb_nodes;
+      while (sizeQ) {
+        // Update neighbors from minimal vertex
+        const unsigned int umin = Q(0);
+        if (umin==ending_node) sizeQ = 0;
+        else {
+          const T dmin = dist(umin);
+          const T infty = cimg::type<T>::max();
+          for (unsigned int q = 1; q<sizeQ; ++q) {
+            const unsigned int v = Q(q);
+            const T d = (T)distance(v,umin);
+            if (d<infty) {
+              const T alt = dmin + d;
+              if (alt<dist(v)) {
+                dist(v) = alt;
+                previous_node(v) = (t)umin;
+                const T distpos = dist(Q(q));
+                for (unsigned int pos = q, par = 0; pos && distpos<dist(Q(par=(pos + 1)/2 - 1)); pos=par)
+                  cimg::swap(Q(pos),Q(par));
+              }
+            }
+          }
+          // Remove minimal vertex from queue
+          Q(0) = Q(--sizeQ);
+          const T distpos = dist(Q(0));
+          for (unsigned int pos = 0, left = 0, right = 0;
+               ((right=2*(pos + 1),(left=right - 1))<sizeQ && distpos>dist(Q(left))) ||
+                 (right<sizeQ && distpos>dist(Q(right)));) {
+            if (right<sizeQ) {
+              if (dist(Q(left))<dist(Q(right))) { cimg::swap(Q(pos),Q(left)); pos = left; }
+              else { cimg::swap(Q(pos),Q(right)); pos = right; }
+            } else { cimg::swap(Q(pos),Q(left)); pos = left; }
+          }
+        }
+      }
+      return dist;
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    template<typename tf, typename t>
+    static CImg<T> dijkstra(const tf& distance, const unsigned int nb_nodes,
+                            const unsigned int starting_node, const unsigned int ending_node=~0U) {
+      CImg<uintT> foo;
+      return dijkstra(distance,nb_nodes,starting_node,ending_node,foo);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    /**
+       \param starting_node Indice of the starting node.
+       \param ending_node Indice of the ending node.
+       \param previous_node Array that gives the previous node indice in the path to the starting node
+         (optional parameter).
+       \return Array of distances of each node to the starting node.
+       \note image instance corresponds to the adjacency matrix of the graph.
+    **/
+    template<typename t>
+    CImg<T>& dijkstra(const unsigned int starting_node, const unsigned int ending_node,
+                      CImg<t>& previous_node) {
+      return get_dijkstra(starting_node,ending_node,previous_node).move_to(*this);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm \newinstance.
+    template<typename t>
+    CImg<T> get_dijkstra(const unsigned int starting_node, const unsigned int ending_node,
+                         CImg<t>& previous_node) const {
+      if (_width!=_height || _depth!=1 || _spectrum!=1)
+        throw CImgInstanceException(_cimg_instance
+                                    "dijkstra(): Instance is
