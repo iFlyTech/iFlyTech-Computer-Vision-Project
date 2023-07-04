@@ -22691,4 +22691,198 @@ namespace cimg_library_suffixed {
       }
       const float xx = X*X, xy = X*Y, xz = X*Z, xw = X*W, yy = Y*Y, yz = Y*Z, yw = Y*W, zz = Z*Z, zw = Z*W;
       return CImg<T>::matrix((T)(1 - 2*(yy + zz)), (T)(2*(xy + zw)),   (T)(2*(xz - yw)),
-            
+                             (T)(2*(xy - zw)),   (T)(1 - 2*(xx + zz)), (T)(2*(yz + xw)),
+                             (T)(2*(xz + yw)),   (T)(2*(yz - xw)),   (T)(1 - 2*(xx + yy)));
+    }
+
+    //@}
+    //-----------------------------------
+    //
+    //! \name Value Manipulation
+    //@{
+    //-----------------------------------
+
+    //! Fill all pixel values with specified value.
+    /**
+       \param val Fill value.
+    **/
+    CImg<T>& fill(const T& val) {
+      if (is_empty()) return *this;
+      if (val && sizeof(T)!=1) cimg_for(*this,ptrd,T) *ptrd = val;
+      else std::memset(_data,(int)val,sizeof(T)*size());
+      return *this;
+    }
+
+    //! Fill all pixel values with specified value \newinstance.
+    CImg<T> get_fill(const T& val) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val);
+    }
+
+    //! Fill sequentially all pixel values with specified values.
+    /**
+       \param val0 First fill value.
+       \param val1 Second fill value.
+    **/
+    CImg<T>& fill(const T& val0, const T& val1) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 1;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; }
+      if (ptrd!=ptre + 1) *(ptrd++) = val0;
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 2;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; }
+      ptre+=2;
+      switch (ptre - ptrd) {
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 3;
+      for (ptrd = _data; ptrd<ptre; ) { *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; }
+      ptre+=3;
+      switch (ptre - ptrd) {
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 4;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4;
+      }
+      ptre+=4;
+      switch (ptre - ptrd) {
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 5;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4; *(ptrd++) = val5;
+      }
+      ptre+=5;
+      switch (ptre - ptrd) {
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                  const T& val6) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 6;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4; *(ptrd++) = val5;
+        *(ptrd++) = val6;
+      }
+      ptre+=6;
+      switch (ptre - ptrd) {
+      case 6 : *(--ptre) = val5;
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                     const T& val6) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5,val6);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                  const T& val6, const T& val7) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 7;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3;
+        *(ptrd++) = val4; *(ptrd++) = val5; *(ptrd++) = val6; *(ptrd++) = val7;
+      }
+      ptre+=7;
+      switch (ptre - ptrd) {
+      case 7 : *(--ptre) = val6;
+      case 6 : *(--ptre) = val5;
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                     const T& val6, const T& val7) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5,val6,val7);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                  const T& val6, const T& val7, const T& val8) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 8;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2;
+        *(ptrd++) = val3; *(ptrd++) = val4; *(ptrd++) = val5;
+        *(ptrd++) = val6; *(ptrd++) = val7; *(ptrd++) = val8;
+      }
+      ptre+=8;
+      switch (ptre - ptrd) {
+      
