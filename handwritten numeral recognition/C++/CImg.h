@@ -22505,4 +22505,190 @@ namespace cimg_library_suffixed {
       *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
       *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
       *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
-      *(ptr++)
+      *(ptr++) = a12; *(ptr++) = a13; *(ptr++) = a14;
+      return r;
+    }
+
+    //! Return a \c 1x16 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11,
+                          const T& a12, const T& a13, const T& a14, const T& a15) {
+      CImg<T> r(1,16); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      *(ptr++) = a12; *(ptr++) = a13; *(ptr++) = a14; *(ptr++) = a15;
+      return r;
+    }
+
+    //! Return a 1x1 matrix containing specified coefficients.
+    /**
+       \param a0 First matrix value.
+       \note Equivalent to vector(const T&).
+    **/
+    static CImg<T> matrix(const T& a0) {
+      return vector(a0);
+    }
+
+    //! Return a 2x2 matrix containing specified coefficients.
+    /**
+       \param a0 First matrix value.
+       \param a1 Second matrix value.
+       \param a2 Third matrix value.
+       \param a3 Fourth matrix value.
+    **/
+    static CImg<T> matrix(const T& a0, const T& a1,
+                          const T& a2, const T& a3) {
+      CImg<T> r(2,2); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1;
+      *(ptr++) = a2; *(ptr++) = a3;
+      return r;
+    }
+
+    //! Return a 3x3 matrix containing specified coefficients.
+    /**
+       \param a0 First matrix value.
+       \param a1 Second matrix value.
+       \param a2 Third matrix value.
+       \param a3 Fourth matrix value.
+       \param a4 Fifth matrix value.
+       \param a5 Sixth matrix value.
+       \param a6 Seventh matrix value.
+       \param a7 Eighth matrix value.
+       \param a8 Nineth matrix value.
+    **/
+    static CImg<T> matrix(const T& a0, const T& a1, const T& a2,
+                          const T& a3, const T& a4, const T& a5,
+                          const T& a6, const T& a7, const T& a8) {
+      CImg<T> r(3,3); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2;
+      *(ptr++) = a3; *(ptr++) = a4; *(ptr++) = a5;
+      *(ptr++) = a6; *(ptr++) = a7; *(ptr++) = a8;
+      return r;
+    }
+
+    //! Return a 4x4 matrix containing specified coefficients.
+    static CImg<T> matrix(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11,
+                          const T& a12, const T& a13, const T& a14, const T& a15) {
+      CImg<T> r(4,4); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      *(ptr++) = a12; *(ptr++) = a13; *(ptr++) = a14; *(ptr++) = a15;
+      return r;
+    }
+
+    //! Return a 5x5 matrix containing specified coefficients.
+    static CImg<T> matrix(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4,
+                          const T& a5, const T& a6, const T& a7, const T& a8, const T& a9,
+                          const T& a10, const T& a11, const T& a12, const T& a13, const T& a14,
+                          const T& a15, const T& a16, const T& a17, const T& a18, const T& a19,
+                          const T& a20, const T& a21, const T& a22, const T& a23, const T& a24) {
+      CImg<T> r(5,5); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4;
+      *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7; *(ptr++) = a8; *(ptr++) = a9;
+      *(ptr++) = a10; *(ptr++) = a11; *(ptr++) = a12; *(ptr++) = a13; *(ptr++) = a14;
+      *(ptr++) = a15; *(ptr++) = a16; *(ptr++) = a17; *(ptr++) = a18; *(ptr++) = a19;
+      *(ptr++) = a20; *(ptr++) = a21; *(ptr++) = a22; *(ptr++) = a23; *(ptr++) = a24;
+      return r;
+    }
+
+    //! Return a 1x1 symmetric matrix containing specified coefficients.
+    /**
+       \param a0 First matrix value.
+       \note Equivalent to vector(const T&).
+    **/
+    static CImg<T> tensor(const T& a0) {
+      return matrix(a0);
+    }
+
+    //! Return a 2x2 symmetric matrix tensor containing specified coefficients.
+    static CImg<T> tensor(const T& a0, const T& a1, const T& a2) {
+      return matrix(a0,a1,a1,a2);
+    }
+
+    //! Return a 3x3 symmetric matrix containing specified coefficients.
+    static CImg<T> tensor(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4, const T& a5) {
+      return matrix(a0,a1,a2,a1,a3,a4,a2,a4,a5);
+    }
+
+    //! Return a 1x1 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0) {
+      return matrix(a0);
+    }
+
+    //! Return a 2x2 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1) {
+      return matrix(a0,0,0,a1);
+    }
+
+    //! Return a 3x3 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2) {
+      return matrix(a0,0,0,0,a1,0,0,0,a2);
+    }
+
+    //! Return a 4x4 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2, const T& a3) {
+      return matrix(a0,0,0,0,0,a1,0,0,0,0,a2,0,0,0,0,a3);
+    }
+
+    //! Return a 5x5 diagonal matrix containing specified coefficients.
+    static CImg<T> diagonal(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4) {
+      return matrix(a0,0,0,0,0,0,a1,0,0,0,0,0,a2,0,0,0,0,0,a3,0,0,0,0,0,a4);
+    }
+
+    //! Return a NxN identity matrix.
+    /**
+       \param N Dimension of the matrix.
+    **/
+    static CImg<T> identity_matrix(const unsigned int N) {
+      CImg<T> res(N,N,1,1,0);
+      cimg_forX(res,x) res(x,x) = 1;
+      return res;
+    }
+
+    //! Return a N-numbered sequence vector from \p a0 to \p a1.
+    /**
+       \param N Size of the resulting vector.
+       \param a0 Starting value of the sequence.
+       \param a1 Ending value of the sequence.
+     **/
+    static CImg<T> sequence(const unsigned int N, const T& a0, const T& a1) {
+      if (N) return CImg<T>(1,N).sequence(a0,a1);
+      return CImg<T>();
+    }
+
+    //! Return a 3x3 rotation matrix along the (x,y,z)-axis with an angle w.
+    /**
+       \param x X-coordinate of the rotation axis, or first quaternion coordinate.
+       \param y Y-coordinate of the rotation axis, or second quaternion coordinate.
+       \param z Z-coordinate of the rotation axis, or third quaternion coordinate.
+       \param w Angle of the rotation axis, or fourth quaternion coordinate.
+       \param is_quaternion Tell is the four arguments denotes a set { axis + angle } or a quaternion.
+     **/
+    static CImg<T> rotation_matrix(const float x, const float y, const float z, const float w,
+                                   const bool is_quaternion=false) {
+      float X,Y,Z,W;
+      if (!is_quaternion) {
+        const float norm = (float)std::sqrt(x*x + y*y + z*z),
+          nx = norm>0?x/norm:0,
+          ny = norm>0?y/norm:0,
+          nz = norm>0?z/norm:1,
+          nw = norm>0?w:0,
+          sina = (float)std::sin(nw/2),
+          cosa = (float)std::cos(nw/2);
+        X = nx*sina;
+        Y = ny*sina;
+        Z = nz*sina;
+        W = cosa;
+      } else {
+        const float norm = (float)std::sqrt(x*x + y*y + z*z + w*w);
+        if (norm>0) { X = x/norm; Y = y/norm; Z = z/norm; W = w/norm; }
+        else { X = Y = Z = 0; W = 1; }
+      }
+      const float xx = X*X, xy = X*Y, xz = X*Z, xw = X*W, yy = Y*Y, yz = Y*Z, yw = Y*W, zz = Z*Z, zw = Z*W;
+      return CImg<T>::matrix((T)(1 - 2*(yy + zz)), (T)(2*(xy + zw)),   (T)(2*(xz - yw)),
+            
