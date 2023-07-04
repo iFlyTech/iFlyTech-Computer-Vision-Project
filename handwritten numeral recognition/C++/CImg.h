@@ -22321,4 +22321,188 @@ namespace cimg_library_suffixed {
                          CImg<t>& previous_node) const {
       if (_width!=_height || _depth!=1 || _spectrum!=1)
         throw CImgInstanceException(_cimg_instance
-                                    "dijkstra(): Instance is
+                                    "dijkstra(): Instance is not a graph adjacency matrix.",
+                                    cimg_instance);
+
+      return dijkstra(*this,_width,starting_node,ending_node,previous_node);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm.
+    CImg<T>& dijkstra(const unsigned int starting_node, const unsigned int ending_node=~0U) {
+      return get_dijkstra(starting_node,ending_node).move_to(*this);
+    }
+
+    //! Return minimal path in a graph, using the Dijkstra algorithm \newinstance.
+    CImg<Tfloat> get_dijkstra(const unsigned int starting_node, const unsigned int ending_node=~0U) const {
+      CImg<uintT> foo;
+      return get_dijkstra(starting_node,ending_node,foo);
+    }
+
+    //! Return an image containing the ascii codes of the specified  string.
+    /**
+       \param str input C-string to encode as an image.
+       \param is_last_zero Tells if the ending \c '0' character appear in the resulting image.
+    **/
+    static CImg<T> string(const char *const str, const bool is_last_zero=true, const bool is_shared=false) {
+      if (!str) return CImg<T>();
+      return CImg<T>(str,(unsigned int)std::strlen(str) + (is_last_zero?1:0),1,1,1,is_shared);
+    }
+
+    //! Return a \c 1x1 image containing specified value.
+    /**
+       \param a0 First vector value.
+    **/
+    static CImg<T> vector(const T& a0) {
+      CImg<T> r(1,1);
+      r[0] = a0;
+      return r;
+    }
+
+    //! Return a \c 1x2 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1) {
+      CImg<T> r(1,2); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1;
+      return r;
+    }
+
+    //! Return a \c 1x3 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+       \param a2 Third vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2) {
+      CImg<T> r(1,3); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2;
+      return r;
+    }
+
+    //! Return a \c 1x4 image containing specified values.
+    /**
+       \param a0 First vector value.
+       \param a1 Second vector value.
+       \param a2 Third vector value.
+       \param a3 Fourth vector value.
+    **/
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3) {
+      CImg<T> r(1,4); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      return r;
+    }
+
+    //! Return a \c 1x5 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4) {
+      CImg<T> r(1,5); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4;
+      return r;
+    }
+
+    //! Return a \c 1x6 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3, const T& a4, const T& a5) {
+      CImg<T> r(1,6); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3; *(ptr++) = a4; *(ptr++) = a5;
+      return r;
+    }
+
+    //! Return a \c 1x7 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6) {
+      CImg<T> r(1,7); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6;
+      return r;
+    }
+
+    //! Return a \c 1x8 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7) {
+      CImg<T> r(1,8); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      return r;
+    }
+
+    //! Return a \c 1x9 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8) {
+      CImg<T> r(1,9); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8;
+      return r;
+    }
+
+    //! Return a \c 1x10 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9) {
+      CImg<T> r(1,10); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9;
+      return r;
+    }
+
+    //! Return a \c 1x11 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10) {
+      CImg<T> r(1,11); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10;
+      return r;
+    }
+
+    //! Return a \c 1x12 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11) {
+      CImg<T> r(1,12); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      return r;
+    }
+
+    //! Return a \c 1x13 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11,
+                          const T& a12) {
+      CImg<T> r(1,13); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      *(ptr++) = a12;
+      return r;
+    }
+
+    //! Return a \c 1x14 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11,
+                          const T& a12, const T& a13) {
+      CImg<T> r(1,14); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      *(ptr++) = a12; *(ptr++) = a13;
+      return r;
+    }
+
+    //! Return a \c 1x15 image containing specified values.
+    static CImg<T> vector(const T& a0, const T& a1, const T& a2, const T& a3,
+                          const T& a4, const T& a5, const T& a6, const T& a7,
+                          const T& a8, const T& a9, const T& a10, const T& a11,
+                          const T& a12, const T& a13, const T& a14) {
+      CImg<T> r(1,15); T *ptr = r._data;
+      *(ptr++) = a0; *(ptr++) = a1; *(ptr++) = a2; *(ptr++) = a3;
+      *(ptr++) = a4; *(ptr++) = a5; *(ptr++) = a6; *(ptr++) = a7;
+      *(ptr++) = a8; *(ptr++) = a9; *(ptr++) = a10; *(ptr++) = a11;
+      *(ptr++)
