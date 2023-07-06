@@ -23051,4 +23051,154 @@ namespace cimg_library_suffixed {
       case 13 : *(--ptre) = val12;
       case 12 : *(--ptre) = val11;
       case 11 : *(--ptre) = val10;
-      c
+      case 10 : *(--ptre) = val9;
+      case 9 : *(--ptre) = val8;
+      case 8 : *(--ptre) = val7;
+      case 7 : *(--ptre) = val6;
+      case 6 : *(--ptre) = val5;
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                     const T& val6, const T& val7, const T& val8, const T& val9, const T& val10, const T& val11,
+                     const T& val12, const T& val13) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10,
+                                                           val11,val12,val13);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                  const T& val6, const T& val7, const T& val8, const T& val9, const T& val10, const T& val11,
+                  const T& val12, const T& val13, const T& val14) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 14;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4; *(ptrd++) = val5;
+        *(ptrd++) = val6; *(ptrd++) = val7; *(ptrd++) = val8; *(ptrd++) = val9; *(ptrd++) = val10; *(ptrd++) = val11;
+        *(ptrd++) = val12; *(ptrd++) = val13; *(ptrd++) = val14;
+      }
+      ptre+=14;
+      switch (ptre - ptrd) {
+      case 14 : *(--ptre) = val13;
+      case 13 : *(--ptre) = val12;
+      case 12 : *(--ptre) = val11;
+      case 11 : *(--ptre) = val10;
+      case 10 : *(--ptre) = val9;
+      case 9 : *(--ptre) = val8;
+      case 8 : *(--ptre) = val7;
+      case 7 : *(--ptre) = val6;
+      case 6 : *(--ptre) = val5;
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                     const T& val6, const T& val7, const T& val8, const T& val9, const T& val10, const T& val11,
+                     const T& val12, const T& val13, const T& val14) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10,
+                                                           val11,val12,val13,val14);
+    }
+
+    //! Fill sequentially all pixel values with specified values \overloading.
+    CImg<T>& fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                  const T& val6, const T& val7, const T& val8, const T& val9, const T& val10, const T& val11,
+                  const T& val12, const T& val13, const T& val14, const T& val15) {
+      if (is_empty()) return *this;
+      T *ptrd, *ptre = end() - 15;
+      for (ptrd = _data; ptrd<ptre; ) {
+        *(ptrd++) = val0; *(ptrd++) = val1; *(ptrd++) = val2; *(ptrd++) = val3; *(ptrd++) = val4; *(ptrd++) = val5;
+        *(ptrd++) = val6; *(ptrd++) = val7; *(ptrd++) = val8; *(ptrd++) = val9; *(ptrd++) = val10; *(ptrd++) = val11;
+        *(ptrd++) = val12; *(ptrd++) = val13; *(ptrd++) = val14; *(ptrd++) = val15;
+      }
+      ptre+=15;
+      switch (ptre - ptrd) {
+      case 15 : *(--ptre) = val14;
+      case 14 : *(--ptre) = val13;
+      case 13 : *(--ptre) = val12;
+      case 12 : *(--ptre) = val11;
+      case 11 : *(--ptre) = val10;
+      case 10 : *(--ptre) = val9;
+      case 9 : *(--ptre) = val8;
+      case 8 : *(--ptre) = val7;
+      case 7 : *(--ptre) = val6;
+      case 6 : *(--ptre) = val5;
+      case 5 : *(--ptre) = val4;
+      case 4 : *(--ptre) = val3;
+      case 3 : *(--ptre) = val2;
+      case 2 : *(--ptre) = val1;
+      case 1 : *(--ptre) = val0;
+      }
+      return *this;
+    }
+
+    //! Fill sequentially all pixel values with specified values \newinstance.
+    CImg<T> get_fill(const T& val0, const T& val1, const T& val2, const T& val3, const T& val4, const T& val5,
+                     const T& val6, const T& val7, const T& val8, const T& val9, const T& val10, const T& val11,
+                     const T& val12, const T& val13, const T& val14, const T& val15) const {
+      return CImg<T>(_width,_height,_depth,_spectrum).fill(val0,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10,
+                                                           val11,val12,val13,val14,val15);
+    }
+
+    //! Fill sequentially pixel values according to a given expression.
+    /**
+       \param expression C-string describing a math formula, or a list of values.
+       \param repeat_values In case a list of values is provided, tells if this list must be repeated for the filling.
+       \param allow_formula tells if a formula is allowed or only a list of values.
+       \param list_inputs In case of a mathematical expression, attach a list of images to the specified expression.
+       \param list_outputs In case of a mathematical expression, attach a list of images to the specified expression.
+    **/
+    CImg<T>& fill(const char *const expression, const bool repeat_values, const bool allow_formula=true,
+                  const CImgList<T> *const list_inputs=0, CImgList<T> *const list_outputs=0) {
+      return _fill(expression,repeat_values,allow_formula,list_inputs,list_outputs,"fill",0);
+    }
+
+    CImg<T>& _fill(const char *const expression, const bool repeat_values, const bool allow_formula,
+                   const CImgList<T> *const list_inputs, CImgList<T> *const list_outputs,
+                   const char *const calling_function, const CImg<T> *provides_copy) {
+      if (is_empty() || !expression || !*expression) return *this;
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      CImg<charT> is_error;
+
+      if (allow_formula) try { // Try to fill values according to a formula
+          CImg<T> base = provides_copy?provides_copy->get_shared():get_shared();
+          _cimg_math_parser mp(expression + (*expression=='>' || *expression=='<' ||
+                                             *expression=='*' || *expression==':'?1:0),
+                               calling_function,base,this,list_inputs,list_outputs);
+          if (!provides_copy && expression && *expression!='>' && *expression!='<' && *expression!=':' &&
+              mp.need_input_copy)
+            base.assign().assign(*this); // Needs input copy
+
+          bool do_in_parallel = false;
+#ifdef cimg_use_openmp
+          cimg_openmp_if(*expression=='*' || *expression==':' ||
+                         (mp.is_parallelizable && _width>=320 && _height*_depth*_spectrum>=2 &&
+                          std::strlen(expression)>=6))
+            do_in_parallel = true;
+#endif
+          if (mp.result_dim) { // Vector-valued expression
+            const unsigned int N = cimg::min(mp.result_dim,_spectrum);
+            const ulongT whd = (ulongT)_width*_height*_depth;
+            T *ptrd = *expression=='<'?_data + _width*_height*_depth - 1:_data;
+            if (*expression=='<') {
+              CImg<doubleT> res(1,mp.result_dim);
+              cimg_rofXYZ(*this,x,y,z) {
+                mp(x,y,z,0,res._data);
+                const double *ptrs = res._data;
+                T *_ptrd = ptrd--; for (unsigned int n = N; n>0; --n) { *_ptrd = (T)(*ptrs++); _ptrd+=whd; }
+              }
+            } else if (*expression=='>' || !do_in_parallel) {
+              CImg<doub
