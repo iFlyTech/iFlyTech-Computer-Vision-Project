@@ -23372,4 +23372,211 @@ namespace cimg_library_suffixed {
        \param x X-coordinate of the filled channel.
        \param y Y-coordinate of the filled channel.
        \param z Z-coordinate of the filled channel.
-       \param
+       \param a0 First filling value.
+    **/
+    CImg<T>& fillC(const unsigned int x, const unsigned int y, const unsigned int z, const int a0, ...) {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (x<_width && y<_height && z<_depth) _cimg_fill1(x,y,z,0,whd,_spectrum,int);
+      return *this;
+    }
+
+    //! Fill pixel values along the C-axis at a specified pixel position \overloading.
+    CImg<T>& fillC(const unsigned int x, const unsigned int y, const unsigned int z, const double a0, ...) {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      if (x<_width && y<_height && z<_depth) _cimg_fill1(x,y,z,0,whd,_spectrum,double);
+      return *this;
+    }
+
+    //! Discard specified sequence of values in the image buffer, along a specific axis.
+    /**
+       \param values Sequence of values to discard.
+       \param axis Axis along which the values are discarded. If set to \c 0 (default value)
+         the method does it for all the buffer values and returns a one-column vector.
+       \note Discarded values will change the image geometry, so the resulting image
+       is returned as a one-column vector.
+    **/
+    template<typename t>
+    CImg<T>& discard(const CImg<t>& values, const char axis=0) {
+      if (is_empty() || !values) return *this;
+      return get_discard(values,axis).move_to(*this);
+    }
+
+    template<typename t>
+    CImg<T> get_discard(const CImg<t>& values, const char axis=0) const {
+      CImg<T> res;
+      if (!values) return +*this;
+      if (is_empty()) return res;
+      const ulongT vsiz = values.size();
+      const char _axis = cimg::uncase(axis);
+      ulongT j = 0;
+      unsigned int k = 0;
+      int i0 = 0;
+      res.assign(width(),height(),depth(),spectrum());
+      switch (_axis) {
+      case 'x' : {
+        cimg_forX(*this,i) {
+          if ((*this)(i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(k,get_columns(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<width()) { res.draw_image(k,get_columns(i0,width() - 1)); k+=width() - i0; }
+        res.resize(k,-100,-100,-100,0);
+      } break;
+      case 'y' : {
+        cimg_forY(*this,i) {
+          if ((*this)(0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,k,get_rows(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<height()) { res.draw_image(0,k,get_rows(i0,height() - 1)); k+=height() - i0; }
+        res.resize(-100,k,-100,-100,0);
+      } break;
+      case 'z' : {
+        cimg_forZ(*this,i) {
+          if ((*this)(0,0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,0,k,get_slices(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<depth()) { res.draw_image(0,0,k,get_slices(i0,height() - 1)); k+=depth() - i0; }
+        res.resize(-100,-100,k,-100,0);
+      } break;
+      case 'c' : {
+        cimg_forC(*this,i) {
+          if ((*this)(0,0,0,i)!=(T)values[j]) {
+            if (j) --i;
+            res.draw_image(0,0,0,k,get_channels(i0,i));
+            k+=i - i0 + 1; i0 = i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = i + 1; } }
+        }
+        if (i0<spectrum()) { res.draw_image(0,0,k,get_channels(i0,height() - 1)); k+=spectrum() - i0; }
+        res.resize(-100,-100,-100,k,0);
+      } break;
+      default : {
+        res.unroll('y');
+        cimg_foroff(*this,i) {
+          if ((*this)[i]!=(T)values[j]) {
+            if (j) --i;
+            std::memcpy(res._data + k,_data + i0,(i - i0 + 1)*sizeof(T));
+            k+=i - i0 + 1; i0 = (int)i + 1; j = 0;
+          } else { ++j; if (j>=vsiz) { j = 0; i0 = (int)i + 1; }}
+        }
+        const ulongT siz = size();
+        if ((ulongT)i0<siz) { std::memcpy(res._data + k,_data + i0,(siz - i0)*sizeof(T)); k+=siz - i0; }
+        res.resize(1,k,1,1,0);
+      }
+      }
+      return res;
+    }
+
+    //! Discard neighboring duplicates in the image buffer, along the specified axis.
+    CImg<T>& discard(const char axis=0) {
+      return get_discard(axis).move_to(*this);
+    }
+
+    //! Discard neighboring duplicates in the image buffer, along the specified axis \newinstance.
+    CImg<T> get_discard(const char axis=0) const {
+      CImg<T> res;
+      if (is_empty()) return res;
+      const char _axis = cimg::uncase(axis);
+      T current = *_data?0:(T)1;
+      int j = 0;
+      res.assign(width(),height(),depth(),spectrum());
+      switch (_axis) {
+      case 'x' : {
+        cimg_forX(*this,i)
+          if ((*this)(i)!=current) { res.draw_image(j++,get_column(i)); current = (*this)(i); }
+        res.resize(j,-100,-100,-100,0);
+      } break;
+      case 'y' : {
+        cimg_forY(*this,i)
+          if ((*this)(0,i)!=current) { res.draw_image(0,j++,get_row(i)); current = (*this)(0,i); }
+        res.resize(-100,j,-100,-100,0);
+      } break;
+      case 'z' : {
+        cimg_forZ(*this,i)
+          if ((*this)(0,0,i)!=current) { res.draw_image(0,0,j++,get_slice(i)); current = (*this)(0,0,i); }
+        res.resize(-100,-100,j,-100,0);
+      } break;
+      case 'c' : {
+        cimg_forC(*this,i)
+          if ((*this)(0,0,0,i)!=current) { res.draw_image(0,0,0,j++,get_channel(i)); current = (*this)(0,0,0,i); }
+        res.resize(-100,-100,-100,j,0);
+      } break;
+      default : {
+        res.unroll('y');
+        cimg_foroff(*this,i)
+          if ((*this)[i]!=current) res[j++] = current = (*this)[i];
+        res.resize(-100,j,-100,-100,0);
+      }
+      }
+      return res;
+    }
+
+    //! Invert endianness of all pixel values.
+    /**
+     **/
+    CImg<T>& invert_endianness() {
+      cimg::invert_endianness(_data,size());
+      return *this;
+    }
+
+    //! Invert endianness of all pixel values \newinstance.
+    CImg<T> get_invert_endianness() const {
+      return (+*this).invert_endianness();
+    }
+
+    //! Fill image with random values in specified range.
+    /**
+       \param val_min Minimal authorized random value.
+       \param val_max Maximal authorized random value.
+       \note Random variables are uniformely distributed in [val_min,val_max].
+     **/
+    CImg<T>& rand(const T& val_min, const T& val_max) {
+      const float delta = (float)val_max - (float)val_min + (cimg::type<T>::is_float()?0:1);
+      if (cimg::type<T>::is_float()) cimg_for(*this,ptrd,T) *ptrd = (T)(val_min + cimg::rand()*delta);
+      else cimg_for(*this,ptrd,T) *ptrd = cimg::min(val_max,(T)(val_min + cimg::rand()*delta));
+      return *this;
+    }
+
+    //! Fill image with random values in specified range \newinstance.
+    CImg<T> get_rand(const T& val_min, const T& val_max) const {
+      return (+*this).rand(val_min,val_max);
+    }
+
+    //! Round pixel values.
+    /**
+       \param y Rounding precision.
+       \param rounding_type Rounding type. Can be:
+       - \c -1: Backward.
+       - \c 0: Nearest.
+       - \c 1: Forward.
+    **/
+    CImg<T>& round(const double y=1, const int rounding_type=0) {
+      if (y>0)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=8192)
+#endif
+        cimg_rof(*this,ptrd,T) *ptrd = cimg::round(*ptrd,y,rounding_type);
+      return *this;
+    }
+
+    //! Round pixel values \newinstance.
+    CImg<T> get_round(const double y=1, const unsigned int rounding_type=0) const {
+      return (+*this).round(y,rounding_type);
+    }
+
+    //! Add random noise to pixel values.
+    /**
+       \param sigma Amplitude of the random additive noise. If \p sigma<0, it stands for a percentage of the
+         global value range.
+       \param noise_type Type of additive noise (can be \p 0=gaussian, \p 1=uniform, \p 2=Salt and Pepper,
+         \p 3=Poisson or \p 4=Rician).
+       \return A reference to the modified image instance.
+       \note
+       - For Poisson noise (\p noise_type=3), parameter \p sigma is ignored, as Poisson noise only d
