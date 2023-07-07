@@ -23579,4 +23579,212 @@ namespace cimg_library_suffixed {
          \p 3=Poisson or \p 4=Rician).
        \return A reference to the modified image instance.
        \note
-       - For Poisson noise (\p noise_type=3), parameter \p sigma is ignored, as Poisson noise only d
+       - For Poisson noise (\p noise_type=3), parameter \p sigma is ignored, as Poisson noise only depends on
+         the image value itself.
+       - Function \p CImg<T>::get_noise() is also defined. It returns a non-shared modified copy of the image instance.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_noise(40);
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_noise.jpg
+    **/
+    CImg<T>& noise(const double sigma, const unsigned int noise_type=0) {
+      if (is_empty()) return *this;
+      const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+      Tfloat nsigma = (Tfloat)sigma, m = 0, M = 0;
+      if (nsigma==0 && noise_type!=3) return *this;
+      if (nsigma<0 || noise_type==2) m = (Tfloat)min_max(M);
+      if (nsigma<0) nsigma = (Tfloat)(-nsigma*(M-m)/100.0);
+      switch (noise_type) {
+      case 0 : { // Gaussian noise
+        cimg_rof(*this,ptrd,T) {
+          Tfloat val = (Tfloat)(*ptrd + nsigma*cimg::grand());
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      case 1 : { // Uniform noise
+        cimg_rof(*this,ptrd,T) {
+          Tfloat val = (Tfloat)(*ptrd + nsigma*cimg::rand(-1,1));
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      case 2 : { // Salt & Pepper noise
+        if (nsigma<0) nsigma = -nsigma;
+        if (M==m) { m = 0; M = (Tfloat)(cimg::type<T>::is_float()?1:cimg::type<T>::max()); }
+        cimg_rof(*this,ptrd,T) if (cimg::rand(100)<nsigma) *ptrd = (T)(cimg::rand()<0.5?M:m);
+      } break;
+      case 3 : { // Poisson Noise
+        cimg_rof(*this,ptrd,T) *ptrd = (T)cimg::prand(*ptrd);
+      } break;
+      case 4 : { // Rice noise
+        const Tfloat sqrt2 = (Tfloat)std::sqrt(2.0);
+        cimg_rof(*this,ptrd,T) {
+          const Tfloat
+            val0 = (Tfloat)*ptrd/sqrt2,
+            re = (Tfloat)(val0 + nsigma*cimg::grand()),
+            im = (Tfloat)(val0 + nsigma*cimg::grand());
+          Tfloat val = (Tfloat)std::sqrt(re*re + im*im);
+          if (val>vmax) val = vmax;
+          if (val<vmin) val = vmin;
+          *ptrd = (T)val;
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "noise(): Invalid specified noise type %d "
+                                    "(should be { 0=gaussian | 1=uniform | 2=salt&Pepper | 3=poisson }).",
+                                    cimg_instance,
+                                    noise_type);
+      }
+      return *this;
+    }
+
+    //! Add random noise to pixel values \newinstance.
+    CImg<T> get_noise(const double sigma, const unsigned int noise_type=0) const {
+      return (+*this).noise(sigma,noise_type);
+    }
+
+    //! Linearly normalize pixel values.
+    /**
+       \param min_value Minimum desired value of the resulting image.
+       \param max_value Maximum desired value of the resulting image.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_normalize(160,220);
+       (img,res).display();
+       \endcode
+       \image html ref_normalize2.jpg
+    **/
+    CImg<T>& normalize(const T& min_value, const T& max_value) {
+      if (is_empty()) return *this;
+      const T a = min_value<max_value?min_value:max_value, b = min_value<max_value?max_value:min_value;
+      T m, M = max_min(m);
+      const Tfloat fm = (Tfloat)m, fM = (Tfloat)M;
+      if (m==M) return fill(min_value);
+      if (m!=a || M!=b)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=65536)
+#endif
+        cimg_rof(*this,ptrd,T) *ptrd = (T)((*ptrd - fm)/(fM - fm)*(b - a) + a);
+      return *this;
+    }
+
+    //! Linearly normalize pixel values \newinstance.
+    CImg<Tfloat> get_normalize(const T& min_value, const T& max_value) const {
+      return CImg<Tfloat>(*this,false).normalize((Tfloat)min_value,(Tfloat)max_value);
+    }
+
+    //! Normalize multi-valued pixels of the image instance, with respect to their L2-norm.
+    /**
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_normalize();
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_normalize.jpg
+    **/
+    CImg<T>& normalize() {
+      const ulongT whd = (ulongT)_width*_height*_depth;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+      cimg_forYZ(*this,y,z) {
+        T *ptrd = data(0,y,z,0);
+        cimg_forX(*this,x) {
+          const T *ptrs = ptrd;
+          float n = 0;
+          cimg_forC(*this,c) { n+=cimg::sqr((float)*ptrs); ptrs+=whd; }
+          n = (float)std::sqrt(n);
+          T *_ptrd = ptrd++;
+          if (n>0) cimg_forC(*this,c) { *_ptrd = (T)(*_ptrd/n); _ptrd+=whd; }
+          else cimg_forC(*this,c) { *_ptrd = (T)0; _ptrd+=whd; }
+        }
+      }
+      return *this;
+    }
+
+    //! Normalize multi-valued pixels of the image instance, with respect to their L2-norm \newinstance.
+    CImg<Tfloat> get_normalize() const {
+      return CImg<Tfloat>(*this,false).normalize();
+    }
+
+    //! Compute Lp-norm of each multi-valued pixel of the image instance.
+    /**
+       \param norm_type Type of computed vector norm (can be \p -1=Linf, or \p>=0).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_norm();
+       (img,res.normalize(0,255)).display();
+       \endcode
+       \image html ref_norm.jpg
+    **/
+    CImg<T>& norm(const int norm_type=2) {
+      if (_spectrum==1 && norm_type) return abs();
+      return get_norm(norm_type).move_to(*this);
+    }
+
+    //! Compute L2-norm of each multi-valued pixel of the image instance \newinstance.
+    CImg<Tfloat> get_norm(const int norm_type=2) const {
+      if (is_empty()) return *this;
+      if (_spectrum==1 && norm_type) return get_abs();
+      const ulongT whd = (ulongT)_width*_height*_depth;
+      CImg<Tfloat> res(_width,_height,_depth);
+      switch (norm_type) {
+      case -1 : { // Linf-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { const Tfloat val = (Tfloat)cimg::abs(*_ptrs); if (val>n) n = val; _ptrs+=whd; }
+            *(ptrd++) = n;
+          }
+        }
+      } break;
+      case 0 : { // L0-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            unsigned int n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=*_ptrs==0?0:1; _ptrs+=whd; }
+            *(ptrd++) = (Tfloat)n;
+          }
+        }
+      } break;
+      case 1 : { // L1-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+        cimg_forYZ(*this,y,z) {
+          const ulongT off = (ulongT)offset(0,y,z);
+          const T *ptrs = _data + off;
+          Tfloat *ptrd = res._data + off;
+          cimg_forX(*this,x) {
+            Tfloat n = 0;
+            const T *_ptrs = ptrs++;
+            cimg_forC(*this,c) { n+=cimg::abs(*_ptrs); _ptrs+=whd; }
+            *(ptrd++) = n;
+          }
+        }
+      } break;
+      case 2 : { // L2-norm.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16)
+#endif
+  
