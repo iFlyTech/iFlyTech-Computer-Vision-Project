@@ -24295,4 +24295,177 @@ namespace cimg_library_suffixed {
 #endif
           cimg_forYZ(*this,y,z) {
             tuint *ptrd = res.data(0,y,z);
-            for (const T *ptrs =
+            for (const T *ptrs = data(0,y,z), *ptrs_end = ptrs + _width; ptrs<ptrs_end; ++ptrs) {
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin = colormap._data;
+              for (const t *ptrp = colormap._data, *ptrp_end = ptrp + pwhd; ptrp<ptrp_end; ++ptrp) {
+                Tfloat dist = 0; const T *_ptrs = ptrs; const t *_ptrp = ptrp;
+                cimg_forC(*this,c) { dist+=cimg::sqr((Tfloat)*_ptrs - (Tfloat)*_ptrp); _ptrs+=whd; _ptrp+=pwhd; }
+                if (dist<distmin) { ptrmin = ptrp; distmin = dist; }
+              }
+              if (map_indexes) {
+                tuint *_ptrd = ptrd++;
+                cimg_forC(*this,c) { *_ptrd = (tuint)*ptrmin; _ptrd+=whd; ptrmin+=pwhd; }
+              }
+              else *(ptrd++) = (tuint)(ptrmin - colormap._data);
+            }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Map predefined colormap on the scalar (indexed) image instance.
+    /**
+       \param colormap Multi-valued colormap used for mapping the indexes.
+       \param boundary_conditions The border condition type { 0=zero |  1=dirichlet | 2=periodic }.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"),
+                         colormap1(3,1,1,3, 0,128,255, 0,128,255, 0,128,255),
+                         colormap2(3,1,1,3, 255,0,0, 0,255,0, 0,0,255),
+                         res = img.get_index(colormap1,0).map(colormap2);
+       (img,res).display();
+       \endcode
+       \image html ref_map.jpg
+    **/
+    template<typename t>
+    CImg<T>& map(const CImg<t>& colormap, const unsigned int boundary_conditions=0) {
+      return get_map(colormap,boundary_conditions).move_to(*this);
+    }
+
+    //! Map predefined colormap on the scalar (indexed) image instance \newinstance.
+    template<typename t>
+    CImg<t> get_map(const CImg<t>& colormap, const unsigned int boundary_conditions=0) const {
+      if (_spectrum!=1 && colormap._spectrum!=1)
+        throw CImgArgumentException(_cimg_instance
+                                    "map(): Instance and specified colormap (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        pwhd = (ulongT)colormap._width*colormap._height*colormap._depth;
+      CImg<t> res(_width,_height,_depth,colormap._spectrum==1?_spectrum:colormap._spectrum);
+      switch (colormap._spectrum) {
+
+      case 1 : { // Optimized for scalars.
+        const T *ptrs = _data;
+        switch (boundary_conditions) {
+        case 2 : // Periodic boundaries.
+          cimg_for(res,ptrd,t) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            *ptrd = colormap[ind%pwhd];
+          } break;
+        case 1 : // Neumann boundaries.
+          cimg_for(res,ptrd,t) {
+            const longT ind = (longT)*(ptrs++);
+            *ptrd = colormap[ind<0?0:ind>=(longT)pwhd?pwhd - 1:ind];
+          } break;
+        default : // Dirichlet boundaries.
+          cimg_for(res,ptrd,t) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            *ptrd = ind<pwhd?colormap[ind]:(t)0;
+          }
+        }
+      } break;
+
+      case 2 : { // Optimized for 2d vectors.
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind];
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind];
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            *(ptrd0++) = is_in?ptrp0[ind]:(t)0; *(ptrd1++) = is_in?ptrp1[ind]:(t)0;
+          }
+        }
+        }
+      } break;
+
+      case 3 : { // Optimized for 3d vectors (colors).
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind]; *(ptrd2++) = ptrp2[ind];
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            *(ptrd0++) = ptrp0[ind]; *(ptrd1++) = ptrp1[ind]; *(ptrd2++) = ptrp2[ind];
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          const t *const ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp2 = ptrp1 + pwhd;
+          t *ptrd0 = res._data, *ptrd1 = ptrd0 + whd, *ptrd2 = ptrd1 + whd;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            *(ptrd0++) = is_in?ptrp0[ind]:(t)0; *(ptrd1++) = is_in?ptrp1[ind]:(t)0; *(ptrd2++) = is_in?ptrp2[ind]:(t)0;
+          }
+        }
+        }
+      } break;
+
+      default : { // Generic version.
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT _ind = (ulongT)*(ptrs++), ind = _ind%pwhd;
+            const t *ptrp = colormap._data + ind;
+            t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+          }
+        } break;
+        case 1 : { // Neumann boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const longT _ind = (longT)*(ptrs++), ind = _ind<0?0:_ind>=(longT)pwhd?(longT)pwhd - 1:_ind;
+            const t *ptrp = colormap._data + ind;
+            t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+          }
+        } break;
+        default : { // Dirichlet boundaries.
+          t *ptrd = res._data;
+          for (const T *ptrs = _data, *ptrs_end = ptrs + whd; ptrs<ptrs_end; ) {
+            const ulongT ind = (ulongT)*(ptrs++);
+            const bool is_in = ind<pwhd;
+            if (is_in) {
+              const t *ptrp = colormap._data + ind;
+              t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = *ptrp; _ptrd+=whd; ptrp+=pwhd; }
+            } else {
+              t *_ptrd = ptrd++; cimg_forC(res,c) { *_ptrd = (t)0; _ptrd+=whd; }
+            }
+          }
+        }
+        }
+      }
+      }
+      return res;
+    }
+
+    //! Label connected components.
+   
