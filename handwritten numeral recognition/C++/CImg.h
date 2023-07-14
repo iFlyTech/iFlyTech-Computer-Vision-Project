@@ -23990,4 +23990,160 @@ namespace cimg_library_suffixed {
 
     //! Equalize histogram of pixel values.
     /**
-       \param nb_levels Number of histogram levels us
+       \param nb_levels Number of histogram levels used for the equalization.
+       \param min_value Minimum pixel value considered for the histogram computation.
+         All pixel values lower than \p min_value will not be counted.
+       \param max_value Maximum pixel value considered for the histogram computation.
+         All pixel values higher than \p max_value will not be counted.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), res = img.get_equalize(256);
+       (img,res).display();
+       \endcode
+       \image html ref_equalize.jpg
+    **/
+    CImg<T>& equalize(const unsigned int nb_levels, const T& min_value, const T& max_value) {
+      if (!nb_levels || is_empty()) return *this;
+      const T
+        vmin = min_value<max_value?min_value:max_value,
+        vmax = min_value<max_value?max_value:min_value;
+      CImg<ulongT> hist = get_histogram(nb_levels,vmin,vmax);
+      ulongT cumul = 0;
+      cimg_forX(hist,pos) { cumul+=hist[pos]; hist[pos] = cumul; }
+      if (!cumul) cumul = 1;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(size()>=1048576)
+#endif
+      cimg_rof(*this,ptrd,T) {
+        const int pos = (int)((*ptrd-vmin)*(nb_levels - 1.)/(vmax-vmin));
+        if (pos>=0 && pos<(int)nb_levels) *ptrd = (T)(vmin + (vmax-vmin)*hist[pos]/cumul);
+      }
+      return *this;
+    }
+
+    //! Equalize histogram of pixel values \overloading.
+    CImg<T>& equalize(const unsigned int nb_levels) {
+      if (!nb_levels || is_empty()) return *this;
+      T vmax = 0, vmin = min_max(vmax);
+      return equalize(nb_levels,vmin,vmax);
+    }
+
+    //! Equalize histogram of pixel values \newinstance.
+    CImg<T> get_equalize(const unsigned int nblevels, const T& val_min, const T& val_max) const {
+      return (+*this).equalize(nblevels,val_min,val_max);
+    }
+
+    //! Equalize histogram of pixel values \newinstance.
+    CImg<T> get_equalize(const unsigned int nblevels) const {
+      return (+*this).equalize(nblevels);
+    }
+
+    //! Index multi-valued pixels regarding to a specified colormap.
+    /**
+       \param colormap Multi-valued colormap used as the basis for multi-valued pixel indexing.
+       \param dithering Level of dithering (0=disable, 1=standard level).
+       \param map_indexes Tell if the values of the resulting image are the colormap indices or the colormap vectors.
+       \note
+       - \p img.index(colormap,dithering,1) is equivalent to <tt>img.index(colormap,dithering,0).map(colormap)</tt>.
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg"), colormap(3,1,1,3, 0,128,255, 0,128,255, 0,128,255);
+       const CImg<float> res = img.get_index(colormap,1,true);
+       (img,res).display();
+       \endcode
+       \image html ref_index.jpg
+    **/
+    template<typename t>
+    CImg<T>& index(const CImg<t>& colormap, const float dithering=1, const bool map_indexes=false) {
+      return get_index(colormap,dithering,map_indexes).move_to(*this);
+    }
+
+    //! Index multi-valued pixels regarding to a specified colormap \newinstance.
+    template<typename t>
+    CImg<typename CImg<t>::Tuint>
+    get_index(const CImg<t>& colormap, const float dithering=1, const bool map_indexes=true) const {
+      if (colormap._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "index(): Instance and specified colormap (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      typedef typename CImg<t>::Tuint tuint;
+      if (is_empty()) return CImg<tuint>();
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        pwhd = (ulongT)colormap._width*colormap._height*colormap._depth;
+      CImg<tuint> res(_width,_height,_depth,map_indexes?_spectrum:1);
+      tuint *ptrd = res._data;
+      if (dithering>0) { // Dithered versions.
+        const float ndithering = (dithering<0?0:dithering>1?1:dithering)/16;
+        Tfloat valm = 0, valM = (Tfloat)max_min(valm);
+        if (valm==valM && valm>=0 && valM<=255) { valm = 0; valM = 255; }
+        CImg<Tfloat> cache = get_crop(-1,0,0,0,_width,1,0,_spectrum - 1);
+        Tfloat *cache_current = cache.data(1,0,0,0), *cache_next = cache.data(1,1,0,0);
+        const ulongT cwhd = (ulongT)cache._width*cache._height*cache._depth;
+        switch (_spectrum) {
+        case 1 : { // Optimized for scalars.
+          cimg_forYZ(*this,y,z) {
+            if (y<height() - 2) {
+              Tfloat *ptrc0 = cache_next; const T *ptrs0 = data(0,y + 1,z,0);
+              cimg_forX(*this,x) *(ptrc0++) = (Tfloat)*(ptrs0++);
+            }
+            Tfloat *ptrs0 = cache_current, *ptrsn0 = cache_next;
+            cimg_forX(*this,x) {
+              const Tfloat _val0 = (Tfloat)*ptrs0, val0 = _val0<valm?valm:_val0>valM?valM:_val0;
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin0 = colormap._data;
+              for (const t *ptrp0 = colormap._data, *ptrp_end = ptrp0 + pwhd; ptrp0<ptrp_end; ) {
+                const Tfloat pval0 = (Tfloat)*(ptrp0++) - val0, dist = pval0*pval0;
+                if (dist<distmin) { ptrmin0 = ptrp0 - 1; distmin = dist; }
+              }
+              const Tfloat err0 = ((*(ptrs0++)=val0) - (Tfloat)*ptrmin0)*ndithering;
+              *ptrs0+=7*err0; *(ptrsn0 - 1)+=3*err0; *(ptrsn0++)+=5*err0; *ptrsn0+=err0;
+              if (map_indexes) *(ptrd++) = (tuint)*ptrmin0; else *(ptrd++) = (tuint)(ptrmin0 - colormap._data);
+            }
+            cimg::swap(cache_current,cache_next);
+          }
+        } break;
+        case 2 : { // Optimized for 2d vectors.
+          tuint *ptrd1 = ptrd + whd;
+          cimg_forYZ(*this,y,z) {
+            if (y<height() - 2) {
+              Tfloat *ptrc0 = cache_next, *ptrc1 = ptrc0 + cwhd;
+              const T *ptrs0 = data(0,y + 1,z,0), *ptrs1 = ptrs0 + whd;
+              cimg_forX(*this,x) { *(ptrc0++) = (Tfloat)*(ptrs0++); *(ptrc1++) = (Tfloat)*(ptrs1++); }
+            }
+            Tfloat
+              *ptrs0 = cache_current, *ptrs1 = ptrs0 + cwhd,
+              *ptrsn0 = cache_next, *ptrsn1 = ptrsn0 + cwhd;
+            cimg_forX(*this,x) {
+              const Tfloat
+                _val0 = (Tfloat)*ptrs0, val0 = _val0<valm?valm:_val0>valM?valM:_val0,
+                _val1 = (Tfloat)*ptrs1, val1 = _val1<valm?valm:_val1>valM?valM:_val1;
+              Tfloat distmin = cimg::type<Tfloat>::max(); const t *ptrmin0 = colormap._data;
+              for (const t *ptrp0 = colormap._data, *ptrp1 = ptrp0 + pwhd, *ptrp_end = ptrp1; ptrp0<ptrp_end; ) {
+                const Tfloat
+                  pval0 = (Tfloat)*(ptrp0++) - val0, pval1 = (Tfloat)*(ptrp1++) - val1,
+                  dist = pval0*pval0 + pval1*pval1;
+                if (dist<distmin) { ptrmin0 = ptrp0 - 1; distmin = dist; }
+              }
+              const t *const ptrmin1 = ptrmin0 + pwhd;
+              const Tfloat
+                err0 = ((*(ptrs0++)=val0) - (Tfloat)*ptrmin0)*ndithering,
+                err1 = ((*(ptrs1++)=val1) - (Tfloat)*ptrmin1)*ndithering;
+              *ptrs0+=7*err0; *ptrs1+=7*err1;
+              *(ptrsn0 - 1)+=3*err0; *(ptrsn1 - 1)+=3*err1;
+              *(ptrsn0++)+=5*err0; *(ptrsn1++)+=5*err1;
+              *ptrsn0+=err0; *ptrsn1+=err1;
+              if (map_indexes) { *(ptrd++) = (tuint)*ptrmin0; *(ptrd1++) = (tuint)*ptrmin1; }
+              else *(ptrd++) = (tuint)(ptrmin0 - colormap._data);
+            }
+            cimg::swap(cache_current,cache_next);
+          }
+        } break;
+        case 3 : { // Optimized for 3d vectors (colors).
+          tuint *ptrd1 = ptrd + whd, *ptrd2 = ptrd1 + whd;
+          cimg_forYZ(*this,y,z) {
+            if (y<height() - 2) {
+              Tfloat *ptrc0 = cache_next, *ptrc1 = ptrc0 + cwhd, *ptrc2 = ptrc1 + cwhd;
+              const T *ptrs0 = data(0,y + 1,z,0), *ptrs1 = p
