@@ -24468,4 +24468,200 @@ namespace cimg_library_suffixed {
     }
 
     //! Label connected components.
-   
+    /**
+       \param is_high_connectivity Boolean that choose between 4(false)- or 8(true)-connectivity
+       in 2d case, and between 6(false)- or 26(true)-connectivity in 3d case.
+       \param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
+       \note The algorithm of connected components computation has been primarily done
+       by A. Meijster, according to the publication:
+       'W.H. Hesselink, A. Meijster, C. Bron, "Concurrent Determination of Connected Components.",
+       In: Science of Computer Programming 41 (2001), pp. 173--194'.
+       The submitted code has then been modified to fit CImg coding style and constraints.
+    **/
+    CImg<T>& label(const bool is_high_connectivity=false, const Tfloat tolerance=0) {
+      return get_label(is_high_connectivity,tolerance).move_to(*this);
+    }
+
+    //! Label connected components \newinstance.
+    CImg<ulongT> get_label(const bool is_high_connectivity=false,
+                           const Tfloat tolerance=0) const {
+      if (is_empty()) return CImg<ulongT>();
+
+      // Create neighborhood tables.
+      int dx[13], dy[13], dz[13], nb = 0;
+      dx[nb] = 1; dy[nb] = 0; dz[nb++] = 0;
+      dx[nb] = 0; dy[nb] = 1; dz[nb++] = 0;
+      if (is_high_connectivity) {
+        dx[nb] = 1; dy[nb] = 1; dz[nb++] = 0;
+        dx[nb] = 1; dy[nb] = -1; dz[nb++] = 0;
+      }
+      if (_depth>1) { // 3d version.
+        dx[nb] = 0; dy[nb] = 0; dz[nb++]=1;
+        if (is_high_connectivity) {
+          dx[nb] = 1; dy[nb] = 1; dz[nb++] = -1;
+          dx[nb] = 1; dy[nb] = 0; dz[nb++] = -1;
+          dx[nb] = 1; dy[nb] = -1; dz[nb++] = -1;
+          dx[nb] = 0; dy[nb] = 1; dz[nb++] = -1;
+
+          dx[nb] = 0; dy[nb] = 1; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = -1; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = 0; dz[nb++] = 1;
+          dx[nb] = 1; dy[nb] = 1; dz[nb++] = 1;
+        }
+      }
+      return _get_label(nb,dx,dy,dz,tolerance);
+    }
+
+    //! Label connected components \overloading.
+    /**
+       \param connectivity_mask Mask of the neighboring pixels.
+       \param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
+    **/
+    template<typename t>
+    CImg<T>& label(const CImg<t>& connectivity_mask, const Tfloat tolerance=0) {
+      return get_label(connectivity_mask,tolerance).move_to(*this);
+    }
+
+    //! Label connected components \newinstance.
+    template<typename t>
+    CImg<ulongT> get_label(const CImg<t>& connectivity_mask,
+                           const Tfloat tolerance=0) const {
+      int nb = 0;
+      cimg_for(connectivity_mask,ptr,t) if (*ptr) ++nb;
+      CImg<intT> dx(nb,1,1,1,0), dy(nb,1,1,1,0), dz(nb,1,1,1,0);
+      nb = 0;
+      cimg_forXYZ(connectivity_mask,x,y,z) if ((x || y || z) &&
+                                               connectivity_mask(x,y,z)) {
+        dx[nb] = x; dy[nb] = y; dz[nb++] = z;
+      }
+      return _get_label(nb,dx,dy,dz,tolerance);
+    }
+
+    CImg<ulongT> _get_label(const unsigned int nb, const int
+                            *const dx, const int *const dy, const int *const dz,
+                            const Tfloat tolerance) const {
+      CImg<ulongT> res(_width,_height,_depth,_spectrum);
+      cimg_forC(*this,c) {
+        CImg<ulongT> _res = res.get_shared_channel(c);
+
+        // Init label numbers.
+        ulongT *ptr = _res.data();
+        cimg_foroff(_res,p) *(ptr++) = p;
+
+        // For each neighbour-direction, label.
+        for (unsigned int n = 0; n<nb; ++n) {
+          const int _dx = dx[n], _dy = dy[n], _dz = dz[n];
+          if (_dx || _dy || _dz) {
+            const int
+              x0 = _dx<0?-_dx:0,
+              x1 = _dx<0?width():width() - _dx,
+              y0 = _dy<0?-_dy:0,
+              y1 = _dy<0?height():height() - _dy,
+              z0 = _dz<0?-_dz:0,
+              z1 = _dz<0?depth():depth() - _dz;
+            const longT
+              wh = (longT)width()*height(),
+              whd = (longT)width()*height()*depth(),
+              offset = _dz*wh + _dy*width() + _dx;
+            for (longT z = z0, nz = z0 + _dz, pz = z0*wh; z<z1; ++z, ++nz, pz+=wh) {
+              for (longT y = y0, ny = y0 + _dy, py = y0*width() + pz; y<y1; ++y, ++ny, py+=width()) {
+                for (longT x = x0, nx = x0 + _dx, p = x0 + py; x<x1; ++x, ++nx, ++p) {
+                  if ((Tfloat)cimg::abs((*this)(x,y,z,c,wh,whd) - (*this)(nx,ny,nz,c,wh,whd))<=tolerance) {
+                    const longT q = p + offset;
+                    ulongT x, y;
+                    for (x = (ulongT)(p<q?q:p), y = (ulongT)(p<q?p:q); x!=y && _res[x]!=x; ) {
+                      x = _res[x]; if (x<y) cimg::swap(x,y);
+                    }
+                    if (x!=y) _res[x] = (ulongT)y;
+                    for (ulongT _p = (ulongT)p; _p!=y; ) {
+                      const ulongT h = _res[_p];
+                      _res[_p] = (ulongT)y;
+                      _p = h;
+                    }
+                    for (ulongT _q = (ulongT)q; _q!=y; ) {
+                      const ulongT h = _res[_q];
+                      _res[_q] = (ulongT)y;
+                      _q = h;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Resolve equivalences.
+        ulongT counter = 0;
+        ptr = _res.data();
+        cimg_foroff(_res,p) { *ptr = *ptr==p?counter++:_res[*ptr]; ++ptr; }
+      }
+      return res;
+    }
+
+    // [internal] Replace possibly malicious characters for commands to be called by system() by their escaped version.
+    CImg<T>& _system_strescape() {
+#define cimg_system_strescape(c,s) case c : if (p!=ptrs) CImg<T>(ptrs,(unsigned int)(p-ptrs),1,1,1,false).\
+      move_to(list); \
+      CImg<T>(s,(unsigned int)std::strlen(s),1,1,1,false).move_to(list); ptrs = p + 1; break
+      CImgList<T> list;
+      const T *ptrs = _data;
+      cimg_for(*this,p,T) switch ((int)*p) {
+        cimg_system_strescape('\\',"\\\\");
+        cimg_system_strescape('\"',"\\\"");
+        cimg_system_strescape('!',"\"\\!\"");
+        cimg_system_strescape('`',"\\`");
+        cimg_system_strescape('$',"\\$");
+      }
+      if (ptrs<end()) CImg<T>(ptrs,(unsigned int)(end()-ptrs),1,1,1,false).move_to(list);
+      return (list>'x').move_to(*this);
+    }
+
+    //@}
+    //---------------------------------
+    //
+    //! \name Color Base Management
+    //@{
+    //---------------------------------
+
+    //! Return colormap \e "default", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_default.jpg
+    **/
+    static const CImg<Tuchar>& default_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        colormap.assign(1,256,1,3);
+        for (unsigned int index = 0, r = 16; r<256; r+=32)
+          for (unsigned int g = 16; g<256; g+=32)
+            for (unsigned int b = 32; b<256; b+=64) {
+              colormap(0,index,0) = (Tuchar)r;
+              colormap(0,index,1) = (Tuchar)g;
+              colormap(0,index++,2) = (Tuchar)b;
+            }
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "HSV", containing 256 colors entries in RGB.
+    /**
+       \return The following \c 256x1x1x3 colormap is returned:
+       \image html ref_colormap_hsv.jpg
+    **/
+    static const CImg<Tuchar>& HSV_LUT256() {
+      static CImg<Tuchar> colormap;
+      cimg::mutex(8);
+      if (!colormap) {
+        CImg<Tint> tmp(1,256,1,3,1);
+        tmp.get_shared_channel(0).sequence(0,359);
+        colormap = tmp.HSVtoRGB();
+      }
+      cimg::mutex(8,0);
+      return colormap;
+    }
+
+    //! Return colormap \e "lines", containing 256 colors entries in RGB.
+    /**
+       \return
