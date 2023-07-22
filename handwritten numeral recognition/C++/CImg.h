@@ -25502,4 +25502,165 @@ namespace cimg_library_suffixed {
       return xyYtoXYZ().XYZtoRGB();
     }
 
-    //! Convert pixel values
+    //! Convert pixel values from xyY to RGB color spaces \newinstance.
+    CImg<Tuchar> get_xyYtoRGB() const {
+      return CImg<Tuchar>(*this,false).xyYtoRGB();
+    }
+
+    //! Convert pixel values from RGB to CMYK color spaces.
+    CImg<T>& RGBtoCMYK() {
+      return RGBtoCMY().CMYtoCMYK();
+    }
+
+    //! Convert pixel values from RGB to CMYK color spaces \newinstance.
+    CImg<Tfloat> get_RGBtoCMYK() const {
+      return CImg<Tfloat>(*this,false).RGBtoCMYK();
+    }
+
+    //! Convert pixel values from CMYK to RGB color spaces.
+    CImg<T>& CMYKtoRGB() {
+      return CMYKtoCMY().CMYtoRGB();
+    }
+
+    //! Convert pixel values from CMYK to RGB color spaces \newinstance.
+    CImg<Tuchar> get_CMYKtoRGB() const {
+      return CImg<Tuchar>(*this,false).CMYKtoRGB();
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Geometric / Spatial Manipulation
+    //@{
+    //------------------------------------------
+
+    static float _cimg_lanczos(const float x) {
+      if (x<=-2 || x>=2) return 0;
+      const float a = (float)cimg::PI*x, b = 0.5f*a;
+      return (float)(x?std::sin(a)*std::sin(b)/(a*b):1);
+    }
+
+    //! Resize image to new dimensions.
+    /**
+       \param size_x Number of columns (new size along the X-axis).
+       \param size_y Number of rows (new size along the Y-axis).
+       \param size_z Number of slices (new size along the Z-axis).
+       \param size_c Number of vector-channels (new size along the C-axis).
+       \param interpolation_type Method of interpolation:
+       - -1 = no interpolation: raw memory resizing.
+       - 0 = no interpolation: additional space is filled according to \p boundary_conditions.
+       - 1 = nearest-neighbor interpolation.
+       - 2 = moving average interpolation.
+       - 3 = linear interpolation.
+       - 4 = grid interpolation.
+       - 5 = cubic interpolation.
+       - 6 = lanczos interpolation.
+       \param boundary_conditions Border condition type.
+       \param centering_x Set centering type (only if \p interpolation_type=0).
+       \param centering_y Set centering type (only if \p interpolation_type=0).
+       \param centering_z Set centering type (only if \p interpolation_type=0).
+       \param centering_c Set centering type (only if \p interpolation_type=0).
+       \note If pd[x,y,z,v]<0, it corresponds to a percentage of the original size (the default value is -100).
+    **/
+    CImg<T>& resize(const int size_x, const int size_y=-100,
+                    const int size_z=-100, const int size_c=-100,
+                    const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                    const float centering_x = 0, const float centering_y = 0,
+                    const float centering_z = 0, const float centering_c = 0) {
+      if (!size_x || !size_y || !size_z || !size_c) return assign();
+      const unsigned int
+        _sx = (unsigned int)(size_x<0?-size_x*width()/100:size_x),
+        _sy = (unsigned int)(size_y<0?-size_y*height()/100:size_y),
+        _sz = (unsigned int)(size_z<0?-size_z*depth()/100:size_z),
+        _sc = (unsigned int)(size_c<0?-size_c*spectrum()/100:size_c),
+        sx = _sx?_sx:1, sy = _sy?_sy:1, sz = _sz?_sz:1, sc = _sc?_sc:1;
+      if (sx==_width && sy==_height && sz==_depth && sc==_spectrum) return *this;
+      if (is_empty()) return assign(sx,sy,sz,sc,(T)0);
+      if (interpolation_type==-1 && sx*sy*sz*sc==size()) {
+        _width = sx; _height = sy; _depth = sz; _spectrum = sc;
+        return *this;
+      }
+      return get_resize(sx,sy,sz,sc,interpolation_type,boundary_conditions,
+                        centering_x,centering_y,centering_z,centering_c).move_to(*this);
+    }
+
+    //! Resize image to new dimensions \newinstance.
+    CImg<T> get_resize(const int size_x, const int size_y = -100,
+                       const int size_z = -100, const int size_c = -100,
+                       const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                       const float centering_x = 0, const float centering_y = 0,
+                       const float centering_z = 0, const float centering_c = 0) const {
+      if (centering_x<0 || centering_x>1 || centering_y<0 || centering_y>1 ||
+          centering_z<0 || centering_z>1 || centering_c<0 || centering_c>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "resize(): Specified centering arguments (%g,%g,%g,%g) are outside range [0,1].",
+                                    cimg_instance,
+                                    centering_x,centering_y,centering_z,centering_c);
+
+      if (!size_x || !size_y || !size_z || !size_c) return CImg<T>();
+      const unsigned int
+        _sx = (unsigned int)(size_x<0?-size_x*width()/100:size_x),
+        _sy = (unsigned int)(size_y<0?-size_y*height()/100:size_y),
+        _sz = (unsigned int)(size_z<0?-size_z*depth()/100:size_z),
+        _sc = (unsigned int)(size_c<0?-size_c*spectrum()/100:size_c),
+        sx = _sx?_sx:1, sy = _sy?_sy:1, sz = _sz?_sz:1, sc = _sc?_sc:1;
+      if (sx==_width && sy==_height && sz==_depth && sc==_spectrum) return +*this;
+      if (is_empty()) return CImg<T>(sx,sy,sz,sc,0);
+      CImg<T> res;
+      switch (interpolation_type) {
+
+        // Raw resizing.
+        //
+      case -1 :
+        std::memcpy(res.assign(sx,sy,sz,sc,0)._data,_data,sizeof(T)*cimg::min(size(),sx*sy*sz*sc));
+        break;
+
+        // No interpolation.
+        //
+      case 0 : {
+        const int
+          xc = (int)(centering_x*((int)sx - width())),
+          yc = (int)(centering_y*((int)sy - height())),
+          zc = (int)(centering_z*((int)sz - depth())),
+          cc = (int)(centering_c*((int)sc - spectrum()));
+
+        switch (boundary_conditions) {
+        case 2 : { // Periodic boundary.
+          res.assign(sx,sy,sz,sc);
+          const int
+            x0 = ((int)xc%width()) - width(),
+            y0 = ((int)yc%height()) - height(),
+            z0 = ((int)zc%depth()) - depth(),
+            c0 = ((int)cc%spectrum()) - spectrum();
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=65536)
+#endif
+          for (int c = c0; c<(int)sc; c+=spectrum())
+            for (int z = z0; z<(int)sz; z+=depth())
+              for (int y = y0; y<(int)sy; y+=height())
+                for (int x = x0; x<(int)sx; x+=width())
+                  res.draw_image(x,y,z,c,*this);
+        } break;
+        case 1 : { // Neumann boundary.
+          res.assign(sx,sy,sz,sc).draw_image(xc,yc,zc,cc,*this);
+          CImg<T> sprite;
+          if (xc>0) {  // X-backward
+            res.get_crop(xc,yc,zc,cc,xc,yc + height() - 1,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int x = xc - 1; x>=0; --x) res.draw_image(x,yc,zc,cc,sprite);
+          }
+          if (xc + width()<(int)sx) { // X-forward
+            res.get_crop(xc + width() - 1,yc,zc,cc,xc + width() - 1,yc + height() - 1,
+                         zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int x = xc + width(); x<(int)sx; ++x) res.draw_image(x,yc,zc,cc,sprite);
+          }
+          if (yc>0) {  // Y-backward
+            res.get_crop(0,yc,zc,cc,sx - 1,yc,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int y = yc - 1; y>=0; --y) res.draw_image(0,y,zc,cc,sprite);
+          }
+          if (yc + height()<(int)sy) { // Y-forward
+            res.get_crop(0,yc + height() - 1,zc,cc,sx - 1,yc + height() - 1,
+                         zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int y = yc + height(); y<(int)sy; ++y) res.draw_image(0,y,zc,cc,sprite);
+          }
+          if (zc>0) {  // Z-backward
+            res.get_crop(0,0,zc,cc,sx - 1,sy - 1,zc,cc + spectrum() - 1).mov
