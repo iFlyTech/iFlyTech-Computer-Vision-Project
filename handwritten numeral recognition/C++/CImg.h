@@ -25663,4 +25663,212 @@ namespace cimg_library_suffixed {
             for (int y = yc + height(); y<(int)sy; ++y) res.draw_image(0,y,zc,cc,sprite);
           }
           if (zc>0) {  // Z-backward
-            res.get_crop(0,0,zc,cc,sx - 1,sy - 1,zc,cc + spectrum() - 1).mov
+            res.get_crop(0,0,zc,cc,sx - 1,sy - 1,zc,cc + spectrum() - 1).move_to(sprite);
+            for (int z = zc - 1; z>=0; --z) res.draw_image(0,0,z,cc,sprite);
+          }
+          if (zc + depth()<(int)sz) { // Z-forward
+            res.get_crop(0,0,zc  +depth() - 1,cc,sx - 1,sy - 1,zc + depth() - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int z = zc + depth(); z<(int)sz; ++z) res.draw_image(0,0,z,cc,sprite);
+          }
+          if (cc>0) {  // C-backward
+            res.get_crop(0,0,0,cc,sx - 1,sy - 1,sz - 1,cc).move_to(sprite);
+            for (int c = cc - 1; c>=0; --c) res.draw_image(0,0,0,c,sprite);
+          }
+          if (cc + spectrum()<(int)sc) { // C-forward
+            res.get_crop(0,0,0,cc + spectrum() - 1,sx - 1,sy - 1,sz - 1,cc + spectrum() - 1).move_to(sprite);
+            for (int c = cc + spectrum(); c<(int)sc; ++c) res.draw_image(0,0,0,c,sprite);
+          }
+        } break;
+        default : // Dirichlet boundary.
+          res.assign(sx,sy,sz,sc,0).draw_image(xc,yc,zc,cc,*this);
+        }
+        break;
+      } break;
+
+        // Nearest neighbor interpolation.
+        //
+      case 1 : {
+        res.assign(sx,sy,sz,sc);
+        CImg<ulongT> off_x(sx), off_y(sy + 1), off_z(sz + 1), off_c(sc + 1);
+        const ulongT
+          wh = (ulongT)_width*_height,
+          whd = (ulongT)_width*_height*_depth,
+          sxy = (ulongT)sx*sy,
+          sxyz = (ulongT)sx*sy*sz;
+        if (sx==_width) off_x.fill(1);
+        else {
+          ulongT *poff_x = off_x._data, curr = 0;
+          cimg_forX(res,x) {
+            const ulongT old = curr;
+            curr = (ulongT)((x + 1.0)*_width/sx);
+            *(poff_x++) = curr - old;
+          }
+        }
+        if (sy==_height) off_y.fill(_width);
+        else {
+          ulongT *poff_y = off_y._data, curr = 0;
+          cimg_forY(res,y) {
+            const ulongT old = curr;
+            curr = (ulongT)((y + 1.0)*_height/sy);
+            *(poff_y++) = _width*(curr - old);
+          }
+          *poff_y = 0;
+        }
+        if (sz==_depth) off_z.fill(wh);
+        else {
+          ulongT *poff_z = off_z._data, curr = 0;
+          cimg_forZ(res,z) {
+            const ulongT old = curr;
+            curr = (ulongT)((z + 1.0)*_depth/sz);
+            *(poff_z++) = wh*(curr - old);
+          }
+          *poff_z = 0;
+        }
+        if (sc==_spectrum) off_c.fill(whd);
+        else {
+          ulongT *poff_c = off_c._data, curr = 0;
+          cimg_forC(res,c) {
+            const ulongT old = curr;
+            curr = (ulongT)((c + 1.0)*_spectrum/sc);
+            *(poff_c++) = whd*(curr - old);
+          }
+          *poff_c = 0;
+        }
+
+        T *ptrd = res._data;
+        const T* ptrc = _data;
+        const ulongT *poff_c = off_c._data;
+        for (unsigned int c = 0; c<sc; ) {
+          const T *ptrz = ptrc;
+          const ulongT *poff_z = off_z._data;
+          for (unsigned int z = 0; z<sz; ) {
+            const T *ptry = ptrz;
+            const ulongT *poff_y = off_y._data;
+            for (unsigned int y = 0; y<sy; ) {
+              const T *ptrx = ptry;
+              const ulongT *poff_x = off_x._data;
+              cimg_forX(res,x) { *(ptrd++) = *ptrx; ptrx+=*(poff_x++); }
+              ++y;
+              ulongT dy = *(poff_y++);
+              for ( ; !dy && y<dy; std::memcpy(ptrd,ptrd - sx,sizeof(T)*sx), ++y, ptrd+=sx, dy = *(poff_y++)) {}
+              ptry+=dy;
+            }
+            ++z;
+            ulongT dz = *(poff_z++);
+            for ( ; !dz && z<dz; std::memcpy(ptrd,ptrd-sxy,sizeof(T)*sxy), ++z, ptrd+=sxy, dz = *(poff_z++)) {}
+            ptrz+=dz;
+          }
+          ++c;
+          ulongT dc = *(poff_c++);
+          for ( ; !dc && c<dc; std::memcpy(ptrd,ptrd-sxyz,sizeof(T)*sxyz), ++c, ptrd+=sxyz, dc = *(poff_c++)) {}
+          ptrc+=dc;
+        }
+      } break;
+
+        // Moving average.
+        //
+      case 2 : {
+        bool instance_first = true;
+        if (sx!=_width) {
+          CImg<Tfloat> tmp(sx,_height,_depth,_spectrum,0);
+          for (unsigned int a = _width*sx, b = _width, c = sx, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            cimg_forYZC(tmp,y,z,v) tmp(t,y,z,v)+=(Tfloat)(*this)(s,y,z,v)*d;
+            if (!b) {
+              cimg_forYZC(tmp,y,z,v) tmp(t,y,z,v)/=_width;
+              ++t;
+              b = _width;
+            }
+            if (!c) { ++s; c = sx; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sy!=_height) {
+          CImg<Tfloat> tmp(sx,sy,_depth,_spectrum,0);
+          for (unsigned int a = _height*sy, b = _height, c = sy, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)+=(Tfloat)(*this)(x,s,z,v)*d;
+            else
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)+=(Tfloat)res(x,s,z,v)*d;
+            if (!b) {
+              cimg_forXZC(tmp,x,z,v) tmp(x,t,z,v)/=_height;
+              ++t;
+              b = _height;
+            }
+            if (!c) { ++s; c = sy; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sz!=_depth) {
+          CImg<Tfloat> tmp(sx,sy,sz,_spectrum,0);
+          for (unsigned int a = _depth*sz, b = _depth, c = sz, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)+=(Tfloat)(*this)(x,y,s,v)*d;
+            else
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)+=(Tfloat)res(x,y,s,v)*d;
+            if (!b) {
+              cimg_forXYC(tmp,x,y,v) tmp(x,y,t,v)/=_depth;
+              ++t;
+              b = _depth;
+            }
+            if (!c) { ++s; c = sz; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+        if (sc!=_spectrum) {
+          CImg<Tfloat> tmp(sx,sy,sz,sc,0);
+          for (unsigned int a = _spectrum*sc, b = _spectrum, c = sc, s = 0, t = 0; a; ) {
+            const unsigned int d = cimg::min(b,c);
+            a-=d; b-=d; c-=d;
+            if (instance_first)
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)+=(Tfloat)(*this)(x,y,z,s)*d;
+            else
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)+=(Tfloat)res(x,y,z,s)*d;
+            if (!b) {
+              cimg_forXYZ(tmp,x,y,z) tmp(x,y,z,t)/=_spectrum;
+              ++t;
+              b = _spectrum;
+            }
+            if (!c) { ++s; c = sc; }
+          }
+          tmp.move_to(res);
+          instance_first = false;
+        }
+      } break;
+
+        // Linear interpolation.
+        //
+      case 3 : {
+        CImg<uintT> off(cimg::max(sx,sy,sz,sc));
+        CImg<floatT> foff(off._width);
+        CImg<T> resx, resy, resz, resc;
+
+        if (sx!=_width) {
+          if (_width==1) get_resize(sx,_height,_depth,_spectrum,1).move_to(resx);
+          else {
+            if (_width>sx) get_resize(sx,_height,_depth,_spectrum,2).move_to(resx);
+            else {
+              const float fx = (!boundary_conditions && sx>_width)?(sx>1?(_width - 1.0f)/(sx - 1):0):(float)_width/sx;
+              resx.assign(sx,_height,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forX(resx,x) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fx;
+                *(poff++) = (unsigned int)curr - (unsigned int)old;
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resx.size()>=65536)
+#endif
+              cimg_forYZC(resx,y,z,c) {
+                const T *pt
