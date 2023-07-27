@@ -26240,4 +26240,186 @@ namespace cimg_library_suffixed {
                     val2 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sxyz):val1,
                     val3 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sxyz):val2,
                     val = val1 + 0.5f*(t*(-val0 + val2) + t*t*(2*val0 - 5*val1 + 4*val2 - val3) +
-                                   
+                                       t*t*t*(-val0 + 3*val1 - 3*val2 + val3));
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sxyz;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resz.assign();
+        } else resc.assign(resz,true);
+
+        return resc._is_shared?(resz._is_shared?(resy._is_shared?(resx._is_shared?(+(*this)):resx):resy):resz):resc;
+      } break;
+
+        // Lanczos interpolation.
+        //
+      case 6 : {
+        const Tfloat vmin = (Tfloat)cimg::type<T>::min(), vmax = (Tfloat)cimg::type<T>::max();
+        CImg<uintT> off(cimg::max(sx,sy,sz,sc));
+        CImg<floatT> foff(off._width);
+        CImg<T> resx, resy, resz, resc;
+
+        if (sx!=_width) {
+          if (_width==1) get_resize(sx,_height,_depth,_spectrum,1).move_to(resx);
+          else {
+            if (_width>sx) get_resize(sx,_height,_depth,_spectrum,2).move_to(resx);
+            else {
+              const float fx = (!boundary_conditions && sx>_width)?(sx>1?(_width - 1.0f)/(sx - 1):0):(float)_width/sx;
+              resx.assign(sx,_height,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forX(resx,x) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fx;
+                *(poff++) = (unsigned int)curr - (unsigned int)old;
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resx.size()>=65536)
+#endif
+              cimg_forYZC(resx,y,z,c) {
+                const T *const ptrs0 = data(0,y,z,c), *ptrs = ptrs0, *const ptrsmin = ptrs0 + 1,
+                  *const ptrsmax = ptrs0 + (_width - 2);
+                T *ptrd = resx.data(0,y,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forX(resx,x) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - 1):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + 1):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *(ptrd++) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+        } else resx.assign(*this,true);
+
+        if (sy!=_height) {
+          if (_height==1) resx.get_resize(sx,sy,_depth,_spectrum,1).move_to(resy);
+          else {
+            if (_height>sy) resx.get_resize(sx,sy,_depth,_spectrum,2).move_to(resy);
+            else {
+              const float fy = (!boundary_conditions && sy>_height)?(sy>1?(_height - 1.0f)/(sy - 1):0):
+                (float)_height/sy;
+              resy.assign(sx,sy,_depth,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forY(resy,y) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fy;
+                *(poff++) = sx*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resy.size()>=65536)
+#endif
+              cimg_forXZC(resy,x,z,c) {
+                const T *const ptrs0 = resx.data(x,0,z,c), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sx,
+                  *const ptrsmax = ptrs0 + (_height - 2)*sx;
+                T *ptrd = resy.data(x,0,z,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forY(resy,y) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sx):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sx):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sx):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sx):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sx;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resx.assign();
+        } else resy.assign(resx,true);
+
+        if (sz!=_depth) {
+          if (_depth==1) resy.get_resize(sx,sy,sz,_spectrum,1).move_to(resz);
+          else {
+            if (_depth>sz) resy.get_resize(sx,sy,sz,_spectrum,2).move_to(resz);
+            else {
+              const float fz = (!boundary_conditions && sz>_depth)?(sz>1?(_depth - 1.0f)/(sz - 1):0):(float)_depth/sz;
+              const unsigned int sxy = sx*sy;
+              resz.assign(sx,sy,sz,_spectrum);
+              float curr = 0, old = 0;
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forZ(resz,z) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fz;
+                *(poff++) = sxy*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resz.size()>=65536)
+#endif
+              cimg_forXYC(resz,x,y,c) {
+                const T *const ptrs0 = resy.data(x,y,0,c), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sxy,
+                  *const ptrsmax = ptrs0 + (_depth - 2)*sxy;
+                T *ptrd = resz.data(x,y,0,c);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forZ(resz,z) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sxy):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sxy):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sxy):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sxy):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sxy;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resy.assign();
+        } else resz.assign(resy,true);
+
+        if (sc!=_spectrum) {
+          if (_spectrum==1) resz.get_resize(sx,sy,sz,sc,1).move_to(resc);
+          else {
+            if (_spectrum>sc) resz.get_resize(sx,sy,sz,sc,2).move_to(resc);
+            else {
+              const float fc = (!boundary_conditions && sc>_spectrum)?(sc>1?(_spectrum - 1.0f)/(sc - 1):0):
+                (float)_spectrum/sc;
+              const unsigned int sxyz = sx*sy*sz;
+              resc.assign(sx,sy,sz,sc);
+              float curr = 0, old = 0;
+              u
