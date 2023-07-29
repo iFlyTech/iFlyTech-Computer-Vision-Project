@@ -26422,4 +26422,165 @@ namespace cimg_library_suffixed {
               const unsigned int sxyz = sx*sy*sz;
               resc.assign(sx,sy,sz,sc);
               float curr = 0, old = 0;
-              u
+              unsigned int *poff = off._data;
+              float *pfoff = foff._data;
+              cimg_forC(resc,c) {
+                *(pfoff++) = curr - (unsigned int)curr;
+                old = curr;
+                curr+=fc;
+                *(poff++) = sxyz*((unsigned int)curr - (unsigned int)old);
+              }
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (resc.size()>=65536)
+#endif
+              cimg_forXYZ(resc,x,y,z) {
+                const T *const ptrs0 = resz.data(x,y,z,0), *ptrs = ptrs0, *const ptrsmin = ptrs0 + sxyz,
+                  *const ptrsmax = ptrs + (_spectrum - 2)*sxyz;
+                T *ptrd = resc.data(x,y,z,0);
+                const unsigned int *poff = off._data;
+                const float *pfoff = foff._data;
+                cimg_forC(resc,c) {
+                  const float
+                    t = *(pfoff++),
+                    w0 = _cimg_lanczos(t + 2),
+                    w1 = _cimg_lanczos(t + 1),
+                    w2 = _cimg_lanczos(t),
+                    w3 = _cimg_lanczos(t - 1),
+                    w4 = _cimg_lanczos(t - 2);
+                  const Tfloat
+                    val2 = (Tfloat)*ptrs,
+                    val1 = ptrs>=ptrsmin?(Tfloat)*(ptrs - sxyz):val2,
+                    val0 = ptrs>ptrsmin?(Tfloat)*(ptrs - 2*sxyz):val1,
+                    val3 = ptrs<=ptrsmax?(Tfloat)*(ptrs + sxyz):val2,
+                    val4 = ptrs<ptrsmax?(Tfloat)*(ptrs + 2*sxyz):val3,
+                    val = (val0*w0 + val1*w1 + val2*w2 + val3*w3 + val4*w4)/(w1 + w2 + w3 + w4);
+                  *ptrd = (T)(val<vmin?vmin:val>vmax?vmax:val);
+                  ptrd+=sxyz;
+                  ptrs+=*(poff++);
+                }
+              }
+            }
+          }
+          resz.assign();
+        } else resc.assign(resz,true);
+
+        return resc._is_shared?(resz._is_shared?(resy._is_shared?(resx._is_shared?(+(*this)):resx):resy):resz):resc;
+      } break;
+
+        // Unknow interpolation.
+        //
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "resize(): Invalid specified interpolation %d "
+                                    "(should be { -1=raw | 0=none | 1=nearest | 2=average | 3=linear | 4=grid | "
+                                    "5=cubic | 6=lanczos }).",
+                                    cimg_instance,
+                                    interpolation_type);
+      }
+      return res;
+    }
+
+    //! Resize image to dimensions of another image.
+    /**
+       \param src Reference image used for dimensions.
+       \param interpolation_type Interpolation method.
+       \param boundary_conditions Boundary conditions.
+       \param centering_x Set centering type (only if \p interpolation_type=0).
+       \param centering_y Set centering type (only if \p interpolation_type=0).
+       \param centering_z Set centering type (only if \p interpolation_type=0).
+       \param centering_c Set centering type (only if \p interpolation_type=0).
+     **/
+    template<typename t>
+    CImg<T>& resize(const CImg<t>& src,
+                    const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                    const float centering_x = 0, const float centering_y = 0,
+                    const float centering_z = 0, const float centering_c = 0) {
+      return resize(src._width,src._height,src._depth,src._spectrum,interpolation_type,boundary_conditions,
+                    centering_x,centering_y,centering_z,centering_c);
+    }
+
+    //! Resize image to dimensions of another image \newinstance.
+    template<typename t>
+    CImg<T> get_resize(const CImg<t>& src,
+                       const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                       const float centering_x = 0, const float centering_y = 0,
+                       const float centering_z = 0, const float centering_c = 0) const {
+      return get_resize(src._width,src._height,src._depth,src._spectrum,interpolation_type,boundary_conditions,
+                        centering_x,centering_y,centering_z,centering_c);
+    }
+
+    //! Resize image to dimensions of a display window.
+    /**
+       \param disp Reference display window used for dimensions.
+       \param interpolation_type Interpolation method.
+       \param boundary_conditions Boundary conditions.
+       \param centering_x Set centering type (only if \p interpolation_type=0).
+       \param centering_y Set centering type (only if \p interpolation_type=0).
+       \param centering_z Set centering type (only if \p interpolation_type=0).
+       \param centering_c Set centering type (only if \p interpolation_type=0).
+     **/
+    CImg<T>& resize(const CImgDisplay& disp,
+                    const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                    const float centering_x = 0, const float centering_y = 0,
+                    const float centering_z = 0, const float centering_c = 0) {
+      return resize(disp.width(),disp.height(),_depth,_spectrum,interpolation_type,boundary_conditions,
+                    centering_x,centering_y,centering_z,centering_c);
+    }
+
+    //! Resize image to dimensions of a display window \newinstance.
+    CImg<T> get_resize(const CImgDisplay& disp,
+                       const int interpolation_type=1, const unsigned int boundary_conditions=0,
+                       const float centering_x = 0, const float centering_y = 0,
+                       const float centering_z = 0, const float centering_c = 0) const {
+      return get_resize(disp.width(),disp.height(),_depth,_spectrum,interpolation_type,boundary_conditions,
+                        centering_x,centering_y,centering_z,centering_c);
+    }
+
+    //! Resize image to half-size along XY axes, using an optimized filter.
+    CImg<T>& resize_halfXY() {
+      return get_resize_halfXY().move_to(*this);
+    }
+
+    //! Resize image to half-size along XY axes, using an optimized filter \newinstance.
+    CImg<T> get_resize_halfXY() const {
+      if (is_empty()) return *this;
+      static const Tfloat mask[9] = { 0.07842776544f, 0.1231940459f, 0.07842776544f,
+                                      0.1231940459f,  0.1935127547f, 0.1231940459f,
+                                      0.07842776544f, 0.1231940459f, 0.07842776544f };
+      CImg<T> I(9), res(_width/2,_height/2,_depth,_spectrum);
+      T *ptrd = res._data;
+      cimg_forZC(*this,z,c) cimg_for3x3(*this,x,y,z,c,I,T)
+        if (x%2 && y%2) *(ptrd++) = (T)
+                          (I[0]*mask[0] + I[1]*mask[1] + I[2]*mask[2] +
+                           I[3]*mask[3] + I[4]*mask[4] + I[5]*mask[5] +
+                           I[6]*mask[6] + I[7]*mask[7] + I[8]*mask[8]);
+      return res;
+    }
+
+    //! Resize image to double-size, using the Scale2X algorithm.
+    /**
+       \note Use anisotropic upscaling algorithm
+       <a href="http://scale2x.sourceforge.net/algorithm.html">described here</a>.
+    **/
+    CImg<T>& resize_doubleXY() {
+      return get_resize_doubleXY().move_to(*this);
+    }
+
+    //! Resize image to double-size, using the Scale2X algorithm \newinstance.
+    CImg<T> get_resize_doubleXY() const {
+#define _cimg_gs2x_for3(bound,i) \
+ for (int i = 0, _p1##i = 0, \
+      _n1##i = 1>=(bound)?(int)(bound) - 1:1; \
+      _n1##i<(int)(bound) || i==--_n1##i; \
+      _p1##i = i++, ++_n1##i, ptrd1+=(res)._width, ptrd2+=(res)._width)
+
+#define _cimg_gs2x_for3x3(img,x,y,z,c,I,T) \
+  _cimg_gs2x_for3((img)._height,y) for (int x = 0, \
+   _p1##x = 0, \
+   _n1##x = (int)( \
+   (I[1] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[3] = I[4] = (T)(img)(0,y,z,c)), \
+   (I[7] = (T)(img)(0,_n1##y,z,c)),     \
+   1>=(img)._width?(img).width() - 1:1); \
+   (_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_
