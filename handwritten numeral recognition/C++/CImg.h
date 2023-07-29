@@ -26583,4 +26583,208 @@ namespace cimg_library_suffixed {
    (I[7] = (T)(img)(0,_n1##y,z,c)),     \
    1>=(img)._width?(img).width() - 1:1); \
    (_n1##x<(img).width() && ( \
-   (I[2] = (T)(img)(_n1##x,_
+   (I[2] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x; \
+   I[1] = I[2], \
+   I[3] = I[4], I[4] = I[5], \
+   I[7] = I[8], \
+   _p1##x = x++, ++_n1##x)
+
+      if (is_empty()) return *this;
+      CImg<T> res(_width<<1,_height<<1,_depth,_spectrum);
+      CImg_3x3(I,T);
+      cimg_forZC(*this,z,c) {
+        T
+          *ptrd1 = res.data(0,0,z,c),
+          *ptrd2 = ptrd1 + res._width;
+        _cimg_gs2x_for3x3(*this,x,y,z,c,I,T) {
+          if (Icp!=Icn && Ipc!=Inc) {
+            *(ptrd1++) = Ipc==Icp?Ipc:Icc;
+            *(ptrd1++) = Icp==Inc?Inc:Icc;
+            *(ptrd2++) = Ipc==Icn?Ipc:Icc;
+            *(ptrd2++) = Icn==Inc?Inc:Icc;
+          } else { *(ptrd1++) = Icc; *(ptrd1++) = Icc; *(ptrd2++) = Icc; *(ptrd2++) = Icc; }
+        }
+      }
+      return res;
+    }
+
+    //! Resize image to triple-size, using the Scale3X algorithm.
+    /**
+       \note Use anisotropic upscaling algorithm
+       <a href="http://scale2x.sourceforge.net/algorithm.html">described here</a>.
+    **/
+    CImg<T>& resize_tripleXY() {
+      return get_resize_tripleXY().move_to(*this);
+    }
+
+    //! Resize image to triple-size, using the Scale3X algorithm \newinstance.
+    CImg<T> get_resize_tripleXY() const {
+#define _cimg_gs3x_for3(bound,i) \
+ for (int i = 0, _p1##i = 0, \
+      _n1##i = 1>=(bound)?(int)(bound) - 1:1; \
+      _n1##i<(int)(bound) || i==--_n1##i; \
+      _p1##i = i++, ++_n1##i, ptrd1+=2*(res)._width, ptrd2+=2*(res)._width, ptrd3+=2*(res)._width)
+
+#define _cimg_gs3x_for3x3(img,x,y,z,c,I,T) \
+  _cimg_gs3x_for3((img)._height,y) for (int x = 0, \
+   _p1##x = 0, \
+   _n1##x = (int)( \
+   (I[0] = I[1] = (T)(img)(_p1##x,_p1##y,z,c)), \
+   (I[3] = I[4] = (T)(img)(0,y,z,c)), \
+   (I[6] = I[7] = (T)(img)(0,_n1##y,z,c)),      \
+   1>=(img)._width?(img).width() - 1:1); \
+   (_n1##x<(img).width() && ( \
+   (I[2] = (T)(img)(_n1##x,_p1##y,z,c)), \
+   (I[5] = (T)(img)(_n1##x,y,z,c)), \
+   (I[8] = (T)(img)(_n1##x,_n1##y,z,c)),1)) || \
+   x==--_n1##x; \
+   I[0] = I[1], I[1] = I[2], \
+   I[3] = I[4], I[4] = I[5], \
+   I[6] = I[7], I[7] = I[8], \
+   _p1##x = x++, ++_n1##x)
+
+      if (is_empty()) return *this;
+      CImg<T> res(3*_width,3*_height,_depth,_spectrum);
+      CImg_3x3(I,T);
+      cimg_forZC(*this,z,c) {
+        T
+          *ptrd1 = res.data(0,0,z,c),
+          *ptrd2 = ptrd1 + res._width,
+          *ptrd3 = ptrd2 + res._width;
+        _cimg_gs3x_for3x3(*this,x,y,z,c,I,T) {
+          if (Icp != Icn && Ipc != Inc) {
+            *(ptrd1++) = Ipc==Icp?Ipc:Icc;
+            *(ptrd1++) = (Ipc==Icp && Icc!=Inp) || (Icp==Inc && Icc!=Ipp)?Icp:Icc;
+            *(ptrd1++) = Icp==Inc?Inc:Icc;
+            *(ptrd2++) = (Ipc==Icp && Icc!=Ipn) || (Ipc==Icn && Icc!=Ipp)?Ipc:Icc;
+            *(ptrd2++) = Icc;
+            *(ptrd2++) = (Icp==Inc && Icc!=Inn) || (Icn==Inc && Icc!=Inp)?Inc:Icc;
+            *(ptrd3++) = Ipc==Icn?Ipc:Icc;
+            *(ptrd3++) = (Ipc==Icn && Icc!=Inn) || (Icn==Inc && Icc!=Ipn)?Icn:Icc;
+            *(ptrd3++) = Icn==Inc?Inc:Icc;
+          } else {
+            *(ptrd1++) = Icc; *(ptrd1++) = Icc; *(ptrd1++) = Icc;
+            *(ptrd2++) = Icc; *(ptrd2++) = Icc; *(ptrd2++) = Icc;
+            *(ptrd3++) = Icc; *(ptrd3++) = Icc; *(ptrd3++) = Icc;
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Mirror image content along specified axis.
+    /**
+       \param axis Mirror axis
+    **/
+    CImg<T>& mirror(const char axis) {
+      if (is_empty()) return *this;
+      T *pf, *pb, *buf = 0;
+      switch (cimg::uncase(axis)) {
+      case 'x' : {
+        pf = _data; pb = data(_width - 1);
+        const unsigned int width2 = _width/2;
+        for (unsigned int yzv = 0; yzv<_height*_depth*_spectrum; ++yzv) {
+          for (unsigned int x = 0; x<width2; ++x) { const T val = *pf; *(pf++) = *pb; *(pb--) = val; }
+          pf+=_width - width2;
+          pb+=_width + width2;
+        }
+      } break;
+      case 'y' : {
+        buf = new T[_width];
+        pf = _data; pb = data(0,_height - 1);
+        const unsigned int height2 = _height/2;
+        for (unsigned int zv = 0; zv<_depth*_spectrum; ++zv) {
+          for (unsigned int y = 0; y<height2; ++y) {
+            std::memcpy(buf,pf,_width*sizeof(T));
+            std::memcpy(pf,pb,_width*sizeof(T));
+            std::memcpy(pb,buf,_width*sizeof(T));
+            pf+=_width;
+            pb-=_width;
+          }
+          pf+=(ulongT)_width*(_height - height2);
+          pb+=(ulongT)_width*(_height + height2);
+        }
+      } break;
+      case 'z' : {
+        buf = new T[(ulongT)_width*_height];
+        pf = _data; pb = data(0,0,_depth - 1);
+        const unsigned int depth2 = _depth/2;
+        cimg_forC(*this,c) {
+          for (unsigned int z = 0; z<depth2; ++z) {
+            std::memcpy(buf,pf,_width*_height*sizeof(T));
+            std::memcpy(pf,pb,_width*_height*sizeof(T));
+            std::memcpy(pb,buf,_width*_height*sizeof(T));
+            pf+=(ulongT)_width*_height;
+            pb-=(ulongT)_width*_height;
+          }
+          pf+=(ulongT)_width*_height*(_depth - depth2);
+          pb+=(ulongT)_width*_height*(_depth + depth2);
+        }
+      } break;
+      case 'c' : {
+        buf = new T[(ulongT)_width*_height*_depth];
+        pf = _data; pb = data(0,0,0,_spectrum - 1);
+        const unsigned int _spectrum2 = _spectrum/2;
+        for (unsigned int v = 0; v<_spectrum2; ++v) {
+          std::memcpy(buf,pf,_width*_height*_depth*sizeof(T));
+          std::memcpy(pf,pb,_width*_height*_depth*sizeof(T));
+          std::memcpy(pb,buf,_width*_height*_depth*sizeof(T));
+          pf+=(ulongT)_width*_height*_depth;
+          pb-=(ulongT)_width*_height*_depth;
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "mirror(): Invalid specified axis '%c'.",
+                                    cimg_instance,
+                                    axis);
+      }
+      delete[] buf;
+      return *this;
+    }
+
+    //! Mirror image content along specified axis \newinstance.
+    CImg<T> get_mirror(const char axis) const {
+      return (+*this).mirror(axis);
+    }
+
+    //! Mirror image content along specified axes.
+    /**
+       \param axes Mirror axes, as a C-string.
+       \note \c axes may contains multiple characters, e.g. \c "xyz"
+    **/
+    CImg<T>& mirror(const char *const axes) {
+      for (const char *s = axes; *s; ++s) mirror(*s);
+      return *this;
+    }
+
+    //! Mirror image content along specified axes \newinstance.
+    CImg<T> get_mirror(const char *const axes) const {
+      return (+*this).mirror(axes);
+    }
+
+    //! Shift image content.
+    /**
+       \param delta_x Amount of displacement along the X-axis.
+       \param delta_y Amount of displacement along the Y-axis.
+       \param delta_z Amount of displacement along the Z-axis.
+       \param delta_c Amount of displacement along the C-axis.
+       \param boundary_conditions Border condition.
+
+       - \c boundary_conditions can be:
+          - 0: Zero border condition (Dirichlet).
+          - 1: Nearest neighbors (Neumann).
+          - 2: Repeat Pattern (Fourier style).
+    **/
+    CImg<T>& shift(const int delta_x, const int delta_y=0, const int delta_z=0, const int delta_c=0,
+                   const int boundary_conditions=0) {
+      if (is_empty()) return *this;
+      if (delta_x) // Shift along X-axis
+        switch (boundary_conditions) {
+        case 0 :
+          if (cimg::abs(delta_x)>=width()) return fill(0);
+          if (delta_x<0) cimg_forYZC(*this,y,z,c) {
+       
