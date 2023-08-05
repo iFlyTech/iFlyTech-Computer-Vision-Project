@@ -26940,4 +26940,159 @@ namespace cimg_library_suffixed {
             std::memmove(_data,data(0,0,0,-delta_c),_width*_height*_depth*(_spectrum + delta_c)*sizeof(T));
             std::memset(data(0,0,0,_spectrum + delta_c),0,_width*_height*_depth*(-delta_c)*sizeof(T));
           } else {
-            std::memmove(data(0,0,0,delta_c),_data,_width*_height*_depth*(_spectrum-delta_c)
+            std::memmove(data(0,0,0,delta_c),_data,_width*_height*_depth*(_spectrum-delta_c)*sizeof(T));
+            std::memset(_data,0,delta_c*_width*_height*_depth*sizeof(T));
+          }
+          break;
+        case 1 :
+          if (delta_c<0) {
+            const int ndelta_c = (-delta_c>=spectrum())?spectrum() - 1:-delta_c;
+            if (!ndelta_c) return *this;
+            std::memmove(_data,data(0,0,0,ndelta_c),_width*_height*_depth*(_spectrum-ndelta_c)*sizeof(T));
+            T *ptrd = data(0,0,0,_spectrum-ndelta_c), *ptrs = data(0,0,0,_spectrum - 1);
+            for (int l = 0; l<ndelta_c - 1; ++l) {
+              std::memcpy(ptrd,ptrs,_width*_height*_depth*sizeof(T)); ptrd+=(ulongT)_width*_height*_depth;
+            }
+          } else {
+            const int ndelta_c = (delta_c>=spectrum())?spectrum() - 1:delta_c;
+            if (!ndelta_c) return *this;
+            std::memmove(data(0,0,0,ndelta_c),_data,_width*_height*_depth*(_spectrum-ndelta_c)*sizeof(T));
+            T *ptrd = data(0,0,0,1);
+            for (int l = 0; l<ndelta_c - 1; ++l) {
+              std::memcpy(ptrd,_data,_width*_height*_depth*sizeof(T)); ptrd+=(ulongT)_width*_height*_depth;
+            }
+          }
+          break;
+        default : {
+          const int ml = cimg::mod(-delta_c,spectrum()), ndelta_c = (ml<=spectrum()/2)?ml:(ml-spectrum());
+          if (!ndelta_c) return *this;
+          T *const buf = new T[(size_t)_width*_height*_depth*cimg::abs(ndelta_c)];
+          if (ndelta_c>0) {
+            std::memcpy(buf,_data,_width*_height*_depth*ndelta_c*sizeof(T));
+            std::memmove(_data,data(0,0,0,ndelta_c),_width*_height*_depth*(_spectrum-ndelta_c)*sizeof(T));
+            std::memcpy(data(0,0,0,_spectrum-ndelta_c),buf,_width*_height*_depth*ndelta_c*sizeof(T));
+          } else {
+            std::memcpy(buf,data(0,0,0,_spectrum + ndelta_c),-ndelta_c*_width*_height*_depth*sizeof(T));
+            std::memmove(data(0,0,0,-ndelta_c),_data,_width*_height*_depth*(_spectrum + ndelta_c)*sizeof(T));
+            std::memcpy(_data,buf,-ndelta_c*_width*_height*_depth*sizeof(T));
+          }
+          delete[] buf;
+        }
+        }
+      return *this;
+    }
+
+    //! Shift image content \newinstance.
+    CImg<T> get_shift(const int delta_x, const int delta_y=0, const int delta_z=0, const int delta_c=0,
+                          const int boundary_conditions=0) const {
+      return (+*this).shift(delta_x,delta_y,delta_z,delta_c,boundary_conditions);
+    }
+
+    //! Permute axes order.
+    /**
+       \param order Axes permutations, as a C-string of 4 characters.
+       This function permutes image content regarding the specified axes permutation.
+    **/
+    CImg<T>& permute_axes(const char *const order) {
+      return get_permute_axes(order).move_to(*this);
+    }
+
+    //! Permute axes order \newinstance.
+    CImg<T> get_permute_axes(const char *const order) const {
+      const T foo = (T)0;
+      return _get_permute_axes(order,foo);
+    }
+
+    template<typename t>
+    CImg<t> _get_permute_axes(const char *const permut, const t&) const {
+      if (is_empty() || !permut) return CImg<t>(*this,false);
+      CImg<t> res;
+      const T* ptrs = _data;
+      if (!cimg::strncasecmp(permut,"xyzc",4)) return +*this;
+      if (!cimg::strncasecmp(permut,"xycz",4)) {
+        res.assign(_width,_height,_spectrum,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,y,c,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xzyc",4)) {
+        res.assign(_width,_depth,_height,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,z,y,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xzcy",4)) {
+        res.assign(_width,_depth,_spectrum,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,z,c,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xcyz",4)) {
+        res.assign(_width,_spectrum,_height,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,c,y,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"xczy",4)) {
+        res.assign(_width,_spectrum,_depth,_height);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(x,c,z,y,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yxzc",4)) {
+        res.assign(_height,_width,_depth,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,x,z,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yxcz",4)) {
+        res.assign(_height,_width,_spectrum,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,x,c,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yzxc",4)) {
+        res.assign(_height,_depth,_width,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,z,x,c,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yzcx",4)) {
+        res.assign(_height,_depth,_spectrum,_width);
+        switch (_width) {
+        case 1 : {
+          t *ptr_r = res.data(0,0,0,0);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++);
+          }
+        } break;
+        case 2 : {
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++);
+          }
+        } break;
+        case 3 : { // Optimization for the classical conversion from interleaved RGB to planar RGB
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1), *ptr_b = res.data(0,0,0,2);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++); *(ptr_b++) = (t)*(ptrs++);
+          }
+        } break;
+        case 4 : { // Optimization for the classical conversion from interleaved RGBA to planar RGBA
+          t *ptr_r = res.data(0,0,0,0), *ptr_g = res.data(0,0,0,1), *ptr_b = res.data(0,0,0,2), *ptr_a = res.data(0,0,0,3);
+          for (unsigned int siz = _height*_depth*_spectrum; siz; --siz) {
+            *(ptr_r++) = (t)*(ptrs++); *(ptr_g++) = (t)*(ptrs++); *(ptr_b++) = (t)*(ptrs++); *(ptr_a++) = (t)*(ptrs++);
+          }
+        } break;
+        default : {
+          const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+          cimg_forXYZC(*this,x,y,z,c) res(y,z,c,x,wh,whd) = *(ptrs++);
+          return res;
+        }
+        }
+      }
+      if (!cimg::strncasecmp(permut,"ycxz",4)) {
+        res.assign(_height,_spectrum,_width,_depth);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,c,x,z,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"yczx",4)) {
+        res.assign(_height,_spectrum,_depth,_width);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
+        cimg_forXYZC(*this,x,y,z,c) res(y,c,z,x,wh,whd) = (t)*(ptrs++);
+      }
+      if (!cimg::strncasecmp(permut,"zxyc",4)) {
+        res.assign(_depth,_width,_height,_spectrum);
+        const ulongT wh = (ulongT)res._width*res._height, whd = wh*res._depth;
