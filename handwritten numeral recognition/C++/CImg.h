@@ -27438,4 +27438,171 @@ namespace cimg_library_suffixed {
         } break;
         default : {
 #ifdef cimg_use_openmp
-#pragma omp parallel for collapse(3) if (re
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = _atXY((int)(cx + (x-cx)*ca + (y-cy)*sa),(int)(cy - (x-cx)*sa + (y-cy)*ca),z,c);
+        }
+        }
+      } break;
+      case 2 : {
+        switch (interpolation) {
+        case 2 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c) {
+            const Tfloat val = _cubic_atXY(cimg::mod(cx + (x-cx)*ca + (y-cy)*sa,(float)width()),
+                                           cimg::mod(cy - (x-cx)*sa + (y-cy)*ca,(float)height()),z,c);
+            res(x,y,z,c) = (T)(val<vmin?vmin:val>vmax?vmax:val);
+          }
+        } break;
+        case 1 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (T)_linear_atXY(cimg::mod(cx + (x-cx)*ca + (y-cy)*sa,(float)width()),
+                                           cimg::mod(cy - (x-cx)*sa + (y-cy)*ca,(float)height()),z,c);
+        } break;
+        default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=2048)
+#endif
+          cimg_forXYZC(res,x,y,z,c)
+            res(x,y,z,c) = (*this)(cimg::mod((int)(cx + (x-cx)*ca + (y-cy)*sa),width()),
+                                    cimg::mod((int)(cy - (x-cx)*sa + (y-cy)*ca),height()),z,c);
+        }
+        }
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "rotate(): Invalid specified border conditions %d "
+                                    "(should be { 0=dirichlet | 1=neumann | 2=periodic }).",
+                                    cimg_instance,
+                                    boundary_conditions);
+      }
+      return res;
+    }
+
+    //! Warp image content by a warping field.
+    /**
+       \param warp Warping field.
+       \param mode Can be { 0=backward-absolute | 1=backward-relative | 2=forward-absolute | 3=foward-relative }
+       \param is_relative Tells if warping field gives absolute or relative warping coordinates.
+       \param interpolation Can be <tt>{ 0=nearest | 1=linear | 2=cubic }</tt>.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann | 2=periodic }</tt>.
+    **/
+    template<typename t>
+    CImg<T>& warp(const CImg<t>& warp, const unsigned int mode=0,
+                  const unsigned int interpolation=1, const unsigned int boundary_conditions=0) {
+      return get_warp(warp,mode,interpolation,boundary_conditions).move_to(*this);
+    }
+
+    //! Warp image content by a warping field \newinstance
+    template<typename t>
+    CImg<T> get_warp(const CImg<t>& warp, const unsigned int mode=0,
+                     const unsigned int interpolation=1, const unsigned int boundary_conditions=0) const {
+      if (is_empty() || !warp) return *this;
+      if (mode && !is_sameXYZ(warp))
+        throw CImgArgumentException(_cimg_instance
+                                    "warp(): Instance and specified relative warping field (%u,%u,%u,%u,%p) "
+                                    "have different XYZ dimensions.",
+                                    cimg_instance,
+                                    warp._width,warp._height,warp._depth,warp._spectrum,warp._data);
+
+      CImg<T> res(warp._width,warp._height,warp._depth,_spectrum);
+
+      if (warp._spectrum==1) { // 1d warping.
+        if (mode>=3) { // Forward-relative warp.
+          res.fill(0);
+          if (interpolation>=1) // Linear interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+            cimg_forYZC(res,y,z,c) {
+              const t *ptrs0 = warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
+              cimg_forX(res,x) res.set_linear_atX(*(ptrs++),x + (float)*(ptrs0++),y,z,c);
+            }
+          else // Nearest-neighbor interpolation.
+            cimg_forYZC(res,y,z,c) {
+              const t *ptrs0 = warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
+              cimg_forX(res,x) {
+                const int X = x + (int)*(ptrs0++);
+                if (X>=0 && X<width()) res(X,y,z,c) = *(ptrs++);
+              }
+            }
+        } else if (mode==2) { // Forward-absolute warp.
+          res.fill(0);
+          if (interpolation>=1) // Linear interpolation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+            cimg_forYZC(res,y,z,c) {
+              const t *ptrs0 = warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
+              cimg_forX(res,x) res.set_linear_atX(*(ptrs++),(float)*(ptrs0++),y,z,c);
+            }
+          else // Nearest-neighbor interpolation.
+            cimg_forYZC(res,y,z,c) {
+              const t *ptrs0 = warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
+              cimg_forX(res,x) {
+                const int X = (int)*(ptrs0++);
+                if (X>=0 && X<width()) res(X,y,z,c) = *(ptrs++);
+              }
+            }
+        } else if (mode==1) { // Backward-relative warp.
+          if (interpolation==2) { // Cubic interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_cubic_atX(cimg::mod(x - (float)*(ptrs0++),(float)_width),y,z,c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_cubic_atX(x - (float)*(ptrs0++),y,z,c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=4096)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)cubic_atX(x - (float)*(ptrs0++),y,z,c,0);
+              }
+          } else if (interpolation==1) { // Linear interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atX(cimg::mod(x - (float)*(ptrs0++),(float)_width),y,z,c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atX(x - (float)*(ptrs0++),y,z,c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)linear_atX(x - (float)*(ptrs0++),y,z,c,0);
+              }
+          } else { // Nearest-neighbor interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z); T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(pt
