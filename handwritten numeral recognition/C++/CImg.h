@@ -28027,4 +28027,155 @@ namespace cimg_library_suffixed {
               cimg_forYZC(res,y,z,c) {
                 const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
                 T *ptrd = res.data(0,y,z,c);
-                cimg_forX(res,x) *(ptrd++) = (T)cubic_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptr
+                cimg_forX(res,x) *(ptrd++) = (T)cubic_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c,0);
+              }
+          } else if (interpolation==1) { // Linear interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atXYZ(cimg::mod((float)*(ptrs0++),(float)_width),
+                                                              cimg::mod((float)*(ptrs1++),(float)_height),
+                                                              cimg::mod((float)*(ptrs2++),(float)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)_linear_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (res.size()>=1048576)
+#endif
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (T)linear_atXYZ((float)*(ptrs0++),(float)*(ptrs1++),(float)*(ptrs2++),c,0);
+              }
+          } else { // Nearest-neighbor interpolation.
+            if (boundary_conditions==2) // Periodic boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = (*this)(cimg::mod((int)*(ptrs0++),(int)_width),
+                                                     cimg::mod((int)*(ptrs1++),(int)_height),
+                                                     cimg::mod((int)*(ptrs2++),(int)_depth),c);
+              }
+            else if (boundary_conditions==1) // Neumann boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = _atXYZ((int)*(ptrs0++),(int)*(ptrs1++),(int)*(ptrs2++),c);
+              }
+            else // Dirichlet boundaries.
+              cimg_forYZC(res,y,z,c) {
+                const t *ptrs0 = warp.data(0,y,z,0), *ptrs1 = warp.data(0,y,z,1), *ptrs2 = warp.data(0,y,z,2);
+                T *ptrd = res.data(0,y,z,c);
+                cimg_forX(res,x) *(ptrd++) = atXYZ((int)*(ptrs0++),(int)*(ptrs1++),(int)*(ptrs2++),c,0);
+              }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Generate a 2d representation of a 3d image, with XY,XZ and YZ views.
+    /**
+       \param x0 X-coordinate of the projection point.
+       \param y0 Y-coordinate of the projection point.
+       \param z0 Z-coordinate of the projection point.
+    **/
+    CImg<T> get_projections2d(const unsigned int x0, const unsigned int y0, const unsigned int z0) const {
+      if (is_empty() || _depth<2) return +*this;
+      const unsigned int
+        _x0 = (x0>=_width)?_width - 1:x0,
+        _y0 = (y0>=_height)?_height - 1:y0,
+        _z0 = (z0>=_depth)?_depth - 1:z0;
+      const CImg<T>
+        img_xy = get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1),
+        img_zy = get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).permute_axes("xzyc").
+        resize(_depth,_height,1,-100,-1),
+        img_xz = get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1).resize(_width,_depth,1,-100,-1);
+      return CImg<T>(_width + _depth,_height + _depth,1,_spectrum,cimg::min(img_xy.min(),img_zy.min(),img_xz.min())).
+        draw_image(0,0,img_xy).draw_image(img_xy._width,0,img_zy).
+        draw_image(0,img_xy._height,img_xz);
+    }
+
+    //! Construct a 2d representation of a 3d image, with XY,XZ and YZ views \inplace.
+    CImg<T>& projections2d(const unsigned int x0, const unsigned int y0, const unsigned int z0) {
+      if (_depth<2) return *this;
+      return get_projections2d(x0,y0,z0).move_to(*this);
+    }
+
+    //! Crop image region.
+    /**
+       \param x0 = X-coordinate of the upper-left crop rectangle corner.
+       \param y0 = Y-coordinate of the upper-left crop rectangle corner.
+       \param z0 = Z-coordinate of the upper-left crop rectangle corner.
+       \param c0 = C-coordinate of the upper-left crop rectangle corner.
+       \param x1 = X-coordinate of the lower-right crop rectangle corner.
+       \param y1 = Y-coordinate of the lower-right crop rectangle corner.
+       \param z1 = Z-coordinate of the lower-right crop rectangle corner.
+       \param c1 = C-coordinate of the lower-right crop rectangle corner.
+       \param boundary_conditions = Dirichlet (false) or Neumann border conditions.
+    **/
+    CImg<T>& crop(const int x0, const int y0, const int z0, const int c0,
+                  const int x1, const int y1, const int z1, const int c1,
+                  const bool boundary_conditions=false) {
+      return get_crop(x0,y0,z0,c0,x1,y1,z1,c1,boundary_conditions).move_to(*this);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0, const int z0, const int c0,
+                     const int x1, const int y1, const int z1, const int c1,
+                     const bool boundary_conditions=false) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimg_instance
+                                    "crop(): Empty instance.",
+                                    cimg_instance);
+      const int
+        nx0 = x0<x1?x0:x1, nx1 = x0^x1^nx0,
+        ny0 = y0<y1?y0:y1, ny1 = y0^y1^ny0,
+        nz0 = z0<z1?z0:z1, nz1 = z0^z1^nz0,
+        nc0 = c0<c1?c0:c1, nc1 = c0^c1^nc0;
+      CImg<T> res(1U + nx1 - nx0,1U + ny1 - ny0,1U + nz1 - nz0,1U + nc1 - nc0);
+      if (nx0<0 || nx1>=width() || ny0<0 || ny1>=height() || nz0<0 || nz1>=depth() || nc0<0 || nc1>=spectrum()) {
+        if (boundary_conditions) cimg_forXYZC(res,x,y,z,c) res(x,y,z,c) = _atXYZC(nx0 + x,ny0 + y,nz0 + z,nc0 + c);
+        else res.fill(0).draw_image(-nx0,-ny0,-nz0,-nc0,*this);
+      } else res.draw_image(-nx0,-ny0,-nz0,-nc0,*this);
+      return res;
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int y0, const int z0,
+                  const int x1, const int y1, const int z1,
+                  const bool boundary_conditions=false) {
+      return crop(x0,y0,z0,0,x1,y1,z1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0, const int z0,
+                     const int x1, const int y1, const int z1,
+                     const bool boundary_conditions=false) const {
+      return get_crop(x0,y0,z0,0,x1,y1,z1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int y0,
+                  const int x1, const int y1,
+                  const bool boundary_conditions=false) {
+      return crop(x0,y0,0,0,x1,y1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int y0,
+                     const int x1, const int y1,
+                     const bool boundary_conditions=false) const {
+    
