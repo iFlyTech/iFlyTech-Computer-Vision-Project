@@ -28555,3 +28555,148 @@ namespace cimg_library_suffixed {
       } break;
       case 2 : { // Second order interpolation.
         cimg_forX(coordinates,l) {
+          *(ptr_x++) = X; *(ptr_y++) = Y; *(ptr_z++) = Z;
+          float
+            u0 = (float)(dl2*func(X,Y,Z,0)),
+            v0 = (float)(dl2*func(X,Y,Z,1)),
+            w0 = (float)(dl2*func(X,Y,Z,2));
+          if (is_oriented_only && u0*pu + v0*pv + w0*pw<0) { u0 = -u0; v0 = -v0; w0 = -w0; }
+          float
+            u = (float)(dl*func(X + u0,Y + v0,Z + w0,0)),
+            v = (float)(dl*func(X + u0,Y + v0,Z + w0,1)),
+            w = (float)(dl*func(X + u0,Y + v0,Z + w0,2));
+          if (is_oriented_only && u*pu + v*pv + w*pw<0) { u = -u; v = -v; w = -w; }
+          if (is_backward_tracking) { X-=(pu=u); Y-=(pv=v); Z-=(pw=w); } else { X+=(pu=u); Y+=(pv=v); Z+=(pw=w); }
+          if (is_bounded && (X<x0 || X>x1 || Y<y0 || Y>y1 || Z<z0 || Z>z1)) break;
+        }
+      } break;
+      default : { // Fourth order interpolation.
+        cimg_forX(coordinates,x) {
+          *(ptr_x++) = X; *(ptr_y++) = Y; *(ptr_z++) = Z;
+          float
+            u0 = (float)(dl2*func(X,Y,Z,0)),
+            v0 = (float)(dl2*func(X,Y,Z,1)),
+            w0 = (float)(dl2*func(X,Y,Z,2));
+          if (is_oriented_only && u0*pu + v0*pv + w0*pw<0) { u0 = -u0; v0 = -v0; w0 = -w0; }
+          float
+            u1 = (float)(dl2*func(X + u0,Y + v0,Z + w0,0)),
+            v1 = (float)(dl2*func(X + u0,Y + v0,Z + w0,1)),
+            w1 = (float)(dl2*func(X + u0,Y + v0,Z + w0,2));
+          if (is_oriented_only && u1*pu + v1*pv + w1*pw<0) { u1 = -u1; v1 = -v1; w1 = -w1; }
+          float
+            u2 = (float)(dl2*func(X + u1,Y + v1,Z + w1,0)),
+            v2 = (float)(dl2*func(X + u1,Y + v1,Z + w1,1)),
+            w2 = (float)(dl2*func(X + u1,Y + v1,Z + w1,2));
+          if (is_oriented_only && u2*pu + v2*pv + w2*pw<0) { u2 = -u2; v2 = -v2; w2 = -w2; }
+          float
+            u3 = (float)(dl2*func(X + u2,Y + v2,Z + w2,0)),
+            v3 = (float)(dl2*func(X + u2,Y + v2,Z + w2,1)),
+            w3 = (float)(dl2*func(X + u2,Y + v2,Z + w2,2));
+          if (is_oriented_only && u2*pu + v2*pv + w2*pw<0) { u3 = -u3; v3 = -v3; w3 = -w3; }
+          const float
+            u = (u0 + u3)/3 + (u1 + u2)/1.5f,
+            v = (v0 + v3)/3 + (v1 + v2)/1.5f,
+            w = (w0 + w3)/3 + (w1 + w2)/1.5f;
+          if (is_backward_tracking) { X-=(pu=u); Y-=(pv=v); Z-=(pw=w); } else { X+=(pu=u); Y+=(pv=v); Z+=(pw=w); }
+          if (is_bounded && (X<x0 || X>x1 || Y<y0 || Y>y1 || Z<z0 || Z>z1)) break;
+        }
+      }
+      }
+      if (ptr_x!=coordinates.data(0,1)) coordinates.resize((int)(ptr_x-coordinates.data()),3,1,1,0);
+      return coordinates;
+    }
+
+    //! Return stream line of a 3d vector field \overloading.
+    static CImg<floatT> streamline(const char *const expression,
+                                   const float x, const float y, const float z,
+                                   const float L=256, const float dl=0.1f,
+                                   const unsigned int interpolation_type=2, const bool is_backward_tracking=true,
+                                   const bool is_oriented_only=false,
+                                   const float x0=0, const float y0=0, const float z0=0,
+                                   const float x1=0, const float y1=0, const float z1=0) {
+      _functor4d_streamline_expr func(expression);
+      return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,is_oriented_only,x0,y0,z0,x1,y1,z1);
+    }
+
+    struct _functor4d_streamline2d_directed {
+      const CImg<T>& ref;
+      _functor4d_streamline2d_directed(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return c<2?(float)ref._linear_atXY(x,y,(int)z,c):0;
+      }
+    };
+
+    struct _functor4d_streamline3d_directed {
+      const CImg<T>& ref;
+      _functor4d_streamline3d_directed(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)ref._linear_atXYZ(x,y,z,c);
+      }
+    };
+
+    struct _functor4d_streamline2d_oriented {
+      const CImg<T>& ref;
+      CImg<floatT> *pI;
+      _functor4d_streamline2d_oriented(const CImg<T>& pref):ref(pref),pI(0) { pI = new CImg<floatT>(2,2,1,2); }
+      ~_functor4d_streamline2d_oriented() { delete pI; }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+#define _cimg_vecalign2d(i,j) \
+        if (I(i,j,0)*I(0,0,0) + I(i,j,1)*I(0,0,1)<0) { I(i,j,0) = -I(i,j,0); I(i,j,1) = -I(i,j,1); }
+        int
+          xi = (int)x - (x>=0?0:1), nxi = xi + 1,
+          yi = (int)y - (y>=0?0:1), nyi = yi + 1,
+          zi = (int)z;
+        const float
+          dx = x - xi,
+          dy = y - yi;
+        if (c==0) {
+          CImg<floatT>& I = *pI;
+          if (xi<0) xi = 0; if (nxi<0) nxi = 0;
+          if (xi>=ref.width()) xi = ref.width() - 1; if (nxi>=ref.width()) nxi = ref.width() - 1;
+          if (yi<0) yi = 0; if (nyi<0) nyi = 0;
+          if (yi>=ref.height()) yi = ref.height() - 1; if (nyi>=ref.height()) nyi = ref.height() - 1;
+          I(0,0,0) = (float)ref(xi,yi,zi,0);   I(0,0,1) = (float)ref(xi,yi,zi,1);
+          I(1,0,0) = (float)ref(nxi,yi,zi,0);  I(1,0,1) = (float)ref(nxi,yi,zi,1);
+          I(1,1,0) = (float)ref(nxi,nyi,zi,0); I(1,1,1) = (float)ref(nxi,nyi,zi,1);
+          I(0,1,0) = (float)ref(xi,nyi,zi,0);  I(0,1,1) = (float)ref(xi,nyi,zi,1);
+          _cimg_vecalign2d(1,0); _cimg_vecalign2d(1,1); _cimg_vecalign2d(0,1);
+        }
+        return c<2?(float)pI->_linear_atXY(dx,dy,0,c):0;
+      }
+    };
+
+    struct _functor4d_streamline3d_oriented {
+      const CImg<T>& ref;
+      CImg<floatT> *pI;
+      _functor4d_streamline3d_oriented(const CImg<T>& pref):ref(pref),pI(0) { pI = new CImg<floatT>(2,2,2,3); }
+      ~_functor4d_streamline3d_oriented() { delete pI; }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+#define _cimg_vecalign3d(i,j,k) if (I(i,j,k,0)*I(0,0,0,0) + I(i,j,k,1)*I(0,0,0,1) + I(i,j,k,2)*I(0,0,0,2)<0) { \
+  I(i,j,k,0) = -I(i,j,k,0); I(i,j,k,1) = -I(i,j,k,1); I(i,j,k,2) = -I(i,j,k,2); }
+        int
+          xi = (int)x - (x>=0?0:1), nxi = xi + 1,
+          yi = (int)y - (y>=0?0:1), nyi = yi + 1,
+          zi = (int)z - (z>=0?0:1), nzi = zi + 1;
+        const float
+          dx = x - xi,
+          dy = y - yi,
+          dz = z - zi;
+        if (c==0) {
+          CImg<floatT>& I = *pI;
+          if (xi<0) xi = 0; if (nxi<0) nxi = 0;
+          if (xi>=ref.width()) xi = ref.width() - 1; if (nxi>=ref.width()) nxi = ref.width() - 1;
+          if (yi<0) yi = 0; if (nyi<0) nyi = 0;
+          if (yi>=ref.height()) yi = ref.height() - 1; if (nyi>=ref.height()) nyi = ref.height() - 1;
+          if (zi<0) zi = 0; if (nzi<0) nzi = 0;
+          if (zi>=ref.depth()) zi = ref.depth() - 1; if (nzi>=ref.depth()) nzi = ref.depth() - 1;
+          I(0,0,0,0) = (float)ref(xi,yi,zi,0); I(0,0,0,1) = (float)ref(xi,yi,zi,1);
+          I(0,0,0,2) = (float)ref(xi,yi,zi,2); I(1,0,0,0) = (float)ref(nxi,yi,zi,0);
+          I(1,0,0,1) = (float)ref(nxi,yi,zi,1); I(1,0,0,2) = (float)ref(nxi,yi,zi,2);
+          I(1,1,0,0) = (float)ref(nxi,nyi,zi,0); I(1,1,0,1) = (float)ref(nxi,nyi,zi,1);
+          I(1,1,0,2) = (float)ref(nxi,nyi,zi,2); I(0,1,0,0) = (float)ref(xi,nyi,zi,0);
+          I(0,1,0,1) = (float)ref(xi,nyi,zi,1); I(0,1,0,2) = (float)ref(xi,nyi,zi,2);
+          I(0,0,1,0) = (float)ref(xi,yi,nzi,0); I(0,0,1,1) = (float)ref(xi,yi,nzi,1);
+          I(0,0,1,2) = (float)ref(xi,yi,nzi,2); I(1,0,1,0) = (float)ref(nxi,yi,nzi,0);
+          I(1,0,1,1) = (float)ref(nxi,yi,nzi,1);  I(1,0,1,2) = (float)ref(nxi,yi,nzi,2);
+          I(1,1,1,0) = (float)ref(nxi,nyi,nzi,0); I(1,1,1,1) = (float)ref(nxi,nyi,nzi,1);
+          I(1,1,1,2) = (float)ref(
