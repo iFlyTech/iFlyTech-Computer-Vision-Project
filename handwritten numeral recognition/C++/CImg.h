@@ -28178,4 +28178,207 @@ namespace cimg_library_suffixed {
     CImg<T> get_crop(const int x0, const int y0,
                      const int x1, const int y1,
                      const bool boundary_conditions=false) const {
-    
+      return get_crop(x0,y0,0,0,x1,y1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \overloading.
+    CImg<T>& crop(const int x0, const int x1, const bool boundary_conditions=false) {
+      return crop(x0,0,0,0,x1,_height - 1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Crop image region \newinstance.
+    CImg<T> get_crop(const int x0, const int x1, const bool boundary_conditions=false) const {
+      return get_crop(x0,0,0,0,x1,_height - 1,_depth - 1,_spectrum - 1,boundary_conditions);
+    }
+
+    //! Autocrop image region, regarding the specified background value.
+    CImg<T>& autocrop(const T& value, const char *const axes="czyx") {
+      if (is_empty()) return *this;
+      for (const char *s = axes; *s; ++s) {
+        const char axis = cimg::uncase(*s);
+        const CImg<intT> coords = _autocrop(value,axis);
+        if (coords[0]==-1 && coords[1]==-1) return assign(); // Image has only 'value' pixels.
+        else switch (axis) {
+        case 'x' : {
+          const int x0 = coords[0], x1 = coords[1];
+          if (x0>=0 && x1>=0) crop(x0,x1);
+        } break;
+        case 'y' : {
+          const int y0 = coords[0], y1 = coords[1];
+          if (y0>=0 && y1>=0) crop(0,y0,_width - 1,y1);
+        } break;
+        case 'z' : {
+          const int z0 = coords[0], z1 = coords[1];
+          if (z0>=0 && z1>=0) crop(0,0,z0,_width - 1,_height - 1,z1);
+        } break;
+        default : {
+          const int c0 = coords[0], c1 = coords[1];
+          if (c0>=0 && c1>=0) crop(0,0,0,c0,_width - 1,_height - 1,_depth - 1,c1);
+        }
+        }
+      }
+      return *this;
+    }
+
+    //! Autocrop image region, regarding the specified background value \newinstance.
+    CImg<T> get_autocrop(const T& value, const char *const axes="czyx") const {
+      return (+*this).autocrop(value,axes);
+    }
+
+    //! Autocrop image region, regarding the specified background color.
+    /**
+       \param color Color used for the crop. If \c 0, color is guessed.
+       \param axes Axes used for the crop.
+    **/
+    CImg<T>& autocrop(const T *const color=0, const char *const axes="zyx") {
+      if (is_empty()) return *this;
+      if (!color) { // Guess color.
+        const CImg<T> col1 = get_vector_at(0,0,0);
+        const unsigned int w = _width, h = _height, d = _depth, s = _spectrum;
+        autocrop(col1,axes);
+        if (_width==w && _height==h && _depth==d && _spectrum==s) {
+          const CImg<T> col2 = get_vector_at(w - 1,h - 1,d - 1);
+          autocrop(col2,axes);
+        }
+        return *this;
+      }
+      for (const char *s = axes; *s; ++s) {
+        const char axis = cimg::uncase(*s);
+        switch (axis) {
+        case 'x' : {
+          int x0 = width(), x1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'x');
+            const int nx0 = coords[0], nx1 = coords[1];
+            if (nx0>=0 && nx1>=0) { x0 = cimg::min(x0,nx0); x1 = cimg::max(x1,nx1); }
+          }
+          if (x0==width() && x1==-1) return assign(); else crop(x0,x1);
+        } break;
+        case 'y' : {
+          int y0 = height(), y1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'y');
+            const int ny0 = coords[0], ny1 = coords[1];
+            if (ny0>=0 && ny1>=0) { y0 = cimg::min(y0,ny0); y1 = cimg::max(y1,ny1); }
+          }
+          if (y0==height() && y1==-1) return assign(); else crop(0,y0,_width - 1,y1);
+        } break;
+        default : {
+          int z0 = depth(), z1 = -1;
+          cimg_forC(*this,c) {
+            const CImg<intT> coords = get_shared_channel(c)._autocrop(color[c],'z');
+            const int nz0 = coords[0], nz1 = coords[1];
+            if (nz0>=0 && nz1>=0) { z0 = cimg::min(z0,nz0); z1 = cimg::max(z1,nz1); }
+          }
+          if (z0==depth() && z1==-1) return assign(); else crop(0,0,z0,_width - 1,_height - 1,z1);
+        }
+        }
+      }
+      return *this;
+    }
+
+    //! Autocrop image region, regarding the specified background color \newinstance.
+    CImg<T> get_autocrop(const T *const color=0, const char *const axes="zyx") const {
+      return (+*this).autocrop(color,axes);
+    }
+
+    //! Autocrop image region, regarding the specified background color \overloading.
+    template<typename t> CImg<T>& autocrop(const CImg<t>& color, const char *const axes="zyx") {
+      return get_autocrop(color,axes).move_to(*this);
+    }
+
+    //! Autocrop image region, regarding the specified background color \newinstance.
+    template<typename t> CImg<T> get_autocrop(const CImg<t>& color, const char *const axes="zyx") const {
+      return get_autocrop(color._data,axes);
+    }
+
+    CImg<intT> _autocrop(const T& value, const char axis) const {
+      CImg<intT> res;
+      switch (cimg::uncase(axis)) {
+      case 'x' : {
+        int x0 = -1, x1 = -1;
+        cimg_forX(*this,x) cimg_forYZC(*this,y,z,c)
+          if ((*this)(x,y,z,c)!=value) { x0 = x; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (x0>=0) {
+          for (int x = width() - 1; x>=0; --x) cimg_forYZC(*this,y,z,c)
+            if ((*this)(x,y,z,c)!=value) { x1 = x; x = 0; y = height(); z = depth(); c = spectrum(); }
+        }
+        res = CImg<intT>::vector(x0,x1);
+      } break;
+      case 'y' : {
+        int y0 = -1, y1 = -1;
+        cimg_forY(*this,y) cimg_forXZC(*this,x,z,c)
+          if ((*this)(x,y,z,c)!=value) { y0 = y; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (y0>=0) {
+          for (int y = height() - 1; y>=0; --y) cimg_forXZC(*this,x,z,c)
+            if ((*this)(x,y,z,c)!=value) { y1 = y; x = width(); y = 0; z = depth(); c = spectrum(); }
+        }
+        res = CImg<intT>::vector(y0,y1);
+      } break;
+      case 'z' : {
+        int z0 = -1, z1 = -1;
+        cimg_forZ(*this,z) cimg_forXYC(*this,x,y,c)
+          if ((*this)(x,y,z,c)!=value) { z0 = z; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (z0>=0) {
+          for (int z = depth() - 1; z>=0; --z) cimg_forXYC(*this,x,y,c)
+            if ((*this)(x,y,z,c)!=value) { z1 = z; x = width(); y = height(); z = 0; c = spectrum(); }
+        }
+        res = CImg<intT>::vector(z0,z1);
+      } break;
+      default : {
+        int c0 = -1, c1 = -1;
+        cimg_forC(*this,c) cimg_forXYZ(*this,x,y,z)
+          if ((*this)(x,y,z,c)!=value) { c0 = c; x = width(); y = height(); z = depth(); c = spectrum(); }
+        if (c0>=0) {
+          for (int c = spectrum() - 1; c>=0; --c) cimg_forXYZ(*this,x,y,z)
+            if ((*this)(x,y,z,c)!=value) { c1 = c; x = width(); y = height(); z = depth(); c = 0; }
+        }
+        res = CImg<intT>::vector(c0,c1);
+      }
+      }
+      return res;
+    }
+
+    //! Return specified image column.
+    /**
+       \param x0 Image column.
+    **/
+    CImg<T> get_column(const int x0) const {
+      return get_columns(x0,x0);
+    }
+
+    //! Return specified image column \inplace.
+    CImg<T>& column(const int x0) {
+      return columns(x0,x0);
+    }
+
+    //! Return specified range of image columns.
+    /**
+       \param x0 Starting image column.
+       \param x1 Ending image column.
+    **/
+    CImg<T>& columns(const int x0, const int x1) {
+      return get_columns(x0,x1).move_to(*this);
+    }
+
+    //! Return specified range of image columns \inplace.
+    CImg<T> get_columns(const int x0, const int x1) const {
+      return get_crop(x0,0,0,0,x1,height() - 1,depth() - 1,spectrum() - 1);
+    }
+
+    //! Return specified image row.
+    CImg<T> get_row(const int y0) const {
+      return get_rows(y0,y0);
+    }
+
+    //! Return specified image row \inplace.
+    /**
+       \param y0 Image row.
+    **/
+    CImg<T>& row(const int y0) {
+      return rows(y0,y0);
+    }
+
+    //! Return specified range of image rows.
+    /**
+       \param y0 Starting image 
