@@ -28381,4 +28381,177 @@ namespace cimg_library_suffixed {
 
     //! Return specified range of image rows.
     /**
-       \param y0 Starting image 
+       \param y0 Starting image row.
+       \param y1 Ending image row.
+    **/
+    CImg<T> get_rows(const int y0, const int y1) const {
+      return get_crop(0,y0,0,0,width() - 1,y1,depth() - 1,spectrum() - 1);
+    }
+
+    //! Return specified range of image rows \inplace.
+    CImg<T>& rows(const int y0, const int y1) {
+      return get_rows(y0,y1).move_to(*this);
+    }
+
+    //! Return specified image slice.
+    /**
+       \param z0 Image slice.
+    **/
+    CImg<T> get_slice(const int z0) const {
+      return get_slices(z0,z0);
+    }
+
+    //! Return specified image slice \inplace.
+    CImg<T>& slice(const int z0) {
+      return slices(z0,z0);
+    }
+
+    //! Return specified range of image slices.
+    /**
+       \param z0 Starting image slice.
+       \param z1 Ending image slice.
+    **/
+    CImg<T> get_slices(const int z0, const int z1) const {
+      return get_crop(0,0,z0,0,width() - 1,height() - 1,z1,spectrum() - 1);
+    }
+
+    //! Return specified range of image slices \inplace.
+    CImg<T>& slices(const int z0, const int z1) {
+      return get_slices(z0,z1).move_to(*this);
+    }
+
+    //! Return specified image channel.
+    /**
+       \param c0 Image channel.
+    **/
+    CImg<T> get_channel(const int c0) const {
+      return get_channels(c0,c0);
+    }
+
+    //! Return specified image channel \inplace.
+    CImg<T>& channel(const int c0) {
+      return channels(c0,c0);
+    }
+
+    //! Return specified range of image channels.
+    /**
+       \param c0 Starting image channel.
+       \param c1 Ending image channel.
+    **/
+    CImg<T> get_channels(const int c0, const int c1) const {
+      return get_crop(0,0,0,c0,width() - 1,height() - 1,depth() - 1,c1);
+    }
+
+    //! Return specified range of image channels \inplace.
+    CImg<T>& channels(const int c0, const int c1) {
+      return get_channels(c0,c1).move_to(*this);
+    }
+
+    //! Return stream line of a 2d or 3d vector field.
+    CImg<floatT> get_streamline(const float x, const float y, const float z,
+                                const float L=256, const float dl=0.1f,
+                                const unsigned int interpolation_type=2, const bool is_backward_tracking=false,
+                                const bool is_oriented_only=false) const {
+      if (_spectrum!=2 && _spectrum!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "streamline(): Instance is not a 2d or 3d vector field.",
+                                    cimg_instance);
+      if (_spectrum==2) {
+        if (is_oriented_only) {
+          typename CImg<T>::_functor4d_streamline2d_oriented func(*this);
+          return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,true,
+                            0,0,0,_width - 1.0f,_height - 1.0f,0.0f);
+        } else {
+          typename CImg<T>::_functor4d_streamline2d_directed func(*this);
+          return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,false,
+                            0,0,0,_width - 1.0f,_height - 1.0f,0.0f);
+        }
+      }
+      if (is_oriented_only) {
+        typename CImg<T>::_functor4d_streamline3d_oriented func(*this);
+        return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,true,
+                          0,0,0,_width - 1.0f,_height - 1.0f,_depth - 1.0f);
+      }
+      typename CImg<T>::_functor4d_streamline3d_directed func(*this);
+      return streamline(func,x,y,z,L,dl,interpolation_type,is_backward_tracking,false,
+                        0,0,0,_width - 1.0f,_height - 1.0f,_depth - 1.0f);
+    }
+
+    //! Return stream line of a 3d vector field.
+    /**
+       \param func Vector field function.
+       \param x X-coordinate of the starting point of the streamline.
+       \param y Y-coordinate of the starting point of the streamline.
+       \param z Z-coordinate of the starting point of the streamline.
+       \param L Streamline length.
+       \param dl Streamline length increment.
+       \param interpolation_type Type of interpolation.
+         Can be <tt>{ 0=nearest int | 1=linear | 2=2nd-order RK | 3=4th-order RK. }</tt>.
+       \param is_backward_tracking Tells if the streamline is estimated forward or backward.
+       \param is_oriented_only Tells if the direction of the vectors must be ignored.
+       \param x0 X-coordinate of the first bounding-box vertex.
+       \param y0 Y-coordinate of the first bounding-box vertex.
+       \param z0 Z-coordinate of the first bounding-box vertex.
+       \param x1 X-coordinate of the second bounding-box vertex.
+       \param y1 Y-coordinate of the second bounding-box vertex.
+       \param z1 Z-coordinate of the second bounding-box vertex.
+    **/
+    template<typename tfunc>
+    static CImg<floatT> streamline(const tfunc& func,
+                                   const float x, const float y, const float z,
+                                   const float L=256, const float dl=0.1f,
+                                   const unsigned int interpolation_type=2, const bool is_backward_tracking=false,
+                                   const bool is_oriented_only=false,
+                                   const float x0=0, const float y0=0, const float z0=0,
+                                   const float x1=0, const float y1=0, const float z1=0) {
+      if (dl<=0)
+        throw CImgArgumentException("CImg<%s>::streamline(): Invalid specified integration length %g "
+                                    "(should be >0).",
+                                    pixel_type(),
+                                    dl);
+
+      const bool is_bounded = (x0!=x1 || y0!=y1 || z0!=z1);
+      if (L<=0 || (is_bounded && (x<x0 || x>x1 || y<y0 || y>y1 || z<z0 || z>z1))) return CImg<floatT>();
+      const unsigned int size_L = (unsigned int)cimg::round(L/dl + 1);
+      CImg<floatT> coordinates(size_L,3);
+      const float dl2 = dl/2;
+      float
+        *ptr_x = coordinates.data(0,0),
+        *ptr_y = coordinates.data(0,1),
+        *ptr_z = coordinates.data(0,2),
+        pu = (float)(dl*func(x,y,z,0)),
+        pv = (float)(dl*func(x,y,z,1)),
+        pw = (float)(dl*func(x,y,z,2)),
+        X = x, Y = y, Z = z;
+
+      switch (interpolation_type) {
+      case 0 : { // Nearest integer interpolation.
+        cimg_forX(coordinates,l) {
+          *(ptr_x++) = X; *(ptr_y++) = Y; *(ptr_z++) = Z;
+          const int
+            xi = (int)(X>0?X + 0.5f:X - 0.5f),
+            yi = (int)(Y>0?Y + 0.5f:Y - 0.5f),
+            zi = (int)(Z>0?Z + 0.5f:Z - 0.5f);
+          float
+            u = (float)(dl*func((float)xi,(float)yi,(float)zi,0)),
+            v = (float)(dl*func((float)xi,(float)yi,(float)zi,1)),
+            w = (float)(dl*func((float)xi,(float)yi,(float)zi,2));
+          if (is_oriented_only && u*pu + v*pv + w*pw<0) { u = -u; v = -v; w = -w; }
+          if (is_backward_tracking) { X-=(pu=u); Y-=(pv=v); Z-=(pw=w); } else { X+=(pu=u); Y+=(pv=v); Z+=(pw=w); }
+          if (is_bounded && (X<x0 || X>x1 || Y<y0 || Y>y1 || Z<z0 || Z>z1)) break;
+        }
+      } break;
+      case 1 : { // First-order interpolation.
+        cimg_forX(coordinates,l) {
+          *(ptr_x++) = X; *(ptr_y++) = Y; *(ptr_z++) = Z;
+          float
+            u = (float)(dl*func(X,Y,Z,0)),
+            v = (float)(dl*func(X,Y,Z,1)),
+            w = (float)(dl*func(X,Y,Z,2));
+          if (is_oriented_only && u*pu + v*pv + w*pw<0) { u = -u; v = -v; w = -w; }
+          if (is_backward_tracking) { X-=(pu=u); Y-=(pv=v); Z-=(pw=w); } else { X+=(pu=u); Y+=(pv=v); Z+=(pw=w); }
+          if (is_bounded && (X<x0 || X>x1 || Y<y0 || Y>y1 || Z<z0 || Z>z1)) break;
+        }
+      } break;
+      case 2 : { // Second order interpolation.
+        cimg_forX(coordinates,l) {
