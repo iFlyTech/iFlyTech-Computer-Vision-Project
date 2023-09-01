@@ -28699,4 +28699,174 @@ namespace cimg_library_suffixed {
           I(0,0,1,2) = (float)ref(xi,yi,nzi,2); I(1,0,1,0) = (float)ref(nxi,yi,nzi,0);
           I(1,0,1,1) = (float)ref(nxi,yi,nzi,1);  I(1,0,1,2) = (float)ref(nxi,yi,nzi,2);
           I(1,1,1,0) = (float)ref(nxi,nyi,nzi,0); I(1,1,1,1) = (float)ref(nxi,nyi,nzi,1);
-          I(1,1,1,2) = (float)ref(
+          I(1,1,1,2) = (float)ref(nxi,nyi,nzi,2); I(0,1,1,0) = (float)ref(xi,nyi,nzi,0);
+          I(0,1,1,1) = (float)ref(xi,nyi,nzi,1);  I(0,1,1,2) = (float)ref(xi,nyi,nzi,2);
+          _cimg_vecalign3d(1,0,0); _cimg_vecalign3d(1,1,0); _cimg_vecalign3d(0,1,0);
+          _cimg_vecalign3d(0,0,1); _cimg_vecalign3d(1,0,1); _cimg_vecalign3d(1,1,1); _cimg_vecalign3d(0,1,1);
+        }
+        return (float)pI->_linear_atXYZ(dx,dy,dz,c);
+      }
+    };
+
+    struct _functor4d_streamline_expr {
+      _cimg_math_parser *mp;
+      ~_functor4d_streamline_expr() { delete mp; }
+      _functor4d_streamline_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,"streamline",CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)(*mp)(x,y,z,c);
+      }
+    };
+
+    //! Return a shared-memory image referencing a range of pixels of the image instance.
+    /**
+       \param x0 X-coordinate of the starting pixel.
+       \param x1 X-coordinate of the ending pixel.
+       \param y0 Y-coordinate.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+     **/
+    CImg<T> get_shared_points(const unsigned int x0, const unsigned int x1,
+                              const unsigned int y0=0, const unsigned int z0=0, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(x0,y0,z0,c0),
+        end = (unsigned int)offset(x1,y0,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_points(): Invalid request of a shared-memory subset (%u->%u,%u,%u,%u).",
+                                    cimg_instance,
+                                    x0,x1,y0,z0,c0);
+
+      return CImg<T>(_data + beg,x1 - x0 + 1,1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of pixels of the image instance \const.
+    const CImg<T> get_shared_points(const unsigned int x0, const unsigned int x1,
+                                    const unsigned int y0=0, const unsigned int z0=0, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(x0,y0,z0,c0),
+        end = (unsigned int)offset(x1,y0,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_points(): Invalid request of a shared-memory subset (%u->%u,%u,%u,%u).",
+                                    cimg_instance,
+                                    x0,x1,y0,z0,c0);
+
+      return CImg<T>(_data + beg,x1 - x0 + 1,1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of rows of the image instance.
+    /**
+       \param y0 Y-coordinate of the starting row.
+       \param y1 Y-coordinate of the ending row.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_rows(const unsigned int y0, const unsigned int y1,
+                             const unsigned int z0=0, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(0,y0,z0,c0),
+        end = (unsigned int)offset(0,y1,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_rows(): Invalid request of a shared-memory subset "
+                                    "(0->%u,%u->%u,%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,y0,y1,z0,c0);
+
+      return CImg<T>(_data + beg,_width,y1 - y0 + 1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of rows of the image instance \const.
+    const CImg<T> get_shared_rows(const unsigned int y0, const unsigned int y1,
+                                   const unsigned int z0=0, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,y0,z0,c0),
+        end = (unsigned int)offset(0,y1,z0,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_rows(): Invalid request of a shared-memory subset "
+                                    "(0->%u,%u->%u,%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,y0,y1,z0,c0);
+
+      return CImg<T>(_data + beg,_width,y1 - y0 + 1,1,1,true);
+    }
+
+    //! Return a shared-memory image referencing one row of the image instance.
+    /**
+       \param y0 Y-coordinate.
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_row(const unsigned int y0, const unsigned int z0=0, const unsigned int c0=0) {
+      return get_shared_rows(y0,y0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing one row of the image instance \const.
+    const CImg<T> get_shared_row(const unsigned int y0, const unsigned int z0=0, const unsigned int c0=0) const {
+      return get_shared_rows(y0,y0,z0,c0);
+    }
+
+    //! Return a shared memory image referencing a range of slices of the image instance.
+    /**
+       \param z0 Z-coordinate of the starting slice.
+       \param z1 Z-coordinate of the ending slice.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_slices(const unsigned int z0, const unsigned int z1, const unsigned int c0=0) {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,z0,c0),
+        end = (unsigned int)offset(0,0,z1,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_slices(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,%u->%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,z0,z1,c0);
+
+      return CImg<T>(_data + beg,_width,_height,z1 - z0 + 1,1,true);
+    }
+
+    //! Return a shared memory image referencing a range of slices of the image instance \const.
+    const CImg<T> get_shared_slices(const unsigned int z0, const unsigned int z1, const unsigned int c0=0) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,z0,c0),
+        end = (unsigned int)offset(0,0,z1,c0);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_slices(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,%u->%u,%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,z0,z1,c0);
+
+      return CImg<T>(_data + beg,_width,_height,z1 - z0 + 1,1,true);
+    }
+
+    //! Return a shared-memory image referencing one slice of the image instance.
+    /**
+       \param z0 Z-coordinate.
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_slice(const unsigned int z0, const unsigned int c0=0) {
+      return get_shared_slices(z0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing one slice of the image instance \const.
+    const CImg<T> get_shared_slice(const unsigned int z0, const unsigned int c0=0) const {
+      return get_shared_slices(z0,z0,c0);
+    }
+
+    //! Return a shared-memory image referencing a range of channels of the image instance.
+    /**
+       \param c0 C-coordinate of the starting channel.
+       \param c1 C-coordinate of the ending channel.
+    **/
+    CImg<T> get_shared_channels(const unsigned int c0, const unsigned int c1) {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,0,c0),
+        end = (unsigned int)offset(0,0,0,c1);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_channels(): Invalid r
