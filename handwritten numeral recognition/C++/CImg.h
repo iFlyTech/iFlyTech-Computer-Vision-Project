@@ -29053,4 +29053,200 @@ namespace cimg_library_suffixed {
         default : {
           longT i0 = 0;
           cimg_foroff(*this,i)
-         
+            if ((*this)[i]!=current) { CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = (longT)i; current = (*this)[i]; }
+          CImg<T>(_data + i0,1,size() - i0).move_to(res);
+        }
+        }
+      }
+      return res;
+    }
+
+    //! Split image into a list of sub-images, according to a specified splitting value sequence and optionnally axis.
+    /**
+       \param values Splitting value sequence.
+       \param axis Axis along which the splitting is performed. Can be '0' to ignore axis.
+       \param keep_values Tells if the splitting sequence must be kept in the splitted blocs.
+     **/
+    template<typename t>
+    CImgList<T> get_split(const CImg<t>& values, const char axis=0, const bool keep_values=true) const {
+      CImgList<T> res;
+      if (is_empty()) return res;
+      const ulongT vsiz = values.size();
+      const char _axis = cimg::uncase(axis);
+      if (!vsiz) return CImgList<T>(*this);
+      if (vsiz==1) { // Split according to a single value.
+        const T value = *values;
+        switch (_axis) {
+        case 'x' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_width && (*this)(i)==value) ++i;
+            if (i>i0) { if (keep_values) get_columns(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_width && (*this)(i)!=value) ++i;
+            if (i>i0) { get_columns(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_width);
+        } break;
+        case 'y' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_height && (*this)(0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_rows(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_height && (*this)(0,i)!=value) ++i;
+            if (i>i0) { get_rows(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_height);
+        } break;
+        case 'z' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_depth && (*this)(0,0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_slices(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_depth && (*this)(0,0,i)!=value) ++i;
+            if (i>i0) { get_slices(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_depth);
+        } break;
+        case 'c' : {
+          unsigned int i0 = 0, i = 0;
+          do {
+            while (i<_spectrum && (*this)(0,0,0,i)==value) ++i;
+            if (i>i0) { if (keep_values) get_channels(i0,i - 1).move_to(res); i0 = i; }
+            while (i<_spectrum && (*this)(0,0,0,i)!=value) ++i;
+            if (i>i0) { get_channels(i0,i - 1).move_to(res); i0 = i; }
+          } while (i<_spectrum);
+        } break;
+        default : {
+          const ulongT siz = size();
+          ulongT i0 = 0, i = 0;
+          do {
+            while (i<siz && (*this)[i]==value) ++i;
+            if (i>i0) { if (keep_values) CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = i; }
+            while (i<siz && (*this)[i]!=value) ++i;
+            if (i>i0) { CImg<T>(_data + i0,1,i - i0).move_to(res); i0 = i; }
+          } while (i<siz);
+        }
+        }
+      } else { // Split according to multiple values.
+        ulongT j = 0;
+        switch (_axis) {
+        case 'x' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(i)==*values) {
+              i1 = i; j = 0;
+              while (i<_width && (*this)(i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_columns(i0,i1 - 1).move_to(res);
+                if (keep_values) get_columns(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_width);
+          if (i0<_width) get_columns(i0,width() - 1).move_to(res);
+        } break;
+        case 'y' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_height && (*this)(0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_rows(i0,i1 - 1).move_to(res);
+                if (keep_values) get_rows(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_height);
+          if (i0<_height) get_rows(i0,height() - 1).move_to(res);
+        } break;
+        case 'z' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_depth && (*this)(0,0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_slices(i0,i1 - 1).move_to(res);
+                if (keep_values) get_slices(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_depth);
+          if (i0<_depth) get_slices(i0,depth() - 1).move_to(res);
+        } break;
+        case 'c' : {
+          unsigned int i0 = 0, i1 = 0, i = 0;
+          do {
+            if ((*this)(0,0,0,i)==*values) {
+              i1 = i; j = 0;
+              while (i<_spectrum && (*this)(0,0,0,i)==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) get_channels(i0,i1 - 1).move_to(res);
+                if (keep_values) get_channels(i1,i - 1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<_spectrum);
+          if (i0<_spectrum) get_channels(i0,spectrum() - 1).move_to(res);
+        } break;
+        default : {
+          ulongT i0 = 0, i1 = 0, i = 0;
+          const ulongT siz = size();
+          do {
+            if ((*this)[i]==*values) {
+              i1 = i; j = 0;
+              while (i<siz && (*this)[i]==values[j]) { ++i; if (++j>=vsiz) j = 0; }
+              i-=j;
+              if (i>i1) {
+                if (i1>i0) CImg<T>(_data + i0,1,i1 - i0).move_to(res);
+                if (keep_values) CImg<T>(_data + i1,1,i - i1).move_to(res);
+                i0 = i;
+              } else ++i;
+            } else ++i;
+          } while (i<siz);
+          if (i0<siz) CImg<T>(_data + i0,1,siz - i0).move_to(res);
+        } break;
+        }
+      }
+      return res;
+    }
+
+    //! Append two images along specified axis.
+    /**
+       \param img Image to append with instance image.
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Append alignment in \c [0,1].
+    **/
+    template<typename t>
+    CImg<T>& append(const CImg<t>& img, const char axis='x', const float align=0) {
+      if (is_empty()) return assign(img,false);
+      if (!img) return *this;
+      return CImgList<T>(*this,true).insert(img).get_append(axis,align).move_to(*this);
+    }
+
+    //! Append two images along specified axis \specialization.
+    CImg<T>& append(const CImg<T>& img, const char axis='x', const float align=0) {
+      if (is_empty()) return assign(img,false);
+      if (!img) return *this;
+      return CImgList<T>(*this,img,true).get_append(axis,align).move_to(*this);
+    }
+
+    //! Append two images along specified axis \const.
+    template<typename t>
+    CImg<_cimg_Tt> get_append(const CImg<T>& img, const char axis='x', const float align=0) const {
+      if (is_empty()) return +img;
+      if (!img) return +*this;
+      return CImgList<_cimg_Tt>(*this,true).insert(img).get_append(axis,align);
+    }
+
+    //! Append two images along specified axis \specialization.
+    CImg<T> get_append(const CImg<T>& img, const char axis='x', const float align=0) const {
+      if (is_empty()) return +img;
+      if (!img) return +*this;
+      return CImgList<T>(*this,img,true).get_append(axis,align);
+    }
+
+    //@}
+    //------------------------------------
