@@ -28869,4 +28869,188 @@ namespace cimg_library_suffixed {
         end = (unsigned int)offset(0,0,0,c1);
       if (beg>end || beg>=size() || end>=size())
         throw CImgArgumentException(_cimg_instance
-                                    "get_shared_channels(): Invalid r
+                                    "get_shared_channels(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,0->%u,%u->%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,_depth - 1,c0,c1);
+
+      return CImg<T>(_data + beg,_width,_height,_depth,c1 - c0 + 1,true);
+    }
+
+    //! Return a shared-memory image referencing a range of channels of the image instance \const.
+    const CImg<T> get_shared_channels(const unsigned int c0, const unsigned int c1) const {
+      const unsigned int
+        beg = (unsigned int)offset(0,0,0,c0),
+        end = (unsigned int)offset(0,0,0,c1);
+      if (beg>end || beg>=size() || end>=size())
+        throw CImgArgumentException(_cimg_instance
+                                    "get_shared_channels(): Invalid request of a shared-memory subset "
+                                    "(0->%u,0->%u,0->%u,%u->%u).",
+                                    cimg_instance,
+                                    _width - 1,_height - 1,_depth - 1,c0,c1);
+
+      return CImg<T>(_data + beg,_width,_height,_depth,c1 - c0 + 1,true);
+    }
+
+    //! Return a shared-memory image referencing one channel of the image instance.
+    /**
+       \param c0 C-coordinate.
+    **/
+    CImg<T> get_shared_channel(const unsigned int c0) {
+      return get_shared_channels(c0,c0);
+    }
+
+    //! Return a shared-memory image referencing one channel of the image instance \const.
+    const CImg<T> get_shared_channel(const unsigned int c0) const {
+      return get_shared_channels(c0,c0);
+    }
+
+    //! Return a shared-memory version of the image instance.
+    CImg<T> get_shared() {
+      return CImg<T>(_data,_width,_height,_depth,_spectrum,true);
+    }
+
+    //! Return a shared-memory version of the image instance \const.
+    const CImg<T> get_shared() const {
+      return CImg<T>(_data,_width,_height,_depth,_spectrum,true);
+    }
+
+    //! Split image into a list along specified axis.
+    /**
+       \param axis Splitting axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param nb Number of splitted parts.
+       \note
+       - If \c nb==0, instance image is splitted into blocs of egal values along the specified axis.
+       - If \c nb<=0, instance image is splitted into blocs of -\c nb pixel wide.
+       - If \c nb>0, instance image is splitted into \c nb blocs.
+    **/
+    CImgList<T> get_split(const char axis, const int nb=-1) const {
+      CImgList<T> res;
+      if (is_empty()) return res;
+      const char _axis = cimg::uncase(axis);
+
+      if (nb<0) { // Split by bloc size.
+        const unsigned int dp = (unsigned int)(nb?-nb:1);
+        switch (_axis) {
+        case 'x': {
+          if (_width>dp) {
+            res.assign(_width/dp + (_width%dp?1:0),1,1);
+            const unsigned int pe = _width - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _height*_depth*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(p,0,0,0,p + dp - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop((res._width - 1)*dp,0,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'y': {
+          if (_height>dp) {
+            res.assign(_height/dp + (_height%dp?1:0),1,1);
+            const unsigned int pe = _height - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_depth*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,p,0,0,_width - 1,p + dp - 1,_depth - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop(0,(res._width - 1)*dp,0,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'z': {
+          if (_depth>dp) {
+            res.assign(_depth/dp + (_depth%dp?1:0),1,1);
+            const unsigned int pe = _depth - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_height*_spectrum>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,0,p,0,_width - 1,_height - 1,p + dp - 1,_spectrum - 1).move_to(res[p/dp]);
+            get_crop(0,0,(res._width - 1)*dp,0,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        } break;
+        case 'c' : {
+          if (_spectrum>dp) {
+            res.assign(_spectrum/dp + (_spectrum%dp?1:0),1,1);
+            const unsigned int pe = _spectrum - dp;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._width>=128 && _width*_height*_depth>=128)
+#endif
+            for (unsigned int p = 0; p<pe; p+=dp)
+              get_crop(0,0,0,p,_width - 1,_height - 1,_depth - 1,p + dp - 1).move_to(res[p/dp]);
+            get_crop(0,0,0,(res._width - 1)*dp,_width - 1,_height - 1,_depth - 1,_spectrum - 1).move_to(res.back());
+          } else res.assign(*this);
+        }
+        }
+      } else if (nb>0) { // Split by number of (non-homogeneous) blocs.
+        const unsigned int siz = _axis=='x'?_width:_axis=='y'?_height:_axis=='z'?_depth:_axis=='c'?_spectrum:0;
+        if ((unsigned int)nb>siz)
+          throw CImgArgumentException(_cimg_instance
+                                      "get_split(): Instance cannot be split along %c-axis into %u blocs.",
+                                      cimg_instance,
+                                      axis,nb);
+        if (nb==1) res.assign(*this);
+        else {
+          int err = (int)siz;
+          unsigned int _p = 0;
+          switch (_axis) {
+          case 'x' : {
+            cimg_forX(*this,p) if ((err-=nb)<=0) {
+              get_crop(_p,0,0,0,p,_height - 1,_depth - 1,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'y' : {
+            cimg_forY(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,_p,0,0,_width - 1,p,_depth - 1,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'z' : {
+            cimg_forZ(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,0,_p,0,_width - 1,_height - 1,p,_spectrum - 1).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          } break;
+          case 'c' : {
+            cimg_forC(*this,p) if ((err-=nb)<=0) {
+              get_crop(0,0,0,_p,_width - 1,_height - 1,_depth - 1,p).move_to(res);
+              err+=(int)siz;
+              _p = p + 1U;
+            }
+          }
+          }
+        }
+      } else { // Split by egal values according to specified axis.
+        T current = *_data;
+        switch (_axis) {
+        case 'x' : {
+          int i0 = 0;
+          cimg_forX(*this,i)
+            if ((*this)(i)!=current) { get_columns(i0,i - 1).move_to(res); i0 = i; current = (*this)(i); }
+          get_columns(i0,width() - 1).move_to(res);
+        } break;
+        case 'y' : {
+          int i0 = 0;
+          cimg_forY(*this,i)
+            if ((*this)(0,i)!=current) { get_rows(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,i); }
+          get_rows(i0,height() - 1).move_to(res);
+        } break;
+        case 'z' : {
+          int i0 = 0;
+          cimg_forZ(*this,i)
+            if ((*this)(0,0,i)!=current) { get_slices(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,0,i); }
+          get_slices(i0,depth() - 1).move_to(res);
+        } break;
+        case 'c' : {
+          int i0 = 0;
+          cimg_forC(*this,i)
+            if ((*this)(0,0,0,i)!=current) { get_channels(i0,i - 1).move_to(res); i0 = i; current = (*this)(0,0,0,i); }
+          get_channels(i0,spectrum() - 1).move_to(res);
+        } break;
+        default : {
+          longT i0 = 0;
+          cimg_foroff(*this,i)
+         
