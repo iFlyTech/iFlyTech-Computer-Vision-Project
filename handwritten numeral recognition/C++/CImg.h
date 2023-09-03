@@ -29478,4 +29478,177 @@ namespace cimg_library_suffixed {
               const CImg<T> _img = get_shared_channel(c%_spectrum);
               const CImg<t> _mask = mask.get_shared_channel(c%mask._spectrum);
               if (is_normalized) {
-                const Ttfloat _M = (Ttfloat)_mask.magnitude(2)
+                const Ttfloat _M = (Ttfloat)_mask.magnitude(2), M = _M*_M;
+                cimg_forZ(_img,z) cimg_for2x2(_img,x,y,z,0,I,T) {
+                  const Ttfloat N = M*(I[0]*I[0] + I[1]*I[1] +
+                                       I[2]*I[2] + I[3]*I[3]);
+                  *(ptrd++) = (Ttfloat)(N?(I[0]*_mask[0] + I[1]*_mask[1] +
+                                           I[2]*_mask[2] + I[3]*_mask[3])/std::sqrt(N):0);
+                }
+              } else cimg_forZ(_img,z) cimg_for2x2(_img,x,y,z,0,I,T)
+                       *(ptrd++) = (Ttfloat)(I[0]*_mask[0] + I[1]*_mask[1] +
+                                             I[2]*_mask[2] + I[3]*_mask[3]);
+            }
+          } break;
+          case 1 :
+            if (is_normalized) res.fill(1);
+            else cimg_forC(res,c) {
+                cimg_test_abort();
+                const CImg<T> _img = get_shared_channel(c%_spectrum);
+                const CImg<t> _mask = mask.get_shared_channel(c%mask._spectrum);
+                res.get_shared_channel(c).assign(_img)*=_mask[0];
+              }
+            break;
+          }
+        }
+      } else { // Generic version for other masks and boundary conditions.
+        const int
+          mx2 = mask.width()/2, my2 = mask.height()/2, mz2 = mask.depth()/2,
+          mx1 = mx2 - 1 + (mask.width()%2), my1 = my2 - 1 + (mask.height()%2), mz1 = mz2 - 1 + (mask.depth()%2),
+          mxe = width() - mx2, mye = height() - my2, mze = depth() - mz2;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(res._spectrum>=2)
+#endif
+        cimg_forC(res,c) {
+          cimg_test_abort();
+          const CImg<T> _img = get_shared_channel(c%_spectrum);
+          const CImg<t> _mask = mask.get_shared_channel(c%mask._spectrum);
+          if (is_normalized) { // Normalized correlation.
+            const Ttfloat _M = (Ttfloat)_mask.magnitude(2), M = _M*_M;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=32768)
+#endif
+            for (int z = mz1; z<mze; ++z)
+              for (int y = my1; y<mye; ++y) {
+                cimg_test_abort2();
+                for (int x = mx1; x<mxe; ++x) {
+                  Ttfloat val = 0, N = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm) {
+                        const Ttfloat _val = (Ttfloat)_img(x + xm,y + ym,z + zm);
+                        val+=_val*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                        N+=_val*_val;
+                      }
+                  N*=M;
+                  res(x,y,z,c) = (Ttfloat)(N?val/std::sqrt(N):0);
+                }
+              }
+            if (boundary_conditions)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0, N = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm) {
+                        const Ttfloat _val = (Ttfloat)_img._atXYZ(x + xm,y + ym,z + zm);
+                        val+=_val*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                        N+=_val*_val;
+                      }
+                  N*=M;
+                  res(x,y,z,c) = (Ttfloat)(N?val/std::sqrt(N):0);
+                }
+              }
+            else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0, N = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm) {
+                        const Ttfloat _val = (Ttfloat)_img.atXYZ(x + xm,y + ym,z + zm,0,0);
+                        val+=_val*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                        N+=_val*_val;
+                      }
+                  N*=M;
+                  res(x,y,z,c) = (Ttfloat)(N?val/std::sqrt(N):0);
+                }
+              }
+          } else { // Classical correlation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=32768)
+#endif
+            for (int z = mz1; z<mze; ++z)
+              for (int y = my1; y<mye; ++y) {
+                cimg_test_abort2();
+                for (int x = mx1; x<mxe; ++x) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img(x + xm,y + ym,z + zm)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+            if (boundary_conditions)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img._atXYZ(x + xm,y + ym,z + zm)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+            else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+              cimg_forYZ(res,y,z) {
+                cimg_test_abort2();
+                for (int x = 0; x<width();
+                     (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                  Ttfloat val = 0;
+                  for (int zm = -mz1; zm<=mz2; ++zm)
+                    for (int ym = -my1; ym<=my2; ++ym)
+                      for (int xm = -mx1; xm<=mx2; ++xm)
+                        val+=_img.atXYZ(x + xm,y + ym,z + zm,0,0)*_mask(mx1 + xm,my1 + ym,mz1 + zm);
+                  res(x,y,z,c) = (Ttfloat)val;
+                }
+              }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Convolve image by a mask.
+    /**
+       \param mask = the correlation kernel.
+       \param boundary_conditions = the border condition type (0=zero, 1=dirichlet)
+       \param is_normalized = enable local normalization.
+       \note
+       - The result \p res of the convolution of an image \p img by a mask \p mask is defined to be:
+       res(x,y,z) = sum_{i,j,k} img(x-i,y-j,z-k)*mask(i,j,k)
+    **/
+    template<typename t>
+    CImg<T>& convolve(const CImg<t>& mask, const unsigned int boundary_conditions=1, const bool is_normalized=false) {
+      if (is_empty() || !mask) return *this;
+      return get_convolve(mask,boundary_conditions,is_normalized).move_to(*this);
+    }
+
+    //! Cumulate image values, optionally along specified axis.
+    /**
+       \param axis Cumulation axis. Set it to 0 to cumulate all values globally without taking axes into account.
+    **/
+    CImg<T>& cumulate(const char axis=0) {
+      switch (cimg::uncase(axis)) {
+      case 'x' :
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=512 && _height*_dept
