@@ -29993,4 +29993,185 @@ namespace cimg_library_suffixed {
               const T val = *ptrs; ptrs+=off;
               if (is_first) {
                 const T *nptrs = ptrs - off; cur = val;
-                for (int q = s - 2; q>0; --q) { nptrs-=off; const T nval = *nptrs; if (nval<cur) 
+                for (int q = s - 2; q>0; --q) { nptrs-=off; const T nval = *nptrs; if (nval<cur) cur = nval; }
+                nptrs-=off; const T nval = *nptrs; if (nval<cur) { cur = nval; is_first = true; } else is_first = false;
+              } else { if (val<=cur) cur = val; else if (cur==*(ptrs-s*off)) is_first = true; }
+              *(ptrd++) = cur;
+            }
+            ptrd = ptrde; ptrs = ptrse; cur = *ptrs; ptrs-=off;
+            for (int p = s1; p>0 && ptrs>=ptrsb; --p) {
+              const T val = *ptrs; ptrs-=off; if (val<cur) cur = val;
+            }
+            *(ptrd--) = cur;
+            for (int p = s2 - 1; p>0 && ptrd>=ptrdb; --p) {
+              const T val = *ptrs; if (ptrs>ptrsb) ptrs-=off; if (val<cur) cur = val; *(ptrd--) = cur;
+            }
+            T *pd = data(x,y,0,c); cimg_for(buf,ps,T) { *pd = *ps; pd+=off; }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Erode image by a rectangular structuring element of specified size \newinstance.
+    CImg<T> get_erode(const unsigned int sx, const unsigned int sy, const unsigned int sz=1) const {
+      return (+*this).erode(sx,sy,sz);
+    }
+
+    //! Erode the image by a square structuring element of specified size.
+    /**
+       \param s Size of the structuring element.
+    **/
+    CImg<T>& erode(const unsigned int s) {
+      return erode(s,s,s);
+    }
+
+    //! Erode the image by a square structuring element of specified size \newinstance.
+    CImg<T> get_erode(const unsigned int s) const {
+      return (+*this).erode(s);
+    }
+
+    //! Dilate image by a structuring element.
+    /**
+       \param mask Structuring element.
+       \param boundary_conditions Boundary conditions.
+       \param is_normalized Tells if the erosion is locally normalized.
+    **/
+    template<typename t>
+    CImg<T>& dilate(const CImg<t>& mask, const unsigned int boundary_conditions=1,
+                    const bool is_normalized=false) {
+      if (is_empty() || !mask) return *this;
+      return get_dilate(mask,boundary_conditions,is_normalized).move_to(*this);
+    }
+
+    //! Dilate image by a structuring element \newinstance.
+    template<typename t>
+    CImg<_cimg_Tt> get_dilate(const CImg<t>& mask, const unsigned int boundary_conditions=1,
+                              const bool is_normalized=false) const {
+      if (is_empty() || !mask) return *this;
+      typedef _cimg_Tt Tt;
+      CImg<Tt> res(_width,_height,_depth,_spectrum);
+      const int
+        mx2 = mask.width()/2, my2 = mask.height()/2, mz2 = mask.depth()/2,
+        mx1 = mx2 - 1 + (mask.width()%2), my1 = my2 - 1 + (mask.height()%2), mz1 = mz2 - 1 + (mask.depth()%2),
+        mxe = width() - mx2, mye = height() - my2, mze = depth() - mz2;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+      cimg_forC(*this,c) {
+        cimg_test_abort();
+        const CImg<T> _img = get_shared_channel(c%_spectrum);
+        const CImg<t> _mask = mask.get_shared_channel(c%mask._spectrum);
+        if (is_normalized) { // Normalized dilation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=32768)
+#endif
+          for (int z = mz1; z<mze; ++z)
+            for (int y = my1; y<mye; ++y) {
+              cimg_test_abort2();
+              for (int x = mx1; x<mxe; ++x) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const t mval = _mask(mx1 + xm,my1 + ym,mz1 + zm);
+                      const Tt cval = (Tt)(_img(x + xm,y + ym,z + zm) - mval);
+                      if (mval && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+          if (boundary_conditions)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+            cimg_forYZ(res,y,z) {
+              cimg_test_abort2();
+              for (int x = 0; x<width(); (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const t mval = _mask(mx1 + xm,my1 + ym,mz1 + zm);
+                      const Tt cval = (Tt)(_img._atXYZ(x + xm,y + ym,z + zm) - mval);
+                      if (mval && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+          else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+            cimg_forYZ(*this,y,z) {
+              cimg_test_abort2();
+              for (int x = 0; x<width(); (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const t mval = _mask(mx1 + xm,my1 + ym,mz1 + zm);
+                      const Tt cval = (Tt)(_img.atXYZ(x + xm,y + ym,z + zm,0,0) - mval);
+                      if (mval && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+        } else { // Classical dilation.
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth>=128)
+#endif
+          for (int z = mz1; z<mze; ++z)
+            for (int y = my1; y<mye; ++y) {
+              cimg_test_abort2();
+              for (int x = mx1; x<mxe; ++x) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const Tt cval = (Tt)_img(x + xm,y + ym,z + zm);
+                      if (_mask(mx1 + xm,my1 + ym,mz1 + zm) && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+          if (boundary_conditions)
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+            cimg_forYZ(res,y,z) {
+              cimg_test_abort2();
+              for (int x = 0; x<width(); (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const T cval = (Tt)_img._atXYZ(x + xm,y + ym,z + zm);
+                      if (_mask(mx1 + xm,my1 + ym,mz1 + zm) && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+          else
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=256 && _height*_depth>=128)
+#endif
+            cimg_forYZ(res,y,z) {
+              cimg_test_abort2();
+              for (int x = 0; x<width(); (y<my1 || y>=mye || z<mz1 || z>=mze)?++x:((x<mx1 - 1 || x>=mxe)?++x:(x=mxe))) {
+                Tt max_val = cimg::type<Tt>::min();
+                for (int zm = -mz1; zm<=mz2; ++zm)
+                  for (int ym = -my1; ym<=my2; ++ym)
+                    for (int xm = -mx1; xm<=mx2; ++xm) {
+                      const T cval = (Tt)_img.atXYZ(x + xm,y + ym,z + zm,0,0);
+                      if (_mask(mx1 + xm,my1 + ym,mz1 + zm) && cval>max_val) max_val = cval;
+                    }
+                res(x,y,z,c) = max_val;
+              }
+            }
+        }
+      }
+      return res;
+    }
+
+    //
