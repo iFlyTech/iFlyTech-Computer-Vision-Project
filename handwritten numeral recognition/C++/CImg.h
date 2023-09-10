@@ -30496,4 +30496,185 @@ namespace cimg_library_suffixed {
       (*this)(siz - 1,0) = (T)value;
       (*this)(siz - 1,1) = (T)x;
       (*this)(siz - 1,2) = (T)y;
-      (*this)(si
+      (*this)(siz - 1,3) = (T)z;
+      for (unsigned int pos = siz - 1, par = 0; pos && value>(*this)(par=(pos + 1)/2 - 1,0); pos = par) {
+        cimg::swap((*this)(pos,0),(*this)(par,0));
+        cimg::swap((*this)(pos,1),(*this)(par,1));
+        cimg::swap((*this)(pos,2),(*this)(par,2));
+        cimg::swap((*this)(pos,3),(*this)(par,3));
+      }
+      return true;
+    }
+
+    CImg<T>& _priority_queue_remove(unsigned int& siz) {
+      (*this)(0,0) = (*this)(--siz,0);
+      (*this)(0,1) = (*this)(siz,1);
+      (*this)(0,2) = (*this)(siz,2);
+      (*this)(0,3) = (*this)(siz,3);
+      const float value = (*this)(0,0);
+      for (unsigned int pos = 0, left = 0, right = 0;
+           ((right=2*(pos + 1),(left=right - 1))<siz && value<(*this)(left,0)) ||
+             (right<siz && value<(*this)(right,0));) {
+        if (right<siz) {
+          if ((*this)(left,0)>(*this)(right,0)) {
+            cimg::swap((*this)(pos,0),(*this)(left,0));
+            cimg::swap((*this)(pos,1),(*this)(left,1));
+            cimg::swap((*this)(pos,2),(*this)(left,2));
+            cimg::swap((*this)(pos,3),(*this)(left,3));
+            pos = left;
+          } else {
+            cimg::swap((*this)(pos,0),(*this)(right,0));
+            cimg::swap((*this)(pos,1),(*this)(right,1));
+            cimg::swap((*this)(pos,2),(*this)(right,2));
+            cimg::swap((*this)(pos,3),(*this)(right,3));
+            pos = right;
+          }
+        } else {
+          cimg::swap((*this)(pos,0),(*this)(left,0));
+          cimg::swap((*this)(pos,1),(*this)(left,1));
+          cimg::swap((*this)(pos,2),(*this)(left,2));
+          cimg::swap((*this)(pos,3),(*this)(left,3));
+          pos = left;
+        }
+      }
+      return *this;
+    }
+
+    //! Apply recursive Deriche filter.
+    /**
+       \param sigma Standard deviation of the filter.
+       \param order Order of the filter. Can be <tt>{ 0=smooth-filter | 1=1st-derivative | 2=2nd-derivative }</tt>.
+       \param axis Axis along which the filter is computed. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+    **/
+    CImg<T>& deriche(const float sigma, const unsigned int order=0, const char axis='x',
+                     const bool boundary_conditions=true) {
+#define _cimg_deriche_apply \
+  CImg<Tfloat> Y(N); \
+  Tfloat *ptrY = Y._data, yb = 0, yp = 0; \
+  T xp = (T)0; \
+  if (boundary_conditions) { xp = *ptrX; yb = yp = (Tfloat)(coefp*xp); } \
+  for (int m = 0; m<N; ++m) { \
+    const T xc = *ptrX; ptrX+=off; \
+    const Tfloat yc = *(ptrY++) = (Tfloat)(a0*xc + a1*xp - b1*yp - b2*yb); \
+    xp = xc; yb = yp; yp = yc; \
+  } \
+  T xn = (T)0, xa = (T)0; \
+  Tfloat yn = 0, ya = 0; \
+  if (boundary_conditions) { xn = xa = *(ptrX-off); yn = ya = (Tfloat)coefn*xn; } \
+  for (int n = N - 1; n>=0; --n) { \
+    const T xc = *(ptrX-=off); \
+    const Tfloat yc = (Tfloat)(a2*xn + a3*xa - b1*yn - b2*ya); \
+    xa = xn; xn = xc; ya = yn; yn = yc; \
+    *ptrX = (T)(*(--ptrY)+yc); \
+  }
+      const char naxis = cimg::uncase(axis);
+      const float nsigma = sigma>=0?sigma:-sigma*(naxis=='x'?_width:naxis=='y'?_height:naxis=='z'?_depth:_spectrum)/100;
+      if (is_empty() || (nsigma<0.1f && !order)) return *this;
+      const float
+        nnsigma = nsigma<0.1f?0.1f:nsigma,
+        alpha = 1.695f/nnsigma,
+        ema = (float)std::exp(-alpha),
+        ema2 = (float)std::exp(-2*alpha),
+        b1 = -2*ema,
+        b2 = ema2;
+      float a0 = 0, a1 = 0, a2 = 0, a3 = 0, coefp = 0, coefn = 0;
+      switch (order) {
+      case 0 : {
+        const float k = (1-ema)*(1-ema)/(1 + 2*alpha*ema-ema2);
+        a0 = k;
+        a1 = k*(alpha - 1)*ema;
+        a2 = k*(alpha + 1)*ema;
+        a3 = -k*ema2;
+      } break;
+      case 1 : {
+        const float k = -(1-ema)*(1-ema)*(1-ema)/(2*(ema + 1)*ema);
+        a0 = a3 = 0;
+        a1 = k*ema;
+        a2 = -a1;
+      } break;
+      case 2 : {
+        const float
+          ea = (float)std::exp(-alpha),
+          k = -(ema2 - 1)/(2*alpha*ema),
+          kn = (-2*(-1 + 3*ea - 3*ea*ea + ea*ea*ea)/(3*ea + 1 + 3*ea*ea + ea*ea*ea));
+        a0 = kn;
+        a1 = -kn*(1 + k*alpha)*ema;
+        a2 = kn*(1 - k*alpha)*ema;
+        a3 = -kn*ema2;
+      } break;
+      default :
+        throw CImgArgumentException(_cimg_instance
+                                    "deriche(): Invalid specified filter order %u "
+                                    "(should be { 0=smoothing | 1=1st-derivative | 2=2nd-derivative }).",
+                                    cimg_instance,
+                                    order);
+      }
+      coefp = (a0 + a1)/(1 + b1 + b2);
+      coefn = (a2 + a3)/(1 + b1 + b2);
+      switch (naxis) {
+      case 'x' : {
+        const int N = width();
+        const ulongT off = 1U;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forYZC(*this,y,z,c) { T *ptrX = data(0,y,z,c); _cimg_deriche_apply; }
+      } break;
+      case 'y' : {
+        const int N = height();
+        const ulongT off = (ulongT)_width;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXZC(*this,x,z,c) { T *ptrX = data(x,0,z,c); _cimg_deriche_apply; }
+      } break;
+      case 'z' : {
+        const int N = depth();
+        const ulongT off = (ulongT)_width*_height;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYC(*this,x,y,c) { T *ptrX = data(x,y,0,c); _cimg_deriche_apply; }
+      } break;
+      default : {
+        const int N = spectrum();
+        const ulongT off = (ulongT)_width*_height*_depth;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYZ(*this,x,y,z) { T *ptrX = data(x,y,z,0); _cimg_deriche_apply; }
+      }
+      }
+      return *this;
+    }
+
+    //! Apply recursive Deriche filter \newinstance.
+    CImg<Tfloat> get_deriche(const float sigma, const unsigned int order=0, const char axis='x',
+                             const bool boundary_conditions=true) const {
+      return CImg<Tfloat>(*this,false).deriche(sigma,order,axis,boundary_conditions);
+    }
+
+    // [internal] Apply a recursive filter (used by CImg<T>::vanvliet()).
+    /*
+       \param ptr the pointer of the data
+       \param filter the coefficient of the filter in the following order [n,n - 1,n - 2,n - 3].
+       \param N size of the data
+       \param off the offset between two data point
+       \param order the order of the filter 0 (smoothing), 1st derivtive, 2nd derivative, 3rd derivative
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+       \note Boundary condition using B. Triggs method (IEEE trans on Sig Proc 2005).
+    */
+    static void _cimg_recursive_apply(T *data, const double filter[], const int N, const ulongT off,
+                                      const unsigned int order, const bool boundary_conditions) {
+      double val[4] = { 0 };  // res[n,n - 1,n - 2,n - 3,..] or res[n,n + 1,n + 2,n + 3,..]
+      const double
+        sumsq = filter[0], sum = sumsq * sumsq,
+        a1 = filter[1], a2 = filter[2], a3 = filter[3],
+        scaleM = 1.0 / ( (1.0 + a1 - a2 + a3) * (1.0 - a1 - a2 - a3) * (1.0 + a2 + (a1 - a3) * a3) );
+      double M[9]; // Triggs matrix
+      M[0] = scaleM * (-a3 * a1 + 1.0 - a3 * a3 - a2);
+      M[1] = scaleM * (a3 + a1) * (a2 + a3 * a1);
+      M[2] = scaleM * a3 * (a1 + a3 * a2);
+      M[3] = scaleM * (a1 + a3 * a2);
+      M[4] = -scaleM * (a2 - 1.0) * (a2 +
