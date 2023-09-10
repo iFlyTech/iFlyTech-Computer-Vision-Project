@@ -30856,4 +30856,160 @@ namespace cimg_library_suffixed {
 #endif
         cimg_forXZC(*this,x,z,c)
           _cimg_recursive_apply(data(x,0,z,c),filter,_height,(ulongT)_width,order,boundary_conditions);
-      } bre
+      } break;
+      case 'z' : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYC(*this,x,y,c)
+          _cimg_recursive_apply(data(x,y,0,c),filter,_depth,(ulongT)_width*_height,
+                                order,boundary_conditions);
+      } break;
+      default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width>=256 && _height*_depth*_spectrum>=16)
+#endif
+        cimg_forXYZ(*this,x,y,z)
+          _cimg_recursive_apply(data(x,y,z,0),filter,_spectrum,(ulongT)_width*_height*_depth,
+                                order,boundary_conditions);
+      }
+      }
+      return *this;
+    }
+
+    //! Blur image using Van Vliet recursive Gaussian filter. \newinstance.
+    CImg<Tfloat> get_vanvliet(const float sigma, const unsigned int order, const char axis='x',
+                              const bool boundary_conditions=true) const {
+      return CImg<Tfloat>(*this,false).vanvliet(sigma,order,axis,boundary_conditions);
+    }
+
+    //! Blur image.
+    /**
+       \param sigma_x Standard deviation of the blur, along the X-axis.
+       \param sigma_y Standard deviation of the blur, along the Y-axis.
+       \param sigma_z Standard deviation of the blur, along the Z-axis.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ false=dirichlet | true=neumann }</tt>.
+       \param is_gaussian Tells if the blur uses a gaussian (\c true) or quasi-gaussian (\c false) kernel.
+       \note
+       - The blur is computed as a 0-order Deriche filter. This is not a gaussian blur.
+       - This is a recursive algorithm, not depending on the values of the standard deviations.
+       \see deriche(), vanvliet().
+    **/
+    CImg<T>& blur(const float sigma_x, const float sigma_y, const float sigma_z,
+                  const bool boundary_conditions=true, const bool is_gaussian=false) {
+      if (is_empty()) return *this;
+      if (is_gaussian) {
+        if (_width>1) vanvliet(sigma_x,0,'x',boundary_conditions);
+        if (_height>1) vanvliet(sigma_y,0,'y',boundary_conditions);
+        if (_depth>1) vanvliet(sigma_z,0,'z',boundary_conditions);
+      } else {
+        if (_width>1) deriche(sigma_x,0,'x',boundary_conditions);
+        if (_height>1) deriche(sigma_y,0,'y',boundary_conditions);
+        if (_depth>1) deriche(sigma_z,0,'z',boundary_conditions);
+      }
+      return *this;
+    }
+
+    //! Blur image \newinstance.
+    CImg<Tfloat> get_blur(const float sigma_x, const float sigma_y, const float sigma_z,
+                          const bool boundary_conditions=true, const bool is_gaussian=false) const {
+      return CImg<Tfloat>(*this,false).blur(sigma_x,sigma_y,sigma_z,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image isotropically.
+    /**
+       \param sigma Standard deviation of the blur.
+       \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.a
+       \see deriche(), vanvliet().
+    **/
+    CImg<T>& blur(const float sigma, const bool boundary_conditions=true, const bool is_gaussian=false) {
+      const float nsigma = sigma>=0?sigma:-sigma*cimg::max(_width,_height,_depth)/100;
+      return blur(nsigma,nsigma,nsigma,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image isotropically \newinstance.
+    CImg<Tfloat> get_blur(const float sigma, const bool boundary_conditions=true, const bool is_gaussian=false) const {
+      return CImg<Tfloat>(*this,false).blur(sigma,boundary_conditions,is_gaussian);
+    }
+
+    //! Blur image anisotropically, directed by a field of diffusion tensors.
+    /**
+       \param G Field of square roots of diffusion tensors/vectors used to drive the smoothing.
+       \param amplitude Amplitude of the smoothing.
+       \param dl Spatial discretization.
+       \param da Angular discretization.
+       \param gauss_prec Precision of the diffusion process.
+       \param interpolation_type Interpolation scheme.
+         Can be <tt>{ 0=nearest-neighbor | 1=linear | 2=Runge-Kutta }</tt>.
+       \param is_fast_approx Tells if a fast approximation of the gaussian function is used or not.
+    **/
+    template<typename t>
+    CImg<T>& blur_anisotropic(const CImg<t>& G,
+                              const float amplitude=60, const float dl=0.8f, const float da=30,
+                              const float gauss_prec=2, const unsigned int interpolation_type=0,
+                              const bool is_fast_approx=1) {
+
+      // Check arguments and init variables
+      if (!is_sameXYZ(G) || (G._spectrum!=3 && G._spectrum!=6))
+        throw CImgArgumentException(_cimg_instance
+                                    "blur_anisotropic(): Invalid specified diffusion tensor field (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    G._width,G._height,G._depth,G._spectrum,G._data);
+
+      if (is_empty() || amplitude<=0 || dl<0) return *this;
+      const bool is_3d = (G._spectrum==6);
+      T val_min, val_max = max_min(val_min);
+
+      if (da<=0) {  // Iterated oriented Laplacians
+        CImg<Tfloat> velocity(_width,_height,_depth,_spectrum);
+        for (unsigned int iteration = 0; iteration<(unsigned int)amplitude; ++iteration) {
+          Tfloat *ptrd = velocity._data, veloc_max = 0;
+          if (is_3d) // 3d version
+            cimg_forC(*this,c) {
+              cimg_test_abort();
+              CImg_3x3x3(I,Tfloat);
+              cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
+                const Tfloat
+                  ixx = Incc + Ipcc - 2*Iccc,
+                  ixy = (Innc + Ippc - Inpc - Ipnc)/4,
+                  ixz = (Incn + Ipcp - Incp - Ipcn)/4,
+                  iyy = Icnc + Icpc - 2*Iccc,
+                  iyz = (Icnn + Icpp - Icnp - Icpn)/4,
+                  izz = Iccn + Iccp - 2*Iccc,
+                  veloc = (Tfloat)(G(x,y,z,0)*ixx + 2*G(x,y,z,1)*ixy + 2*G(x,y,z,2)*ixz +
+                                   G(x,y,z,3)*iyy + 2*G(x,y,z,4)*iyz + G(x,y,z,5)*izz);
+                *(ptrd++) = veloc;
+                if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+              }
+            }
+          else // 2d version
+            cimg_forZC(*this,z,c) {
+              cimg_test_abort();
+              CImg_3x3(I,Tfloat);
+              cimg_for3x3(*this,x,y,z,c,I,Tfloat) {
+                const Tfloat
+                  ixx = Inc + Ipc - 2*Icc,
+                  ixy = (Inn + Ipp - Inp - Ipn)/4,
+                  iyy = Icn + Icp - 2*Icc,
+                  veloc = (Tfloat)(G(x,y,0,0)*ixx + 2*G(x,y,0,1)*ixy + G(x,y,0,2)*iyy);
+                *(ptrd++) = veloc;
+                if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+              }
+            }
+          if (veloc_max>0) *this+=(velocity*=dl/veloc_max);
+        }
+      } else { // LIC-based smoothing.
+        const ulongT whd = (ulongT)_width*_height*_depth;
+        const float sqrt2amplitude = (float)std::sqrt(2*amplitude);
+        const int dx1 = width() - 1, dy1 = height() - 1, dz1 = depth() - 1;
+        CImg<Tfloat> res(_width,_height,_depth,_spectrum,0), W(_width,_height,_depth,is_3d?4:3), val(_spectrum,1,1,1,0);
+        int N = 0;
+        if (is_3d) { // 3d version
+          for (float phi = (180%(int)da)/2.0f; phi<=180; phi+=da) {
+            const float phir = (float)(phi*cimg::PI/180), datmp = (float)(da/std::cos(phir)),
+              da2 = datmp<1?360.0f:datmp;
+            for (float theta = 0; theta<360; (theta+=da2),++N) {
+              const float
+                thetar = (float)(theta*cimg::PI/180),
+                vx = (float)(std::cos(thetar)*std::cos(phir)),
+            
