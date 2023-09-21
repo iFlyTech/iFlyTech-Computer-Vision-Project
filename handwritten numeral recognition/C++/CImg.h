@@ -31171,4 +31171,144 @@ namespace cimg_library_suffixed {
                       v = (float)(W._linear_atXY(X,Y,0,1));
                     if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)_linear_atXY(X,Y,0,c); ++S; }
                     else {
-            
+                      const float coef = (float)std::exp(-l*l/fsigma2);
+                      cimg_forC(*this,c) val[c]+=(Tfloat)(coef*_linear_atXY(X,Y,0,c));
+                      S+=coef;
+                    }
+                    X+=u; Y+=v;
+                  }
+                } break;
+                default : { // 2nd-order Runge-kutta interpolation
+                  for (float l = 0; l<length && X>=0 && X<=dx1 && Y>=0 && Y<=dy1; l+=dl) {
+                    const float
+                      u0 = (float)(0.5f*W._linear_atXY(X,Y,0,0)),
+                      v0 = (float)(0.5f*W._linear_atXY(X,Y,0,1)),
+                      u = (float)(W._linear_atXY(X + u0,Y + v0,0,0)),
+                      v = (float)(W._linear_atXY(X + u0,Y + v0,0,1));
+                    if (is_fast_approx) { cimg_forC(*this,c) val[c]+=(Tfloat)_linear_atXY(X,Y,0,c); ++S; }
+                    else {
+                      const float coef = (float)std::exp(-l*l/fsigma2);
+                      cimg_forC(*this,c) val[c]+=(Tfloat)(coef*_linear_atXY(X,Y,0,c));
+                      S+=coef;
+                    }
+                    X+=u; Y+=v;
+                  }
+                }
+                }
+                Tfloat *ptrd = res.data(x,y);
+                if (S>0) cimg_forC(res,c) { *ptrd+=val[c]/S; ptrd+=whd; }
+                else cimg_forC(res,c) { *ptrd+=(Tfloat)((*this)(x,y,0,c)); ptrd+=whd; }
+              }
+            }
+          }
+        }
+        const Tfloat *ptrs = res._data;
+        cimg_for(*this,ptrd,T) {
+          const Tfloat val = *(ptrs++)/N;
+          *ptrd = val<val_min?val_min:(val>val_max?val_max:(T)val);
+        }
+      }
+      return *this;
+    }
+
+    //! Blur image anisotropically, directed by a field of diffusion tensors \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_blur_anisotropic(const CImg<t>& G,
+                                      const float amplitude=60, const float dl=0.8f, const float da=30,
+                                      const float gauss_prec=2, const unsigned int interpolation_type=0,
+                                      const bool is_fast_approx=true) const {
+      return CImg<Tfloat>(*this,false).blur_anisotropic(G,amplitude,dl,da,gauss_prec,interpolation_type,is_fast_approx);
+    }
+
+    //! Blur image anisotropically, in an edge-preserving way.
+    /**
+       \param amplitude Amplitude of the smoothing.
+       \param sharpness Sharpness.
+       \param anisotropy Anisotropy.
+       \param alpha Standard deviation of the gradient blur.
+       \param sigma Standard deviation of the structure tensor blur.
+       \param dl Spatial discretization.
+       \param da Angular discretization.
+       \param gauss_prec Precision of the diffusion process.
+       \param interpolation_type Interpolation scheme.
+         Can be <tt>{ 0=nearest-neighbor | 1=linear | 2=Runge-Kutta }</tt>.
+       \param is_fast_approx Tells if a fast approximation of the gaussian function is used or not.
+     **/
+    CImg<T>& blur_anisotropic(const float amplitude, const float sharpness=0.7f, const float anisotropy=0.6f,
+                              const float alpha=0.6f, const float sigma=1.1f, const float dl=0.8f, const float da=30,
+                              const float gauss_prec=2, const unsigned int interpolation_type=0,
+                              const bool is_fast_approx=true) {
+      return blur_anisotropic(get_diffusion_tensors(sharpness,anisotropy,alpha,sigma,interpolation_type!=3),
+                              amplitude,dl,da,gauss_prec,interpolation_type,is_fast_approx);
+    }
+
+    //! Blur image anisotropically, in an edge-preserving way \newinstance.
+    CImg<Tfloat> get_blur_anisotropic(const float amplitude, const float sharpness=0.7f, const float anisotropy=0.6f,
+                                      const float alpha=0.6f, const float sigma=1.1f, const float dl=0.8f,
+                                      const float da=30, const float gauss_prec=2,
+                                      const unsigned int interpolation_type=0,
+                                      const bool is_fast_approx=true) const {
+      return CImg<Tfloat>(*this,false).blur_anisotropic(amplitude,sharpness,anisotropy,alpha,sigma,dl,da,gauss_prec,
+                                                        interpolation_type,is_fast_approx);
+    }
+
+    //! Blur image, with the joint bilateral filter.
+    /**
+       \param guide Image used to model the smoothing weights.
+       \param sigma_x Amount of blur along the X-axis.
+       \param sigma_y Amount of blur along the Y-axis.
+       \param sigma_z Amount of blur along the Z-axis.
+       \param sigma_r Amount of blur along the value axis.
+       \param sampling_x Amount of downsampling along the X-axis used for the approximation.
+         Defaults (0) to sigma_x.
+       \param sampling_y Amount of downsampling along the Y-axis used for the approximation.
+         Defaults (0) to sigma_y.
+       \param sampling_z Amount of downsampling along the Z-axis used for the approximation.
+         Defaults (0) to sigma_z.
+       \param sampling_r Amount of downsampling along the value axis used for the approximation.
+         Defaults (0) to sigma_r.
+       \note This algorithm uses the optimisation technique proposed by S. Paris and F. Durand, in ECCV'2006
+       (extended for 3d volumetric images).
+       It is based on the reference implementation http://people.csail.mit.edu/jiawen/software/bilateralFilter.m
+    **/
+    template<typename t>
+    CImg<T>& blur_bilateral(const CImg<t>& guide,
+                            const float sigma_x, const float sigma_y,
+                            const float sigma_z, const float sigma_r,
+                            const float sampling_x, const float sampling_y,
+                            const float sampling_z, const float sampling_r) {
+      if (!is_sameXYZ(guide))
+        throw CImgArgumentException(_cimg_instance
+                                    "blur_bilateral(): Invalid size for specified guide image (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    guide._width,guide._height,guide._depth,guide._spectrum,guide._data);
+      if (is_empty()) return *this;
+      T edge_min, edge_max = guide.max_min(edge_min);
+      if (edge_min==edge_max || sigma_r == 0.) return *this;
+      const float
+        edge_delta = (float)(edge_max - edge_min),
+        _sigma_x = sigma_x>=0?sigma_x:-sigma_x*_width/100,
+        _sigma_y = sigma_y>=0?sigma_y:-sigma_y*_height/100,
+        _sigma_z = sigma_z>=0?sigma_z:-sigma_z*_depth/100,
+        _sigma_r = sigma_r>=0?sigma_r:-sigma_r*(edge_max-edge_min)/100,
+        _sampling_x = sampling_x?sampling_x:cimg::max(_sigma_x,1.0f),
+        _sampling_y = sampling_y?sampling_y:cimg::max(_sigma_y,1.0f),
+        _sampling_z = sampling_z?sampling_z:cimg::max(_sigma_z,1.0f),
+        _sampling_r = sampling_r?sampling_r:cimg::max(_sigma_r,edge_delta/256),
+        derived_sigma_x = _sigma_x / _sampling_x,
+        derived_sigma_y = _sigma_y / _sampling_y,
+        derived_sigma_z = _sigma_z / _sampling_z,
+        derived_sigma_r = _sigma_r / _sampling_r;
+      const int
+        padding_x = (int)(2*derived_sigma_x) + 1,
+        padding_y = (int)(2*derived_sigma_y) + 1,
+        padding_z = (int)(2*derived_sigma_z) + 1,
+        padding_r = (int)(2*derived_sigma_r) + 1;
+      const unsigned int
+        bx = (unsigned int)((_width  - 1)/_sampling_x + 1 + 2*padding_x),
+        by = (unsigned int)((_height - 1)/_sampling_y + 1 + 2*padding_y),
+        bz = (unsigned int)((_depth  - 1)/_sampling_z + 1 + 2*padding_z),
+        br = (unsigned int)(edge_delta/_sampling_r + 1 + 2*padding_r);
+      if (bx>0 || by>0 || bz>0 || br>0) {
+        const bool is_3d = (_depth>1);
+        if (is_3d) { // 3d versio
