@@ -31311,4 +31311,174 @@ namespace cimg_library_suffixed {
         br = (unsigned int)(edge_delta/_sampling_r + 1 + 2*padding_r);
       if (bx>0 || by>0 || bz>0 || br>0) {
         const bool is_3d = (_depth>1);
-        if (is_3d) { // 3d versio
+        if (is_3d) { // 3d version of the algorithm
+          CImg<floatT> bgrid(bx,by,bz,br), bgridw(bx,by,bz,br);
+          cimg_forC(*this,c) {
+            const CImg<t> _guide = guide.get_shared_channel(c%guide._spectrum);
+            bgrid.fill(0); bgridw.fill(0);
+            cimg_forXYZ(*this,x,y,z) {
+              const T val = (*this)(x,y,z,c);
+              const float edge = (float)_guide(x,y,z);
+              const int
+                X = (int)cimg::round(x/_sampling_x) + padding_x,
+                Y = (int)cimg::round(y/_sampling_y) + padding_y,
+                Z = (int)cimg::round(z/_sampling_z) + padding_z,
+                R = (int)cimg::round((edge-edge_min)/_sampling_r) + padding_r;
+              bgrid(X,Y,Z,R)+=(float)val;
+              bgridw(X,Y,Z,R)+=1;
+            }
+            bgrid.blur(derived_sigma_x,derived_sigma_y,derived_sigma_z,true).deriche(derived_sigma_r,0,'c',false);
+            bgridw.blur(derived_sigma_x,derived_sigma_y,derived_sigma_z,true).deriche(derived_sigma_r,0,'c',false);
+            cimg_forXYZ(*this,x,y,z) {
+              const float edge = (float)_guide(x,y,z);
+              const float
+                X = x/_sampling_x + padding_x,
+                Y = y/_sampling_y + padding_y,
+                Z = z/_sampling_z + padding_z,
+                R = (edge-edge_min)/_sampling_r + padding_r;
+              const float bval0 = bgrid.linear_atXYZC(X,Y,Z,R), bval1 = bgridw.linear_atXYZC(X,Y,Z,R);
+              (*this)(x,y,z,c) = (T)(bval0/bval1);
+            }
+          }
+        } else { // 2d version of the algorithm
+          CImg<floatT> bgrid(bx,by,br,2);
+          cimg_forC(*this,c) {
+            const CImg<t> _guide = guide.get_shared_channel(c%guide._spectrum);
+            bgrid.fill(0);
+            cimg_forXY(*this,x,y) {
+              const T val = (*this)(x,y,c);
+              const float edge = (float)_guide(x,y);
+              const int
+                X = (int)cimg::round(x/_sampling_x) + padding_x,
+                Y = (int)cimg::round(y/_sampling_y) + padding_y,
+                R = (int)cimg::round((edge-edge_min)/_sampling_r) + padding_r;
+              bgrid(X,Y,R,0)+=(float)val;
+              bgrid(X,Y,R,1)+=1;
+            }
+            bgrid.blur(derived_sigma_x,derived_sigma_y,0,true).blur(0,0,derived_sigma_r,false);
+            cimg_forXY(*this,x,y) {
+              const float edge = (float)_guide(x,y);
+              const float
+                X = x/_sampling_x + padding_x,
+                Y = y/_sampling_y + padding_y,
+                R = (edge-edge_min)/_sampling_r + padding_r;
+              const float bval0 = bgrid.linear_atXYZ(X,Y,R,0), bval1 = bgrid.linear_atXYZ(X,Y,R,1);
+              (*this)(x,y,c) = (T)(bval0/bval1);
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Blur image, with the joint bilateral filter \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_blur_bilateral(const CImg<t>& guide,
+                                    const float sigma_x, const float sigma_y,
+                                    const float sigma_z, const float sigma_r,
+                                    const float sampling_x, const float sampling_y,
+                                    const float sampling_z, const float sampling_r) const {
+      return CImg<Tfloat>(*this,false).blur_bilateral(guide,sigma_x,sigma_y,sigma_z,sigma_r,
+                                                      sampling_x,sampling_y,sampling_z,sampling_r);
+    }
+
+    //! Blur image using the joint bilateral filter.
+    /**
+       \param guide Image used to model the smoothing weights.
+       \param sigma_s Amount of blur along the XYZ-axes.
+       \param sigma_r Amount of blur along the value axis.
+       \param sampling_s Amount of downsampling along the XYZ-axes used for the approximation. Defaults to sigma_s.
+       \param sampling_r Amount of downsampling along the value axis used for the approximation. Defaults to sigma_r.
+    **/
+    template<typename t>
+    CImg<T>& blur_bilateral(const CImg<t>& guide,
+                            const float sigma_s, const float sigma_r,
+                            const float sampling_s=0, const float sampling_r=0) {
+      const float _sigma_s = sigma_s>=0?sigma_s:-sigma_s*cimg::max(_width,_height,_depth)/100;
+      return blur_bilateral(guide,_sigma_s,_sigma_s,_sigma_s,sigma_r,sampling_s,sampling_s,sampling_s,sampling_r);
+    }
+
+    //! Blur image using the bilateral filter \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_blur_bilateral(const CImg<t>& guide,
+                                    const float sigma_s, const float sigma_r,
+                                    const float sampling_s=0, const float sampling_r=0) const {
+      return CImg<Tfloat>(*this,false).blur_bilateral(guide,sigma_s,sigma_r,sampling_s,sampling_r);
+    }
+
+    // [internal] Apply a box filter (used by CImg<T>::boxfilter() and CImg<T>::blur_box()).
+    /*
+      \param ptr the pointer of the data
+      \param N size of the data
+      \param boxsize Size of the box filter (can be subpixel).
+      \param off the offset between two data point
+      \param order the order of the filter 0 (smoothing), 1st derivtive and 2nd derivative.
+      \param boundary_conditions Boundary conditions. Can be <tt>{ 0=dirichlet | 1=neumann }</tt>.
+    */
+    static void _cimg_blur_box_apply(T *ptr, const float boxsize, const int N, const ulongT off,
+                                     const int order, const bool boundary_conditions) {
+      // Smooth.
+      if (boxsize>1) {
+        const int w2 = (int)(boxsize - 1)/2;
+        const unsigned int winsize = 2*w2 + 1U;
+        const double frac = (boxsize - winsize)/2.0;
+        CImg<Tfloat> win(winsize);
+        Tfloat sum = 0; // window sum
+        for (int x = -w2; x<=w2; ++x) {
+          win[x + w2] = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,x);
+          sum+=win[x + w2];
+        }
+        int ifirst = 0, ilast = 2*w2;
+        Tfloat
+          prev = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,-w2 - 1),
+          next = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,w2 + 1);
+        for (int x = 0; x < N - 1; ++x) {
+          const double sum2 = sum + frac * (prev + next);
+          ptr[x*off] = (T)(sum2/boxsize);
+          prev = win[ifirst];
+          sum-=prev;
+          ifirst = (int)((ifirst + 1)%winsize);
+          ilast = (int)((ilast + 1)%winsize);
+          win[ilast] = next;
+          sum+=next;
+          next = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,x + w2 + 2);
+        }
+        const double sum2 = sum + frac * (prev + next);
+        ptr[(N - 1)*off] = (T)(sum2/boxsize);
+      }
+
+      // Derive.
+      switch (order) {
+      case 0 :
+        break;
+      case 1 : {
+        Tfloat
+          p = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,-1),
+          c = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,0),
+          n = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,1);
+        for (int x = 0; x<N - 1; ++x) {
+          ptr[x*off] = (T)((n-p)/2.0);
+          p = c;
+          c = n;
+          n = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,x + 2);
+        }
+        ptr[(N - 1)*off] = (T)((n-p)/2.0);
+      } break;
+      case 2: {
+        Tfloat
+          p = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,-1),
+          c = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,0),
+          n = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,1);
+        for (int x = 0; x<N - 1; ++x) {
+          ptr[x*off] = (T)(n - 2*c + p);
+          p = c;
+          c = n;
+          n = __cimg_blur_box_apply(ptr,N,off,boundary_conditions,x + 2);
+        }
+        ptr[(N - 1)*off] = (T)(n - 2*c + p);
+      } break;
+      }
+    }
+
+    static T __cimg_blur_box_apply(T *ptr, const int N, const ulongT off,
+                                   const bool boundary_conditions, const in
