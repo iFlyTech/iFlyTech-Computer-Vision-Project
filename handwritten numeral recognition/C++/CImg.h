@@ -31913,4 +31913,147 @@ namespace cimg_library_suffixed {
               const int
                 x0 = x - hl, y0 = y - hl, x1 = x + hr, y1 = y + hr,
                 nx0 = x0<0?0:x0, ny0 = y0<0?0:y0,
-              
+                                          nx1 = x1>=width()?width() - 1:x1, ny1 = y1>=height()?height() - 1:y1;
+              const float val0 = (float)(*this)(x,y,c);
+              CImg<T> values(n*n);
+              unsigned int nb_values = 0;
+              T *ptrd = values.data();
+              cimg_for_inXY(*this,nx0,ny0,nx1,ny1,p,q)
+                if (cimg::abs((float)(*this)(p,q,c)-val0)<=threshold) { *(ptrd++) = (*this)(p,q,c); ++nb_values; }
+              res(x,y,c) = values.get_shared_points(0,nb_values - 1).median();
+            }
+          else switch (n) { // Without threshold.
+            case 3 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                T I[9] = { 0 };
+                CImg_3x3(J,T);
+                cimg_for3x3(*this,x,y,0,c,I,T) {
+                  std::memcpy(J,I,9*sizeof(T));
+                  _cimg_median_sort(Jcp, Jnp); _cimg_median_sort(Jcc, Jnc); _cimg_median_sort(Jcn, Jnn);
+                  _cimg_median_sort(Jpp, Jcp); _cimg_median_sort(Jpc, Jcc); _cimg_median_sort(Jpn, Jcn);
+                  _cimg_median_sort(Jcp, Jnp); _cimg_median_sort(Jcc, Jnc); _cimg_median_sort(Jcn, Jnn);
+                  _cimg_median_sort(Jpp, Jpc); _cimg_median_sort(Jnc, Jnn); _cimg_median_sort(Jcc, Jcn);
+                  _cimg_median_sort(Jpc, Jpn); _cimg_median_sort(Jcp, Jcc); _cimg_median_sort(Jnp, Jnc);
+                  _cimg_median_sort(Jcc, Jcn); _cimg_median_sort(Jcc, Jnp); _cimg_median_sort(Jpn, Jcc);
+                  _cimg_median_sort(Jcc, Jnp);
+                  res(x,y,c) = Jcc;
+                }
+              }
+            } break;
+            case 5 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                T I[25] = { 0 };
+                CImg_5x5(J,T);
+                cimg_for5x5(*this,x,y,0,c,I,T) {
+                  std::memcpy(J,I,25*sizeof(T));
+                  _cimg_median_sort(Jbb,Jpb); _cimg_median_sort(Jnb,Jab); _cimg_median_sort(Jcb,Jab);
+                  _cimg_median_sort(Jcb,Jnb); _cimg_median_sort(Jpp,Jcp); _cimg_median_sort(Jbp,Jcp);
+                  _cimg_median_sort(Jbp,Jpp); _cimg_median_sort(Jap,Jbc); _cimg_median_sort(Jnp,Jbc);
+                  _cimg_median_sort(Jnp,Jap); _cimg_median_sort(Jcc,Jnc); _cimg_median_sort(Jpc,Jnc);
+                  _cimg_median_sort(Jpc,Jcc); _cimg_median_sort(Jbn,Jpn); _cimg_median_sort(Jac,Jpn);
+                  _cimg_median_sort(Jac,Jbn); _cimg_median_sort(Jnn,Jan); _cimg_median_sort(Jcn,Jan);
+                  _cimg_median_sort(Jcn,Jnn); _cimg_median_sort(Jpa,Jca); _cimg_median_sort(Jba,Jca);
+                  _cimg_median_sort(Jba,Jpa); _cimg_median_sort(Jna,Jaa); _cimg_median_sort(Jcb,Jbp);
+                  _cimg_median_sort(Jnb,Jpp); _cimg_median_sort(Jbb,Jpp); _cimg_median_sort(Jbb,Jnb);
+                  _cimg_median_sort(Jab,Jcp); _cimg_median_sort(Jpb,Jcp); _cimg_median_sort(Jpb,Jab);
+                  _cimg_median_sort(Jpc,Jac); _cimg_median_sort(Jnp,Jac); _cimg_median_sort(Jnp,Jpc);
+                  _cimg_median_sort(Jcc,Jbn); _cimg_median_sort(Jap,Jbn); _cimg_median_sort(Jap,Jcc);
+                  _cimg_median_sort(Jnc,Jpn); _cimg_median_sort(Jbc,Jpn); _cimg_median_sort(Jbc,Jnc);
+                  _cimg_median_sort(Jba,Jna); _cimg_median_sort(Jcn,Jna); _cimg_median_sort(Jcn,Jba);
+                  _cimg_median_sort(Jpa,Jaa); _cimg_median_sort(Jnn,Jaa); _cimg_median_sort(Jnn,Jpa);
+                  _cimg_median_sort(Jan,Jca); _cimg_median_sort(Jnp,Jcn); _cimg_median_sort(Jap,Jnn);
+                  _cimg_median_sort(Jbb,Jnn); _cimg_median_sort(Jbb,Jap); _cimg_median_sort(Jbc,Jan);
+                  _cimg_median_sort(Jpb,Jan); _cimg_median_sort(Jpb,Jbc); _cimg_median_sort(Jpc,Jba);
+                  _cimg_median_sort(Jcb,Jba); _cimg_median_sort(Jcb,Jpc); _cimg_median_sort(Jcc,Jpa);
+                  _cimg_median_sort(Jnb,Jpa); _cimg_median_sort(Jnb,Jcc); _cimg_median_sort(Jnc,Jca);
+                  _cimg_median_sort(Jab,Jca); _cimg_median_sort(Jab,Jnc); _cimg_median_sort(Jac,Jna);
+                  _cimg_median_sort(Jbp,Jna); _cimg_median_sort(Jbp,Jac); _cimg_median_sort(Jbn,Jaa);
+                  _cimg_median_sort(Jpp,Jaa); _cimg_median_sort(Jpp,Jbn); _cimg_median_sort(Jcp,Jpn);
+                  _cimg_median_sort(Jcp,Jan); _cimg_median_sort(Jnc,Jpa); _cimg_median_sort(Jbn,Jna);
+                  _cimg_median_sort(Jcp,Jnc); _cimg_median_sort(Jcp,Jbn); _cimg_median_sort(Jpb,Jap);
+                  _cimg_median_sort(Jnb,Jpc); _cimg_median_sort(Jbp,Jcn); _cimg_median_sort(Jpc,Jcn);
+                  _cimg_median_sort(Jap,Jcn); _cimg_median_sort(Jab,Jbc); _cimg_median_sort(Jpp,Jcc);
+                  _cimg_median_sort(Jcp,Jac); _cimg_median_sort(Jab,Jpp); _cimg_median_sort(Jab,Jcp);
+                  _cimg_median_sort(Jcc,Jac); _cimg_median_sort(Jbc,Jac); _cimg_median_sort(Jpp,Jcp);
+                  _cimg_median_sort(Jbc,Jcc); _cimg_median_sort(Jpp,Jbc); _cimg_median_sort(Jpp,Jcn);
+                  _cimg_median_sort(Jcc,Jcn); _cimg_median_sort(Jcp,Jcn); _cimg_median_sort(Jcp,Jbc);
+                  _cimg_median_sort(Jcc,Jnn); _cimg_median_sort(Jcp,Jcc); _cimg_median_sort(Jbc,Jnn);
+                  _cimg_median_sort(Jcc,Jba); _cimg_median_sort(Jbc,Jba); _cimg_median_sort(Jbc,Jcc);
+                  res(x,y,c) = Jcc;
+                }
+              }
+            } break;
+            default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width>=16 && _height*_spectrum>=4)
+#endif
+              cimg_forXYC(*this,x,y,c) {
+                const int
+                  x0 = x - hl, y0 = y - hl, x1 = x + hr, y1 = y + hr,
+                  nx0 = x0<0?0:x0, ny0 = y0<0?0:y0,
+                  nx1 = x1>=width()?width() - 1:x1, ny1 = y1>=height()?height() - 1:y1;
+                res(x,y,c) = get_crop(nx0,ny0,0,c,nx1,ny1,0,c).median();
+              }
+            }
+            }
+        } else { // 1d
+
+          CImg<T> I;
+          if (threshold>0)
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width>=16 && _spectrum>=2)
+#endif
+            cimg_forXC(*this,x,c) { // With threshold.
+              const int
+                x0 = x - hl, x1 = x + hr,
+                nx0 = x0<0?0:x0, nx1 = x1>=width()?width() - 1:x1;
+              const float val0 = (float)(*this)(x,c);
+              CImg<T> values(n);
+              unsigned int nb_values = 0;
+              T *ptrd = values.data();
+              cimg_for_inX(*this,nx0,nx1,p)
+                if (cimg::abs((float)(*this)(p,c)-val0)<=threshold) { *(ptrd++) = (*this)(p,c); ++nb_values; }
+              res(x,c) = values.get_shared_points(0,nb_values - 1).median();
+            }
+          else switch (n) { // Without threshold.
+            case 2 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                I.assign(4);
+                cimg_for2x2(*this,x,y,0,c,I,T) res(x,c) = (T)(0.5f*(I[0] + I[1]));
+              }
+            } break;
+            case 3 : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+              cimg_forC(*this,c) {
+                I.assign(9);
+                cimg_for3x3(*this,x,y,0,c,I,T)
+                  res(x,c) = I[3]<I[4]?(I[4]<I[5]?I[4]:(I[3]<I[5]?I[5]:I[3])):(I[3]<I[5]?I[3]:(I[4]<I[5]?I[5]:I[4]));
+              }
+            } break;
+            default : {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width>=16 && _spectrum>=2)
+#endif
+              cimg_forXC(*this,x,c) {
+                const int
+                  x0 = x - hl, x1 = x + hr,
+                  nx0 = x0<0?0:x0, nx1 = x1>=width()?width() - 1:x1;
+                res(x,c) = get_crop(nx0,0,0,c,nx1,0,0,c).median();
+              }
+            }
+            }
+        }
+      }
+      return res;
+ 
