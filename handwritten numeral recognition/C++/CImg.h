@@ -32427,4 +32427,199 @@ namespace cimg_library_suffixed {
         }
       } else if (!cimg::strcasecmp(naxes,def_axes2d)) { // 2d
 #ifdef cimg_use_openmp
-#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _dept
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+        cimg_forZC(*this,z,c) {
+          const ulongT off = (ulongT)c*_width*_height*_depth + z*_width*_height;
+          Tfloat *ptrd0 = res[0]._data + off, *ptrd1 = res[1]._data + off, *ptrd2 = res[2]._data + off;
+          CImg_3x3(I,Tfloat);
+          cimg_for3x3(*this,x,y,z,c,I,Tfloat) {
+            *(ptrd0++) = Ipc + Inc - 2*Icc;         // Ixx
+            *(ptrd1++) = (Ipp + Inn - Ipn - Inp)/4; // Ixy
+            *(ptrd2++) = Icp + Icn - 2*Icc;         // Iyy
+          }
+        }
+      } else for (unsigned int l = 0; l<lmax; ) { // Version with custom axes.
+          const unsigned int l2 = l/2;
+          char axis1 = naxes[l++], axis2 = naxes[l++];
+          if (axis1>axis2) cimg::swap(axis1,axis2);
+          bool valid_axis = false;
+          if (axis1=='x' && axis2=='x') { // Ixx
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+            cimg_forZC(*this,z,c) {
+              Tfloat *ptrd = res[l2].data(0,0,z,c);
+              CImg_3x3(I,Tfloat);
+              cimg_for3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = Ipc + Inc - 2*Icc;
+            }
+          }
+          else if (axis1=='x' && axis2=='y') { // Ixy
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+            cimg_forZC(*this,z,c) {
+              Tfloat *ptrd = res[l2].data(0,0,z,c);
+              CImg_3x3(I,Tfloat);
+              cimg_for3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = (Ipp + Inn - Ipn - Inp)/4;
+            }
+          }
+          else if (axis1=='x' && axis2=='z') { // Ixz
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+            cimg_forC(*this,c) {
+              Tfloat *ptrd = res[l2].data(0,0,0,c);
+              CImg_3x3x3(I,Tfloat);
+              cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = (Ipcp + Incn - Ipcn - Incp)/4;
+            }
+          }
+          else if (axis1=='y' && axis2=='y') { // Iyy
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if (_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+            cimg_forZC(*this,z,c) {
+              Tfloat *ptrd = res[l2].data(0,0,z,c);
+              CImg_3x3(I,Tfloat);
+              cimg_for3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = Icp + Icn - 2*Icc;
+            }
+          }
+          else if (axis1=='y' && axis2=='z') { // Iyz
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+            cimg_forC(*this,c) {
+              Tfloat *ptrd = res[l2].data(0,0,0,c);
+              CImg_3x3x3(I,Tfloat);
+              cimg_forC(*this,c) cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = (Icpp + Icnn - Icpn - Icnp)/4;
+            }
+          }
+          else if (axis1=='z' && axis2=='z') { // Izz
+            valid_axis = true;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+            cimg_forC(*this,c) {
+              Tfloat *ptrd = res[l2].data(0,0,0,c);
+              CImg_3x3x3(I,Tfloat);
+              cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = Iccn + Iccp - 2*Iccc;
+            }
+          }
+          else if (!valid_axis)
+            throw CImgArgumentException(_cimg_instance
+                                        "get_hessian(): Invalid specified axes '%s'.",
+                                        cimg_instance,
+                                        naxes);
+        }
+      return res;
+    }
+
+    //! Compute image laplacian.
+    CImg<T>& laplacian() {
+      return get_laplacian().move_to(*this);
+    }
+
+    //! Compute image laplacian \newinstance.
+    CImg<Tfloat> get_laplacian() const {
+      if (is_empty()) return CImg<Tfloat>();
+      CImg<Tfloat> res(_width,_height,_depth,_spectrum);
+      if (_depth>1) { // 3d
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+        cimg_forC(*this,c) {
+          Tfloat *ptrd = res.data(0,0,0,c);
+          CImg_3x3x3(I,Tfloat);
+          cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) *(ptrd++) = Incc + Ipcc + Icnc + Icpc + Iccn + Iccp - 6*Iccc;
+        }
+      } else if (_height>1) { // 2d
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+        cimg_forC(*this,c) {
+          Tfloat *ptrd = res.data(0,0,0,c);
+          CImg_3x3(I,Tfloat);
+          cimg_for3x3(*this,x,y,0,c,I,Tfloat) *(ptrd++) = Inc + Ipc + Icn + Icp - 4*Icc;
+        }
+      } else { // 1d
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width>=1048576 && _height*_depth*_spectrum>=2)
+#endif
+        cimg_forC(*this,c) {
+          Tfloat *ptrd = res.data(0,0,0,c);
+          CImg_3x3(I,Tfloat);
+          cimg_for3x3(*this,x,y,0,c,I,Tfloat) *(ptrd++) = Inc + Ipc - 2*Icc;
+        }
+      }
+      return res;
+    }
+
+    //! Compute the structure tensor field of an image.
+    /**
+       \param is_fwbw_scheme scheme. Can be <tt>{ false=centered | true=forward-backward }</tt>
+    **/
+    CImg<T>& structure_tensors(const bool is_fwbw_scheme=false) {
+      return get_structure_tensors(is_fwbw_scheme).move_to(*this);
+    }
+
+    //! Compute the structure tensor field of an image \newinstance.
+    CImg<Tfloat> get_structure_tensors(const bool is_fwbw_scheme=false) const {
+      if (is_empty()) return *this;
+      CImg<Tfloat> res;
+      if (_depth>1) { // 3d
+        res.assign(_width,_height,_depth,6,0);
+        if (!is_fwbw_scheme) { // Classical central finite differences
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            Tfloat
+              *ptrd0 = res.data(0,0,0,0), *ptrd1 = res.data(0,0,0,1), *ptrd2 = res.data(0,0,0,2),
+              *ptrd3 = res.data(0,0,0,3), *ptrd4 = res.data(0,0,0,4), *ptrd5 = res.data(0,0,0,5);
+            CImg_3x3x3(I,Tfloat);
+            cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
+              const Tfloat
+                ix = (Incc - Ipcc)/2,
+                iy = (Icnc - Icpc)/2,
+                iz = (Iccn - Iccp)/2;
+              *(ptrd0++)+=ix*ix;
+              *(ptrd1++)+=ix*iy;
+              *(ptrd2++)+=ix*iz;
+              *(ptrd3++)+=iy*iy;
+              *(ptrd4++)+=iy*iz;
+              *(ptrd5++)+=iz*iz;
+            }
+          }
+        } else { // Forward/backward finite differences.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height*_depth>=1048576 && _spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            Tfloat
+              *ptrd0 = res.data(0,0,0,0), *ptrd1 = res.data(0,0,0,1), *ptrd2 = res.data(0,0,0,2),
+              *ptrd3 = res.data(0,0,0,3), *ptrd4 = res.data(0,0,0,4), *ptrd5 = res.data(0,0,0,5);
+            CImg_3x3x3(I,Tfloat);
+            cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) {
+              const Tfloat
+                ixf = Incc - Iccc, ixb = Iccc - Ipcc,
+                iyf = Icnc - Iccc, iyb = Iccc - Icpc,
+                izf = Iccn - Iccc, izb = Iccc - Iccp;
+              *(ptrd0++)+=(ixf*ixf + ixb*ixb)/2;
+              *(ptrd1++)+=(ixf*iyf + ixf*iyb + ixb*iyf + ixb*iyb)/4;
+              *(ptrd2++)+=(ixf*izf + ixf*izb + ixb*izf + ixb*izb)/4;
+              *(ptrd3++)+=(iyf*iyf + iyb*iyb)/2;
+              *(ptrd4++)+=(iyf*izf + iyf*izb + iyb*izf + iyb*izb)/4;
+              *(ptrd5++)+=(izf*izf + izb*izb)/2;
+            }
+          }
+        }
+      } else { // 2d
+        res.assign(_width,_height,_depth,3,0);
+        if (!is_fwbw_scheme) { // Classical central finite differences
+#ifdef cimg_use_openmp
+#pragma omp parallel f
