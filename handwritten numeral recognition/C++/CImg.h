@@ -32622,4 +32622,163 @@ namespace cimg_library_suffixed {
         res.assign(_width,_height,_depth,3,0);
         if (!is_fwbw_scheme) { // Classical central finite differences
 #ifdef cimg_use_openmp
-#pragma omp parallel f
+#pragma omp parallel for cimg_openmp_if(_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            Tfloat *ptrd0 = res.data(0,0,0,0), *ptrd1 = res.data(0,0,0,1), *ptrd2 = res.data(0,0,0,2);
+            CImg_3x3(I,Tfloat);
+            cimg_for3x3(*this,x,y,0,c,I,Tfloat) {
+              const Tfloat
+                ix = (Inc - Ipc)/2,
+                iy = (Icn - Icp)/2;
+              *(ptrd0++)+=ix*ix;
+              *(ptrd1++)+=ix*iy;
+              *(ptrd2++)+=iy*iy;
+            }
+          }
+        } else { // Forward/backward finite differences (version 2).
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_width*_height>=1048576 && _depth*_spectrum>=2)
+#endif
+          cimg_forC(*this,c) {
+            Tfloat *ptrd0 = res.data(0,0,0,0), *ptrd1 = res.data(0,0,0,1), *ptrd2 = res.data(0,0,0,2);
+            CImg_3x3(I,Tfloat);
+            cimg_for3x3(*this,x,y,0,c,I,Tfloat) {
+              const Tfloat
+                ixf = Inc - Icc, ixb = Icc - Ipc,
+                iyf = Icn - Icc, iyb = Icc - Icp;
+              *(ptrd0++)+=(ixf*ixf + ixb*ixb)/2;
+              *(ptrd1++)+=(ixf*iyf + ixf*iyb + ixb*iyf + ixb*iyb)/4;
+              *(ptrd2++)+=(iyf*iyf + iyb*iyb)/2;
+            }
+          }
+        }
+      }
+      return res;
+    }
+
+    //! Compute field of diffusion tensors for edge-preserving smoothing.
+    /**
+       \param sharpness Sharpness
+       \param anisotropy Anisotropy
+       \param alpha Standard deviation of the gradient blur.
+       \param sigma Standard deviation of the structure tensor blur.
+       \param is_sqrt Tells if the square root of the tensor field is computed instead.
+    **/
+    CImg<T>& diffusion_tensors(const float sharpness=0.7f, const float anisotropy=0.6f,
+                               const float alpha=0.6f, const float sigma=1.1f, const bool is_sqrt=false) {
+      CImg<Tfloat> res;
+      const float
+        nsharpness = cimg::max(sharpness,1e-5f),
+        power1 = (is_sqrt?0.5f:1)*nsharpness,
+        power2 = power1/(1e-7f + 1 - anisotropy);
+      blur(alpha).normalize(0,(T)255);
+
+      if (_depth>1) { // 3d
+        get_structure_tensors().move_to(res).blur(sigma);
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if(_width>=256 && _height*_depth>=256)
+#endif
+        cimg_forYZ(*this,y,z) {
+          Tfloat
+            *ptrd0 = res.data(0,y,z,0), *ptrd1 = res.data(0,y,z,1), *ptrd2 = res.data(0,y,z,2),
+            *ptrd3 = res.data(0,y,z,3), *ptrd4 = res.data(0,y,z,4), *ptrd5 = res.data(0,y,z,5);
+          CImg<floatT> val(3), vec(3,3);
+          cimg_forX(*this,x) {
+            res.get_tensor_at(x,y,z).symmetric_eigen(val,vec);
+            const float
+              _l1 = val[2], _l2 = val[1], _l3 = val[0],
+              l1 = _l1>0?_l1:0, l2 = _l2>0?_l2:0, l3 = _l3>0?_l3:0,
+              ux = vec(0,0), uy = vec(0,1), uz = vec(0,2),
+              vx = vec(1,0), vy = vec(1,1), vz = vec(1,2),
+              wx = vec(2,0), wy = vec(2,1), wz = vec(2,2),
+              n1 = (float)std::pow(1 + l1 + l2 + l3,-power1),
+              n2 = (float)std::pow(1 + l1 + l2 + l3,-power2);
+            *(ptrd0++) = n1*(ux*ux + vx*vx) + n2*wx*wx;
+            *(ptrd1++) = n1*(ux*uy + vx*vy) + n2*wx*wy;
+            *(ptrd2++) = n1*(ux*uz + vx*vz) + n2*wx*wz;
+            *(ptrd3++) = n1*(uy*uy + vy*vy) + n2*wy*wy;
+            *(ptrd4++) = n1*(uy*uz + vy*vz) + n2*wy*wz;
+            *(ptrd5++) = n1*(uz*uz + vz*vz) + n2*wz*wz;
+          }
+        }
+      } else { // for 2d images
+        get_structure_tensors().move_to(res).blur(sigma);
+#ifdef cimg_use_openmp
+#pragma omp parallel for if(_width>=256 && _height>=256)
+#endif
+        cimg_forY(*this,y) {
+          Tfloat *ptrd0 = res.data(0,y,0,0), *ptrd1 = res.data(0,y,0,1), *ptrd2 = res.data(0,y,0,2);
+          CImg<floatT> val(2), vec(2,2);
+          cimg_forX(*this,x) {
+            res.get_tensor_at(x,y).symmetric_eigen(val,vec);
+            const float
+              _l1 = val[1], _l2 = val[0],
+              l1 = _l1>0?_l1:0, l2 = _l2>0?_l2:0,
+              ux = vec(1,0), uy = vec(1,1),
+              vx = vec(0,0), vy = vec(0,1),
+              n1 = (float)std::pow(1 + l1 + l2,-power1),
+              n2 = (float)std::pow(1 + l1 + l2,-power2);
+            *(ptrd0++) = n1*ux*ux + n2*vx*vx;
+            *(ptrd1++) = n1*ux*uy + n2*vx*vy;
+            *(ptrd2++) = n1*uy*uy + n2*vy*vy;
+          }
+        }
+      }
+      return res.move_to(*this);
+    }
+
+    //! Compute field of diffusion tensors for edge-preserving smoothing \newinstance.
+    CImg<Tfloat> get_diffusion_tensors(const float sharpness=0.7f, const float anisotropy=0.6f,
+                                       const float alpha=0.6f, const float sigma=1.1f, const bool is_sqrt=false) const {
+      return CImg<Tfloat>(*this,false).diffusion_tensors(sharpness,anisotropy,alpha,sigma,is_sqrt);
+    }
+
+    //! Estimate displacement field between two images.
+    /**
+       \param source Reference image.
+       \param smoothness Smoothness of estimated displacement field.
+       \param precision Precision required for algorithm convergence.
+       \param nb_scales Number of scales used to estimate the displacement field.
+       \param iteration_max Maximum number of iterations allowed for one scale.
+       \param is_backward If false, match I2(X + U(X)) = I1(X), else match I2(X) = I1(X - U(X)).
+       \param guide Image used as the initial correspondence estimate for the algorithm.
+       'guide' may have a last channel with boolean values (0=false | other=true) that
+       tells for each pixel if its correspondence vector is constrained to its initial value (constraint mask).
+    **/
+    CImg<T>& displacement(const CImg<T>& source, const float smoothness=0.1f, const float precision=5.0f,
+                          const unsigned int nb_scales=0, const unsigned int iteration_max=10000,
+                          const bool is_backward=false,
+                          const CImg<floatT>& guide=CImg<floatT>::const_empty()) {
+      return get_displacement(source,smoothness,precision,nb_scales,iteration_max,is_backward,guide).
+        move_to(*this);
+    }
+
+    //! Estimate displacement field between two images \newinstance.
+    CImg<floatT> get_displacement(const CImg<T>& source,
+                                  const float smoothness=0.1f, const float precision=5.0f,
+                                  const unsigned int nb_scales=0, const unsigned int iteration_max=10000,
+                                  const bool is_backward=false,
+                                  const CImg<floatT>& guide=CImg<floatT>::const_empty()) const {
+      if (is_empty() || !source) return +*this;
+      if (!is_sameXYZC(source))
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Instance and source image (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    source._width,source._height,source._depth,source._spectrum,source._data);
+      if (precision<0)
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Invalid specified precision %g "
+                                    "(should be >=0)",
+                                    cimg_instance,
+                                    precision);
+
+      const bool is_3d = source._depth>1;
+      const unsigned int constraint = is_3d?3:2;
+
+      if (guide &&
+          (guide._width!=_width || guide._height!=_height || guide._depth!=_depth || guide._spectrum<constraint))
+        throw CImgArgumentException(_cimg_instance
+                                    "displacement(): Specified guide (%u,%u,%u,%u,%p) "
+                    
