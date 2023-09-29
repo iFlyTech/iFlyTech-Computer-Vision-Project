@@ -32916,4 +32916,145 @@ namespace cimg_library_suffixed {
                                          )/(1 + 2*(coef_a + coef_d + coef_f)*nsmoothness*dt);
                     _energy_regul+=N;
                   }
-                  if (is_backward) { // Constraint displacement vectors 
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,z,0)>x) U(x,y,z,0) = (float)x;
+                    if (U(x,y,z,1)>y) U(x,y,z,1) = (float)y;
+                    if (U(x,y,z,2)>z) U(x,y,z,2) = (float)z;
+                    bound = (float)x - _width; if (U(x,y,z,0)<=bound) U(x,y,z,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,z,1)<=bound) U(x,y,z,1) = bound;
+                    bound = (float)z - _depth; if (U(x,y,z,2)<=bound) U(x,y,z,2) = bound;
+                  } else {
+                    if (U(x,y,z,0)<-x) U(x,y,z,0) = -(float)x;
+                    if (U(x,y,z,1)<-y) U(x,y,z,1) = -(float)y;
+                    if (U(x,y,z,2)<-z) U(x,y,z,2) = -(float)z;
+                    bound = (float)_width - x; if (U(x,y,z,0)>=bound) U(x,y,z,0) = bound;
+                    bound = (float)_height - y; if (U(x,y,z,1)>=bound) U(x,y,z,1) = bound;
+                    bound = (float)_depth - z; if (U(x,y,z,2)>=bound) U(x,y,z,2) = bound;
+                  }
+                  _energy+=delta_I*delta_I + nsmoothness*_energy_regul;
+                }
+                if (V) cimg_forXYZ(V,x,y,z) if (V(x,y,z,3)) { // Apply constraints.
+                    U(x,y,z,0) = V(x,y,z,0)/factor;
+                    U(x,y,z,1) = V(x,y,z,1)/factor;
+                    U(x,y,z,2) = V(x,y,z,2)/factor;
+                  }
+              }
+            }
+          } else { // 2d version.
+            if (smoothness>=0) // Isotropic regularization.
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_height>=8 && _width>=16) reduction(+:_energy)
+#endif
+              cimg_forY(U,y) {
+                const int _p1y = y?y - 1:0, _n1y = y<U.height() - 1?y + 1:y;
+                cimg_for3X(U,x) {
+                  const float
+                    X = is_backward?x - U(x,y,0):x + U(x,y,0),
+                    Y = is_backward?y - U(x,y,1):y + U(x,y,1);
+                  float delta_I = 0, _energy_regul = 0;
+                  if (is_backward) cimg_forC(I2,c) delta_I+=(float)(I1.linear_atXY(X,Y,c) - I2(x,y,c));
+                  else cimg_forC(I2,c) delta_I+=(float)(I1(x,y,c) - I2.linear_atXY(X,Y,c));
+                  cimg_forC(U,c) {
+                    const float
+                      Ux = 0.5f*(U(_n1x,y,c) - U(_p1x,y,c)),
+                      Uy = 0.5f*(U(x,_n1y,c) - U(x,_p1y,c)),
+                      Uxx = U(_n1x,y,c) + U(_p1x,y,c),
+                      Uyy = U(x,_n1y,c) + U(x,_p1y,c);
+                    U(x,y,c) = (float)(U(x,y,c) + dt*(delta_I*dI[c].linear_atXY(X,Y) +
+                                                      smoothness*( Uxx + Uyy )))/(1 + 4*smoothness*dt);
+                    _energy_regul+=Ux*Ux + Uy*Uy;
+                  }
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,0)>x) U(x,y,0) = (float)x;
+                    if (U(x,y,1)>y) U(x,y,1) = (float)y;
+                    bound = (float)x - _width; if (U(x,y,0)<=bound) U(x,y,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,1)<=bound) U(x,y,1) = bound;
+                  } else {
+                    if (U(x,y,0)<-x) U(x,y,0) = -(float)x;
+                    if (U(x,y,1)<-y) U(x,y,1) = -(float)y;
+                    bound = (float)_width - x; if (U(x,y,0)>=bound) U(x,y,0) = bound;
+                    bound = (float)_height - y; if (U(x,y,1)>=bound) U(x,y,1) = bound;
+                  }
+                  _energy+=delta_I*delta_I + smoothness*_energy_regul;
+                }
+                if (V) cimg_forX(V,x) if (V(x,y,2)) { // Apply constraints.
+                    U(x,y,0) = V(x,y,0)/factor;
+                    U(x,y,1) = V(x,y,1)/factor;
+                  }
+              } else { // Anisotropic regularization.
+              const float nsmoothness = -smoothness;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_height>=8 && _width>=16) reduction(+:_energy)
+#endif
+              cimg_forY(U,y) {
+                const int _p1y = y?y - 1:0, _n1y = y<U.height() - 1?y + 1:y;
+                cimg_for3X(U,x) {
+                  const float
+                    X = is_backward?x - U(x,y,0):x + U(x,y,0),
+                    Y = is_backward?y - U(x,y,1):y + U(x,y,1);
+                  float delta_I = 0, _energy_regul = 0;
+                  if (is_backward) cimg_forC(I2,c) delta_I+=(float)(I1.linear_atXY(X,Y,c) - I2(x,y,c));
+                  else cimg_forC(I2,c) delta_I+=(float)(I1(x,y,c) - I2.linear_atXY(X,Y,c));
+                  cimg_forC(U,c) {
+                    const float
+                      Ux = 0.5f*(U(_n1x,y,c) - U(_p1x,y,c)),
+                      Uy = 0.5f*(U(x,_n1y,c) - U(x,_p1y,c)),
+                      N2 = Ux*Ux + Uy*Uy,
+                      N = std::sqrt(N2),
+                      N3 = 1e-5f + N2*N,
+                      coef_a = Uy*Uy/N3,
+                      coef_b = -2*Ux*Uy/N3,
+                      coef_c = Ux*Ux/N3,
+                      Uxx = U(_n1x,y,c) + U(_p1x,y,c),
+                      Uyy = U(x,_n1y,c) + U(x,_p1y,c),
+                      Uxy = 0.25f*(U(_n1x,_n1y,c) + U(_p1x,_p1y,c) - U(_n1x,_p1y,c) - U(_n1x,_p1y,c));
+                    U(x,y,c) = (float)(U(x,y,c) + dt*(delta_I*dI[c].linear_atXY(X,Y) +
+                                                      nsmoothness*( coef_a*Uxx + coef_b*Uxy + coef_c*Uyy )))/
+                      (1 + 2*(coef_a + coef_c)*nsmoothness*dt);
+                    _energy_regul+=N;
+                  }
+                  if (is_backward) { // Constraint displacement vectors to stay in image.
+                    if (U(x,y,0)>x) U(x,y,0) = (float)x;
+                    if (U(x,y,1)>y) U(x,y,1) = (float)y;
+                    bound = (float)x - _width; if (U(x,y,0)<=bound) U(x,y,0) = bound;
+                    bound = (float)y - _height; if (U(x,y,1)<=bound) U(x,y,1) = bound;
+                  } else {
+                    if (U(x,y,0)<-x) U(x,y,0) = -(float)x;
+                    if (U(x,y,1)<-y) U(x,y,1) = -(float)y;
+                    bound = (float)_width - x; if (U(x,y,0)>=bound) U(x,y,0) = bound;
+                    bound = (float)_height - y; if (U(x,y,1)>=bound) U(x,y,1) = bound;
+                  }
+                  _energy+=delta_I*delta_I + nsmoothness*_energy_regul;
+                }
+                if (V) cimg_forX(V,x) if (V(x,y,2)) { // Apply constraints.
+                    U(x,y,0) = V(x,y,0)/factor;
+                    U(x,y,1) = V(x,y,1)/factor;
+                  }
+              }
+            }
+          }
+          const float d_energy = (_energy - energy)/(sw*sh*sd);
+          if (d_energy<=0 && -d_energy<_precision) break;
+          if (d_energy>0) dt*=0.5f;
+          energy = _energy;
+        }
+      }
+      return U;
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm.
+    /**
+        \param patch_image The image containing the reference patches to match with the instance image.
+        \param patch_width Width of the patch used for matching.
+        \param patch_height Height of the patch used for matching.
+        \param patch_depth Depth of the patch used for matching.
+        \param nb_iterations Number of patch-match iterations.
+        \param nb_randoms Number of randomization attempts (per pixel).
+        \param guide Image used as the initial correspondence estimate for the algorithm.
+          'guide' may have a last channel with boolean values (0=false | other=true) that
+          tells for each pixel if its correspondence vector is constrained to its initial value (constraint mask).
+        \param[out] matching_score Returned as the image of matching scores.
+        \note
+        The patch-match algorithm is described in this paper:
+        Connelly Barnes, Eli Shechtman, Adam Finkelstein, Dan B Goldman(2009),
+        PatchMatch: A Randomized C
