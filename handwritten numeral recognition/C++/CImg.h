@@ -33467,4 +33467,165 @@ namespace cimg_library_suffixed {
                              const int x1, const int y1,
                              const int x2, const int y2,
                              const float max_ssd) { // 2d version.
-    
+      const T *p1 = img1.data(x1,y1), *p2 = img2.data(x2,y2);
+      const ulongT
+        offx1 = (ulongT)img1._width - psizew,
+        offx2 = (ulongT)img2._width - psizew,
+        offy1 = (ulongT)img1._width*img1._height - psizeh*img1._width,
+        offy2 = (ulongT)img2._width*img2._height - psizeh*img2._width;
+      float ssd = 0;
+      cimg_forC(img1,c) {
+        for (unsigned int j = 0; j<psizeh; ++j) {
+          for (unsigned int i = 0; i<psizew; ++i)
+            ssd += cimg::sqr(*(p1++) - *(p2++));
+          if (ssd>max_ssd) return max_ssd;
+          p1+=offx1; p2+=offx2;
+        }
+        p1+=offy1; p2+=offy2;
+      }
+      return ssd;
+    }
+
+    static float _patchmatch(const CImg<T>& img1, const CImg<T>& img2,
+                             const unsigned int psizew, const unsigned int psizeh, const unsigned int psized,
+                             const int x1, const int y1, const int z1,
+                             const int x2, const int y2, const int z2,
+                             const float max_ssd) { // 3d version.
+      const T *p1 = img1.data(x1,y1,z1), *p2 = img2.data(x2,y2,z2);
+      const ulongT
+        offx1 = (ulongT)img1._width - psizew,
+        offx2 = (ulongT)img2._width - psizew,
+        offy1 = (ulongT)img1._width*img1._height - psizeh*img1._width - psizew,
+        offy2 = (ulongT)img2._width*img2._height - psizeh*img2._width - psizew,
+        offz1 = (ulongT)img1._width*img1._height*img1._depth - psized*img1._width*img1._height -
+        psizeh*img1._width - psizew,
+        offz2 = (ulongT)img2._width*img2._height*img2._depth - psized*img2._width*img2._height -
+        psizeh*img2._width - psizew;
+      float ssd = 0;
+      cimg_forC(img1,c) {
+        for (unsigned int k = 0; k<psized; ++k) {
+          for (unsigned int j = 0; j<psizeh; ++j) {
+            for (unsigned int i = 0; i<psizew; ++i)
+              ssd += cimg::sqr(*(p1++) - *(p2++));
+            if (ssd>max_ssd) return max_ssd;
+            p1+=offx1; p2+=offx2;
+          }
+          p1+=offy1; p2+=offy2;
+        }
+        p1+=offz1; p2+=offz2;
+      }
+      return ssd;
+    }
+
+    //! Compute Euclidean distance function to a specified value.
+    /**
+        \param value Reference value.
+        \param metric Type of metric. Can be <tt>{ 0=Chebyshev | 1=Manhattan | 2=Euclidean | 3=Squared-euclidean }</tt>.
+        \note
+        The distance transform implementation has been submitted by A. Meijster, and implements
+        the article 'W.H. Hesselink, A. Meijster, J.B.T.M. Roerdink,
+                     "A general algorithm for computing distance transforms in linear time.",
+                     In: Mathematical Morphology and its Applications to Image and Signal Processing,
+                     J. Goutsias, L. Vincent, and D.S. Bloomberg (eds.), Kluwer, 2000, pp. 331-340.'
+         The submitted code has then been modified to fit CImg coding style and constraints.
+    **/
+    CImg<T>& distance(const T& value, const unsigned int metric=2) {
+      if (is_empty()) return *this;
+      if (cimg::type<Tint>::string()!=cimg::type<T>::string()) // For datatype < int.
+        return CImg<Tint>(*this,false).distance((Tint)value,metric).
+          cut((Tint)cimg::type<T>::min(),(Tint)cimg::type<T>::max()).move_to(*this);
+      bool is_value = false;
+      cimg_for(*this,ptr,T) *ptr = *ptr==value?is_value=true,0:(T)cimg::max(0,99999999); // Trick to avoid VC++ warning
+      if (!is_value) return fill(cimg::type<T>::max());
+      switch (metric) {
+      case 0 : return _distance_core(_distance_sep_cdt,_distance_dist_cdt);          // Chebyshev.
+      case 1 : return _distance_core(_distance_sep_mdt,_distance_dist_mdt);          // Manhattan.
+      case 3 : return _distance_core(_distance_sep_edt,_distance_dist_edt);          // Squared Euclidean.
+      default : return _distance_core(_distance_sep_edt,_distance_dist_edt).sqrt();  // Euclidean.
+      }
+      return *this;
+    }
+
+    //! Compute distance to a specified value \newinstance.
+    CImg<Tfloat> get_distance(const T& value, const unsigned int metric=2) const {
+      return CImg<Tfloat>(*this,false).distance((Tfloat)value,metric);
+    }
+
+    static longT _distance_sep_edt(const longT i, const longT u, const longT *const g) {
+      return (u*u - i*i + g[u] - g[i])/(2*(u - i));
+    }
+
+    static longT _distance_dist_edt(const longT x, const longT i, const longT *const g) {
+      return (x - i)*(x - i) + g[i];
+    }
+
+    static longT _distance_sep_mdt(const longT i, const longT u, const longT *const g) {
+      return (u - i<=g[u] - g[i]?999999999:(g[u] - g[i] + u + i)/2);
+    }
+
+    static longT _distance_dist_mdt(const longT x, const longT i, const longT *const g) {
+      return (x<i?i - x:x - i) + g[i];
+    }
+
+    static longT _distance_sep_cdt(const longT i, const longT u, const longT *const g) {
+      const longT h = (i + u)/2;
+      if (g[i]<=g[u]) { return h<i + g[u]?i + g[u]:h; }
+      return h<u - g[i]?h:u - g[i];
+    }
+
+    static longT _distance_dist_cdt(const longT x, const longT i, const longT *const g) {
+      const longT d = x<i?i - x:x - i;
+      return d<g[i]?g[i]:d;
+    }
+
+    static void _distance_scan(const unsigned int len,
+                               const longT *const g,
+                               longT (*const sep)(const longT, const longT, const longT *const),
+                               longT (*const f)(const longT, const longT, const longT *const),
+                               longT *const s,
+                               longT *const t,
+                               longT *const dt) {
+      longT q = s[0] = t[0] = 0;
+      for (int u = 1; u<(int)len; ++u) { // Forward scan.
+        while ((q>=0) && f(t[q],s[q],g)>f(t[q],u,g)) { --q; }
+        if (q<0) { q = 0; s[0] = u; }
+        else { const longT w = 1 + sep(s[q], u, g); if (w<(longT)len) { ++q; s[q] = u; t[q] = w; }}
+      }
+      for (int u = (int)len - 1; u>=0; --u) { dt[u] = f(u,s[q],g); if (u==t[q]) --q; } // Backward scan.
+    }
+
+    CImg<T>& _distance_core(longT (*const sep)(const longT, const longT, const longT *const),
+                            longT (*const f)(const longT, const longT, const longT *const)) {
+ // Check for g++ 4.9.X, as OpenMP seems to crash for this particular function. I have no clues why.
+#define cimg_is_gcc49x (__GNUC__==4 && __GNUC_MINOR__==9)
+
+      const ulongT wh = (ulongT)_width*_height;
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+      cimg_forC(*this,c) {
+        CImg<longT> g(_width), dt(_width), s(_width), t(_width);
+        CImg<T> img = get_shared_channel(c);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_width>=512 && _height*_depth>=16) firstprivate(g,dt,s,t)
+#endif
+        cimg_forYZ(*this,y,z) { // Over X-direction.
+          cimg_forX(*this,x) g[x] = (longT)img(x,y,z,0,wh);
+          _distance_scan(_width,g,sep,f,s,t,dt);
+          cimg_forX(*this,x) img(x,y,z,0,wh) = (T)dt[x];
+        }
+        if (_height>1) {
+          g.assign(_height); dt.assign(_height); s.assign(_height); t.assign(_height);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_height>=512 && _width*_depth>=16) firstprivate(g,dt,s,t)
+#endif
+          cimg_forXZ(*this,x,z) { // Over Y-direction.
+            cimg_forY(*this,y) g[y] = (longT)img(x,y,z,0,wh);
+            _distance_scan(_height,g,sep,f,s,t,dt);
+            cimg_forY(*this,y) img(x,y,z,0,wh) = (T)dt[y];
+          }
+        }
+        if (_depth>1) {
+          g.assign(_depth); dt.assign(_depth); s.assign(_depth); t.assign(_depth);
+#if defined(cimg_use_openmp) && !cimg_is_gcc49x
+#pragma omp parallel for collapse(2) if (_depth>=512 && _width*_height>=16) firstprivate(g,dt,s
