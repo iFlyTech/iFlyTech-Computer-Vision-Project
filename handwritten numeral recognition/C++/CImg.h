@@ -33057,4 +33057,139 @@ namespace cimg_library_suffixed {
         \note
         The patch-match algorithm is described in this paper:
         Connelly Barnes, Eli Shechtman, Adam Finkelstein, Dan B Goldman(2009),
-        PatchMatch: A Randomized C
+        PatchMatch: A Randomized Correspondence Algorithm for Structural Image Editing
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& patchmatch(const CImg<T>& patch_image,
+                        const unsigned int patch_width,
+                        const unsigned int patch_height,
+                        const unsigned int patch_depth,
+                        const unsigned int nb_iterations,
+                        const unsigned int nb_randoms,
+                        const CImg<t1> &guide,
+                        CImg<t2> &matching_score) {
+      return get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                            nb_iterations,nb_randoms,guide,matching_score).move_to(*this);
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm \newinstance.
+    template<typename t1, typename t2>
+    CImg<intT> get_patchmatch(const CImg<T>& patch_image,
+                              const unsigned int patch_width,
+                              const unsigned int patch_height,
+                              const unsigned int patch_depth,
+                              const unsigned int nb_iterations,
+                              const unsigned int nb_randoms,
+                              const CImg<t1> &guide,
+                              CImg<t2> &matching_score) const {
+      return _get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                             nb_iterations,nb_randoms,
+                             guide,true,matching_score);
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm \overloading.
+    template<typename t>
+    CImg<T>& patchmatch(const CImg<T>& patch_image,
+                        const unsigned int patch_width,
+                        const unsigned int patch_height,
+                        const unsigned int patch_depth,
+                        const unsigned int nb_iterations,
+                        const unsigned int nb_randoms,
+                        const CImg<t> &guide) {
+      return get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                            nb_iterations,nb_randoms,guide).move_to(*this);
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm \overloading.
+    template<typename t>
+    CImg<intT> get_patchmatch(const CImg<T>& patch_image,
+                              const unsigned int patch_width,
+                              const unsigned int patch_height,
+                              const unsigned int patch_depth,
+                              const unsigned int nb_iterations,
+                              const unsigned int nb_randoms,
+                              const CImg<t> &guide) const {
+      return _get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                             nb_iterations,nb_randoms,
+                             guide,false,CImg<T>::empty());
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm \overloading.
+    CImg<T>& patchmatch(const CImg<T>& patch_image,
+                        const unsigned int patch_width,
+                        const unsigned int patch_height,
+                        const unsigned int patch_depth=1,
+                        const unsigned int nb_iterations=5,
+                        const unsigned int nb_randoms=5) {
+      return get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                            nb_iterations,nb_randoms).move_to(*this);
+    }
+
+    //! Compute correspondence map between two images, using the patch-match algorithm \overloading.
+    CImg<intT> get_patchmatch(const CImg<T>& patch_image,
+                              const unsigned int patch_width,
+                              const unsigned int patch_height,
+                              const unsigned int patch_depth=1,
+                              const unsigned int nb_iterations=5,
+                              const unsigned int nb_randoms=5) const {
+      return _get_patchmatch(patch_image,patch_width,patch_height,patch_depth,
+                             nb_iterations,nb_randoms,
+                             CImg<T>::const_empty(),
+                             false,CImg<T>::empty());
+    }
+
+    template<typename t1, typename t2>
+    CImg<intT> _get_patchmatch(const CImg<T>& patch_image,
+                               const unsigned int patch_width,
+                               const unsigned int patch_height,
+                               const unsigned int patch_depth,
+                               const unsigned int nb_iterations,
+                               const unsigned int nb_randoms,
+                               const CImg<t1> &guide,
+                               const bool is_matching_score,
+                               CImg<t2> &matching_score) const {
+      if (is_empty()) return CImg<intT>::const_empty();
+      if (patch_image._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "patchmatch(): Instance image and specified patch image (%u,%u,%u,%u,%p) "
+                                    "have different spectrums.",
+                                    cimg_instance,
+                                    patch_image._width,patch_image._height,patch_image._depth,patch_image._spectrum,
+                                    patch_image._data);
+      if (patch_width>_width || patch_height>_height || patch_depth>_depth)
+        throw CImgArgumentException(_cimg_instance
+                                    "patchmatch(): Specified patch size %ux%ux%u is bigger than the dimensions "
+                                    "of the instance image.",
+                                    cimg_instance,patch_width,patch_height,patch_depth);
+      if (patch_width>patch_image._width || patch_height>patch_image._height || patch_depth>patch_image._depth)
+        throw CImgArgumentException(_cimg_instance
+                                    "patchmatch(): Specified patch size %ux%ux%u is bigger than the dimensions "
+                                    "of the patch image image (%u,%u,%u,%u,%p).",
+                                    cimg_instance,patch_width,patch_height,patch_depth,
+                                    patch_image._width,patch_image._height,patch_image._depth,patch_image._spectrum,
+                                    patch_image._data);
+      const unsigned int
+        _constraint = patch_image._depth>1?3:2,
+        constraint = guide._spectrum>_constraint?_constraint:0;
+
+      if (guide &&
+          (guide._width!=_width || guide._height!=_height || guide._depth!=_depth || guide._spectrum<_constraint))
+        throw CImgArgumentException(_cimg_instance
+                                    "patchmatch(): Specified guide (%u,%u,%u,%u,%p) has invalid dimensions "
+                                    "considering instance and patch image image (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    guide._width,guide._height,guide._depth,guide._spectrum,guide._data,
+                                    patch_image._width,patch_image._height,patch_image._depth,patch_image._spectrum,
+                                    patch_image._data);
+
+      CImg<intT> map(_width,_height,_depth,patch_image._depth>1?3:2);
+      CImg<floatT> score(_width,_height,_depth);
+      const int
+        psizew = (int)patch_width, psizew1 = psizew/2, psizew2 = psizew - psizew1 - 1,
+        psizeh = (int)patch_height, psizeh1 = psizeh/2, psizeh2 = psizeh - psizeh1 - 1,
+        psized = (int)patch_depth, psized1 = psized/2, psized2 = psized - psized1 - 1;
+
+      if (_depth>1 || patch_image._depth>1) { // 3d version.
+
+        // Initialize correspondence map.
+        if (guide) cimg_forXYZ(*this,
