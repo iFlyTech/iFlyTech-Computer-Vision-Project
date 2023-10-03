@@ -33628,4 +33628,168 @@ namespace cimg_library_suffixed {
         if (_depth>1) {
           g.assign(_depth); dt.assign(_depth); s.assign(_depth); t.assign(_depth);
 #if defined(cimg_use_openmp) && !cimg_is_gcc49x
-#pragma omp parallel for collapse(2) if (_depth>=512 && _width*_height>=16) firstprivate(g,dt,s
+#pragma omp parallel for collapse(2) if (_depth>=512 && _width*_height>=16) firstprivate(g,dt,s,t)
+#endif
+          cimg_forXY(*this,x,y) { // Over Z-direction.
+            cimg_forZ(*this,z) g[z] = (longT)img(x,y,z,0,wh);
+            _distance_scan(_depth,g,sep,f,s,t,dt);
+            cimg_forZ(*this,z) img(x,y,z,0,wh) = (T)dt[z];
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Compute chamfer distance to a specified value, with a custom metric.
+    /**
+       \param value Reference value.
+       \param metric_mask Metric mask.
+       \note The algorithm code has been initially proposed by A. Meijster, and modified by D. Tschumperlé.
+    **/
+    template<typename t>
+    CImg<T>& distance(const T& value, const CImg<t>& metric_mask) {
+      if (is_empty()) return *this;
+      bool is_value = false;
+      cimg_for(*this,ptr,T) *ptr = *ptr==value?is_value=true,0:(T)999999999;
+      if (!is_value) return fill(cimg::type<T>::max());
+      const ulongT wh = (ulongT)_width*_height;
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(_spectrum>=2)
+#endif
+      cimg_forC(*this,c) {
+        CImg<T> img = get_shared_channel(c);
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(3) if (_width*_height*_depth>=1024)
+#endif
+        cimg_forXYZ(metric_mask,dx,dy,dz) {
+          const t weight = metric_mask(dx,dy,dz);
+          if (weight) {
+            for (int z = dz, nz = 0; z<depth(); ++z,++nz) { // Forward scan.
+              for (int y = dy , ny = 0; y<height(); ++y,++ny) {
+                for (int x = dx, nx = 0; x<width(); ++x,++nx) {
+                  const T dd = img(nx,ny,nz,0,wh) + weight;
+                  if (dd<img(x,y,z,0,wh)) img(x,y,z,0,wh) = dd;
+                }
+              }
+            }
+            for (int z = depth() - 1 - dz, nz = depth() - 1; z>=0; --z,--nz) { // Backward scan.
+              for (int y = height() - 1 - dy, ny = height() - 1; y>=0; --y,--ny) {
+                for (int x = width() - 1 - dx, nx = width() - 1; x>=0; --x,--nx) {
+                  const T dd = img(nx,ny,nz,0,wh) + weight;
+                  if (dd<img(x,y,z,0,wh)) img(x,y,z,0,wh) = dd;
+                }
+              }
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Compute chamfer distance to a specified value, with a custom metric \newinstance.
+    template<typename t>
+    CImg<Tfloat> get_distance(const T& value, const CImg<t>& metric_mask) const {
+      return CImg<Tfloat>(*this,false).distance(value,metric_mask);
+    }
+
+    //! Compute distance to a specified value, according to a custom metric (use dijkstra algorithm).
+    /**
+       \param value Reference value.
+       \param metric Field of distance potentials.
+       \param is_high_connectivity Tells if the algorithm uses low or high connectivity.
+     **/
+    template<typename t, typename to>
+    CImg<T>& distance_dijkstra(const T& value, const CImg<t>& metric, const bool is_high_connectivity,
+                               CImg<to>& return_path) {
+      return get_distance_dijkstra(value,metric,is_high_connectivity,return_path).move_to(*this);
+    }
+
+    //! Compute distance map to a specified value, according to a custom metric (use dijkstra algorithm) \newinstance.
+    template<typename t, typename to>
+    CImg<typename cimg::superset<t,long>::type>
+    get_distance_dijkstra(const T& value, const CImg<t>& metric, const bool is_high_connectivity,
+                          CImg<to>& return_path) const {
+      if (is_empty()) return return_path.assign();
+      if (!is_sameXYZ(metric))
+        throw CImgArgumentException(_cimg_instance
+                                    "distance_dijkstra(): image instance and metric map (%u,%u,%u,%u) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    metric._width,metric._height,metric._depth,metric._spectrum);
+      typedef typename cimg::superset<t,long>::type td;  // Type used for computing cumulative distances.
+      CImg<td> result(_width,_height,_depth,_spectrum), Q;
+      CImg<boolT> is_queued(_width,_height,_depth,1);
+      if (return_path) return_path.assign(_width,_height,_depth,_spectrum);
+
+      cimg_forC(*this,c) {
+        const CImg<T> img = get_shared_channel(c);
+        const CImg<t> met = metric.get_shared_channel(c%metric._spectrum);
+        CImg<td> res = result.get_shared_channel(c);
+        CImg<to> path = return_path?return_path.get_shared_channel(c):CImg<to>();
+        unsigned int sizeQ = 0;
+
+        // Detect initial seeds.
+        is_queued.fill(0);
+        cimg_forXYZ(img,x,y,z) if (img(x,y,z)==value) {
+          Q._priority_queue_insert(is_queued,sizeQ,0,x,y,z);
+          res(x,y,z) = 0;
+          if (path) path(x,y,z) = (to)0;
+        }
+
+        // Start distance propagation.
+        while (sizeQ) {
+
+          // Get and remove point with minimal potential from the queue.
+          const int x = (int)Q(0,1), y = (int)Q(0,2), z = (int)Q(0,3);
+          const td P = (td)-Q(0,0);
+          Q._priority_queue_remove(sizeQ);
+
+          // Update neighbors.
+          td npot = 0;
+          if (x - 1>=0 && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x - 1,y,z) + P),x - 1,y,z)) {
+            res(x - 1,y,z) = npot; if (path) path(x - 1,y,z) = (to)2;
+          }
+          if (x + 1<width() && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x + 1,y,z) + P),x + 1,y,z)) {
+            res(x + 1,y,z) = npot; if (path) path(x + 1,y,z) = (to)1;
+          }
+          if (y - 1>=0 && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x,y - 1,z) + P),x,y - 1,z)) {
+            res(x,y - 1,z) = npot; if (path) path(x,y - 1,z) = (to)8;
+          }
+          if (y + 1<height() && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x,y + 1,z) + P),x,y + 1,z)) {
+            res(x,y + 1,z) = npot; if (path) path(x,y + 1,z) = (to)4;
+          }
+          if (z - 1>=0 && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x,y,z - 1) + P),x,y,z - 1)) {
+            res(x,y,z - 1) = npot; if (path) path(x,y,z - 1) = (to)32;
+          }
+          if (z + 1<depth() && Q._priority_queue_insert(is_queued,sizeQ,-(npot=met(x,y,z + 1) + P),x,y,z + 1)) {
+            res(x,y,z + 1) = npot; if (path) path(x,y,z + 1) = (to)16;
+          }
+
+          if (is_high_connectivity) {
+            const float sqrt2 = std::sqrt(2.0f), sqrt3 = std::sqrt(3.0f);
+
+            // Diagonal neighbors on slice z.
+            if (x - 1>=0 && y - 1>=0 &&
+                Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x - 1,y - 1,z) + P)),x - 1,y - 1,z)) {
+              res(x - 1,y - 1,z) = npot; if (path) path(x - 1,y - 1,z) = (to)10;
+            }
+            if (x + 1<width() && y - 1>=0 &&
+                Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x + 1,y - 1,z) + P)),x + 1,y - 1,z)) {
+              res(x + 1,y - 1,z) = npot; if (path) path(x + 1,y - 1,z) = (to)9;
+            }
+            if (x - 1>=0 && y + 1<height() &&
+                Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x - 1,y + 1,z) + P)),x - 1,y + 1,z)) {
+              res(x - 1,y + 1,z) = npot; if (path) path(x - 1,y + 1,z) = (to)6;
+            }
+            if (x + 1<width() && y + 1<height() &&
+                Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x + 1,y + 1,z) + P)),x + 1,y + 1,z)) {
+              res(x + 1,y + 1,z) = npot; if (path) path(x + 1,y + 1,z) = (to)5;
+            }
+
+            if (z - 1>=0) { // Diagonal neighbors on slice z - 1.
+              if (x - 1>=0 &&
+                  Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x - 1,y,z - 1) + P)),x - 1,y,z - 1)) {
+                res(x - 1,y,z - 1) = npot; if (path) path(x - 1,y,z - 1) = (to)34;
+              }
+              if (x + 1<width() &&
+                  Q._priority_queue_insert(is_queued,sizeQ,-(npot=(td)(sqrt2*met(x + 1,y,z - 1) + P)),x
