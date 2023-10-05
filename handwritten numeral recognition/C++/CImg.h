@@ -33934,4 +33934,171 @@ namespace cimg_library_suffixed {
           }
           if (y - 1>=0 && state(x,y - 1,z)==-1) {
             const Tfloat dist = res(x,y - 1,z) = __distance_eikonal(res,met(x,y - 1,z),x,y - 1,z);
-            Q._eik_priority_queue_insert(state,sizeQ,-dist,
+            Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y - 1,z);
+          }
+          if (y + 1<height() && state(x,y + 1,z)==-1) {
+            const Tfloat dist = res(x,y + 1,z) = __distance_eikonal(res,met(x,y + 1,z),x,y + 1,z);
+            Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y + 1,z);
+          }
+          if (z - 1>=0 && state(x,y,z - 1)==-1) {
+            const Tfloat dist = res(x,y,z - 1) = __distance_eikonal(res,met(x,y,z - 1),x,y,z - 1);
+            Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y,z - 1);
+          }
+          if (z + 1<depth() && state(x,y,z + 1)==-1) {
+            const Tfloat dist = res(x,y,z + 1) = __distance_eikonal(res,met(x,y,z + 1),x,y,z + 1);
+            Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y,z + 1);
+          }
+        }
+
+        // Propagate front.
+        while (sizeQ) {
+          int x = -1, y = -1, z = -1;
+          while (sizeQ && x<0) {
+            x = (int)Q(0,1); y = (int)Q(0,2); z = (int)Q(0,3);
+            Q._priority_queue_remove(sizeQ);
+            if (state(x,y,z)==1) x = -1; else state(x,y,z) = 1;
+          }
+          if (x>=0) {
+            if (x - 1>=0 && state(x - 1,y,z)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x - 1,y,z),x - 1,y,z);
+              if (dist<res(x - 1,y,z)) {
+                res(x - 1,y,z) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x - 1,y,z);
+              }
+            }
+            if (x + 1<width() && state(x + 1,y,z)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x + 1,y,z),x + 1,y,z);
+              if (dist<res(x + 1,y,z)) {
+                res(x + 1,y,z) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x + 1,y,z);
+              }
+            }
+            if (y - 1>=0 && state(x,y - 1,z)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x,y - 1,z),x,y - 1,z);
+              if (dist<res(x,y - 1,z)) {
+                res(x,y - 1,z) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y - 1,z);
+              }
+            }
+            if (y + 1<height() && state(x,y + 1,z)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x,y + 1,z),x,y + 1,z);
+              if (dist<res(x,y + 1,z)) {
+                res(x,y + 1,z) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y + 1,z);
+              }
+            }
+            if (z - 1>=0 && state(x,y,z - 1)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x,y,z - 1),x,y,z - 1);
+              if (dist<res(x,y,z - 1)) {
+                res(x,y,z - 1) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y,z - 1);
+              }
+            }
+            if (z + 1<depth() && state(x,y,z + 1)!=1) {
+              const Tfloat dist = __distance_eikonal(res,met(x,y,z + 1),x,y,z + 1);
+              if (dist<res(x,y,z + 1)) {
+                res(x,y,z + 1) = dist; Q._eik_priority_queue_insert(state,sizeQ,-dist,x,y,z + 1);
+              }
+            }
+          }
+        }
+      }
+      return result;
+    }
+
+    // Locally solve eikonal equation.
+    Tfloat __distance_eikonal(const CImg<Tfloat>& res, const Tfloat P,
+                              const int x=0, const int y=0, const int z=0) const {
+      const T M = cimg::type<T>::max();
+      T T1 = cimg::min(x - 1>=0?res(x - 1,y,z):M,x + 1<width()?res(x + 1,y,z):M);
+      Tfloat root = 0;
+      if (_depth>1) { // 3d.
+        T
+          T2 = cimg::min(y - 1>=0?res(x,y - 1,z):M,y + 1<height()?res(x,y + 1,z):M),
+          T3 = cimg::min(z - 1>=0?res(x,y,z - 1):M,z + 1<depth()?res(x,y,z + 1):M);
+        if (T1>T2) cimg::swap(T1,T2);
+        if (T2>T3) cimg::swap(T2,T3);
+        if (T1>T2) cimg::swap(T1,T2);
+        if (P<=0) return (Tfloat)T1;
+        if (T3<M && ___distance_eikonal(3,-2*(T1 + T2 + T3),T1*T1 + T2*T2 + T3*T3 - P*P,root))
+          return cimg::max((Tfloat)T3,root);
+        if (T2<M && ___distance_eikonal(2,-2*(T1 + T2),T1*T1 + T2*T2 - P*P,root))
+          return cimg::max((Tfloat)T2,root);
+        return P + T1;
+      } else if (_height>1) { // 2d.
+        T T2 = cimg::min(y - 1>=0?res(x,y - 1,z):M,y + 1<height()?res(x,y + 1,z):M);
+        if (T1>T2) cimg::swap(T1,T2);
+        if (P<=0) return (Tfloat)T1;
+        if (T2<M && ___distance_eikonal(2,-2*(T1 + T2),T1*T1 + T2*T2 - P*P,root))
+          return cimg::max((Tfloat)T2,root);
+        return P + T1;
+      } else { // 1d.
+        if (P<=0) return (Tfloat)T1;
+        return P + T1;
+      }
+      return 0;
+    }
+
+    // Find max root of a 2nd-order polynomial.
+    static bool ___distance_eikonal(const Tfloat a, const Tfloat b, const Tfloat c, Tfloat &root) {
+      const Tfloat delta = b*b - 4*a*c;
+      if (delta<0) return false;
+      root = 0.5f*(-b + std::sqrt(delta))/a;
+      return true;
+    }
+
+    // Insert new point in heap.
+    template<typename t>
+    void _eik_priority_queue_insert(CImg<charT>& state, unsigned int& siz, const t value,
+                                    const unsigned int x, const unsigned int y, const unsigned int z) {
+      if (state(x,y,z)>0) return;
+      state(x,y,z) = 0;
+      if (++siz>=_width) { if (!is_empty()) resize(_width*2,4,1,1,0); else assign(64,4); }
+      (*this)(siz - 1,0) = (T)value; (*this)(siz - 1,1) = (T)x; (*this)(siz - 1,2) = (T)y; (*this)(siz - 1,3) = (T)z;
+      for (unsigned int pos = siz - 1, par = 0; pos && value>(*this)(par=(pos + 1)/2 - 1,0); pos = par) {
+        cimg::swap((*this)(pos,0),(*this)(par,0)); cimg::swap((*this)(pos,1),(*this)(par,1));
+        cimg::swap((*this)(pos,2),(*this)(par,2)); cimg::swap((*this)(pos,3),(*this)(par,3));
+      }
+    }
+
+    //! Compute distance function to 0-valued isophotes, using the Eikonal PDE.
+    /**
+       \param nb_iterations Number of PDE iterations.
+       \param band_size Size of the narrow band.
+       \param time_step Time step of the PDE iterations.
+    **/
+    CImg<T>& distance_eikonal(const unsigned int nb_iterations, const float band_size=0, const float time_step=0.5f) {
+      if (is_empty()) return *this;
+      CImg<Tfloat> velocity(*this);
+      for (unsigned int iteration = 0; iteration<nb_iterations; ++iteration) {
+        Tfloat *ptrd = velocity._data, veloc_max = 0;
+        if (_depth>1) { // 3d
+          CImg_3x3x3(I,Tfloat);
+          cimg_forC(*this,c) cimg_for3x3x3(*this,x,y,z,c,I,Tfloat) if (band_size<=0 || cimg::abs(Iccc)<band_size) {
+            const Tfloat
+              gx = (Incc - Ipcc)/2,
+              gy = (Icnc - Icpc)/2,
+              gz = (Iccn - Iccp)/2,
+              sgn = -cimg::sign(Iccc),
+              ix = gx*sgn>0?(Incc - Iccc):(Iccc - Ipcc),
+              iy = gy*sgn>0?(Icnc - Iccc):(Iccc - Icpc),
+              iz = gz*sgn>0?(Iccn - Iccc):(Iccc - Iccp),
+              ng = (Tfloat)(1e-5f + std::sqrt(gx*gx + gy*gy + gz*gz)),
+              ngx = gx/ng,
+              ngy = gy/ng,
+              ngz = gz/ng,
+              veloc = sgn*(ngx*ix + ngy*iy + ngz*iz - 1);
+            *(ptrd++) = veloc;
+            if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+          } else *(ptrd++) = 0;
+        } else { // 2d version
+          CImg_3x3(I,Tfloat);
+          cimg_forC(*this,c) cimg_for3x3(*this,x,y,0,c,I,Tfloat) if (band_size<=0 || cimg::abs(Icc)<band_size) {
+            const Tfloat
+              gx = (Inc - Ipc)/2,
+              gy = (Icn - Icp)/2,
+              sgn = -cimg::sign(Icc),
+              ix = gx*sgn>0?(Inc - Icc):(Icc - Ipc),
+              iy = gy*sgn>0?(Icn - Icc):(Icc - Icp),
+              ng = (Tfloat)(1e-5f + std::sqrt(gx*gx + gy*gy)),
+              ngx = gx/ng,
+              ngy = gy/ng,
+              veloc = sgn*(ngx*ix + ngy*iy - 1);
+            *(ptrd++) = veloc;
+            if (veloc>veloc_max) veloc_max = veloc; else if (-veloc>veloc_max) veloc_max = -veloc;
+          } e
