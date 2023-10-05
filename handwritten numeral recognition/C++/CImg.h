@@ -34269,4 +34269,156 @@ namespace cimg_library_suffixed {
 
     //! Compute Haar multiscale wavelet transform \overloading.
     /**
-       \param invert Set inverse of direct transfor
+       \param invert Set inverse of direct transform.
+       \param nb_scales Number of scales used for the transform.
+    **/
+    CImg<T>& haar(const bool invert=false, const unsigned int nb_scales=1) {
+      return get_haar(invert,nb_scales).move_to(*this);
+    }
+
+    //! Compute Haar multiscale wavelet transform \newinstance.
+    CImg<Tfloat> get_haar(const bool invert=false, const unsigned int nb_scales=1) const {
+      CImg<Tfloat> res;
+      if (nb_scales==1) { // Single scale transform
+        if (_width>1) get_haar('x',invert,1).move_to(res);
+        if (_height>1) { if (res) res.haar('y',invert,1); else get_haar('y',invert,1).move_to(res); }
+        if (_depth>1) { if (res) res.haar('z',invert,1); else get_haar('z',invert,1).move_to(res); }
+        if (res) return res;
+      } else { // Multi-scale transform
+        if (invert) { // Inverse transform
+          res.assign(*this);
+          if (_width>1) {
+            if (_height>1) {
+              if (_depth>1) {
+                unsigned int w = _width, h = _height, d = _depth;
+                for (unsigned int s = 1; w && h && d && s<nb_scales; ++s) { w/=2; h/=2; d/=2; }
+                for (w = w?w:1, h = h?h:1, d = d?d:1; w<=_width && h<=_height && d<=_depth; w*=2, h*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,d - 1).get_haar(true,1));
+              } else {
+                unsigned int w = _width, h = _height;
+                for (unsigned int s = 1; w && h && s<nb_scales; ++s) { w/=2; h/=2; }
+                for (w = w?w:1, h = h?h:1; w<=_width && h<=_height; w*=2, h*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,0).get_haar(true,1));
+              }
+            } else {
+              if (_depth>1) {
+                unsigned int w = _width, d = _depth;
+                for (unsigned int s = 1; w && d && s<nb_scales; ++s) { w/=2; d/=2; }
+                for (w = w?w:1, d = d?d:1; w<=_width && d<=_depth; w*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,0,d - 1).get_haar(true,1));
+              } else {
+                unsigned int w = _width;
+                for (unsigned int s = 1; w && s<nb_scales; ++s) w/=2;
+                for (w = w?w:1; w<=_width; w*=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,0,0).get_haar(true,1));
+              }
+            }
+          } else {
+            if (_height>1) {
+              if (_depth>1) {
+                unsigned int h = _height, d = _depth;
+                for (unsigned int s = 1; h && d && s<nb_scales; ++s) { h/=2; d/=2; }
+                for (h = h?h:1, d = d?d:1; h<=_height && d<=_depth; h*=2, d*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,d - 1).get_haar(true,1));
+              } else {
+                unsigned int h = _height;
+                for (unsigned int s = 1; h && s<nb_scales; ++s) h/=2;
+                for (h = h?h:1; h<=_height; h*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,0).get_haar(true,1));
+              }
+            } else {
+              if (_depth>1) {
+                unsigned int d = _depth;
+                for (unsigned int s = 1; d && s<nb_scales; ++s) d/=2;
+                for (d = d?d:1; d<=_depth; d*=2)
+                  res.draw_image(res.get_crop(0,0,0,0,0,d - 1).get_haar(true,1));
+              } else return *this;
+            }
+          }
+        } else { // Direct transform
+          res = get_haar(false,1);
+          if (_width>1) {
+            if (_height>1) {
+              if (_depth>1)
+                for (unsigned int s = 1, w = _width/2, h = _height/2, d = _depth/2; w && h && d && s<nb_scales;
+                     ++s, w/=2, h/=2, d/=2)
+                  res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,d - 1).haar(false,1));
+              else for (unsigned int s = 1, w = _width/2, h = _height/2; w && h && s<nb_scales; ++s, w/=2, h/=2)
+                     res.draw_image(res.get_crop(0,0,0,w - 1,h - 1,0).haar(false,1));
+            } else {
+              if (_depth>1) for (unsigned int s = 1, w = _width/2, d = _depth/2; w && d && s<nb_scales; ++s, w/=2, d/=2)
+                              res.draw_image(res.get_crop(0,0,0,w - 1,0,d - 1).haar(false,1));
+              else for (unsigned int s = 1, w = _width/2; w && s<nb_scales; ++s, w/=2)
+                     res.draw_image(res.get_crop(0,0,0,w - 1,0,0).haar(false,1));
+            }
+          } else {
+            if (_height>1) {
+              if (_depth>1)
+                for (unsigned int s = 1, h = _height/2, d = _depth/2; h && d && s<nb_scales; ++s, h/=2, d/=2)
+                  res.draw_image(res.get_crop(0,0,0,0,h - 1,d - 1).haar(false,1));
+              else for (unsigned int s = 1, h = _height/2; h && s<nb_scales; ++s, h/=2)
+                     res.draw_image(res.get_crop(0,0,0,0,h - 1,0).haar(false,1));
+            } else {
+              if (_depth>1) for (unsigned int s = 1, d = _depth/2; d && s<nb_scales; ++s, d/=2)
+                              res.draw_image(res.get_crop(0,0,0,0,0,d - 1).haar(false,1));
+              else return *this;
+            }
+          }
+        }
+        return res;
+      }
+      return *this;
+    }
+
+    //! Compute 1d Fast Fourier Transform, along a specified axis.
+    /**
+       \param axis Axis along which the FFT is computed.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    CImgList<Tfloat> get_FFT(const char axis, const bool is_invert=false) const {
+      CImgList<Tfloat> res(*this,CImg<Tfloat>());
+      CImg<Tfloat>::FFT(res[0],res[1],axis,is_invert);
+      return res;
+    }
+
+    //! Compute n-d Fast Fourier Transform.
+    /*
+      \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    CImgList<Tfloat> get_FFT(const bool is_invert=false) const {
+      CImgList<Tfloat> res(*this,CImg<Tfloat>());
+      CImg<Tfloat>::FFT(res[0],res[1],is_invert);
+      return res;
+    }
+
+    //! Compute 1d Fast Fourier Transform, along a specified axis.
+    /**
+       \param[in,out] real Real part of the pixel values.
+       \param[in,out] imag Imaginary part of the pixel values.
+       \param axis Axis along which the FFT is computed.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+    **/
+    static void FFT(CImg<T>& real, CImg<T>& imag, const char axis, const bool is_invert=false) {
+      if (!real)
+        throw CImgInstanceException("CImg<%s>::FFT(): Specified real part is empty.",
+                                    pixel_type());
+
+      if (!imag) imag.assign(real._width,real._height,real._depth,real._spectrum,0);
+      if (!real.is_sameXYZC(imag))
+        throw CImgInstanceException("CImg<%s>::FFT(): Specified real part (%u,%u,%u,%u,%p) and "
+                                    "imaginary part (%u,%u,%u,%u,%p) have different dimensions.",
+                                    pixel_type(),
+                                    real._width,real._height,real._depth,real._spectrum,real._data,
+                                    imag._width,imag._height,imag._depth,imag._spectrum,imag._data);
+#ifdef cimg_use_fftw3
+      cimg::mutex(12);
+      fftw_complex *data_in;
+      fftw_plan data_plan;
+
+      switch (cimg::uncase(axis)) {
+      case 'x' : { // Fourier along X, using FFTW library.
+        data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*real._width);
+        if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                  "for computing FFT of image (%u,%u,%u,%u) along the X-axis.",
+                                                  pixel_type(),
+                                                  cimg::strbuffersize(sizeof(fftw_
