@@ -34565,4 +34565,170 @@ namespace cimg_library_suffixed {
               sa = (float)std::sin(angle);
             for (unsigned int k = 0; k<delta2; ++k) {
               const unsigned int j = i + k, nj = j + delta2;
-              cimg_fo
+              cimg_forXZC(real,x,z,c) {
+                T &ir = real(x,j,z,c), &ii = imag(x,j,z,c), &nir = real(x,nj,z,c), &nii = imag(x,nj,z,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      case 'z' : { // Fourier along Z, using built-in functions.
+        const unsigned int N = real._depth, N2 = N>>1;
+        if (((N - 1)&N) && N!=1)
+          throw CImgInstanceException("CImgList<%s>::FFT(): Specified real and imaginary parts (%u,%u,%u,%u) "
+                                      "have non 2^N dimension along the Z-axis.",
+                                      pixel_type(),
+                                      real._width,real._height,real._depth,real._spectrum);
+
+        for (unsigned int i = 0, j = 0; i<N2; ++i) {
+          if (j>i) cimg_forXYC(real,x,y,c) {
+              cimg::swap(real(x,y,i,c),real(x,y,j,c));
+              cimg::swap(imag(x,y,i,c),imag(x,y,j,c));
+              if (j<N2) {
+                const unsigned int ri = N - 1 - i, rj = N - 1 - j;
+                cimg::swap(real(x,y,ri,c),real(x,y,rj,c));
+                cimg::swap(imag(x,y,ri,c),imag(x,y,rj,c));
+              }
+            }
+          for (unsigned int m = N, n = N2; (j+=n)>=m; j-=m, m = n, n>>=1) {}
+        }
+        for (unsigned int delta = 2; delta<=N; delta<<=1) {
+          const unsigned int delta2 = (delta>>1);
+          for (unsigned int i = 0; i<N; i+=delta) {
+            float wr = 1, wi = 0;
+            const float
+              angle = (float)((is_invert?+1:-1)*2*cimg::PI/delta),
+              ca = (float)std::cos(angle),
+              sa = (float)std::sin(angle);
+            for (unsigned int k = 0; k<delta2; ++k) {
+              const unsigned int j = i + k, nj = j + delta2;
+              cimg_forXYC(real,x,y,c) {
+                T &ir = real(x,y,j,c), &ii = imag(x,y,j,c), &nir = real(x,y,nj,c), &nii = imag(x,y,nj,c);
+                const float tmpr = (float)(wr*nir - wi*nii), tmpi = (float)(wr*nii + wi*nir);
+                nir = (T)(ir - tmpr);
+                nii = (T)(ii - tmpi);
+                ir+=(T)tmpr;
+                ii+=(T)tmpi;
+              }
+              const float nwr = wr*ca-wi*sa;
+              wi = wi*ca + wr*sa;
+              wr = nwr;
+            }
+          }
+        }
+        if (is_invert) { real/=N; imag/=N; }
+      } break;
+      default :
+        throw CImgArgumentException("CImgList<%s>::FFT(): Invalid specified axis '%c' for real and imaginary parts "
+                                    "(%u,%u,%u,%u) "
+                                    "(should be { x | y | z }).",
+                                    pixel_type(),axis,
+                                    real._width,real._height,real._depth,real._spectrum);
+      }
+#endif
+    }
+
+    //! Compute n-d Fast Fourier Transform.
+    /**
+       \param[in,out] real Real part of the pixel values.
+       \param[in,out] imag Imaginary part of the pixel values.
+       \param is_invert Tells if the forward (\c false) or inverse (\c true) FFT is computed.
+       \param nb_threads Number of parallel threads used for the computation.
+         Use \c 0 to set this to the number of available cpus.
+    **/
+    static void FFT(CImg<T>& real, CImg<T>& imag, const bool is_invert=false, const unsigned int nb_threads=0) {
+      if (!real)
+        throw CImgInstanceException("CImgList<%s>::FFT(): Empty specified real part.",
+                                    pixel_type());
+
+      if (!imag) imag.assign(real._width,real._height,real._depth,real._spectrum,0);
+      if (!real.is_sameXYZC(imag))
+        throw CImgInstanceException("CImgList<%s>::FFT(): Specified real part (%u,%u,%u,%u,%p) and "
+                                    "imaginary part (%u,%u,%u,%u,%p) have different dimensions.",
+                                    pixel_type(),
+                                    real._width,real._height,real._depth,real._spectrum,real._data,
+                                    imag._width,imag._height,imag._depth,imag._spectrum,imag._data);
+
+#ifdef cimg_use_fftw3
+      cimg::mutex(12);
+#ifndef cimg_use_fftw3_singlethread
+      const unsigned int _nb_threads = nb_threads?nb_threads:cimg::nb_cpus();
+      static int fftw_st = fftw_init_threads();
+      cimg::unused(fftw_st);
+      fftw_plan_with_nthreads(_nb_threads);
+#else
+      cimg::unused(nb_threads);
+#endif
+      fftw_complex *data_in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*real._width*real._height*real._depth);
+      if (!data_in) throw CImgInstanceException("CImgList<%s>::FFT(): Failed to allocate memory (%s) "
+                                                "for computing FFT of image (%u,%u,%u,%u).",
+                                                pixel_type(),
+                                                cimg::strbuffersize(sizeof(fftw_complex)*real._width*
+                                                                    real._height*real._depth*real._spectrum),
+                                                real._width,real._height,real._depth,real._spectrum);
+
+      fftw_plan data_plan;
+      const ulongT w = (ulongT)real._width, wh = w*real._height, whd = wh*real._depth;
+      data_plan = fftw_plan_dft_3d(real._width,real._height,real._depth,data_in,data_in,
+                                   is_invert?FFTW_BACKWARD:FFTW_FORWARD,FFTW_ESTIMATE);
+      cimg_forC(real,c) {
+        T *ptrr = real.data(0,0,0,c), *ptri = imag.data(0,0,0,c);
+        double *ptrd = (double*)data_in;
+        for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *(ptrd++) = (double)*ptrr; *(ptrd++) = (double)*ptri;
+            }
+        fftw_execute(data_plan);
+        ptrd = (double*)data_in;
+        ptrr = real.data(0,0,0,c);
+        ptri = imag.data(0,0,0,c);
+        if (!is_invert) for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)*(ptrd++); *ptri = (T)*(ptrd++);
+            }
+        else for (unsigned int x = 0; x<real._width; ++x, ptrr-=wh - 1, ptri-=wh - 1)
+          for (unsigned int y = 0; y<real._height; ++y, ptrr-=whd-w, ptri-=whd-w)
+            for (unsigned int z = 0; z<real._depth; ++z, ptrr+=wh, ptri+=wh) {
+              *ptrr = (T)(*(ptrd++)/whd); *ptri = (T)(*(ptrd++)/whd);
+            }
+      }
+      fftw_destroy_plan(data_plan);
+      fftw_free(data_in);
+#ifndef cimg_use_fftw3_singlethread
+      fftw_cleanup_threads();
+#endif
+      cimg::mutex(12,0);
+#else
+      cimg::unused(nb_threads);
+      if (real._depth>1) FFT(real,imag,'z',is_invert);
+      if (real._height>1) FFT(real,imag,'y',is_invert);
+      if (real._width>1) FFT(real,imag,'x',is_invert);
+#endif
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name 3d Objects Management
+    //@{
+    //-------------------------------------
+
+    //! Shift 3d object's vertices.
+    /**
+       \param tx X-coordinate of the 3d displacement vector.
+       \param ty Y-coordinate of the 3d displacement vector.
+       \param tz Z-coordinate of the 3d displacement vector.
+    **/
+    CImg<T>& shift_object3d(const float tx, const float ty=0, const float tz=0) {
+      if (_
