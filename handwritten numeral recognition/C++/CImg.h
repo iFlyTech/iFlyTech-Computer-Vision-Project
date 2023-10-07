@@ -34731,4 +34731,173 @@ namespace cimg_library_suffixed {
        \param tz Z-coordinate of the 3d displacement vector.
     **/
     CImg<T>& shift_object3d(const float tx, const float ty=0, const float tz=0) {
-      if (_
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      get_shared_row(0)+=tx; get_shared_row(1)+=ty; get_shared_row(2)+=tz;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices \newinstance.
+    CImg<Tfloat> get_shift_object3d(const float tx, const float ty=0, const float tz=0) const {
+      return CImg<Tfloat>(*this,false).shift_object3d(tx,ty,tz);
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered.
+    /**
+       \note The object center is computed as its barycenter.
+    **/
+    CImg<T>& shift_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "shift_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      xcoords-=(xm + xM)/2; ycoords-=(ym + yM)/2; zcoords-=(zm + zM)/2;
+      return *this;
+    }
+
+    //! Shift 3d object's vertices, so that it becomes centered \newinstance.
+    CImg<Tfloat> get_shift_object3d() const {
+      return CImg<Tfloat>(*this,false).shift_object3d();
+    }
+
+    //! Resize 3d object.
+    /**
+       \param sx Width of the 3d object's bounding box.
+       \param sy Height of the 3d object's bounding box.
+       \param sz Depth of the 3d object's bounding box.
+    **/
+    CImg<T>& resize_object3d(const float sx, const float sy=-100, const float sz=-100) {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      if (xm<xM) { if (sx>0) xcoords*=sx/(xM-xm); else xcoords*=-sx/100; }
+      if (ym<yM) { if (sy>0) ycoords*=sy/(yM-ym); else ycoords*=-sy/100; }
+      if (zm<zM) { if (sz>0) zcoords*=sz/(zM-zm); else zcoords*=-sz/100; }
+      return *this;
+    }
+
+    //! Resize 3d object \newinstance.
+    CImg<Tfloat> get_resize_object3d(const float sx, const float sy=-100, const float sz=-100) const {
+      return CImg<Tfloat>(*this,false).resize_object3d(sx,sy,sz);
+    }
+
+    //! Resize 3d object to unit size.
+    CImg<T> resize_object3d() {
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "resize_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      CImg<T> xcoords = get_shared_row(0), ycoords = get_shared_row(1), zcoords = get_shared_row(2);
+      float
+        xm, xM = (float)xcoords.max_min(xm),
+        ym, yM = (float)ycoords.max_min(ym),
+        zm, zM = (float)zcoords.max_min(zm);
+      const float dx = xM - xm, dy = yM - ym, dz = zM - zm, dmax = cimg::max(dx,dy,dz);
+      if (dmax>0) { xcoords/=dmax; ycoords/=dmax; zcoords/=dmax; }
+      return *this;
+    }
+
+    //! Resize 3d object to unit size \newinstance.
+    CImg<Tfloat> get_resize_object3d() const {
+      return CImg<Tfloat>(*this,false).resize_object3d();
+    }
+
+    //! Merge two 3d objects together.
+    /**
+       \param[in,out] primitives Primitives data of the current 3d object.
+       \param obj_vertices Vertices data of the additional 3d object.
+       \param obj_primitives Primitives data of the additional 3d object.
+    **/
+    template<typename tf, typename tp, typename tff>
+    CImg<T>& append_object3d(CImgList<tf>& primitives, const CImg<tp>& obj_vertices,
+                             const CImgList<tff>& obj_primitives) {
+      if (!obj_vertices || !obj_primitives) return *this;
+      if (obj_vertices._height!=3 || obj_vertices._depth>1 || obj_vertices._spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Specified vertice image (%u,%u,%u,%u,%p) is not a "
+                                    "set of 3d vertices.",
+                                    cimg_instance,
+                                    obj_vertices._width,obj_vertices._height,
+                                    obj_vertices._depth,obj_vertices._spectrum,obj_vertices._data);
+
+      if (is_empty()) { primitives.assign(obj_primitives); return assign(obj_vertices); }
+      if (_height!=3 || _depth>1 || _spectrum>1)
+        throw CImgInstanceException(_cimg_instance
+                                    "append_object3d(): Instance is not a set of 3d vertices.",
+                                    cimg_instance);
+
+      const unsigned int P = _width;
+      append(obj_vertices,'x');
+      const unsigned int N = primitives._width;
+      primitives.insert(obj_primitives);
+      for (unsigned int i = N; i<primitives._width; ++i) {
+        CImg<tf> &p = primitives[i];
+        switch (p.size()) {
+        case 1 : p[0]+=P; break; // Point.
+        case 5 : p[0]+=P; p[1]+=P; break; // Sphere.
+        case 2 : case 6 : p[0]+=P; p[1]+=P; break; // Segment.
+        case 3 : case 9 : p[0]+=P; p[1]+=P; p[2]+=P; break; // Triangle.
+        case 4 : case 12 : p[0]+=P; p[1]+=P; p[2]+=P; p[3]+=P; break; // Rectangle.
+        }
+      }
+      return *this;
+    }
+
+    //! Texturize primitives of a 3d object.
+    /**
+       \param[in,out] primitives Primitives data of the 3d object.
+       \param[in,out] colors Colors data of the 3d object.
+       \param texture Texture image to map to 3d object.
+       \param coords Texture-mapping coordinates.
+    **/
+    template<typename tp, typename tc, typename tt, typename tx>
+    const CImg<T>& texturize_object3d(CImgList<tp>& primitives, CImgList<tc>& colors,
+                                      const CImg<tt>& texture, const CImg<tx>& coords=CImg<tx>::const_empty()) const {
+      if (is_empty()) return *this;
+      if (_height!=3)
+        throw CImgInstanceException(_cimg_instance
+                                    "texturize_object3d(): image instance is not a set of 3d points.",
+                                    cimg_instance);
+      if (coords && (coords._width!=_width || coords._height!=2))
+        throw CImgArgumentException(_cimg_instance
+                                    "texturize_object3d(): Invalid specified texture coordinates (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    coords._width,coords._height,coords._depth,coords._spectrum,coords._data);
+      CImg<intT> _coords;
+      if (!coords) { // If no texture coordinates specified, do a default XY-projection.
+        _coords.assign(_width,2);
+        float
+          xmin, xmax = (float)get_shared_row(0).max_min(xmin),
+          ymin, ymax = (float)get_shared_row(1).max_min(ymin),
+          dx = xmax>xmin?xmax-xmin:1,
+          dy = ymax>ymin?ymax-ymin:1;
+        cimg_forX(*this,p) {
+          _coords(p,0) = (int)(((*this)(p,0) - xmin)*texture._width/dx);
+          _coords(p,1) = (int)(((*this)(p,1) - ymin)*texture._height/dy);
+        }
+      } else _coords = coords;
+
+      int texture_ind = -1;
+      cimglist_for(primitives,l) {
+        CImg<tp> &p = primitives[l];
+        const unsigned int siz = p.size();
+        switch (siz) {
+        case 1 : { // Point.
+          const unsigned int i0 = (unsigned
