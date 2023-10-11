@@ -34900,4 +34900,149 @@ namespace cimg_library_suffixed {
         const unsigned int siz = p.size();
         switch (siz) {
         case 1 : { // Point.
-          const unsigned int i0 = (unsigned
+          const unsigned int i0 = (unsigned int)p[0];
+          const int x0 = _coords(i0,0), y0 = _coords(i0,1);
+          texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                y0<=0?0:y0>=texture.height()?texture.height() - 1:y0).move_to(colors[l]);
+        } break;
+        case 2 : case 6 : { // Line.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,x0,y0,x1,y1).move_to(p);
+        } break;
+        case 3 : case 9 : { // Triangle.
+          const unsigned int i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,x0,y0,x1,y1,x2,y2).move_to(p);
+        } break;
+        case 4 : case 12 : { // Quadrangle.
+          const unsigned int
+            i0 = (unsigned int)p[0], i1 = (unsigned int)p[1], i2 = (unsigned int)p[2], i3 = (unsigned int)p[3];
+          const int
+            x0 = _coords(i0,0), y0 = _coords(i0,1),
+            x1 = _coords(i1,0), y1 = _coords(i1,1),
+            x2 = _coords(i2,0), y2 = _coords(i2,1),
+            x3 = _coords(i3,0), y3 = _coords(i3,1);
+          if (texture_ind<0) colors[texture_ind=l].assign(texture,false);
+          else colors[l].assign(colors[texture_ind],true);
+          CImg<tp>::vector(i0,i1,i2,i3,x0,y0,x1,y1,x2,y2,x3,y3).move_to(p);
+        } break;
+        }
+      }
+      return *this;
+    }
+
+    //! Generate a 3d elevation of the image instance.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param[out] colors The returned list of the 3d object colors.
+       \param elevation The input elevation map.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       CImgList<unsigned char> colors3d;
+       const CImg<float> points3d = img.get_elevation3d(faces3d,colors3d,img.get_norm()*0.2);
+       CImg<unsigned char>().display_object3d("Elevation3d",points3d,faces3d,colors3d);
+       \endcode
+       \image html ref_elevation3d.jpg
+    **/
+    template<typename tf, typename tc, typename te>
+    CImg<floatT> get_elevation3d(CImgList<tf>& primitives, CImgList<tc>& colors, const CImg<te>& elevation) const {
+      if (!is_sameXY(elevation) || elevation._depth>1 || elevation._spectrum>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "get_elevation3d(): Instance and specified elevation (%u,%u,%u,%u,%p) "
+                                    "have incompatible dimensions.",
+                                    cimg_instance,
+                                    elevation._width,elevation._height,elevation._depth,
+                                    elevation._spectrum,elevation._data);
+      if (is_empty()) return *this;
+      float m, M = (float)max_min(m);
+      if (M==m) ++M;
+      colors.assign();
+      const unsigned int size_x1 = _width - 1, size_y1 = _height - 1;
+      for (unsigned int y = 0; y<size_y1; ++y)
+        for (unsigned int x = 0; x<size_x1; ++x) {
+          const unsigned char
+            r = (unsigned char)(((*this)(x,y,0) - m)*255/(M-m)),
+            g = (unsigned char)(_spectrum>1?((*this)(x,y,1) - m)*255/(M-m):r),
+            b = (unsigned char)(_spectrum>2?((*this)(x,y,2) - m)*255/(M-m):_spectrum>1?0:r);
+          CImg<tc>::vector((tc)r,(tc)g,(tc)b).move_to(colors);
+        }
+      const typename CImg<te>::_functor2d_int func(elevation);
+      return elevation3d(primitives,func,0,0,_width - 1.0f,_height - 1.0f,_width,_height);
+    }
+
+    //! Generate the 3d projection planes of the image instance.
+    /**
+       \param[out] primitives Primitives data of the returned 3d object.
+       \param[out] colors Colors data of the returned 3d object.
+       \param x0 X-coordinate of the projection point.
+       \param y0 Y-coordinate of the projection point.
+       \param z0 Z-coordinate of the projection point.
+       \param normalize_colors Tells if the created textures have normalized colors.
+    **/
+    template<typename tf, typename tc>
+    CImg<floatT> get_projections3d(CImgList<tf>& primitives, CImgList<tc>& colors,
+                                   const unsigned int x0, const unsigned int y0, const unsigned int z0,
+                                   const bool normalize_colors=false) const {
+      float m = 0, M = 0, delta = 1;
+      if (normalize_colors) { m = (float)min_max(M); delta = 255/(m==M?1:M-m); }
+      const unsigned int
+        _x0 = (x0>=_width)?_width - 1:x0,
+        _y0 = (y0>=_height)?_height - 1:y0,
+        _z0 = (z0>=_depth)?_depth - 1:z0;
+      CImg<tc> img_xy, img_xz, img_yz;
+      if (normalize_colors) {
+        ((get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1)-=m)*=delta).move_to(img_xy);
+        ((get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_width,_depth,1,-100,-1).
+          move_to(img_xz);
+        ((get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1)-=m)*=delta).resize(_height,_depth,1,-100,-1).
+          move_to(img_yz);
+      } else {
+        get_crop(0,0,_z0,0,_width - 1,_height - 1,_z0,_spectrum - 1).move_to(img_xy);
+        get_crop(0,_y0,0,0,_width - 1,_y0,_depth - 1,_spectrum - 1).resize(_width,_depth,1,-100,-1).move_to(img_xz);
+        get_crop(_x0,0,0,0,_x0,_height - 1,_depth - 1,_spectrum - 1).resize(_height,_depth,1,-100,-1).move_to(img_yz);
+      }
+      CImg<floatT> points(12,3,1,1,
+                          0,_width - 1,_width - 1,0,   0,_width - 1,_width - 1,0, _x0,_x0,_x0,_x0,
+                          0,0,_height - 1,_height - 1, _y0,_y0,_y0,_y0,       0,_height - 1,_height - 1,0,
+                          _z0,_z0,_z0,_z0,         0,0,_depth - 1,_depth - 1, 0,0,_depth - 1,_depth - 1);
+      primitives.assign();
+      CImg<tf>::vector(0,1,2,3,0,0,img_xy._width - 1,0,img_xy._width - 1,img_xy._height - 1,0,img_xy._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(4,5,6,7,0,0,img_xz._width - 1,0,img_xz._width - 1,img_xz._height - 1,0,img_xz._height - 1).
+        move_to(primitives);
+      CImg<tf>::vector(8,9,10,11,0,0,img_yz._width - 1,0,img_yz._width - 1,img_yz._height - 1,0,img_yz._height - 1).
+        move_to(primitives);
+      colors.assign();
+      img_xy.move_to(colors);
+      img_xz.move_to(colors);
+      img_yz.move_to(colors);
+      return points;
+    }
+
+    //! Generate a isoline of the image instance as a 3d object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param isovalue The returned list of the 3d object colors.
+       \param size_x The number of subdivisions along the X-axis.
+       \param size_y The number of subdisivions along the Y-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       const CImg<float> img("reference.jpg");
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = img.get_isoline3d(f
