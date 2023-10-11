@@ -35192,4 +35192,143 @@ namespace cimg_library_suffixed {
                                   const int size_x=256, const int size_y=256) {
       static const unsigned int edges[16] = { 0x0, 0x9, 0x3, 0xa, 0x6, 0xf, 0x5, 0xc, 0xc,
                                               0x5, 0xf, 0x6, 0xa, 0x3, 0x9, 0x0 };
-      static const int segments[16][4] = { { -1,-1,-1,-1 },
+      static const int segments[16][4] = { { -1,-1,-1,-1 }, { 0,3,-1,-1 }, { 0,1,-1,-1 }, { 1,3,-1,-1 },
+                                           { 1,2,-1,-1 },   { 0,1,2,3 },   { 0,2,-1,-1 }, { 2,3,-1,-1 },
+                                           { 2,3,-1,-1 },   { 0,2,-1,-1},  { 0,3,1,2 },   { 1,2,-1,-1 },
+                                           { 1,3,-1,-1 },   { 0,1,-1,-1},  { 0,3,-1,-1},  { -1,-1,-1,-1 } };
+      const unsigned int
+        _nx = (unsigned int)(size_x>=0?size_x:cimg::round((x1-x0)*-size_x/100 + 1)),
+        _ny = (unsigned int)(size_y>=0?size_y:cimg::round((y1-y0)*-size_y/100 + 1)),
+        nx = _nx?_nx:1,
+        ny = _ny?_ny:1,
+        nxm1 = nx - 1,
+        nym1 = ny - 1;
+      primitives.assign();
+      if (!nxm1 || !nym1) return CImg<floatT>();
+      const float dx = (x1 - x0)/nxm1, dy = (y1 - y0)/nym1;
+      CImgList<floatT> vertices;
+      CImg<intT> indices1(nx,1,1,2,-1), indices2(nx,1,1,2);
+      CImg<floatT> values1(nx), values2(nx);
+      float X = x0, Y = y0, nX = X + dx, nY = Y + dy;
+
+      // Fill first line with values
+      cimg_forX(values1,x) { values1(x) = (float)func(X,Y); X+=dx; }
+
+      // Run the marching squares algorithm
+      for (unsigned int yi = 0, nyi = 1; yi<nym1; ++yi, ++nyi, Y=nY, nY+=dy) {
+        X = x0; nX = X + dx;
+        indices2.fill(-1);
+        for (unsigned int xi = 0, nxi = 1; xi<nxm1; ++xi, ++nxi, X=nX, nX+=dx) {
+
+          // Determine square configuration
+          const float
+            val0 = values1(xi),
+            val1 = values1(nxi),
+            val2 = values2(nxi) = (float)func(nX,nY),
+            val3 = values2(xi) = (float)func(X,nY);
+          const unsigned int
+            configuration = (val0<isovalue?1U:0U) | (val1<isovalue?2U:0U) |
+            (val2<isovalue?4U:0U) | (val3<isovalue?8U:0U),
+            edge = edges[configuration];
+
+          // Compute intersection vertices
+          if (edge) {
+            if ((edge&1) && indices1(xi,0)<0) {
+              const float Xi = X + (isovalue-val0)*dx/(val1-val0);
+              indices1(xi,0) = vertices.width();
+              CImg<floatT>::vector(Xi,Y,0).move_to(vertices);
+            }
+            if ((edge&2) && indices1(nxi,1)<0) {
+              const float Yi = Y + (isovalue-val1)*dy/(val2-val1);
+              indices1(nxi,1) = vertices.width();
+              CImg<floatT>::vector(nX,Yi,0).move_to(vertices);
+            }
+            if ((edge&4) && indices2(xi,0)<0) {
+              const float Xi = X + (isovalue-val3)*dx/(val2-val3);
+              indices2(xi,0) = vertices.width();
+              CImg<floatT>::vector(Xi,nY,0).move_to(vertices);
+            }
+            if ((edge&8) && indices1(xi,1)<0) {
+              const float Yi = Y + (isovalue-val0)*dy/(val3-val0);
+              indices1(xi,1) = vertices.width();
+              CImg<floatT>::vector(X,Yi,0).move_to(vertices);
+            }
+
+            // Create segments
+            for (const int *segment = segments[configuration]; *segment!=-1; ) {
+              const unsigned int p0 = (unsigned int)*(segment++), p1 = (unsigned int)*(segment++);
+              const tf
+                i0 = (tf)(_isoline3d_indice(p0,indices1,indices2,xi,nxi)),
+                i1 = (tf)(_isoline3d_indice(p1,indices1,indices2,xi,nxi));
+              CImg<tf>::vector(i0,i1).move_to(primitives);
+            }
+          }
+        }
+        values1.swap(values2);
+        indices1.swap(indices2);
+      }
+      return vertices>'x';
+    }
+
+    //! Compute isolines of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> isoline3d(CImgList<tf>& primitives, const char *const expression, const float isovalue,
+                                  const float x0, const float y0, const float x1, const float y1,
+                                  const int size_x=256, const int size_y=256) {
+      const _functor2d_expr func(expression);
+      return isoline3d(primitives,func,isovalue,x0,y0,x1,y1,size_x,size_y);
+    }
+
+    template<typename t>
+    static int _isoline3d_indice(const unsigned int edge, const CImg<t>& indices1, const CImg<t>& indices2,
+                                 const unsigned int x, const unsigned int nx) {
+      switch (edge) {
+      case 0 : return (int)indices1(x,0);
+      case 1 : return (int)indices1(nx,1);
+      case 2 : return (int)indices2(x,0);
+      case 3 : return (int)indices1(x,1);
+      }
+      return 0;
+    }
+
+    //! Compute isosurface of a function, as a 3d object.
+    /**
+       \param[out] primitives Primitives data of the resulting 3d object.
+       \param func Implicit function. Is of type <tt>float (*func)(const float x, const float y, const float z)</tt>.
+       \param isovalue Isovalue to extract.
+       \param x0 X-coordinate of the starting point.
+       \param y0 Y-coordinate of the starting point.
+       \param z0 Z-coordinate of the starting point.
+       \param x1 X-coordinate of the ending point.
+       \param y1 Y-coordinate of the ending point.
+       \param z1 Z-coordinate of the ending point.
+       \param size_x Resolution of the elevation function along the X-axis.
+       \param size_y Resolution of the elevation function along the Y-axis.
+       \param size_z Resolution of the elevation function along the Z-axis.
+       \note Use the marching cubes algorithm for extracting the isosurface.
+     **/
+    template<typename tf, typename tfunc>
+    static CImg<floatT> isosurface3d(CImgList<tf>& primitives, const tfunc& func, const float isovalue,
+                                     const float x0, const float y0, const float z0,
+                                     const float x1, const float y1, const float z1,
+                                     const int size_x=32, const int size_y=32, const int size_z=32) {
+      static const unsigned int edges[256] = {
+        0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
+        0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c, 0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
+        0x230, 0x339, 0x33 , 0x13a, 0x636, 0x73f, 0x435, 0x53c, 0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
+        0x3a0, 0x2a9, 0x1a3, 0xaa , 0x7a6, 0x6af, 0x5a5, 0x4ac, 0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
+        0x460, 0x569, 0x663, 0x76a, 0x66 , 0x16f, 0x265, 0x36c, 0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
+        0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff , 0x3f5, 0x2fc, 0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
+        0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55 , 0x15c, 0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
+        0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc , 0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
+        0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc, 0xcc , 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+        0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c, 0x15c, 0x55 , 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+        0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc, 0x2fc, 0x3f5, 0xff , 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+        0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c, 0x36c, 0x265, 0x16f, 0x66 , 0x76a, 0x663, 0x569, 0x460,
+        0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac, 0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa , 0x1a3, 0x2a9, 0x3a0,
+        0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c, 0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33 , 0x339, 0x230,
+        0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c, 0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
+        0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c, 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
+      };
+
+ 
