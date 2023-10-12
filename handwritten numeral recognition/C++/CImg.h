@@ -35562,4 +35562,155 @@ namespace cimg_library_suffixed {
         { 3, 1, 4, 3, 4, 8, 1, 10, 4, 7, 4, 11, 10, 11, 4, -1 },
         { 4, 11, 7, 9, 11, 4, 9, 2, 11, 9, 1, 2, -1, -1, -1, -1 },
         { 9, 7, 4, 9, 11, 7, 9, 1, 11, 2, 11, 1, 0, 8, 3, -1 },
-       
+        { 11, 7, 4, 11, 4, 2, 2, 4, 0, -1, -1, -1, -1, -1, -1, -1 },
+        { 11, 7, 4, 11, 4, 2, 8, 3, 4, 3, 2, 4, -1, -1, -1, -1 },
+        { 2, 9, 10, 2, 7, 9, 2, 3, 7, 7, 4, 9, -1, -1, -1, -1 },
+        { 9, 10, 7, 9, 7, 4, 10, 2, 7, 8, 7, 0, 2, 0, 7, -1 },
+        { 3, 7, 10, 3, 10, 2, 7, 4, 10, 1, 10, 0, 4, 0, 10, -1 },
+        { 1, 10, 2, 8, 7, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 1, 4, 1, 7, 7, 1, 3, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 9, 1, 4, 1, 7, 0, 8, 1, 8, 7, 1, -1, -1, -1, -1 },
+        { 4, 0, 3, 7, 4, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 4, 8, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 10, 8, 10, 11, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 9, 3, 9, 11, 11, 9, 10, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 1, 10, 0, 10, 8, 8, 10, 11, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 1, 10, 11, 3, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 2, 11, 1, 11, 9, 9, 11, 8, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 0, 9, 3, 9, 11, 1, 2, 9, 2, 11, 9, -1, -1, -1, -1 },
+        { 0, 2, 11, 8, 0, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 3, 2, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 3, 8, 2, 8, 10, 10, 8, 9, -1, -1, -1, -1, -1, -1, -1 },
+        { 9, 10, 2, 0, 9, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 2, 3, 8, 2, 8, 10, 0, 1, 8, 1, 10, 8, -1, -1, -1, -1 },
+        { 1, 10, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 1, 3, 8, 9, 1, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { 0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+      };
+
+      const unsigned int
+        _nx = (unsigned int)(size_x>=0?size_x:cimg::round((x1-x0)*-size_x/100 + 1)),
+        _ny = (unsigned int)(size_y>=0?size_y:cimg::round((y1-y0)*-size_y/100 + 1)),
+        _nz = (unsigned int)(size_z>=0?size_z:cimg::round((z1-z0)*-size_z/100 + 1)),
+        nx = _nx?_nx:1,
+        ny = _ny?_ny:1,
+        nz = _nz?_nz:1,
+        nxm1 = nx - 1,
+        nym1 = ny - 1,
+        nzm1 = nz - 1;
+      primitives.assign();
+      if (!nxm1 || !nym1 || !nzm1) return CImg<floatT>();
+      const float dx = (x1 - x0)/nxm1, dy = (y1 - y0)/nym1, dz = (z1 - z0)/nzm1;
+      CImgList<floatT> vertices;
+      CImg<intT> indices1(nx,ny,1,3,-1), indices2(indices1);
+      CImg<floatT> values1(nx,ny), values2(nx,ny);
+      float X = 0, Y = 0, Z = 0, nX = 0, nY = 0, nZ = 0;
+
+      // Fill the first plane with function values
+      Y = y0;
+      cimg_forY(values1,y) {
+        X = x0;
+        cimg_forX(values1,x) { values1(x,y) = (float)func(X,Y,z0); X+=dx; }
+        Y+=dy;
+      }
+
+      // Run Marching Cubes algorithm
+      Z = z0; nZ = Z + dz;
+      for (unsigned int zi = 0; zi<nzm1; ++zi, Z = nZ, nZ+=dz) {
+        Y = y0; nY = Y + dy;
+        indices2.fill(-1);
+        for (unsigned int yi = 0, nyi = 1; yi<nym1; ++yi, ++nyi, Y = nY, nY+=dy) {
+          X = x0; nX = X + dx;
+          for (unsigned int xi = 0, nxi = 1; xi<nxm1; ++xi, ++nxi, X = nX, nX+=dx) {
+
+            // Determine cube configuration
+            const float
+              val0 = values1(xi,yi),
+              val1 = values1(nxi,yi),
+              val2 = values1(nxi,nyi),
+              val3 = values1(xi,nyi),
+              val4 = values2(xi,yi) = (float)func(X,Y,nZ),
+              val5 = values2(nxi,yi) = (float)func(nX,Y,nZ),
+              val6 = values2(nxi,nyi) = (float)func(nX,nY,nZ),
+              val7 = values2(xi,nyi) = (float)func(X,nY,nZ);
+
+            const unsigned int configuration =
+              (val0<isovalue?1U:0U)  | (val1<isovalue?2U:0U)  | (val2<isovalue?4U:0U)  | (val3<isovalue?8U:0U) |
+              (val4<isovalue?16U:0U) | (val5<isovalue?32U:0U) | (val6<isovalue?64U:0U) | (val7<isovalue?128U:0U),
+              edge = edges[configuration];
+
+            // Compute intersection vertices
+            if (edge) {
+              if ((edge&1) && indices1(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val0)*dx/(val1-val0);
+                indices1(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,Z).move_to(vertices);
+              }
+              if ((edge&2) && indices1(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val1)*dy/(val2-val1);
+                indices1(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,Z).move_to(vertices);
+              }
+              if ((edge&4) && indices1(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val3)*dx/(val2-val3);
+                indices1(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,Z).move_to(vertices);
+              }
+              if ((edge&8) && indices1(xi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val0)*dy/(val3-val0);
+                indices1(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,Z).move_to(vertices);
+              }
+              if ((edge&16) && indices2(xi,yi,0)<0) {
+                const float Xi = X + (isovalue-val4)*dx/(val5-val4);
+                indices2(xi,yi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,Y,nZ).move_to(vertices);
+              }
+              if ((edge&32) && indices2(nxi,yi,1)<0) {
+                const float Yi = Y + (isovalue-val5)*dy/(val6-val5);
+                indices2(nxi,yi,1) = vertices.width();
+                CImg<floatT>::vector(nX,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&64) && indices2(xi,nyi,0)<0) {
+                const float Xi = X + (isovalue-val7)*dx/(val6-val7);
+                indices2(xi,nyi,0) = vertices.width();
+                CImg<floatT>::vector(Xi,nY,nZ).move_to(vertices);
+              }
+              if ((edge&128) && indices2(xi,yi,1)<0)  {
+                const float Yi = Y + (isovalue-val4)*dy/(val7-val4);
+                indices2(xi,yi,1) = vertices.width();
+                CImg<floatT>::vector(X,Yi,nZ).move_to(vertices);
+              }
+              if ((edge&256) && indices1(xi,yi,2)<0) {
+                const float Zi = Z+ (isovalue-val0)*dz/(val4-val0);
+                indices1(xi,yi,2) = vertices.width();
+                CImg<floatT>::vector(X,Y,Zi).move_to(vertices);
+              }
+              if ((edge&512) && indices1(nxi,yi,2)<0)  {
+                const float Zi = Z + (isovalue-val1)*dz/(val5-val1);
+                indices1(nxi,yi,2) = vertices.width();
+                CImg<floatT>::vector(nX,Y,Zi).move_to(vertices);
+              }
+              if ((edge&1024) && indices1(nxi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val2)*dz/(val6-val2);
+                indices1(nxi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(nX,nY,Zi).move_to(vertices);
+              }
+              if ((edge&2048) && indices1(xi,nyi,2)<0) {
+                const float Zi = Z + (isovalue-val3)*dz/(val7-val3);
+                indices1(xi,nyi,2) = vertices.width();
+                CImg<floatT>::vector(X,nY,Zi).move_to(vertices);
+              }
+
+              // Create triangles
+              for (const int *triangle = triangles[configuration]; *triangle!=-1; ) {
+                const unsigned int
+                  p0 = (unsigned int)*(triangle++),
+                  p1 = (unsigned int)*(triangle++),
+                  p2 = (unsigned int)*(triangle++);
+                const tf
+                  i0 = (tf)(_isosurface3d_indice(p0,indices1,indices2,xi,yi,nxi,nyi)),
+                  i1 = (tf)(_isosurface3d_indice(p1,indices1,indices2,xi,yi,nxi,nyi)),
+                  i2 = (tf)(_isosurface3d_indice(p2,indices1,indi
