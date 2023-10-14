@@ -35713,4 +35713,194 @@ namespace cimg_library_suffixed {
                 const tf
                   i0 = (tf)(_isosurface3d_indice(p0,indices1,indices2,xi,yi,nxi,nyi)),
                   i1 = (tf)(_isosurface3d_indice(p1,indices1,indices2,xi,yi,nxi,nyi)),
-                  i2 = (tf)(_isosurface3d_indice(p2,indices1,indi
+                  i2 = (tf)(_isosurface3d_indice(p2,indices1,indices2,xi,yi,nxi,nyi));
+                CImg<tf>::vector(i0,i2,i1).move_to(primitives);
+              }
+            }
+          }
+        }
+        cimg::swap(values1,values2);
+        cimg::swap(indices1,indices2);
+      }
+      return vertices>'x';
+    }
+
+    //! Compute isosurface of a function, as a 3d object \overloading.
+    template<typename tf>
+    static CImg<floatT> isosurface3d(CImgList<tf>& primitives, const char *const expression, const float isovalue,
+                                     const float x0, const float y0, const float z0,
+                                     const float x1, const float y1, const float z1,
+                                     const int dx=32, const int dy=32, const int dz=32) {
+      const _functor3d_expr func(expression);
+      return isosurface3d(primitives,func,isovalue,x0,y0,z0,x1,y1,z1,dx,dy,dz);
+    }
+
+    template<typename t>
+    static int _isosurface3d_indice(const unsigned int edge, const CImg<t>& indices1, const CImg<t>& indices2,
+                                    const unsigned int x, const unsigned int y,
+                                    const unsigned int nx, const unsigned int ny) {
+      switch (edge) {
+      case 0 : return indices1(x,y,0);
+      case 1 : return indices1(nx,y,1);
+      case 2 : return indices1(x,ny,0);
+      case 3 : return indices1(x,y,1);
+      case 4 : return indices2(x,y,0);
+      case 5 : return indices2(nx,y,1);
+      case 6 : return indices2(x,ny,0);
+      case 7 : return indices2(x,y,1);
+      case 8 : return indices1(x,y,2);
+      case 9 : return indices1(nx,y,2);
+      case 10 : return indices1(nx,ny,2);
+      case 11 : return indices1(x,ny,2);
+      }
+      return 0;
+    }
+
+    // Define functors for accessing image values (used in previous functions).
+    struct _functor2d_int {
+      const CImg<T>& ref;
+      _functor2d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref((int)x,(int)y);
+      }
+    };
+
+    struct _functor2d_float {
+      const CImg<T>& ref;
+      _functor2d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y) const {
+        return (float)ref._linear_atXY(x,y);
+      }
+    };
+
+    struct _functor2d_expr {
+      _cimg_math_parser *mp;
+      _functor2d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      ~_functor2d_expr() { delete mp; }
+      float operator()(const float x, const float y) const {
+        return (float)(*mp)(x,y,0,0);
+      }
+    };
+
+    struct _functor3d_int {
+      const CImg<T>& ref;
+      _functor3d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref((int)x,(int)y,(int)z);
+      }
+    };
+
+    struct _functor3d_float {
+      const CImg<T>& ref;
+      _functor3d_float(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z) const {
+        return (float)ref._linear_atXYZ(x,y,z);
+      }
+    };
+
+    struct _functor3d_expr {
+      _cimg_math_parser *mp;
+      ~_functor3d_expr() { delete mp; }
+      _functor3d_expr(const char *const expr):mp(0) {
+        mp = new _cimg_math_parser(expr,0,CImg<T>::const_empty(),0);
+      }
+      float operator()(const float x, const float y, const float z) const {
+        return (float)(*mp)(x,y,z,0);
+      }
+    };
+
+    struct _functor4d_int {
+      const CImg<T>& ref;
+      _functor4d_int(const CImg<T>& pref):ref(pref) {}
+      float operator()(const float x, const float y, const float z, const unsigned int c) const {
+        return (float)ref((int)x,(int)y,(int)z,c);
+      }
+    };
+
+    //! Generate a 3d box object.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param size_x The width of the box (dimension along the X-axis).
+       \param size_y The height of the box (dimension along the Y-axis).
+       \param size_z The depth of the box (dimension along the Z-axis).
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::box3d(faces3d,10,20,30);
+       CImg<unsigned char>().display_object3d("Box3d",points3d,faces3d);
+       \endcode
+       \image html ref_box3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> box3d(CImgList<tf>& primitives,
+                              const float size_x=200, const float size_y=100, const float size_z=100) {
+      primitives.assign(6,1,4,1,1, 0,3,2,1, 4,5,6,7, 0,1,5,4, 3,7,6,2, 0,4,7,3, 1,2,6,5);
+      return CImg<floatT>(8,3,1,1,
+                          0.,size_x,size_x,    0.,    0.,size_x,size_x,    0.,
+                          0.,    0.,size_y,size_y,    0.,    0.,size_y,size_y,
+                          0.,    0.,    0.,    0.,size_z,size_z,size_z,size_z);
+    }
+
+    //! Generate a 3d cone.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cone basis.
+       \param size_z The cone's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cone3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cone3d",points3d,faces3d);
+       \endcode
+       \image html ref_cone3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cone3d(CImgList<tf>& primitives,
+                               const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,size_z,
+                                0.,0.,0.);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0).move_to(vertices);
+      }
+      const unsigned int nbr = vertices._width - 2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + p, next = 2 + ((p + 1)%nbr);
+        CImg<tf>::vector(1,next,curr).move_to(primitives);
+        CImg<tf>::vector(0,curr,next).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d cylinder.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the cylinder basis.
+       \param size_z The cylinder's height.
+       \param subdivisions The number of basis angular subdivisions.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::cylinder3d(faces3d,50);
+       CImg<unsigned char>().display_object3d("Cylinder3d",points3d,faces3d);
+       \endcode
+       \image html ref_cylinder3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> cylinder3d(CImgList<tf>& primitives,
+                                   const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImgList<floatT> vertices(2,1
