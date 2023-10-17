@@ -35903,4 +35903,152 @@ namespace cimg_library_suffixed {
                                    const float radius=50, const float size_z=100, const unsigned int subdivisions=24) {
       primitives.assign();
       if (!subdivisions) return CImg<floatT>();
-      CImgList<floatT> vertices(2,1
+      CImgList<floatT> vertices(2,1,3,1,1,
+                                0.,0.,0.,
+                                0.,0.,size_z);
+      for (float delta = 360.0f/subdivisions, angle = 0; angle<360; angle+=delta) {
+        const float a = (float)(angle*cimg::PI/180);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),0.0f).move_to(vertices);
+        CImg<floatT>::vector((float)(radius*std::cos(a)),(float)(radius*std::sin(a)),size_z).move_to(vertices);
+      }
+      const unsigned int nbr = (vertices._width - 2)/2;
+      for (unsigned int p = 0; p<nbr; ++p) {
+        const unsigned int curr = 2 + 2*p, next = 2 + (2*((p + 1)%nbr));
+        CImg<tf>::vector(0,next,curr).move_to(primitives);
+        CImg<tf>::vector(1,curr + 1,next + 1).move_to(primitives);
+        CImg<tf>::vector(curr,next,next + 1,curr + 1).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d torus.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius1 The large radius.
+       \param radius2 The small radius.
+       \param subdivisions1 The number of angular subdivisions for the large radius.
+       \param subdivisions2 The number of angular subdivisions for the small radius.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::torus3d(faces3d,20,4);
+       CImg<unsigned char>().display_object3d("Torus3d",points3d,faces3d);
+       \endcode
+       \image html ref_torus3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> torus3d(CImgList<tf>& primitives,
+                                const float radius1=100, const float radius2=30,
+                                const unsigned int subdivisions1=24, const unsigned int subdivisions2=12) {
+      primitives.assign();
+      if (!subdivisions1 || !subdivisions2) return CImg<floatT>();
+      CImgList<floatT> vertices;
+      for (unsigned int v = 0; v<subdivisions1; ++v) {
+        const float
+          beta = (float)(v*2*cimg::PI/subdivisions1),
+          xc = radius1*(float)std::cos(beta),
+          yc = radius1*(float)std::sin(beta);
+        for (unsigned int u = 0; u<subdivisions2; ++u) {
+          const float
+            alpha = (float)(u*2*cimg::PI/subdivisions2),
+            x = xc + radius2*(float)(std::cos(alpha)*std::cos(beta)),
+            y = yc + radius2*(float)(std::cos(alpha)*std::sin(beta)),
+            z = radius2*(float)std::sin(alpha);
+          CImg<floatT>::vector(x,y,z).move_to(vertices);
+        }
+      }
+      for (unsigned int vv = 0; vv<subdivisions1; ++vv) {
+        const unsigned int nv = (vv + 1)%subdivisions1;
+        for (unsigned int uu = 0; uu<subdivisions2; ++uu) {
+          const unsigned int nu = (uu + 1)%subdivisions2, svv = subdivisions2*vv, snv = subdivisions2*nv;
+          CImg<tf>::vector(svv + nu,svv + uu,snv + uu,snv + nu).move_to(primitives);
+        }
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d XY-plane.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param size_x The width of the plane (dimension along the X-axis).
+       \param size_y The height of the plane (dimensions along the Y-axis).
+       \param subdivisions_x The number of planar subdivisions along the X-axis.
+       \param subdivisions_y The number of planar subdivisions along the Y-axis.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::plane3d(faces3d,100,50);
+       CImg<unsigned char>().display_object3d("Plane3d",points3d,faces3d);
+       \endcode
+       \image html ref_plane3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> plane3d(CImgList<tf>& primitives,
+                                const float size_x=100, const float size_y=100,
+                                const unsigned int subdivisions_x=10, const unsigned int subdivisions_y=10) {
+      primitives.assign();
+      if (!subdivisions_x || !subdivisions_y) return CImg<floatT>();
+      CImgList<floatT> vertices;
+      const unsigned int w = subdivisions_x + 1, h = subdivisions_y + 1;
+      const float fx = (float)size_x/w, fy = (float)size_y/h;
+      for (unsigned int y = 0; y<h; ++y) for (unsigned int x = 0; x<w; ++x)
+        CImg<floatT>::vector(fx*x,fy*y,0).move_to(vertices);
+      for (unsigned int y = 0; y<subdivisions_y; ++y) for (unsigned int x = 0; x<subdivisions_x; ++x) {
+        const int off1 = x + y*w, off2 = x + 1 + y*w, off3 = x + 1 + (y + 1)*w, off4 = x + (y + 1)*w;
+        CImg<tf>::vector(off1,off4,off3,off2).move_to(primitives);
+      }
+      return vertices>'x';
+    }
+
+    //! Generate a 3d sphere.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param radius The radius of the sphere (dimension along the X-axis).
+       \param subdivisions The number of recursive subdivisions from an initial icosahedron.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> points3d = CImg<float>::sphere3d(faces3d,100,4);
+       CImg<unsigned char>().display_object3d("Sphere3d",points3d,faces3d);
+       \endcode
+       \image html ref_sphere3d.jpg
+    **/
+    template<typename tf>
+    static CImg<floatT> sphere3d(CImgList<tf>& primitives,
+                                 const float radius=50, const unsigned int subdivisions=3) {
+
+      // Create initial icosahedron
+      primitives.assign();
+      const double tmp = (1 + std::sqrt(5.0f))/2, a = 1.0/std::sqrt(1 + tmp*tmp), b = tmp*a;
+      CImgList<floatT> vertices(12,1,3,1,1, b,a,0.0, -b,a,0.0, -b,-a,0.0, b,-a,0.0, a,0.0,b, a,0.0,-b,
+                                -a,0.0,-b, -a,0.0,b, 0.0,b,a, 0.0,-b,a, 0.0,-b,-a, 0.0,b,-a);
+      primitives.assign(20,1,3,1,1, 4,8,7, 4,7,9, 5,6,11, 5,10,6, 0,4,3, 0,3,5, 2,7,1, 2,1,6,
+                        8,0,11, 8,11,1, 9,10,3, 9,2,10, 8,4,0, 11,0,5, 4,9,3,
+                        5,3,10, 7,8,1, 6,1,11, 7,2,9, 6,10,2);
+      // edge - length/2
+      float he = (float)a;
+
+      // Recurse subdivisions
+      for (unsigned int i = 0; i<subdivisions; ++i) {
+        const unsigned int L = primitives._width;
+        he/=2;
+        const float he2 = he*he;
+        for (unsigned int l = 0; l<L; ++l) {
+          const unsigned int
+            p0 = (unsigned int)primitives(0,0), p1 = (unsigned int)primitives(0,1), p2 = (unsigned int)primitives(0,2);
+          const float
+            x0 = vertices(p0,0), y0 = vertices(p0,1), z0 = vertices(p0,2),
+            x1 = vertices(p1,0), y1 = vertices(p1,1), z1 = vertices(p1,2),
+            x2 = vertices(p2,0), y2 = vertices(p2,1), z2 = vertices(p2,2),
+            tnx0 = (x0 + x1)/2, tny0 = (y0 + y1)/2, tnz0 = (z0 + z1)/2,
+            nn0 = (float)std::sqrt(tnx0*tnx0 + tny0*tny0 + tnz0*tnz0),
+            tnx1 = (x0 + x2)/2, tny1 = (y0 + y2)/2, tnz1 = (z0 + z2)/2,
+            nn1 = (float)std::sqrt(tnx1*tnx1 + tny1*tny1 + tnz1*tnz1),
+            tnx2 = (x1 + x2)/2, tny2 = (y1 + y2)/2, tnz2 = (z1 + z2)/2,
+            nn2 = (float)std::sqrt(tnx2*tnx2 + tny2*tn
