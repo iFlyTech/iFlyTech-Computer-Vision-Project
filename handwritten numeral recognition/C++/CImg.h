@@ -36220,4 +36220,174 @@ namespace cimg_library_suffixed {
     float* _object3dtoCImg3d(const CImgList<to>& opacities, float *ptrd) const {
       cimglist_for(opacities,o) {
         const CImg<to>& opacity = opacities[o];
-  
+        const to *ptro = opacity._data;
+        if (opacity.size()==1) *(ptrd++) = (float)*ptro;
+        else {
+          *(ptrd++) = -128.0f;
+          int shared_ind = -1;
+          if (opacity.is_shared()) for (int i = 0; i<o; ++i) if (ptro==opacities[i]._data) { shared_ind = i; break; }
+          if (shared_ind<0) {
+            *(ptrd++) = (float)opacity._width;
+            *(ptrd++) = (float)opacity._height;
+            *(ptrd++) = (float)opacity._spectrum;
+            cimg_foroff(opacity,l) *(ptrd++) = (float)*(ptro++);
+          } else {
+            *(ptrd++) = (float)shared_ind;
+            *(ptrd++) = 0;
+            *(ptrd++) = 0;
+          }
+        }
+      }
+      return ptrd;
+    }
+
+    template<typename to>
+    float* _object3dtoCImg3d(const CImg<to>& opacities, float *ptrd) const {
+      const to *ptro = opacities._data;
+      cimg_foroff(opacities,o) *(ptrd++) = (float)*(ptro++);
+      return ptrd;
+    }
+
+    template<typename tp, typename tc, typename to>
+    unsigned int _size_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                        const CImgList<tc>& colors,
+                                        const CImgList<to>& opacities) const {
+      unsigned int siz = 8U + 3*_width;
+      cimglist_for(primitives,p) siz+=primitives[p].size() + 1;
+      for (int c = cimg::min(primitives.width(),colors.width()) - 1; c>=0; --c) {
+        if (colors[c].is_shared()) siz+=4;
+        else { const unsigned int csiz = colors[c].size(); siz+=(csiz!=3)?4 + csiz:3; }
+      }
+      if (colors._width<primitives._width) siz+=3*(primitives._width - colors._width);
+      cimglist_for(opacities,o) {
+        if (opacities[o].is_shared()) siz+=4;
+        else { const unsigned int osiz = opacities[o].size(); siz+=(osiz!=1)?4 + osiz:1; }
+      }
+      siz+=primitives._width - opacities._width;
+      return siz;
+    }
+
+    template<typename tp, typename tc, typename to>
+    unsigned int _size_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                        const CImgList<tc>& colors,
+                                        const CImg<to>& opacities) const {
+      unsigned int siz = 8U + 3*_width;
+      cimglist_for(primitives,p) siz+=primitives[p].size() + 1;
+      for (int c = cimg::min(primitives.width(),colors.width()) - 1; c>=0; --c) {
+        const unsigned int csiz = colors[c].size(); siz+=(csiz!=3)?4 + csiz:3;
+      }
+      if (colors._width<primitives._width) siz+=3*(primitives._width - colors._width);
+      siz+=primitives.size();
+      cimg::unused(opacities);
+      return siz;
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp, typename tc>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const CImgList<tc>& colors,
+                                      const bool full_check=true) const {
+      CImgList<T> opacities;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const bool full_check=true) const {
+      CImgList<T> colors, opacities;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    CImg<floatT> get_object3dtoCImg3d(const bool full_check=true) const {
+      CImgList<T> opacities, colors;
+      CImgList<uintT> primitives(width(),1,1,1,1);
+      cimglist_for(primitives,p) primitives(p,0) = p;
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check);
+    }
+
+    //! Convert CImg3d representation into a 3d object.
+    /**
+       \param[out] primitives Primitives data of the 3d object.
+       \param[out] colors Colors data of the 3d object.
+       \param[out] opacities Opacities data of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+    **/
+    template<typename tp, typename tc, typename to>
+    CImg<T>& CImg3dtoobject3d(CImgList<tp>& primitives,
+                              CImgList<tc>& colors,
+                              CImgList<to>& opacities,
+                              const bool full_check=true) {
+      return get_CImg3dtoobject3d(primitives,colors,opacities,full_check).move_to(*this);
+    }
+
+    //! Convert CImg3d representation into a 3d object \newinstance.
+    template<typename tp, typename tc, typename to>
+    CImg<T> get_CImg3dtoobject3d(CImgList<tp>& primitives,
+                                 CImgList<tc>& colors,
+                                 CImgList<to>& opacities,
+                                 const bool full_check=true) const {
+      CImg<charT> error_message(1024);
+      if (!is_CImg3d(full_check,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "CImg3dtoobject3d(): image instance is not a CImg3d (%s).",
+                                    cimg_instance,error_message.data());
+      const T *ptrs = _data + 6;
+      const unsigned int
+        nb_points = cimg::float2uint((float)*(ptrs++)),
+        nb_primitives = cimg::float2uint((float)*(ptrs++));
+      const CImg<T> points = CImg<T>(ptrs,3,nb_points,1,1,true).get_transpose();
+      ptrs+=3*nb_points;
+      primitives.assign(nb_primitives);
+      cimglist_for(primitives,p) {
+        const unsigned int nb_inds = (unsigned int)*(ptrs++);
+        primitives[p].assign(1,nb_inds);
+        tp *ptrp = primitives[p]._data;
+        for (unsigned int i = 0; i<nb_inds; ++i) *(ptrp++) = (tp)cimg::float2uint((float)*(ptrs++));
+      }
+      colors.assign(nb_primitives);
+      cimglist_for(colors,c) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) colors[c].assign(colors[w],true);
+          else { colors[c].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else { colors[c].assign(ptrs,1,1,1,3,false); ptrs+=3; }
+      }
+      opacities.assign(nb_primitives);
+      cimglist_for(opacities,o) {
+        if (*ptrs==(T)-128) {
+          ++ptrs;
+          const unsigned int w = (unsigned int)*(ptrs++), h = (unsigned int)*(ptrs++), s = (unsigned int)*(ptrs++);
+          if (!h && !s) opacities[o].assign(opacities[w],true);
+          else { opacities[o].assign(ptrs,w,h,1,s,false); ptrs+=w*h*s; }
+        } else opacities[o].assign(1,1,1,1,*(ptrs++));
+      }
+      return points;
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name Drawing Functions
+    //@{
+    //---------------------------
+
+#define cimg_init_scanline(color,opacity) \
+    const float _sc_nopacity = cimg::abs((float)opacity), _sc_copacity = 1 - cimg::max((float)opacity,0); \
+  const ulongT _sc_whd = (ulongT)_width*_height*_depth
+
+#define cimg_draw_scanline(x0,x1,y,color,opacity,brightness) \
+    _draw_scanline(x0,x1,y,color,opacity,brightness,_sc_nopacity,_sc_copacity,_sc_whd)
+
+    // [internal] The following _draw_scanline() routines are *non user-friendly functions*,
+    // used only for internal purpose.
+    // Pre-requisites: x0<x1, y-coordinate is valid, col is valid.
+    template<typename tc>
+    CImg<T>& _draw_scanline(const int x0, const int x1, const int y,
+                            const tc *const color, const float opacity,
+                            const float brightness,
+                            const float nopacity, const float copacity, const ulongT whd) {
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const int nx0 = x0>0?x0:0, nx1 = x1<width()?x1:width() - 1, dx = nx1 -
