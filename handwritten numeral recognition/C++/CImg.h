@@ -36051,4 +36051,173 @@ namespace cimg_library_suffixed {
             tnx1 = (x0 + x2)/2, tny1 = (y0 + y2)/2, tnz1 = (z0 + z2)/2,
             nn1 = (float)std::sqrt(tnx1*tnx1 + tny1*tny1 + tnz1*tnz1),
             tnx2 = (x1 + x2)/2, tny2 = (y1 + y2)/2, tnz2 = (z1 + z2)/2,
-            nn2 = (float)std::sqrt(tnx2*tnx2 + tny2*tn
+            nn2 = (float)std::sqrt(tnx2*tnx2 + tny2*tny2 + tnz2*tnz2),
+            nx0 = tnx0/nn0, ny0 = tny0/nn0, nz0 = tnz0/nn0,
+            nx1 = tnx1/nn1, ny1 = tny1/nn1, nz1 = tnz1/nn1,
+            nx2 = tnx2/nn2, ny2 = tny2/nn2, nz2 = tnz2/nn2;
+          int i0 = -1, i1 = -1, i2 = -1;
+          cimglist_for(vertices,p) {
+            const float x = (float)vertices(p,0), y = (float)vertices(p,1), z = (float)vertices(p,2);
+            if (cimg::sqr(x-nx0) + cimg::sqr(y-ny0) + cimg::sqr(z-nz0)<he2) i0 = p;
+            if (cimg::sqr(x-nx1) + cimg::sqr(y-ny1) + cimg::sqr(z-nz1)<he2) i1 = p;
+            if (cimg::sqr(x-nx2) + cimg::sqr(y-ny2) + cimg::sqr(z-nz2)<he2) i2 = p;
+          }
+          if (i0<0) { CImg<floatT>::vector(nx0,ny0,nz0).move_to(vertices); i0 = vertices.width() - 1; }
+          if (i1<0) { CImg<floatT>::vector(nx1,ny1,nz1).move_to(vertices); i1 = vertices.width() - 1; }
+          if (i2<0) { CImg<floatT>::vector(nx2,ny2,nz2).move_to(vertices); i2 = vertices.width() - 1; }
+          primitives.remove(0);
+          CImg<tf>::vector(p0,i0,i1).move_to(primitives);
+          CImg<tf>::vector((tf)i0,(tf)p1,(tf)i2).move_to(primitives);
+          CImg<tf>::vector((tf)i1,(tf)i2,(tf)p2).move_to(primitives);
+          CImg<tf>::vector((tf)i1,(tf)i0,(tf)i2).move_to(primitives);
+        }
+      }
+      return (vertices>'x')*=radius;
+    }
+
+    //! Generate a 3d ellipsoid.
+    /**
+       \param[out] primitives The returned list of the 3d object primitives
+                              (template type \e tf should be at least \e unsigned \e int).
+       \param tensor The tensor which gives the shape and size of the ellipsoid.
+       \param subdivisions The number of recursive subdivisions from an initial stretched icosahedron.
+       \return The N vertices (xi,yi,zi) of the 3d object as a Nx3 CImg<float> image (0<=i<=N - 1).
+       \par Example
+       \code
+       CImgList<unsigned int> faces3d;
+       const CImg<float> tensor = CImg<float>::diagonal(10,7,3),
+                         points3d = CImg<float>::ellipsoid3d(faces3d,tensor,4);
+       CImg<unsigned char>().display_object3d("Ellipsoid3d",points3d,faces3d);
+       \endcode
+       \image html ref_ellipsoid3d.jpg
+    **/
+    template<typename tf, typename t>
+    static CImg<floatT> ellipsoid3d(CImgList<tf>& primitives,
+                                    const CImg<t>& tensor, const unsigned int subdivisions=3) {
+      primitives.assign();
+      if (!subdivisions) return CImg<floatT>();
+      CImg<floatT> S, V;
+      tensor.symmetric_eigen(S,V);
+      const float orient =
+        (V(0,1)*V(1,2) - V(0,2)*V(1,1))*V(2,0) +
+        (V(0,2)*V(1,0) - V(0,0)*V(1,2))*V(2,1) +
+        (V(0,0)*V(1,1) - V(0,1)*V(1,0))*V(2,2);
+      if (orient<0) { V(2,0) = -V(2,0); V(2,1) = -V(2,1); V(2,2) = -V(2,2); }
+      const float l0 = S[0], l1 = S[1], l2 = S[2];
+      CImg<floatT> vertices = sphere3d(primitives,1.0,subdivisions);
+      vertices.get_shared_row(0)*=l0;
+      vertices.get_shared_row(1)*=l1;
+      vertices.get_shared_row(2)*=l2;
+      return V*vertices;
+    }
+
+    //! Convert 3d object into a CImg3d representation.
+    /**
+       \param primitives Primitives data of the 3d object.
+       \param colors Colors data of the 3d object.
+       \param opacities Opacities data of the 3d object.
+       \param full_check Tells if full checking of the 3d object must be performed.
+    **/
+    template<typename tp, typename tc, typename to>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const CImgList<tc>& colors,
+                              const to& opacities,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,colors,opacities,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp, typename tc>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const CImgList<tc>& colors,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,colors,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    template<typename tp>
+    CImg<T>& object3dtoCImg3d(const CImgList<tp>& primitives,
+                              const bool full_check=true) {
+      return get_object3dtoCImg3d(primitives,full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \overloading.
+    CImg<T>& object3dtoCImg3d(const bool full_check=true) {
+      return get_object3dtoCImg3d(full_check).move_to(*this);
+    }
+
+    //! Convert 3d object into a CImg3d representation \newinstance.
+    template<typename tp, typename tc, typename to>
+    CImg<floatT> get_object3dtoCImg3d(const CImgList<tp>& primitives,
+                                      const CImgList<tc>& colors,
+                                      const to& opacities,
+                                      const bool full_check=true) const {
+      CImg<charT> error_message(1024);
+      if (!is_object3d(primitives,colors,opacities,full_check,error_message))
+        throw CImgInstanceException(_cimg_instance
+                                    "object3dtoCImg3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,_width,primitives._width,error_message.data());
+      CImg<floatT> res(1,_size_object3dtoCImg3d(primitives,colors,opacities));
+      float *ptrd = res._data;
+
+      // Put magick number.
+      *(ptrd++) = 'C' + 0.5f; *(ptrd++) = 'I' + 0.5f; *(ptrd++) = 'm' + 0.5f;
+      *(ptrd++) = 'g' + 0.5f; *(ptrd++) = '3' + 0.5f; *(ptrd++) = 'd' + 0.5f;
+
+      // Put number of vertices and primitives.
+      *(ptrd++) = cimg::uint2float(_width);
+      *(ptrd++) = cimg::uint2float(primitives._width);
+
+      // Put vertex data.
+      if (is_empty() || !primitives) return res;
+      const T *ptrx = data(0,0), *ptry = data(0,1), *ptrz = data(0,2);
+      cimg_forX(*this,p) {
+        *(ptrd++) = (float)*(ptrx++);
+        *(ptrd++) = (float)*(ptry++);
+        *(ptrd++) = (float)*(ptrz++);
+      }
+
+      // Put primitive data.
+      cimglist_for(primitives,p) {
+        *(ptrd++) = (float)primitives[p].size();
+        const tp *ptrp = primitives[p]._data;
+        cimg_foroff(primitives[p],i) *(ptrd++) = cimg::uint2float((unsigned int)*(ptrp++));
+      }
+
+      // Put color/texture data.
+      const unsigned int csiz = cimg::min(colors._width,primitives._width);
+      for (int c = 0; c<(int)csiz; ++c) {
+        const CImg<tc>& color = colors[c];
+        const tc *ptrc = color._data;
+        if (color.size()==3) { *(ptrd++) = (float)*(ptrc++); *(ptrd++) = (float)*(ptrc++); *(ptrd++) = (float)*ptrc; }
+        else {
+          *(ptrd++) = -128.0f;
+          int shared_ind = -1;
+          if (color.is_shared()) for (int i = 0; i<c; ++i) if (ptrc==colors[i]._data) { shared_ind = i; break; }
+          if (shared_ind<0) {
+            *(ptrd++) = (float)color._width;
+            *(ptrd++) = (float)color._height;
+            *(ptrd++) = (float)color._spectrum;
+            cimg_foroff(color,l) *(ptrd++) = (float)*(ptrc++);
+          } else {
+            *(ptrd++) = (float)shared_ind;
+            *(ptrd++) = 0;
+            *(ptrd++) = 0;
+          }
+        }
+      }
+      const int csiz2 = primitives.width() - colors.width();
+      for (int c = 0; c<csiz2; ++c) { *(ptrd++) = 200.0f; *(ptrd++) = 200.0f; *(ptrd++) = 200.0f; }
+
+      // Put opacity data.
+      ptrd = _object3dtoCImg3d(opacities,ptrd);
+      const float *ptre = res.end();
+      while (ptrd<ptre) *(ptrd++) = 1.0f;
+      return res;
+    }
+
+    template<typename to>
+    float* _object3dtoCImg3d(const CImgList<to>& opacities, float *ptrd) const {
+      cimglist_for(opacities,o) {
+        const CImg<to>& opacity = opacities[o];
+  
