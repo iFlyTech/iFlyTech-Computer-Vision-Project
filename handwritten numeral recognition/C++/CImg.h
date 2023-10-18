@@ -36390,4 +36390,182 @@ namespace cimg_library_suffixed {
                             const float brightness,
                             const float nopacity, const float copacity, const ulongT whd) {
       static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
-      const int nx0 = x0>0?x0:0, nx1 = x1<width()?x1:width() - 1, dx = nx1 -
+      const int nx0 = x0>0?x0:0, nx1 = x1<width()?x1:width() - 1, dx = nx1 - nx0;
+      if (dx>=0) {
+        const tc *col = color;
+        const ulongT off = whd - dx - 1;
+        T *ptrd = data(nx0,y);
+        if (opacity>=1) { // ** Opaque drawing **
+          if (brightness==1) { // Brightness==1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)*(col++);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else if (brightness<1) { // Brightness<1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)(*(col++)*brightness);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          } else { // Brightness>1
+            if (sizeof(T)!=1) cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                for (int x = dx; x>=0; --x) *(ptrd++) = val;
+                ptrd+=off;
+              } else cimg_forC(*this,c) {
+                const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+                std::memset(ptrd,(int)val,dx + 1);
+                ptrd+=whd;
+              }
+          }
+        } else { // ** Transparent drawing **
+          if (brightness==1) { // Brightness==1
+            cimg_forC(*this,c) {
+              const T val = (T)*(col++);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else if (brightness<=1) { // Brightness<1
+            cimg_forC(*this,c) {
+              const T val = (T)(*(col++)*brightness);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          } else { // Brightness>1
+            cimg_forC(*this,c) {
+              const T val = (T)((2-brightness)**(col++) + (brightness - 1)*maxval);
+              for (int x = dx; x>=0; --x) { *ptrd = (T)(val*nopacity + *ptrd*copacity); ++ptrd; }
+              ptrd+=off;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 3d point.
+    /**
+       \param x0 X-coordinate of the point.
+       \param y0 Y-coordinate of the point.
+       \param z0 Z-coordinate of the point.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - To set pixel values without clipping needs, you should use the faster CImg::operator()() function.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,128,64 };
+       img.draw_point(50,50,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_point(const int x0, const int y0, const int z0,
+                        const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_point(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0>=0 && y0>=0 && z0>=0 && x0<width() && y0<height() && z0<depth()) {
+        const ulongT whd = (ulongT)_width*_height*_depth;
+        const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+        T *ptrd = data(x0,y0,z0,0);
+        const tc *col = color;
+        if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=whd; }
+        else cimg_forC(*this,c) { *ptrd = (T)(*(col++)*nopacity + *ptrd*copacity); ptrd+=whd; }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d point \simplification.
+    template<typename tc>
+    CImg<T>& draw_point(const int x0, const int y0,
+                        const tc *const color, const float opacity=1) {
+      return draw_point(x0,y0,0,color,opacity);
+    }
+
+    // Draw a points cloud.
+    /**
+       \param points Image of vertices coordinates.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_point(const CImg<t>& points,
+                        const tc *const color, const float opacity=1) {
+      if (is_empty() || !points) return *this;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_point(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+      case 2 : {
+        cimg_forX(points,i) draw_point((int)points(i,0),(int)points(i,1),color,opacity);
+      } break;
+      default : {
+        cimg_forX(points,i) draw_point((int)points(i,0),(int)points(i,1),(int)points(i,2),color,opacity);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d line.
+    /**
+       \param x0 X-coordinate of the starting line point.
+       \param y0 Y-coordinate of the starting line point.
+       \param x1 X-coordinate of the ending line point.
+       \param y1 Y-coordinate of the ending line point.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch Tells if a reinitialization of the hash state must be done.
+       \note
+       - Line routine uses Bresenham's algorithm.
+       - Set \p init_hatch = false to draw consecutive hatched segments without breaking the line pattern.
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,128,64 };
+        img.draw_line(40,40,80,70,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_line(const int x0, const int y0,
+                       const int x1, const int y1,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Specified color is (null).",
+                                    cimg_instance);
+      static unsigned int hatch = ~0U - (~0U>>1);
+      if (init_hatch) hatch = ~0U - (~0U>>1);
+      const bool xdir = x0<x1, ydir = y0<y1;
+      int
+        nx0 = x0, nx1 = x1, ny0 = y0, ny1 = y1,
+        &xleft = xdir?nx0:nx1, &yleft = xdir?ny0:ny1,
+        &xright = xdir?nx1:nx0, &yright = xdir?ny1:ny0,
+        &xup = ydir?nx0:nx1, &yup = ydir?ny0:ny1,
+        &xdown = ydir?nx1:nx0, &ydown = ydir?ny1:ny0;
+      if (xright<0 || xleft>=width()) return *this;
+      if (xleft<0) { yleft-=(int)((float)xleft*((float)yright - yleft)/((float)xright - xleft)); xleft = 0; }
+      if (xright>=width()) {
+        yright-=(int)(((float)xright - width())*((float)yright - yleft)/((float)xright - xleft));
+        xright = width() - 1;
+      }
+      if (ydown<0 || yup>=height()) return *this;
+      if (yup<0) { xup-=(int)((float)yup*((float)xdown - xup)/((float)ydown - yup)); yup = 0; }
+      if (ydown>=height()) {
+        xdown-=(int)(((float)ydown - height())*((float)xdown - xup)/((float)ydow
