@@ -37243,4 +37243,163 @@ namespace cimg_library_suffixed {
           const tzfloat z = Z0 + x*dz/ndx;
           if (z>=(tzfloat)*ptrz) {
             *ptrz = (tz)z;
-            const float tx = Tx0 + x
+            const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)*col; ptrd+=whd; col+=twh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      } else {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+        if (~pattern) for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          if (pattern&hatch) {
+            const tzfloat z = Z0 + x*dz/ndx;
+            if (z>=(tzfloat)*ptrz) {
+              *ptrz = (tz)z;
+              const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+              const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+              T *ptrd = ptrd0;
+              cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+            }
+          }
+          hatch>>=1; if (!hatch) hatch = ~0U - (~0U>>1);
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        } else for (int error = dx>>1, x = 0; x<=dx; ++x) {
+          const tzfloat z = Z0 + x*dz/ndx;
+          if (z>=(tzfloat)*ptrz) {
+            *ptrz = (tz)z;
+            const float tx = Tx0 + x*dtx/ndx, ty = Ty0 + x*dty/ndx;
+            const tc *col = &texture._atXY((int)(tx/z),(int)(ty/z));
+            T *ptrd = ptrd0;
+            cimg_forC(*this,c) { *ptrd = (T)(nopacity**col + *ptrd*copacity); ptrd+=whd; col+=twh; }
+          }
+          ptrd0+=offx; ptrz+=offx;
+          if ((error-=dy)<0) { ptrd0+=offy; ptrz+=offy; error+=dx; }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a set of consecutive lines.
+    /**
+       \param points Coordinates of vertices, stored as a list of vectors.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If set to true, init hatch motif.
+       \note
+       - This function uses several call to the single CImg::draw_line() procedure,
+       depending on the vectors size in \p points.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_line(const CImg<t>& points,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || points._width<2) return *this;
+      bool ninit_hatch = init_hatch;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_line(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+
+      case 2 : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1);
+        int ox = x0, oy = y0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1);
+          draw_line(ox,oy,x,y,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y;
+        }
+      } break;
+      default : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1), z0 = (int)points(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1), z = (int)points(i,2);
+          draw_line(ox,oy,oz,x,y,z,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z;
+        }
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d arrow.
+    /**
+       \param x0 X-coordinate of the starting arrow point (tail).
+       \param y0 Y-coordinate of the starting arrow point (tail).
+       \param x1 X-coordinate of the ending arrow point (head).
+       \param y1 Y-coordinate of the ending arrow point (head).
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param angle Aperture angle of the arrow head.
+       \param length Length of the arrow head. If negative, describes a percentage of the arrow length.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_arrow(const int x0, const int y0,
+                        const int x1, const int y1,
+                        const tc *const color, const float opacity=1,
+                        const float angle=30, const float length=-10,
+                        const unsigned int pattern=~0U) {
+      if (is_empty()) return *this;
+      const float u = (float)(x0 - x1), v = (float)(y0 - y1), sq = u*u + v*v,
+        deg = (float)(angle*cimg::PI/180), ang = (sq>0)?(float)std::atan2(v,u):0.0f,
+        l = (length>=0)?length:-length*(float)std::sqrt(sq)/100;
+      if (sq>0) {
+        const float
+            cl = (float)std::cos(ang - deg), sl = (float)std::sin(ang - deg),
+            cr = (float)std::cos(ang + deg), sr = (float)std::sin(ang + deg);
+        const int
+          xl = x1 + (int)(l*cl), yl = y1 + (int)(l*sl),
+          xr = x1 + (int)(l*cr), yr = y1 + (int)(l*sr),
+          xc = x1 + (int)((l + 1)*(cl + cr))/2, yc = y1 + (int)((l + 1)*(sl + sr))/2;
+        draw_line(x0,y0,xc,yc,color,opacity,pattern).draw_triangle(x1,y1,xl,yl,xr,yr,color,opacity);
+      } else draw_point(x0,y0,color,opacity);
+      return *this;
+    }
+
+    //! Draw a 2d spline.
+    /**
+       \param x0 X-coordinate of the starting curve point
+       \param y0 Y-coordinate of the starting curve point
+       \param u0 X-coordinate of the starting velocity
+       \param v0 Y-coordinate of the starting velocity
+       \param x1 X-coordinate of the ending curve point
+       \param y1 Y-coordinate of the ending curve point
+       \param u1 X-coordinate of the ending velocity
+       \param v1 Y-coordinate of the ending velocity
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param precision Curve drawing precision.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If \c true, init hatch motif.
+       \note
+       - The curve is a 2d cubic Bezier spline, from the set of specified starting/ending points
+       and corresponding velocity vectors.
+       - The spline is drawn as a serie of connected segments. The \p precision parameter sets the
+       average number of pixels in each drawn segment.
+       - A cubic Bezier curve is sometimes defined by a set of 4 points { (\p x0,\p y0), (\p xa,\p ya),
+         (\p xb,\p yb), (\p x1,\p y1) } where (\p x0,\p y0) is the starting point, (\p x1,\p y1) is the ending point
+         and (\p xa,\p ya), (\p xb,\p yb) are two
+       \e control points.
+       The starting and ending velocities (\p u0,\p v0) and (\p u1,\p v1) can be deduced easily from
+       the control points as
+       \p u0 = (\p xa - \p x0), \p v0 = (\p ya - \p y0), \p u1 = (\p x1 - \p xb) and \p v1 = (\p y1 - \p yb).
+       \par Example:
+       \code
+       CImg<unsigned char> img(100,100,1,3,0);
+       const unsigned char color[] = { 255,255,255 };
+       img.draw_spline(30,30,0,100,90,40,0,-100,color);
+       \endcode
+    **/
+    template<typename tc>
+    CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
+                         cons
