@@ -37558,4 +37558,167 @@ namespace cimg_library_suffixed {
                                     cimg_instance,
                                     points._width,points._height,points._depth,points._spectrum,points._data);
 
-      c
+      case 2 : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1);
+        int ox = x0, oy = y0;
+        float ou = u0, ov = v0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1);
+          draw_spline(ox,oy,ou,ov,x,y,u,v,color,precision,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; ou = u; ov = v;
+        }
+        if (is_closed_set) draw_spline(ox,oy,ou,ov,x0,y0,u0,v0,color,precision,opacity,pattern,false);
+      } break;
+      default : {
+        const int x0 = (int)points(0,0), y0 = (int)points(0,1), z0 = (int)points(0,2);
+        const float u0 = (float)tangents(0,0), v0 = (float)tangents(0,1), w0 = (float)tangents(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        float ou = u0, ov = v0, ow = w0;
+        for (unsigned int i = 1; i<points._width; ++i) {
+          const int x = (int)points(i,0), y = (int)points(i,1), z = (int)points(i,2);
+          const float u = (float)tangents(i,0), v = (float)tangents(i,1), w = (float)tangents(i,2);
+          draw_spline(ox,oy,oz,ou,ov,ow,x,y,z,u,v,w,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z; ou = u; ov = v; ow = w;
+        }
+        if (is_closed_set) draw_spline(ox,oy,oz,ou,ov,ow,x0,y0,z0,u0,v0,w0,color,precision,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a set of consecutive splines \overloading.
+    /**
+       Similar to previous function, with the point tangents automatically estimated from the given points set.
+    **/
+    template<typename tp, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || points._width<2) return *this;
+      CImg<Tfloat> tangents;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+      case 2 : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            u0 = x - x0,
+            v0 = y - y0,
+            n0 = 1e-8f + (float)std::sqrt(u0*u0 + v0*v0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            n1 = 1e-8f + (float)std::sqrt(u1*u1 + v1*v1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            n = 1e-8f + (float)std::sqrt(u*u + v*v),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+        }
+      } break;
+      default : {
+        tangents.assign(points._width,points._height);
+        cimg_forX(points,p) {
+          const unsigned int
+            p0 = is_closed_set?(p + points._width - 1)%points._width:(p?p - 1:0),
+            p1 = is_closed_set?(p + 1)%points._width:(p + 1<points._width?p + 1:p);
+          const float
+            x = (float)points(p,0),
+            y = (float)points(p,1),
+            z = (float)points(p,2),
+            x0 = (float)points(p0,0),
+            y0 = (float)points(p0,1),
+            z0 = (float)points(p0,2),
+            x1 = (float)points(p1,0),
+            y1 = (float)points(p1,1),
+            z1 = (float)points(p1,2),
+            u0 = x - x0,
+            v0 = y - y0,
+            w0 = z - z0,
+            n0 = 1e-8f + (float)std::sqrt(u0*u0 + v0*v0 + w0*w0),
+            u1 = x1 - x,
+            v1 = y1 - y,
+            w1 = z1 - z,
+            n1 = 1e-8f + (float)std::sqrt(u1*u1 + v1*v1 + w1*w1),
+            u = u0/n0 + u1/n1,
+            v = v0/n0 + v1/n1,
+            w = w0/n0 + w1/n1,
+            n = 1e-8f + (float)std::sqrt(u*u + v*v + w*w),
+            fact = 0.5f*(n0 + n1);
+          tangents(p,0) = (Tfloat)(fact*u/n);
+          tangents(p,1) = (Tfloat)(fact*v/n);
+          tangents(p,2) = (Tfloat)(fact*w/n);
+        }
+      }
+      }
+      return draw_spline(points,tangents,color,opacity,is_closed_set,precision,pattern,init_hatch);
+    }
+
+    // Inner macro for drawing triangles.
+#define _cimg_for_triangle1(img,xl,xr,y,x0,y0,x1,y1,x2,y2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               _sxn=1, \
+               _sxr=1, \
+               _sxl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter = (_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                           _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
+                           _dxl-=_dyl?_dyl*(_dxl/_dyl):0, \
+                           cimg::min((int)(img)._height - y - 1,y2 - y)), \
+               _errn = _dyn/2, \
+               _errr = _dyr/2, \
+               _errl = _dyl/2, \
+               _rxn = _dyn?(x2-x1)/_dyn:0, \
+               _rxr = _dyr?(x2-x0)/_dyr:0, \
+               _rxl = (y0!=y1 && y1>0)?(_dyl?(x1-x0)/_dyl:0): \
+                                       (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxn); \
+             _counter>=0; --_counter, ++y, \
+               xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
+               xl+=(y!=y1)?_rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0): \
+                           (_errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1-xl))
+
+#define _cimg_for_triangle2(img,xl,cl,xr,cr,y,x0,y0,c0,x1,y1,c1,x2,y2,c2) \
+        for (int y = y0<0?0:y0, \
+               xr = y0>=0?x0:(x0 - y0*(x2 - x0)/(y2 - y0)), \
+               cr = y0>=0?c0:(c0 - y0*(c2 - c0)/(y2 - y0)), \
+               xl = y1>=0?(y0>=0?(y0==y1?x1:x0):(x0 - y0*(x1 - x0)/(y1 - y0))):(x1 - y1*(x2 - x1)/(y2 - y1)), \
+               cl = y1>=0?(y0>=0?(y0==y1?c1:c0):(c0 - y0*(c1 - c0)/(y1 - y0))):(c1 - y1*(c2 - c1)/(y2 - y1)), \
+               _sxn=1, _scn=1, \
+               _sxr=1, _scr=1, \
+               _sxl=1, _scl=1, \
+               _dxn = x2>x1?x2-x1:(_sxn=-1,x1 - x2), \
+               _dxr = x2>x0?x2-x0:(_sxr=-1,x0 - x2), \
+               _dxl = x1>x0?x1-x0:(_sxl=-1,x0 - x1), \
+               _dcn = c2>c1?c2-c1:(_scn=-1,c1 - c2), \
+               _dcr = c2>c0?c2-c0:(_scr=-1,c0 - c2), \
+               _dcl = c1>c0?c1-c0:(_scl=-1,c0 - c1), \
+               _dyn = y2-y1, \
+               _dyr = y2-y0, \
+               _dyl = y1-y0, \
+               _counter =(_dxn-=_dyn?_dyn*(_dxn/_dyn):0, \
+                          _dxr-=_dyr?_dyr*(_dxr/_dyr):0, \
