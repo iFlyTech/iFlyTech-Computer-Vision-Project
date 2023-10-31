@@ -37402,4 +37402,160 @@ namespace cimg_library_suffixed {
     **/
     template<typename tc>
     CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
-                         cons
+                         const int x1, const int y1, const float u1, const float v1,
+                         const tc *const color, const float opacity=1,
+                         const float precision=0.25, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0==x1 && y0==y1) return draw_point(x0,y0,color,opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        _precision = 1/(std::sqrt(cimg::sqr((float)x0 - x1) + cimg::sqr((float)y0 - y1))*(precision>0?precision:1));
+      int ox = x0, oy = y0;
+      for (float t = 0; t<1; t+=_precision) {
+        const float t2 = t*t, t3 = t2*t;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t + y0);
+        draw_line(ox,oy,nx,ny,color,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny;
+      }
+      return draw_line(ox,oy,x1,y1,color,opacity,pattern,false);
+    }
+
+    //! Draw a 3d spline \overloading.
+    /**
+       \note
+       - Similar to CImg::draw_spline() for a 3d spline in a volumetric image.
+    **/
+    template<typename tc>
+    CImg<T>& draw_spline(const int x0, const int y0, const int z0, const float u0, const float v0, const float w0,
+                         const int x1, const int y1, const int z1, const float u1, const float v1, const float w1,
+                         const tc *const color, const float opacity=1,
+                         const float precision=4, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Specified color is (null).",
+                                    cimg_instance);
+      if (x0==x1 && y0==y1 && z0==z1) return draw_point(x0,y0,z0,color,opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        az = w0 + w1 + 2*(z0 - z1),
+        bz = 3*(z1 - z0) - 2*w0 - w1,
+        _precision = 1/(std::sqrt(cimg::sqr(x0 - x1) + cimg::sqr(y0 - y1))*(precision>0?precision:1));
+      int ox = x0, oy = y0, oz = z0;
+      for (float t = 0; t<1; t+=_precision) {
+        const float t2 = t*t, t3 = t2*t;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t + y0),
+          nz = (int)(az*t3 + bz*t2 + w0*t + z0);
+        draw_line(ox,oy,oz,nx,ny,nz,color,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny; oz = nz;
+      }
+      return draw_line(ox,oy,oz,x1,y1,z1,color,opacity,pattern,false);
+    }
+
+    //! Draw a textured 2d spline.
+    /**
+       \param x0 X-coordinate of the starting curve point
+       \param y0 Y-coordinate of the starting curve point
+       \param u0 X-coordinate of the starting velocity
+       \param v0 Y-coordinate of the starting velocity
+       \param x1 X-coordinate of the ending curve point
+       \param y1 Y-coordinate of the ending curve point
+       \param u1 X-coordinate of the ending velocity
+       \param v1 Y-coordinate of the ending velocity
+       \param texture Texture image defining line pixel colors.
+       \param tx0 X-coordinate of the starting texture point.
+       \param ty0 Y-coordinate of the starting texture point.
+       \param tx1 X-coordinate of the ending texture point.
+       \param ty1 Y-coordinate of the ending texture point.
+       \param precision Curve drawing precision.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch if \c true, reinit hatch motif.
+    **/
+    template<typename t>
+    CImg<T>& draw_spline(const int x0, const int y0, const float u0, const float v0,
+                         const int x1, const int y1, const float u1, const float v1,
+                         const CImg<t>& texture,
+                         const int tx0, const int ty0, const int tx1, const int ty1,
+                         const float opacity=1,
+                         const float precision=4, const unsigned int pattern=~0U,
+                         const bool init_hatch=true) {
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_empty()) return *this;
+      if (is_overlapped(texture))
+        return draw_spline(x0,y0,u0,v0,x1,y1,u1,v1,+texture,tx0,ty0,tx1,ty1,precision,opacity,pattern,init_hatch);
+      if (x0==x1 && y0==y1)
+        return draw_point(x0,y0,texture.get_vector_at(x0<=0?0:x0>=texture.width()?texture.width() - 1:x0,
+                                                      y0<=0?0:y0>=texture.height()?texture.height() - 1:y0),opacity);
+      bool ninit_hatch = init_hatch;
+      const float
+        ax = u0 + u1 + 2*(x0 - x1),
+        bx = 3*(x1 - x0) - 2*u0 - u1,
+        ay = v0 + v1 + 2*(y0 - y1),
+        by = 3*(y1 - y0) - 2*v0 - v1,
+        _precision = 1/(std::sqrt(cimg::sqr(x0 - x1) + cimg::sqr(y0 - y1))*(precision>0?precision:1));
+      int ox = x0, oy = y0, otx = tx0, oty = ty0;
+      for (float t1 = 0; t1<1; t1+=_precision) {
+        const float t2 = t1*t1, t3 = t2*t1;
+        const int
+          nx = (int)(ax*t3 + bx*t2 + u0*t1 + x0),
+          ny = (int)(ay*t3 + by*t2 + v0*t1 + y0),
+          ntx = tx0 + (int)((tx1 - tx0)*t1),
+          nty = ty0 + (int)((ty1 - ty0)*t1);
+        draw_line(ox,oy,nx,ny,texture,otx,oty,ntx,nty,opacity,pattern,ninit_hatch);
+        ninit_hatch = false;
+        ox = nx; oy = ny; otx = ntx; oty = nty;
+      }
+      return draw_line(ox,oy,x1,y1,texture,otx,oty,tx1,ty1,opacity,pattern,false);
+    }
+
+    //! Draw a set of consecutive splines.
+    /**
+       \param points Vertices data.
+       \param tangents Tangents data.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param is_closed_set Tells if the drawn spline set is closed.
+       \param precision Precision of the drawing.
+       \param pattern An integer whose bits describe the line pattern.
+       \param init_hatch If \c true, init hatch motif.
+    **/
+    template<typename tp, typename tt, typename tc>
+    CImg<T>& draw_spline(const CImg<tp>& points, const CImg<tt>& tangents,
+                         const tc *const color, const float opacity=1,
+                         const bool is_closed_set=false, const float precision=4,
+                         const unsigned int pattern=~0U, const bool init_hatch=true) {
+      if (is_empty() || !points || !tangents || points._width<2 || tangents._width<2) return *this;
+      bool ninit_hatch = init_hatch;
+      switch (points._height) {
+      case 0 : case 1 :
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_spline(): Invalid specified point set (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    points._width,points._height,points._depth,points._spectrum,points._data);
+
+      c
