@@ -37951,4 +37951,153 @@ namespace cimg_library_suffixed {
                                         (_errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyn ); \
              _counter>=0; --_counter, ++y, \
                xr+=_rxr+((_errr-=_dxr)<0?_errr+=_dyr,_sxr:0), \
-               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dy
+               txr+=_rtxr+((_errtxr-=_dtxr)<0?_errtxr+=_dyr,_stxr:0), \
+               tyr+=_rtyr+((_errtyr-=_dtyr)<0?_errtyr+=_dyr,_styr:0), \
+               lxr+=_rlxr+((_errlxr-=_dlxr)<0?_errlxr+=_dyr,_slxr:0), \
+               lyr+=_rlyr+((_errlyr-=_dlyr)<0?_errlyr+=_dyr,_slyr:0), \
+               xl+=(y!=y1)?(txl+=_rtxl+((_errtxl-=_dtxl)<0?(_errtxl+=_dyl,_stxl):0), \
+                            tyl+=_rtyl+((_errtyl-=_dtyl)<0?(_errtyl+=_dyl,_styl):0), \
+                            lxl+=_rlxl+((_errlxl-=_dlxl)<0?(_errlxl+=_dyl,_slxl):0), \
+                            lyl+=_rlyl+((_errlyl-=_dlyl)<0?(_errlyl+=_dyl,_slyl):0), \
+                            _rxl+((_errl-=_dxl)<0?(_errl+=_dyl,_sxl):0)): \
+               (_errtxl=_errtxn, _dtxl=_dtxn, _dyl=_dyn, _stxl=_stxn, _rtxl=_rtxn, txl=tx1, \
+                _errtyl=_errtyn, _dtyl=_dtyn, _dyl=_dyn, _styl=_styn, _rtyl=_rtyn, tyl=ty1, \
+                _errlxl=_errlxn, _dlxl=_dlxn, _dyl=_dyn, _slxl=_slxn, _rlxl=_rlxn, lxl=lx1, \
+                _errlyl=_errlyn, _dlyl=_dlyn, _dyl=_dyn, _slyl=_slyn, _rlyl=_rlyn, lyl=ly1, \
+                _errl=_errn, _dxl=_dxn, _dyl=_dyn, _sxl=_sxn, _rxl=_rxn, x1 - xl))
+
+    // [internal] Draw a filled triangle.
+    template<typename tc>
+    CImg<T>& _draw_triangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const int x2, const int y2,
+                            const tc *const color, const float opacity,
+                            const float brightness) {
+      cimg_init_scanline(color,opacity);
+      const float nbrightness = brightness<0?0:(brightness>2?2:brightness);
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2);
+      if (ny0<height() && ny2>=0) {
+        if ((nx1 - nx0)*(ny2 - ny0) - (nx2 - nx0)*(ny1 - ny0)<0)
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xl,xr,y,color,opacity,nbrightness);
+        else
+          _cimg_for_triangle1(*this,xl,xr,y,nx0,ny0,nx1,ny1,nx2,ny2)
+            cimg_draw_scanline(xr,xl,y,color,opacity,nbrightness);
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      _draw_triangle(x0,y0,x1,y1,x2,y2,color,opacity,1);
+      return *this;
+    }
+
+    //! Draw a outlined 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+     **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc *const color, const float opacity,
+                           const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      draw_line(x0,y0,x1,y1,color,opacity,pattern,true).
+        draw_line(x1,y1,x2,y2,color,opacity,pattern,false).
+        draw_line(x2,y2,x0,y0,color,opacity,pattern,false);
+      return *this;
+    }
+
+    //! Draw a filled 2d triangle, with z-buffering.
+    /**
+       \param zbuffer Z-buffer image.
+       \param x0 X-coordinate of the first vertex.
+       \param y0 Y-coordinate of the first vertex.
+       \param z0 Z-coordinate of the first vertex.
+       \param x1 X-coordinate of the second vertex.
+       \param y1 Y-coordinate of the second vertex.
+       \param z1 Z-coordinate of the second vertex.
+       \param x2 X-coordinate of the third vertex.
+       \param y2 Y-coordinate of the third vertex.
+       \param z2 Z-coordinate of the third vertex.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param brightness Brightness factor.
+    **/
+    template<typename tz, typename tc>
+    CImg<T>& draw_triangle(CImg<tz>& zbuffer,
+                           const int x0, const int y0, const float z0,
+                           const int x1, const int y1, const float z1,
+                           const int x2, const int y2, const float z2,
+                           const tc *const color, const float opacity=1,
+                           const float brightness=1) {
+      typedef typename cimg::superset<tz,float>::type tzfloat;
+      if (is_empty() || z0<=0 || z1<=0 || z2<=0) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Specified color is (null).",
+                                    cimg_instance);
+      if (!is_sameXY(zbuffer))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
+                                    "different dimensions.",
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0),
+        nbrightness = brightness<0?0:(brightness>2?2:brightness);
+      const longT whd = (longT)width()*height()*depth(), offx = spectrum()*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2;
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nz0,nz2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nz1,nz2);
+      if (ny0>=height() || ny2<0) return *this;
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle1(*this,xleft0,xright0,y,nx0,ny0,nx1,ny1,nx2,ny2) {
+        if (y==ny1) { zl = nz1; pzl = pzn; }
+        int xleft = xleft0, xright = xright0;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) c
