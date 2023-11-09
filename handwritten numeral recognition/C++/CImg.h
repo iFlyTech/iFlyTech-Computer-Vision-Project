@@ -38263,4 +38263,150 @@ namespace cimg_library_suffixed {
         throw CImgArgumentException(_cimg_instance
                                     "draw_triangle(): Instance and specified Z-buffer (%u,%u,%u,%u,%p) have "
                                     "different dimensions.",
-                               
+                                    cimg_instance,
+                                    zbuffer._width,zbuffer._height,zbuffer._depth,zbuffer._spectrum,zbuffer._data);
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      const longT whd = (longT)width()*height()*depth(), offx = spectrum()*whd;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        nc0 = (int)((brightness0<0.0f?0.0f:(brightness0>2.0f?2.0f:brightness0))*256.0f),
+        nc1 = (int)((brightness1<0.0f?0.0f:(brightness1>2.0f?2.0f:brightness1))*256.0f),
+        nc2 = (int)((brightness2<0.0f?0.0f:(brightness2>2.0f?2.0f:brightness2))*256.0f);
+      tzfloat nz0 = 1/(tzfloat)z0, nz1 = 1/(tzfloat)z1, nz2 = 1/(tzfloat)z2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,nz0,nz1,nc0,nc1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,nz0,nz2,nc0,nc2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,nz1,nz2,nc1,nc2);
+      if (ny0>=height() || ny2<0) return *this;
+      tzfloat
+        pzl = (nz1 - nz0)/(ny1 - ny0),
+        pzr = (nz2 - nz0)/(ny2 - ny0),
+        pzn = (nz2 - nz1)/(ny2 - ny1),
+        zr = ny0>=0?nz0:(nz0 - ny0*(nz2 - nz0)/(ny2 - ny0)),
+        zl = ny1>=0?(ny0>=0?nz0:(nz0 - ny0*(nz1 - nz0)/(ny1 - ny0))):(pzl=pzn,(nz1 - ny1*(nz2 - nz1)/(ny2 - ny1)));
+      _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
+        if (y==ny1) { zl = nz1; pzl = pzn; }
+        int xleft = xleft0, xright = xright0, cleft = cleft0, cright = cright0;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errc = dx>>1;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          zleft-=xleft*(zright - zleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T *ptrd = data(xleft,y);
+        tz *ptrz = xleft<=xright?zbuffer.data(xleft,y):0;
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) {
+                *ptrd = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+                ptrd+=whd;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tc *col = color;
+              cimg_forC(*this,c) {
+                const T val = (T)(cleft<256?cleft**(col++)/256:((512 - cleft)**(col++)+(cleft - 256)*maxval)/256);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          }
+        zr+=pzr; zl+=pzl;
+      }
+      return *this;
+    }
+
+    //! Draw a color-interpolated 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param color1 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the first vertex.
+       \param color2 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the seconf vertex.
+       \param color3 Pointer to \c spectrum() consecutive values of type \c T, defining the color of the third vertex.
+       \param opacity Drawing opacity.
+     **/
+    template<typename tc1, typename tc2, typename tc3>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const tc1 *const color1,
+                           const tc2 *const color2,
+                           const tc3 *const color3,
+                           const float opacity=1) {
+      const unsigned char one = 1;
+      cimg_forC(*this,c)
+        get_shared_channel(c).draw_triangle(x0,y0,x1,y1,x2,y2,&one,color1[c],color2[c],color3[c],opacity);
+      return *this;
+    }
+
+    //! Draw a textured 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param texture Texture image used to fill the triangle.
+       \param tx0 X-coordinate of the first vertex in the texture image.
+       \param ty0 Y-coordinate of the first vertex in the texture image.
+       \param tx1 X-coordinate of the second vertex in the texture image.
+       \param ty1 Y-coordinate of the second vertex in the texture image.
+       \param tx2 X-coordinate of the third vertex in the texture image.
+       \param ty2 Y-coordinate of the third vertex in the texture image.
+       \param opacity Drawing opacity.
+       \param brightness Brightness factor of the drawing (in [0,2]).
+    **/
+    template<typename tc>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const float opacity=1,
+                           const float brightness=1) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,opacity,brightness);
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float
+        nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0),
+        nbrightness = brightness<0?0:(brightness>2?2:brightness);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        ntx0 = tx0, nty0 = ty0, ntx1 = tx1, nty1 = ty1, ntx2 = tx2, nty2 = ty2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1);
+      if (ny0>
