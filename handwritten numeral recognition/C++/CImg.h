@@ -39320,4 +39320,146 @@ namespace cimg_library_suffixed {
       _cimg_for_triangle2(*this,xleft0,cleft0,xright0,cright0,y,nx0,ny0,nc0,nx1,ny1,nc1,nx2,ny2,nc2) {
         if (y==ny1) { zl = nz1; txl = ntx1; tyl = nty1; pzl = pzn; ptxl = ptxn; ptyl = ptyn; }
         int xleft = xleft0, xright = xright0, cleft = cleft0, cright = cright0;
-        float t
+        float txleft = txl, txright = txr, tyleft = tyl, tyright = tyr;
+        tzfloat zleft = zl, zright = zr;
+        if (xright<xleft) cimg::swap(xleft,xright,zleft,zright,txleft,txright,tyleft,tyright,cleft,cright);
+        const int
+          dx = xright - xleft,
+          dc = cright>cleft?cright - cleft:cleft - cright,
+          rc = dx?(cright - cleft)/dx:0,
+          sc = cright>cleft?1:-1,
+          ndc = dc - (dx?dx*(dc/dx):0);
+        float pentetx = (txright - txleft)/dx, pentety = (tyright - tyleft)/dx;
+        const tzfloat pentez = (zright - zleft)/dx;
+        int errc = dx>>1;
+        if (xleft<0 && dx) {
+          cleft-=xleft*(cright - cleft)/dx;
+          zleft-=xleft*(zright - zleft)/dx;
+          txleft-=xleft*(txright - txleft)/dx;
+          tyleft-=xleft*(tyright - tyleft)/dx;
+        }
+        if (xleft<0) xleft = 0;
+        if (xright>=width() - 1) xright = width() - 1;
+        T* ptrd = data(xleft,y);
+        tz *ptrz = zbuffer.data(xleft,y);
+        if (opacity>=1) for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              cimg_forC(*this,c) {
+                *ptrd = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+                ptrd+=whd; col+=twh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrd, ++ptrz) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              cimg_forC(*this,c) {
+                const T val = (T)(cleft<256?cleft**col/256:((512 - cleft)**col + (cleft - 256)*maxval)/256);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; col+=twh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            cleft+=rc+((errc-=ndc)<0?errc+=dx,sc:0);
+          }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a textured Phong-shaded 2d triangle.
+    /**
+       \param x0 X-coordinate of the first vertex in the image instance.
+       \param y0 Y-coordinate of the first vertex in the image instance.
+       \param x1 X-coordinate of the second vertex in the image instance.
+       \param y1 Y-coordinate of the second vertex in the image instance.
+       \param x2 X-coordinate of the third vertex in the image instance.
+       \param y2 Y-coordinate of the third vertex in the image instance.
+       \param texture Texture image used to fill the triangle.
+       \param tx0 X-coordinate of the first vertex in the texture image.
+       \param ty0 Y-coordinate of the first vertex in the texture image.
+       \param tx1 X-coordinate of the second vertex in the texture image.
+       \param ty1 Y-coordinate of the second vertex in the texture image.
+       \param tx2 X-coordinate of the third vertex in the texture image.
+       \param ty2 Y-coordinate of the third vertex in the texture image.
+       \param light Light image.
+       \param lx0 X-coordinate of the first vertex in the light image.
+       \param ly0 Y-coordinate of the first vertex in the light image.
+       \param lx1 X-coordinate of the second vertex in the light image.
+       \param ly1 Y-coordinate of the second vertex in the light image.
+       \param lx2 X-coordinate of the third vertex in the light image.
+       \param ly2 Y-coordinate of the third vertex in the light image.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc, typename tl>
+    CImg<T>& draw_triangle(const int x0, const int y0,
+                           const int x1, const int y1,
+                           const int x2, const int y2,
+                           const CImg<tc>& texture,
+                           const int tx0, const int ty0,
+                           const int tx1, const int ty1,
+                           const int tx2, const int ty2,
+                           const CImg<tl>& light,
+                           const int lx0, const int ly0,
+                           const int lx1, const int ly1,
+                           const int lx2, const int ly2,
+                           const float opacity=1) {
+      if (is_empty()) return *this;
+      if (texture._depth>1 || texture._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    texture._width,texture._height,texture._depth,texture._spectrum,texture._data);
+      if (light._depth>1 || light._spectrum<_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_triangle(): Invalid specified light texture (%u,%u,%u,%u,%p).",
+                                    cimg_instance,light._width,light._height,light._depth,light._spectrum,light._data);
+      if (is_overlapped(texture))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,+texture,tx0,ty0,tx1,ty1,tx2,ty2,light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      if (is_overlapped(light))
+        return draw_triangle(x0,y0,x1,y1,x2,y2,texture,tx0,ty0,tx1,ty1,tx2,ty2,+light,lx0,ly0,lx1,ly1,lx2,ly2,opacity);
+      static const T maxval = (T)cimg::min(cimg::type<T>::max(),cimg::type<tc>::max());
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      const ulongT
+        whd = (ulongT)_width*_height*_depth,
+        twh = (ulongT)texture._width*texture._height,
+        lwh = (ulongT)light._width*light._height,
+        offx = _spectrum*whd - 1;
+      int nx0 = x0, ny0 = y0, nx1 = x1, ny1 = y1, nx2 = x2, ny2 = y2,
+        ntx0 = tx0, nty0 = ty0, ntx1 = tx1, nty1 = ty1, ntx2 = tx2, nty2 = ty2,
+        nlx0 = lx0, nly0 = ly0, nlx1 = lx1, nly1 = ly1, nlx2 = lx2, nly2 = ly2;
+      if (ny0>ny1) cimg::swap(nx0,nx1,ny0,ny1,ntx0,ntx1,nty0,nty1,nlx0,nlx1,nly0,nly1);
+      if (ny0>ny2) cimg::swap(nx0,nx2,ny0,ny2,ntx0,ntx2,nty0,nty2,nlx0,nlx2,nly0,nly2);
+      if (ny1>ny2) cimg::swap(nx1,nx2,ny1,ny2,ntx1,ntx2,nty1,nty2,nlx1,nlx2,nly1,nly2);
+      if (ny0>=height() || ny2<0) return *this;
+      _cimg_for_triangle5(*this,xleft0,lxleft0,lyleft0,txleft0,tyleft0,xright0,lxright0,lyright0,txright0,tyright0,y,
+                          nx0,ny0,nlx0,nly0,ntx0,nty0,nx1,ny1,nlx1,nly1,ntx1,nty1,nx2,ny2,nlx2,nly2,ntx2,nty2) {
+        int
+          xleft = xleft0, xright = xright0,
+          lxleft = lxleft0, lxright = lxright0,
+          lyleft = lyleft0, lyright = lyright0,
+          txleft = txleft0, txright = txright0,
+          tyleft = tyleft0, tyright = tyright0;
+        if (xright<xleft) cimg::swap(xleft,xright,lxleft,lxright,lyleft,lyright,txleft,txright,tyleft,tyright);
+        const int
+          dx = xright - xleft,
+          dlx = lxright>lxleft?lxright - lxleft:lxleft - lxright,
+          dly = lyright>lyleft?lyright - lyleft:lyleft - lyright,
+          dtx = txright>txleft?txright - txleft:txleft - txright,
+          dty = tyright>tyleft?tyright - tyleft:tyleft - tyright,
+          rlx = dx?(lxright - lxleft)/dx:0,
+          rly = dx?(lyright - lyleft)/dx:0,
+          rtx = dx?(txright - txleft)/dx:0,
+          rty = dx?(tyright - tyleft)/dx:0,
+          slx = lxright>lxleft?1:-1,
+          sly = lyright>lyleft?1:-1,
+          stx = txright>txleft?1:-1,
+          sty = tyright>t
