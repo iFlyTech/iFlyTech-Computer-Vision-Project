@@ -40077,4 +40077,177 @@ namespace cimg_library_suffixed {
           z = npoints(0,2) = (int)points(0,2);
         unsigned int nb_points = 1;
         for (unsigned int p = 1; p<points._width; ++p) {
-          const int nx = (int)points(p,0), ny = (int)points(p,1), nz =
+          const int nx = (int)points(p,0), ny = (int)points(p,1), nz = (int)points(p,2);
+          if (nx!=x || ny!=y || nz!=z) {
+            npoints(nb_points,0) = nx; npoints(nb_points,1) = ny; npoints(nb_points++,2) = nz;
+            x = nx; y = ny; z = nz;
+          }
+        }
+        const int x0 = (int)npoints(0,0), y0 = (int)npoints(0,1), z0 = (int)npoints(0,2);
+        int ox = x0, oy = y0, oz = z0;
+        for (unsigned int i = 1; i<nb_points; ++i) {
+          const int x = (int)npoints(i,0), y = (int)npoints(i,1), z = (int)npoints(i,2);
+          draw_line(ox,oy,oz,x,y,z,color,opacity,pattern,ninit_hatch);
+          ninit_hatch = false;
+          ox = x; oy = y; oz = z;
+        }
+        draw_line(ox,oy,oz,x0,y0,z0,color,opacity,pattern,false);
+      }
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity=1) {
+      return _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,0U);
+    }
+
+    //! Draw a filled 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+                          const tc *const color, const float opacity=1) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity);
+    }
+
+    //! Draw an outlined 2d ellipse.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param r1 First radius of the ellipse.
+       \param r2 Second radius of the ellipse.
+       \param angle Angle of the first radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                          const tc *const color, const float opacity, const unsigned int pattern) {
+      if (pattern) _draw_ellipse(x0,y0,r1,r2,angle,color,opacity,pattern);
+      return *this;
+    }
+
+    //! Draw an outlined 2d ellipse \overloading.
+    /**
+       \param x0 X-coordinate of the ellipse center.
+       \param y0 Y-coordinate of the ellipse center.
+       \param tensor Diffusion tensor describing the ellipse.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern An integer whose bits describe the outline pattern.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_ellipse(const int x0, const int y0, const CImg<t> &tensor,
+                          const tc *const color, const float opacity,
+                          const unsigned int pattern) {
+      CImgList<t> eig = tensor.get_symmetric_eigen();
+      const CImg<t> &val = eig[0], &vec = eig[1];
+      return draw_ellipse(x0,y0,std::sqrt(val(0)),std::sqrt(val(1)),
+                          std::atan2(vec(0,1),vec(0,0))*180/cimg::PI,
+                          color,opacity,pattern);
+    }
+
+    template<typename tc>
+    CImg<T>& _draw_ellipse(const int x0, const int y0, const float r1, const float r2, const float angle,
+                           const tc *const color, const float opacity,
+                           const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_ellipse(): Specified color is (null).",
+                                    cimg_instance);
+      if (r1<=0 || r2<=0) return draw_point(x0,y0,color,opacity);
+      cimg_init_scanline(color,opacity);
+      const float
+        nr1 = cimg::abs(r1), nr2 = cimg::abs(r2),
+        nangle = (float)(angle*cimg::PI/180),
+        u = (float)std::cos(nangle),
+        v = (float)std::sin(nangle),
+        rmax = cimg::max(nr1,nr2),
+        l1 = (float)std::pow(rmax/(nr1>0?nr1:1e-6),2),
+        l2 = (float)std::pow(rmax/(nr2>0?nr2:1e-6),2),
+        a = l1*u*u + l2*v*v,
+        b = u*v*(l1 - l2),
+        c = l1*v*v + l2*u*u;
+      const int
+        yb = (int)std::sqrt(a*rmax*rmax/(a*c - b*b)),
+        tymin = y0 - yb - 1,
+        tymax = y0 + yb + 1,
+        ymin = tymin<0?0:tymin,
+        ymax = tymax>=height()?height() - 1:tymax;
+      int oxmin = 0, oxmax = 0;
+      bool first_line = true;
+      for (int y = ymin; y<=ymax; ++y) {
+        const float
+          Y = y - y0 + (y<y0?0.5f:-0.5f),
+          delta = b*b*Y*Y - a*(c*Y*Y - rmax*rmax),
+          sdelta = delta>0?(float)std::sqrt(delta)/a:0.0f,
+          bY = b*Y/a,
+          fxmin = x0 - 0.5f - bY - sdelta,
+          fxmax = x0 + 0.5f - bY + sdelta;
+        const int xmin = (int)fxmin, xmax = (int)fxmax;
+        if (!pattern) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+        else {
+          if (first_line) {
+            if (y0 - yb>=0) cimg_draw_scanline(xmin,xmax,y,color,opacity,1);
+            else draw_point(xmin,y,color,opacity).draw_point(xmax,y,color,opacity);
+            first_line = false;
+          } else {
+            if (xmin<oxmin) cimg_draw_scanline(xmin,oxmin - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmin + (oxmin==xmin?0:1),xmin,y,color,opacity,1);
+            if (xmax<oxmax) cimg_draw_scanline(xmax,oxmax - 1,y,color,opacity,1);
+            else cimg_draw_scanline(oxmax + (oxmax==xmax?0:1),xmax,y,color,opacity,1);
+            if (y==tymax) cimg_draw_scanline(xmin + 1,xmax - 1,y,color,opacity,1);
+          }
+        }
+        oxmin = xmin; oxmax = xmax;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 2d circle.
+    /**
+       \param x0 X-coordinate of the circle center.
+       \param y0 Y-coordinate of the circle center.
+       \param radius  Circle radius.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \note
+       - Circle version of the Bresenham's algorithm is used.
+    **/
+    template<typename tc>
+    CImg<T>& draw_circle(const int x0, const int y0, int radius,
+                         const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_circle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_init_scanline(color,opacity);
+      if (radius<0 || x0 - radius>=width() || y0 + radius<0 || y0 - radius>=height()) return *this;
+      if (y0>=0 && y0<height()) cimg_draw_scanline(x0 - radius,x0 + radius,y0,color,opacity,1);
+      for (int f = 1 - radius, ddFx = 0, ddFy = -(radius<<1), x = 0, y = radius; x<y; ) {
+        if (f>=0) {
+        
