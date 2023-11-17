@@ -39759,4 +39759,162 @@ namespace cimg_library_suffixed {
               *ptrz = (tz)zleft;
               const tzfloat invz = 1/zleft;
               const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
-              const tl *lig = &
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                *ptrd = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          } else for (int x = xleft; x<=xright; ++x, ++ptrz, ++ptrd) {
+            if (zleft>=(tzfloat)*ptrz) {
+              *ptrz = (tz)zleft;
+              const tzfloat invz = 1/zleft;
+              const tc *col = &texture._atXY((int)(txleft*invz),(int)(tyleft*invz));
+              const tl *lig = &light._atXY(lxleft,lyleft);
+              cimg_forC(*this,c) {
+                const tl l = *lig;
+                const T val = (T)(l<1?l**col:(2 - l)**col + (l - 1)*maxval);
+                *ptrd = (T)(nopacity*val + *ptrd*copacity);
+                ptrd+=whd; col+=twh; lig+=lwh;
+              }
+              ptrd-=offx;
+            }
+            zleft+=pentez; txleft+=pentetx; tyleft+=pentety;
+            lxleft+=rlx+((errlx-=ndlx)<0?errlx+=dx,slx:0);
+            lyleft+=rly+((errly-=ndly)<0?errly+=dx,sly:0);
+          }
+        zr+=pzr; txr+=ptxr; tyr+=ptyr; zl+=pzl; txl+=ptxl; tyl+=ptyl;
+      }
+      return *this;
+    }
+
+    //! Draw a filled 4d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param c0 C-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param c1 C-coordinate of the lower-right rectangle corner.
+       \param val Scalar value used to fill the rectangle area.
+       \param opacity Drawing opacity.
+    **/
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0, const int c0,
+                            const int x1, const int y1, const int z1, const int c1,
+                            const T val, const float opacity=1) {
+      if (is_empty()) return *this;
+      const bool bx = (x0<x1), by = (y0<y1), bz = (z0<z1), bc = (c0<c1);
+      const int
+        nx0 = bx?x0:x1, nx1 = bx?x1:x0,
+        ny0 = by?y0:y1, ny1 = by?y1:y0,
+        nz0 = bz?z0:z1, nz1 = bz?z1:z0,
+        nc0 = bc?c0:c1, nc1 = bc?c1:c0;
+      const int
+        lX = (1 + nx1 - nx0) + (nx1>=width()?width() - 1 - nx1:0) + (nx0<0?nx0:0),
+        lY = (1 + ny1 - ny0) + (ny1>=height()?height() - 1 - ny1:0) + (ny0<0?ny0:0),
+        lZ = (1 + nz1 - nz0) + (nz1>=depth()?depth() - 1 - nz1:0) + (nz0<0?nz0:0),
+        lC = (1 + nc1 - nc0) + (nc1>=spectrum()?spectrum() - 1 - nc1:0) + (nc0<0?nc0:0);
+      const ulongT
+        offX = (ulongT)_width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ);
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+      T *ptrd = data(nx0<0?0:nx0,ny0<0?0:ny0,nz0<0?0:nz0,nc0<0?0:nc0);
+      if (lX>0 && lY>0 && lZ>0 && lC>0)
+        for (int v = 0; v<lC; ++v) {
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              if (opacity>=1) {
+                if (sizeof(T)!=1) { for (int x = 0; x<lX; ++x) *(ptrd++) = val; ptrd+=offX; }
+                else { std::memset(ptrd,(int)val,lX); ptrd+=_width; }
+              } else { for (int x = 0; x<lX; ++x) { *ptrd = (T)(nopacity*val + *ptrd*copacity); ++ptrd; } ptrd+=offX; }
+            }
+            ptrd+=offY;
+          }
+          ptrd+=offZ;
+        }
+      return *this;
+    }
+
+    //! Draw a filled 3d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param z0 Z-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param z1 Z-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity=1) {
+      if (is_empty()) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_rectangle(): Specified color is (null).",
+                                    cimg_instance);
+      cimg_forC(*this,c) draw_rectangle(x0,y0,z0,c,x1,y1,z1,c,(T)color[c],opacity);
+      return *this;
+    }
+
+    //! Draw an outlined 3d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0, const int z0,
+                            const int x1, const int y1, const int z1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      return draw_line(x0,y0,z0,x1,y0,z0,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y1,z0,color,opacity,pattern,false).
+        draw_line(x1,y1,z0,x0,y1,z0,color,opacity,pattern,false).
+        draw_line(x0,y1,z0,x0,y0,z0,color,opacity,pattern,false).
+        draw_line(x0,y0,z1,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z1,x1,y1,z1,color,opacity,pattern,false).
+        draw_line(x1,y1,z1,x0,y1,z1,color,opacity,pattern,false).
+        draw_line(x0,y1,z1,x0,y0,z1,color,opacity,pattern,false).
+        draw_line(x0,y0,z0,x0,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y0,z0,x1,y0,z1,color,opacity,pattern,true).
+        draw_line(x1,y1,z0,x1,y1,z1,color,opacity,pattern,true).
+        draw_line(x0,y1,z0,x0,y1,z1,color,opacity,pattern,true);
+    }
+
+    //! Draw a filled 2d rectangle.
+    /**
+       \param x0 X-coordinate of the upper-left rectangle corner.
+       \param y0 Y-coordinate of the upper-left rectangle corner.
+       \param x1 X-coordinate of the lower-right rectangle corner.
+       \param y1 Y-coordinate of the lower-right rectangle corner.
+       \param color Pointer to \c spectrum() consecutive values of type \c T, defining the drawing color.
+       \param opacity Drawing opacity.
+    **/
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity=1) {
+      return draw_rectangle(x0,y0,0,x1,y1,_depth - 1,color,opacity);
+    }
+
+    //! Draw a outlined 2d rectangle \overloading.
+    template<typename tc>
+    CImg<T>& draw_rectangle(const int x0, const int y0,
+                            const int x1, const int y1,
+                            const tc *const color, const float opacity,
+                            const unsigned int pattern) {
+      if (is_empty()) return *this;
+      if (y0==y1) return draw_line(x0,y0,x1,y0,color,opacity,pattern,true);
+      if (x0==x1) return draw_line(x0,y0,x0,y1,color,opacity,pattern,true);
+      const bool bx = (x0<x1), by = (y0<y1);
+      const int
+        nx0 = bx?x0:x1, nx1 = bx?x1:x0,
+        ny0 = by?y0:y1, ny1 = by?y1:y0;
+      if (ny1==ny0 + 1) return draw_line(nx0,ny0,nx1,ny0,color,opacity,pattern,true).
+                      draw_line(nx1,ny1,nx0,ny1,color,opacity,p
