@@ -40413,4 +40413,171 @@ namespace cimg_library_suffixed {
     }
 
     //! Draw an image \overloading.
-    templat
+    template<typename t>
+    CImg<T>& draw_image(const int x0, const int y0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(x0,y0,0,sprite,opacity);
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const int x0,
+                        const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(x0,0,sprite,opacity);
+    }
+
+    //! Draw an image \overloading.
+    template<typename t>
+    CImg<T>& draw_image(const CImg<t>& sprite, const float opacity=1) {
+      return draw_image(0,sprite,opacity);
+    }
+
+    //! Draw a masked image.
+    /**
+       \param sprite Sprite image.
+       \param mask Mask image.
+       \param x0 X-coordinate of the sprite position in the image instance.
+       \param y0 Y-coordinate of the sprite position in the image instance.
+       \param z0 Z-coordinate of the sprite position in the image instance.
+       \param c0 C-coordinate of the sprite position in the image instance.
+       \param mask_max_value Maximum pixel value of the mask image \c mask.
+       \param opacity Drawing opacity.
+       \note
+       - Pixel values of \c mask set the opacity of the corresponding pixels in \c sprite.
+       - Dimensions along x,y and z of \p sprite and \p mask must be the same.
+    **/
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0, const int c0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      if (is_empty() || !sprite || !mask) return *this;
+      if (is_overlapped(sprite)) return draw_image(x0,y0,z0,c0,+sprite,mask,opacity,mask_max_value);
+      if (is_overlapped(mask)) return draw_image(x0,y0,z0,c0,sprite,+mask,opacity,mask_max_value);
+      if (mask._width!=sprite._width || mask._height!=sprite._height || mask._depth!=sprite._depth)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_image(): Sprite (%u,%u,%u,%u,%p) and mask (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    sprite._width,sprite._height,sprite._depth,sprite._spectrum,sprite._data,
+                                    mask._width,mask._height,mask._depth,mask._spectrum,mask._data);
+
+      const bool bx = (x0<0), by = (y0<0), bz = (z0<0), bc = (c0<0);
+      const int
+        lX = sprite.width() - (x0 + sprite.width()>width()?x0 + sprite.width() - width():0) + (bx?x0:0),
+        lY = sprite.height() - (y0 + sprite.height()>height()?y0 + sprite.height() - height():0) + (by?y0:0),
+        lZ = sprite.depth() - (z0 + sprite.depth()>depth()?z0 + sprite.depth() - depth():0) + (bz?z0:0),
+        lC = sprite.spectrum() - (c0 + sprite.spectrum()>spectrum()?c0 + sprite.spectrum() - spectrum():0) + (bc?c0:0);
+      const ulongT
+        coff = (bx?-x0:0) +
+        (by?-y0*(ulongT)mask.width():0) +
+        (bz?-z0*(ulongT)mask.width()*mask.height():0) +
+        (bc?-c0*(ulongT)mask.width()*mask.height()*mask.depth():0),
+        ssize = (ulongT)mask.width()*mask.height()*mask.depth()*mask.spectrum();
+      const ti *ptrs = sprite._data + coff;
+      const tm *ptrm = mask._data + coff;
+      const ulongT
+        offX = (ulongT)_width - lX,
+        soffX = (ulongT)sprite._width - lX,
+        offY = (ulongT)_width*(_height - lY),
+        soffY = (ulongT)sprite._width*(sprite._height - lY),
+        offZ = (ulongT)_width*_height*(_depth - lZ),
+        soffZ = (ulongT)sprite._width*sprite._height*(sprite._depth - lZ);
+      if (lX>0 && lY>0 && lZ>0 && lC>0) {
+        T *ptrd = data(x0<0?0:x0,y0<0?0:y0,z0<0?0:z0,c0<0?0:c0);
+        for (int c = 0; c<lC; ++c) {
+          ptrm = mask._data + (ptrm - mask._data)%ssize;
+          for (int z = 0; z<lZ; ++z) {
+            for (int y = 0; y<lY; ++y) {
+              for (int x = 0; x<lX; ++x) {
+                const float mopacity = (float)(*(ptrm++)*opacity),
+                  nopacity = cimg::abs(mopacity), copacity = mask_max_value - cimg::max(mopacity,0);
+                *ptrd = (T)((nopacity*(*(ptrs++)) + *ptrd*copacity)/mask_max_value);
+                ++ptrd;
+              }
+              ptrd+=offX; ptrs+=soffX; ptrm+=soffX;
+            }
+            ptrd+=offY; ptrs+=soffY; ptrm+=soffY;
+          }
+          ptrd+=offZ; ptrs+=soffZ; ptrm+=soffZ;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a masked image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0, const int z0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,y0,z0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0, const int y0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,y0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a image \overloading.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const int x0,
+                        const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(x0,0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw an image.
+    template<typename ti, typename tm>
+    CImg<T>& draw_image(const CImg<ti>& sprite, const CImg<tm>& mask, const float opacity=1,
+                        const float mask_max_value=1) {
+      return draw_image(0,sprite,mask,opacity,mask_max_value);
+    }
+
+    //! Draw a text string.
+    /**
+       \param x0 X-coordinate of the text in the image instance.
+       \param y0 Y-coordinate of the text in the image instance.
+       \param text Format of the text ('printf'-style format string).
+       \param foreground_color Pointer to \c spectrum() consecutive values, defining the foreground drawing color.
+       \param background_color Pointer to \c spectrum() consecutive values, defining the background drawing color.
+       \param opacity Drawing opacity.
+       \param font Font used for drawing text.
+    **/
+    template<typename tc1, typename tc2, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc1 *const foreground_color, const tc2 *const background_color,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,foreground_color,background_color,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \note A transparent background is used for the text.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc *const foreground_color, const int,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,foreground_color,(tc*)0,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \note A transparent foreground is used for the text.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const int, co
