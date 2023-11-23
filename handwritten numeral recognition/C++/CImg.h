@@ -40580,4 +40580,168 @@ namespace cimg_library_suffixed {
     template<typename tc, typename t>
     CImg<T>& draw_text(const int x0, const int y0,
                        const char *const text,
-                       const int, co
+                       const int, const tc *const background_color,
+                       const float opacity, const CImgList<t>& font, ...) {
+      if (!font) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return _draw_text(x0,y0,tmp,(tc*)0,background_color,opacity,font,false);
+    }
+
+    //! Draw a text string \overloading.
+    /**
+       \param x0 X-coordinate of the text in the image instance.
+       \param y0 Y-coordinate of the text in the image instance.
+       \param text Format of the text ('printf'-style format string).
+       \param foreground_color Array of spectrum() values of type \c T,
+         defining the foreground color (0 means 'transparent').
+       \param background_color Array of spectrum() values of type \c T,
+         defining the background color (0 means 'transparent').
+       \param opacity Drawing opacity.
+       \param font_height Height of the text font (exact match for 13,23,53,103, interpolated otherwise).
+    **/
+    template<typename tc1, typename tc2>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc1 *const foreground_color, const tc2 *const background_color,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      const CImgList<ucharT>& font = CImgList<ucharT>::font(font_height,true);
+      _draw_text(x0,y0,tmp,foreground_color,background_color,opacity,font,true);
+      return *this;
+    }
+
+    //! Draw a text string \overloading.
+    template<typename tc>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const tc *const foreground_color, const int background_color=0,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      cimg::unused(background_color);
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return draw_text(x0,y0,"%s",foreground_color,(const tc*)0,opacity,font_height,tmp._data);
+    }
+
+    //! Draw a text string \overloading.
+    template<typename tc>
+    CImg<T>& draw_text(const int x0, const int y0,
+                       const char *const text,
+                       const int, const tc *const background_color,
+                       const float opacity=1, const unsigned int font_height=13, ...) {
+      if (!font_height) return *this;
+      CImg<charT> tmp(2048);
+      std::va_list ap; va_start(ap,font_height);
+      cimg_vsnprintf(tmp,tmp._width,text,ap); va_end(ap);
+      return draw_text(x0,y0,"%s",(tc*)0,background_color,opacity,font_height,tmp._data);
+    }
+
+    template<typename tc1, typename tc2, typename t>
+    CImg<T>& _draw_text(const int x0, const int y0,
+                        const char *const text,
+                        const tc1 *const foreground_color, const tc2 *const background_color,
+                        const float opacity, const CImgList<t>& font,
+                        const bool is_native_font) {
+      if (!text) return *this;
+      if (!font)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_text(): Empty specified font.",
+                                    cimg_instance);
+
+      const unsigned int text_length = (unsigned int)std::strlen(text);
+      const bool _is_empty = is_empty();
+      if (_is_empty) {
+        // If needed, pre-compute necessary size of the image
+        int x = 0, y = 0, w = 0;
+        unsigned char c = 0;
+        for (unsigned int i = 0; i<text_length; ++i) {
+          c = (unsigned char)text[i];
+          switch (c) {
+          case '\n' : y+=font[0]._height; if (x>w) w = x; x = 0; break;
+          case '\t' : x+=4*font[' ']._width; break;
+          default : if (c<font._width) x+=font[c]._width;
+          }
+        }
+        if (x!=0 || c=='\n') {
+          if (x>w) w=x;
+          y+=font[0]._height;
+        }
+        assign(x0 + w,y0 + y,1,is_native_font?1:font[0]._spectrum,0);
+      }
+
+      int x = x0, y = y0;
+      for (unsigned int i = 0; i<text_length; ++i) {
+        const unsigned char c = (unsigned char)text[i];
+        switch (c) {
+        case '\n' : y+=font[0]._height; x = x0; break;
+        case '\t' : x+=4*font[' ']._width; break;
+        default : if (c<font._width) {
+            CImg<T> letter = font[c];
+            if (letter) {
+              if (is_native_font && _spectrum>letter._spectrum) letter.resize(-100,-100,1,_spectrum,0,2);
+              const unsigned int cmin = cimg::min(_spectrum,letter._spectrum);
+              if (foreground_color)
+                for (unsigned int c = 0; c<cmin; ++c)
+                  if (foreground_color[c]!=1) letter.get_shared_channel(c)*=foreground_color[c];
+              if (c + 256<font.width()) { // Letter has mask.
+                if (background_color)
+                  for (unsigned int c = 0; c<cmin; ++c)
+                    draw_rectangle(x,y,0,c,x + letter._width - 1,y + letter._height - 1,0,c,
+                                   background_color[c],opacity);
+                draw_image(x,y,letter,font[c + 256],opacity,255.0f);
+              } else draw_image(x,y,letter,opacity); // Letter has no mask.
+              x+=letter._width;
+            }
+          }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a 2d vector field.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Drawing opacity.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const t2 *const color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      return draw_quiver(flow,CImg<t2>(color,_spectrum,1,1,1,true),opacity,sampling,factor,is_arrow,pattern);
+    }
+
+    //! Draw a 2d vector field, using a field of colors.
+    /**
+       \param flow Image of 2d vectors used as input data.
+       \param color Image of spectrum()-D vectors corresponding to the color of each arrow.
+       \param opacity Opacity of the drawing.
+       \param sampling Length (in pixels) between each arrow.
+       \param factor Length factor of each arrow (if <0, computed as a percentage of the maximum length).
+       \param is_arrow Tells if arrows must be drawn, instead of oriented segments.
+       \param pattern Used pattern to draw lines.
+       \note Clipping is supported.
+    **/
+    template<typename t1, typename t2>
+    CImg<T>& draw_quiver(const CImg<t1>& flow,
+                         const CImg<t2>& color, const float opacity=1,
+                         const unsigned int sampling=25, const float factor=-20,
+                         const bool is_arrow=true, const unsigned int pattern=~0U) {
+      if (is_empty()) return *this;
+      if (!flow || flow._spectrum!=2)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_quiver(): Invalid dimensions of specified flow (%u,%u,%u,%u,%p).",
+                                    cimg_instance,
+                                    flow._width,flow._height,flow._depth,flow._spectrum,flow._
