@@ -40898,4 +40898,164 @@ namespace cimg_library_suffixed {
     template<typename tx, typename ty, typename tc>
     CImg<T>& draw_axes(const CImg<tx>& values_x, const CImg<ty>& values_y,
                        const tc *const color, const float opacity=1,
-                       const unsigned int pattern_x=~0U,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13, const bool allow_zero=true) {
+      if (is_empty()) return *this;
+      const CImg<tx> nvalues_x(values_x._data,values_x.size(),1,1,1,true);
+      const int sizx = (int)values_x.size() - 1, wm1 = width() - 1;
+      if (sizx>=0) {
+        float ox = (float)*nvalues_x;
+        for (unsigned int x = sizx?1U:0U; x<_width; ++x) {
+          const float nx = (float)nvalues_x._linear_atX((float)x*sizx/wm1);
+          if (nx*ox<=0) { draw_axis(nx==0?x:x - 1,values_y,color,opacity,pattern_y,font_height,allow_zero); break; }
+          ox = nx;
+        }
+      }
+      const CImg<ty> nvalues_y(values_y._data,values_y.size(),1,1,1,true);
+      const int sizy = (int)values_y.size() - 1, hm1 = height() - 1;
+      if (sizy>0) {
+        float oy = (float)nvalues_y[0];
+        for (unsigned int y = sizy?1U:0U; y<_height; ++y) {
+          const float ny = (float)nvalues_y._linear_atX((float)y*sizy/hm1);
+          if (ny*oy<=0) { draw_axis(values_x,ny==0?y:y - 1,color,opacity,pattern_x,font_height,allow_zero); break; }
+          oy = ny;
+        }
+      }
+      return *this;
+    }
+
+    //! Draw labeled horizontal and vertical axes \overloading.
+    template<typename tc>
+    CImg<T>& draw_axes(const float x0, const float x1, const float y0, const float y1,
+                       const tc *const color, const float opacity=1,
+                       const int subdivisionx=-60, const int subdivisiony=-60,
+                       const float precisionx=0, const float precisiony=0,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U,
+                       const unsigned int font_height=13) {
+      if (is_empty()) return *this;
+      const bool allow_zero = (x0*x1>0) || (y0*y1>0);
+      const float
+        dx = cimg::abs(x1-x0), dy = cimg::abs(y1-y0),
+        px = dx<=0?1:precisionx==0?(float)std::pow(10.0,(int)std::log10(dx) - 2.0):precisionx,
+        py = dy<=0?1:precisiony==0?(float)std::pow(10.0,(int)std::log10(dy) - 2.0):precisiony;
+      if (x0!=x1 && y0!=y1)
+        draw_axes(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),
+                  CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_x,pattern_y,font_height,allow_zero);
+      else if (x0==x1 && y0!=y1)
+        draw_axis((int)x0,CImg<floatT>::sequence(subdivisiony>0?subdivisiony:1-height()/subdivisiony,y0,y1).round(py),
+                  color,opacity,pattern_y,font_height);
+      else if (x0!=x1 && y0==y1)
+        draw_axis(CImg<floatT>::sequence(subdivisionx>0?subdivisionx:1-width()/subdivisionx,x0,x1).round(px),(int)y0,
+                  color,opacity,pattern_x,font_height);
+      return *this;
+    }
+
+    //! Draw 2d grid.
+    /**
+       \param values_x X-coordinates of the vertical lines.
+       \param values_y Y-coordinates of the horizontal lines.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+       \param pattern_x Drawing pattern for vertical lines.
+       \param pattern_y Drawing pattern for horizontal lines.
+    **/
+    template<typename tx, typename ty, typename tc>
+    CImg<T>& draw_grid(const CImg<tx>& values_x, const CImg<ty>& values_y,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      if (values_x) cimg_foroff(values_x,x) {
+          const int xi = (int)values_x[x];
+          if (xi>=0 && xi<width()) draw_line(xi,0,xi,_height - 1,color,opacity,pattern_x);
+        }
+      if (values_y) cimg_foroff(values_y,y) {
+          const int yi = (int)values_y[y];
+          if (yi>=0 && yi<height()) draw_line(0,yi,_width - 1,yi,color,opacity,pattern_y);
+        }
+      return *this;
+    }
+
+    //! Draw 2d grid \simplification.
+    template<typename tc>
+    CImg<T>& draw_grid(const float delta_x,  const float delta_y,
+                       const float offsetx, const float offsety,
+                       const bool invertx, const bool inverty,
+                       const tc *const color, const float opacity=1,
+                       const unsigned int pattern_x=~0U, const unsigned int pattern_y=~0U) {
+      if (is_empty()) return *this;
+      CImg<uintT> seqx, seqy;
+      if (delta_x!=0) {
+        const float dx = delta_x>0?delta_x:_width*-delta_x/100;
+        const unsigned int nx = (unsigned int)(_width/dx);
+        seqx = CImg<uintT>::sequence(1 + nx,0,(unsigned int)(dx*nx));
+        if (offsetx) cimg_foroff(seqx,x) seqx(x) = (unsigned int)cimg::mod(seqx(x) + offsetx,(float)_width);
+        if (invertx) cimg_foroff(seqx,x) seqx(x) = _width - 1 - seqx(x);
+      }
+      if (delta_y!=0) {
+        const float dy = delta_y>0?delta_y:_height*-delta_y/100;
+        const unsigned int ny = (unsigned int)(_height/dy);
+        seqy = CImg<uintT>::sequence(1 + ny,0,(unsigned int)(dy*ny));
+        if (offsety) cimg_foroff(seqy,y) seqy(y) = (unsigned int)cimg::mod(seqy(y) + offsety,(float)_height);
+        if (inverty) cimg_foroff(seqy,y) seqy(y) = _height - 1 - seqy(y);
+     }
+      return draw_grid(seqx,seqy,color,opacity,pattern_x,pattern_y);
+    }
+
+    //! Draw 1d graph.
+    /**
+       \param data Image containing the graph values I = f(x).
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param opacity Drawing opacity.
+
+       \param plot_type Define the type of the plot:
+                      - 0 = No plot.
+                      - 1 = Plot using segments.
+                      - 2 = Plot using cubic splines.
+                      - 3 = Plot with bars.
+       \param vertex_type Define the type of points:
+                      - 0 = No points.
+                      - 1 = Point.
+                      - 2 = Straight cross.
+                      - 3 = Diagonal cross.
+                      - 4 = Filled circle.
+                      - 5 = Outlined circle.
+                      - 6 = Square.
+                      - 7 = Diamond.
+       \param ymin Lower bound of the y-range.
+       \param ymax Upper bound of the y-range.
+       \param pattern Drawing pattern.
+       \note
+         - if \c ymin==ymax==0, the y-range is computed automatically from the input samples.
+    **/
+    template<typename t, typename tc>
+    CImg<T>& draw_graph(const CImg<t>& data,
+                        const tc *const color, const float opacity=1,
+                        const unsigned int plot_type=1, const int vertex_type=1,
+                        const double ymin=0, const double ymax=0, const unsigned int pattern=~0U) {
+      if (is_empty() || _height<=1) return *this;
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_graph(): Specified color is (null).",
+                                    cimg_instance);
+
+      // Create shaded colors for displaying bar plots.
+      CImg<tc> color1, color2;
+      if (plot_type==3) {
+        color1.assign(_spectrum); color2.assign(_spectrum);
+        cimg_forC(*this,c) {
+          color1[c] = (tc)cimg::min((float)cimg::type<tc>::max(),color[c]*1.2f);
+          color2[c] = (tc)(color[c]*0.4f);
+        }
+      }
+
+      // Compute min/max and normalization factors.
+      const ulongT
+        siz = data.size(),
+        _siz1 = siz - (plot_type!=3?1:0),
+        siz1 = _siz1?_siz1:1;
+      const unsigned int
+        _width1 = _width - (plot_type!=3?1:0),
+        width1 = _width1?_width1:1;
+      double m = ymin, M = ymax;
+      if (ymin==ymax) m = (double)data
