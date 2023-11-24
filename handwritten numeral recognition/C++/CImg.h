@@ -41252,4 +41252,166 @@ namespace cimg_library_suffixed {
             _cimg_draw_fill_test_neighbor(nxc,yc + 1,zc,yc<H1);
             _cimg_draw_fill_test_neighbor(nxc,yc,zc - 1,zc!=0);
             _cimg_draw_fill_test_neighbor(nxc,yc,zc + 1,zc<D1);
-            if (nxc) { --nxc; _cimg_draw_fill_test(nxc,yc,zc,cont); } else cont = 
+            if (nxc) { --nxc; _cimg_draw_fill_test(nxc,yc,zc,cont); } else cont = false;
+          } while (cont);
+          nxc = xc;
+          do { // X-forward
+            if ((++nxc)<=W1) { _cimg_draw_fill_test(nxc,yc,zc,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(nxc,yc,zc);
+              _cimg_draw_fill_test_neighbor(nxc,yc - 1,zc,yc!=0);
+              _cimg_draw_fill_test_neighbor(nxc,yc + 1,zc,yc<H1);
+              _cimg_draw_fill_test_neighbor(nxc,yc,zc - 1,zc!=0);
+              _cimg_draw_fill_test_neighbor(nxc,yc,zc + 1,zc<D1);
+            }
+          } while (cont);
+          unsigned int nyc = yc;
+          do { // Y-backward
+            if (nyc) { --nyc; _cimg_draw_fill_test(xc,nyc,zc,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,zc);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,zc,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,zc,xc<W1);
+              _cimg_draw_fill_test_neighbor(xc,nyc,zc - 1,zc!=0);
+              _cimg_draw_fill_test_neighbor(xc,nyc,zc + 1,zc<D1);
+            }
+          } while (cont);
+          nyc = yc;
+          do { // Y-forward
+            if ((++nyc)<=H1) { _cimg_draw_fill_test(xc,nyc,zc,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,zc);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,zc,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,zc,xc<W1);
+              _cimg_draw_fill_test_neighbor(xc,nyc,zc - 1,zc!=0);
+              _cimg_draw_fill_test_neighbor(xc,nyc,zc + 1,zc<D1);
+            }
+          } while (cont);
+          unsigned int nzc = zc;
+          do { // Z-backward
+            if (nzc) { --nzc; _cimg_draw_fill_test(xc,yc,nzc,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,yc,nzc);
+              _cimg_draw_fill_test_neighbor(xc - 1,yc,nzc,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,yc,nzc,xc<W1);
+              _cimg_draw_fill_test_neighbor(xc,yc - 1,nzc,yc!=0);
+              _cimg_draw_fill_test_neighbor(xc,yc + 1,nzc,yc<H1);
+            }
+          } while (cont);
+          nzc = zc;
+          do { // Z-forward
+            if ((++nzc)<=D1) { _cimg_draw_fill_test(xc,yc,nzc,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,zc);
+              _cimg_draw_fill_test_neighbor(xc - 1,yc,nzc,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,yc,nzc,xc<W1);
+              _cimg_draw_fill_test_neighbor(xc,yc - 1,nzc,yc!=0);
+              _cimg_draw_fill_test_neighbor(xc,yc + 1,nzc,yc<H1);
+            }
+          } while (cont);
+        } while (posr1>posr0);
+        else do { // 2d version of the filling algorithm
+          const unsigned int *pcurr = remaining.data(0,posr0++), xc = *(pcurr++), yc = *(pcurr++);
+          if (posr0>=512) { remaining.shift(0,-(int)posr0); posr1-=posr0; posr0 = 0; }
+          bool cont, res;
+          unsigned int nxc = xc;
+          do { // X-backward
+            _cimg_draw_fill_set(nxc,yc,0);
+            _cimg_draw_fill_test_neighbor(nxc,yc - 1,0,yc!=0);
+            _cimg_draw_fill_test_neighbor(nxc,yc + 1,0,yc<H1);
+            if (is_high_connexity) {
+              _cimg_draw_fill_test_neighbor(nxc - 1,yc - 1,0,(nxc!=0 && yc!=0));
+              _cimg_draw_fill_test_neighbor(nxc + 1,yc - 1,0,(nxc<W1 && yc!=0));
+              _cimg_draw_fill_test_neighbor(nxc - 1,yc + 1,0,(nxc!=0 && yc<H1));
+              _cimg_draw_fill_test_neighbor(nxc + 1,yc + 1,0,(nxc<W1 && yc<H1));
+            }
+            if (nxc) { --nxc; _cimg_draw_fill_test(nxc,yc,0,cont); } else cont = false;
+          } while (cont);
+          nxc = xc;
+          do { // X-forward
+            if ((++nxc)<=W1) { _cimg_draw_fill_test(nxc,yc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(nxc,yc,0);
+              _cimg_draw_fill_test_neighbor(nxc,yc - 1,0,yc!=0);
+              _cimg_draw_fill_test_neighbor(nxc,yc + 1,0,yc<H1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(nxc - 1,yc - 1,0,(nxc!=0 && yc!=0));
+                _cimg_draw_fill_test_neighbor(nxc + 1,yc - 1,0,(nxc<W1 && yc!=0));
+                _cimg_draw_fill_test_neighbor(nxc - 1,yc + 1,0,(nxc!=0 && yc<H1));
+                _cimg_draw_fill_test_neighbor(nxc + 1,yc + 1,0,(nxc<W1 && yc<H1));
+              }
+            }
+          } while (cont);
+          unsigned int nyc = yc;
+          do { // Y-backward
+            if (nyc) { --nyc; _cimg_draw_fill_test(xc,nyc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,0);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,0,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,0,xc<W1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc - 1,0,(xc!=0 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc - 1,0,(xc<W1 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc + 1,0,(xc!=0 && nyc<H1));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc + 1,0,(xc<W1 && nyc<H1));
+              }
+            }
+          } while (cont);
+          nyc = yc;
+          do { // Y-forward
+            if ((++nyc)<=H1) { _cimg_draw_fill_test(xc,nyc,0,cont); } else cont = false;
+            if (cont) {
+              _cimg_draw_fill_set(xc,nyc,0);
+              _cimg_draw_fill_test_neighbor(xc - 1,nyc,0,xc!=0);
+              _cimg_draw_fill_test_neighbor(xc + 1,nyc,0,xc<W1);
+              if (is_high_connexity) {
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc - 1,0,(xc!=0 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc - 1,0,(xc<W1 && nyc!=0));
+                _cimg_draw_fill_test_neighbor(xc - 1,nyc + 1,0,(xc!=0 && nyc<H1));
+                _cimg_draw_fill_test_neighbor(xc + 1,nyc + 1,0,(xc<W1 && nyc<H1));
+              }
+            }
+          } while (cont);
+        } while (posr1>posr0);
+        if (noregion) cimg_for(region,ptrd,t) if (*ptrd==noregion) *ptrd = (t)0;
+      }
+      return *this;
+    }
+
+    //! Draw filled 3d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x, const int y, const int z,
+                       const tc *const color, const float opacity=1,
+                       const float sigma=0, const bool is_high_connexity=false) {
+      CImg<boolT> tmp;
+      return draw_fill(x,y,z,color,opacity,tmp,sigma,is_high_connexity);
+    }
+
+    //! Draw filled 2d region with the flood fill algorithm \simplification.
+    template<typename tc>
+    CImg<T>& draw_fill(const int x, const int y,
+                       const tc *const color, const float opacity=1,
+                       const float sigma=0, const bool is_high_connexity=false) {
+      CImg<boolT> tmp;
+      return draw_fill(x,y,0,color,opacity,tmp,sigma,is_high_connexity);
+    }
+
+    //! Draw a random plasma texture.
+    /**
+       \param alpha Alpha-parameter.
+       \param beta Beta-parameter.
+       \param scale Scale-parameter.
+       \note Use the mid-point algorithm to render.
+    **/
+    CImg<T>& draw_plasma(const float alpha=1, const float beta=0, const unsigned int scale=8) {
+      if (is_empty()) return *this;
+      const int w = width(), h = height();
+      const Tfloat m = (Tfloat)cimg::type<T>::min(), M = (Tfloat)cimg::type<T>::max();
+      cimg_forZC(*this,z,c) {
+        CImg<T> ref = get_shared_slice(z,c);
+        for (int delta = 1<<cimg::min(scale,31U); delta>1; delta>>=1) {
+          const int delta2 = delta>>1;
+          const float r = alpha*delta + beta;
+
+          // Square step.
+          for (int y0 = 0; y0<h; y0+=delta)
