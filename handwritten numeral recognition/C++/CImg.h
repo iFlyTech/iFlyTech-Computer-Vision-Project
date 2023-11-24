@@ -41058,4 +41058,198 @@ namespace cimg_library_suffixed {
         _width1 = _width - (plot_type!=3?1:0),
         width1 = _width1?_width1:1;
       double m = ymin, M = ymax;
-      if (ymin==ymax) m = (double)data
+      if (ymin==ymax) m = (double)data.max_min(M);
+      if (m==M) { --m; ++M; }
+      const float ca = (float)(M-m)/(_height - 1);
+      bool init_hatch = true;
+
+      // Draw graph edges
+      switch (plot_type%4) {
+      case 1 : { // Segments
+        int oX = 0, oY = (int)((data[0] - m)/ca);
+        if (siz==1) {
+          const int Y = (int)((*data - m)/ca);
+          draw_line(0,Y,width() - 1,Y,color,opacity,pattern);
+        } else {
+          const float fx = (float)_width/siz1;
+          for (ulongT off = 1; off<siz; ++off) {
+            const int
+              X = (int)(off*fx) - 1,
+              Y = (int)((data[off]-m)/ca);
+            draw_line(oX,oY,X,Y,color,opacity,pattern,init_hatch);
+            oX = X; oY = Y;
+            init_hatch = false;
+          }
+        }
+      } break;
+      case 2 : { // Spline
+        const CImg<t> ndata(data._data,siz,1,1,1,true);
+        int oY = (int)((data[0] - m)/ca);
+        cimg_forX(*this,x) {
+          const int Y = (int)((ndata._cubic_atX((float)x*siz1/width1)-m)/ca);
+          if (x>0) draw_line(x,oY,x + 1,Y,color,opacity,pattern,init_hatch);
+          init_hatch = false;
+          oY = Y;
+        }
+      } break;
+      case 3 : { // Bars
+        const int Y0 = (int)(-m/ca);
+        const float fx = (float)_width/siz1;
+        int oX = 0;
+        cimg_foroff(data,off) {
+          const int
+            X = (int)((off + 1)*fx) - 1,
+            Y = (int)((data[off] - m)/ca);
+          draw_rectangle(oX,Y0,X,Y,color,opacity).
+            draw_line(oX,Y,oX,Y0,color2.data(),opacity).
+            draw_line(oX,Y0,X,Y0,Y<=Y0?color2.data():color1.data(),opacity).
+            draw_line(X,Y,X,Y0,color1.data(),opacity).
+            draw_line(oX,Y,X,Y,Y<=Y0?color1.data():color2.data(),opacity);
+          oX = X + 1;
+        }
+      } break;
+      default : break; // No edges
+      }
+
+      // Draw graph points
+      const unsigned int wb2 = plot_type==3?_width1/(2*siz):0;
+      const float fx = (float)_width1/siz1;
+      switch (vertex_type%8) {
+      case 1 : { // Point
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_point(X,Y,color,opacity);
+        }
+      } break;
+      case 2 : { // Straight Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y,X + 3,Y,color,opacity).draw_line(X,Y - 3,X,Y + 3,color,opacity);
+        }
+      } break;
+      case 3 : { // Diagonal Cross
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X - 3,Y - 3,X + 3,Y + 3,color,opacity).draw_line(X - 3,Y + 3,X + 3,Y - 3,color,opacity);
+        }
+      } break;
+      case 4 : { // Filled Circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity);
+        }
+      } break;
+      case 5 : { // Outlined circle
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_circle(X,Y,3,color,opacity,0U);
+        }
+      } break;
+      case 6 : { // Square
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_rectangle(X - 3,Y - 3,X + 3,Y + 3,color,opacity,~0U);
+        }
+      } break;
+      case 7 : { // Diamond
+        cimg_foroff(data,off) {
+          const int
+            X = (int)(off*fx + wb2),
+            Y = (int)((data[off]-m)/ca);
+          draw_line(X,Y - 4,X + 4,Y,color,opacity).
+            draw_line(X + 4,Y,X,Y + 4,color,opacity).
+            draw_line(X,Y + 4,X - 4,Y,color,opacity).
+            draw_line(X - 4,Y,X,Y - 4,color,opacity);
+        }
+      } break;
+      default : break; // No points
+      }
+      return *this;
+    }
+
+    //! Draw filled 3d region with the flood fill algorithm.
+    /**
+       \param x X-coordinate of the starting point of the region to fill.
+       \param y Y-coordinate of the starting point of the region to fill.
+       \param z Z-coordinate of the starting point of the region to fill.
+       \param color Pointer to \c spectrum() consecutive values, defining the drawing color.
+       \param[out] region Image that will contain the mask of the filled region mask, as an output.
+       \param sigma Tolerance concerning neighborhood values.
+       \param opacity Opacity of the drawing.
+       \param is_high_connexity Tells if 8-connexity must be used (only for 2d images).
+       \return \c region is initialized with the binary mask of the filled region.
+    **/
+    template<typename tc, typename t>
+    CImg<T>& draw_fill(const int x, const int y, const int z,
+                       const tc *const color, const float opacity,
+                       CImg<t>& region, const float sigma=0,
+                       const bool is_high_connexity=false) {
+
+#define _cimg_draw_fill_test(x,y,z,res) if (region(x,y,z)) res = false; else { \
+  res = true; \
+  const T *reference_col = reference_color._data + _spectrum, *ptrs = data(x,y,z) + siz; \
+  for (unsigned int i = _spectrum; res && i; --i) { ptrs-=whd; res = (cimg::abs(*ptrs - *(--reference_col))<=sigma); } \
+  region(x,y,z) = (t)(res?1:noregion); \
+}
+
+#define _cimg_draw_fill_set(x,y,z) { \
+  const tc *col = color; \
+  T *ptrd = data(x,y,z); \
+  if (opacity>=1) cimg_forC(*this,c) { *ptrd = (T)*(col++); ptrd+=whd; } \
+  else cimg_forC(*this,c) { *ptrd = (T)(*(col++)*nopacity + *ptrd*copacity); ptrd+=whd; } \
+}
+
+#define _cimg_draw_fill_insert(x,y,z) { \
+  if (posr1>=remaining._height) remaining.resize(3,remaining._height<<1,1,1,0); \
+  unsigned int *ptrr = remaining.data(0,posr1); \
+  *(ptrr++) = x; *(ptrr++) = y; *(ptrr++) = z; ++posr1; \
+}
+
+#define _cimg_draw_fill_test_neighbor(x,y,z,cond) if (cond) { \
+  const unsigned int tx = x, ty = y, tz = z; \
+  _cimg_draw_fill_test(tx,ty,tz,res); if (res) _cimg_draw_fill_insert(tx,ty,tz); \
+}
+
+      if (!color)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_fill(): Specified color is (null).",
+                                    cimg_instance);
+
+      region.assign(_width,_height,_depth,1,(t)0);
+      if (x>=0 && x<width() && y>=0 && y<height() && z>=0 && z<depth()) {
+        const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0);
+        const ulongT whd = (ulongT)_width*_height*_depth, siz = (ulongT)_spectrum*whd;
+        const unsigned int W1 = _width - 1, H1 = _height - 1, D1 = _depth - 1;
+        const bool is_3d = (_depth>1);
+        const CImg<T> reference_color = get_vector_at(x,y,z);
+        CImg<uintT> remaining(3,512,1,1,0);
+        remaining(0,0) = (unsigned int)x;
+        remaining(1,0) = (unsigned int)y;
+        remaining(2,0) = (unsigned int)z;
+        unsigned int posr0 = 0, posr1 = 1;
+        region(x,y,z) = (t)1;
+        const t noregion = ((t)1==(t)2)?(t)0:(t)-1;
+        if (is_3d) do { // 3d version of the filling algorithm
+          const unsigned int *pcurr = remaining.data(0,posr0++), xc = *(pcurr++), yc = *(pcurr++), zc = *(pcurr++);
+          if (posr0>=512) { remaining.shift(0,-(int)posr0); posr1-=posr0; posr0 = 0; }
+          bool cont, res;
+          unsigned int nxc = xc;
+          do { // X-backward
+            _cimg_draw_fill_set(nxc,yc,zc);
+            _cimg_draw_fill_test_neighbor(nxc,yc - 1,zc,yc!=0);
+            _cimg_draw_fill_test_neighbor(nxc,yc + 1,zc,yc<H1);
+            _cimg_draw_fill_test_neighbor(nxc,yc,zc - 1,zc!=0);
+            _cimg_draw_fill_test_neighbor(nxc,yc,zc + 1,zc<D1);
+            if (nxc) { --nxc; _cimg_draw_fill_test(nxc,yc,zc,cont); } else cont = 
