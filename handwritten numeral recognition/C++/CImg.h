@@ -41415,3 +41415,145 @@ namespace cimg_library_suffixed {
 
           // Square step.
           for (int y0 = 0; y0<h; y0+=delta)
+            for (int x0 = 0; x0<w; x0+=delta) {
+              const int x1 = (x0 + delta)%w, y1 = (y0 + delta)%h, xc = (x0 + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(x0,y0) + ref(x0,y1) + ref(x0,y1) + ref(x1,y1)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+
+          // Diamond steps.
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x0=0; x0<w; x0+=delta) {
+              const int y0 = cimg::mod(y,h), x1 = (x0 + delta)%w, y1 = (y + delta)%h,
+                xc = (x0 + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y0 = 0; y0<h; y0+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), x1 = (x + delta)%w, y1 = (y0 + delta)%h,
+                xc = (x + delta2)%w, yc = (y0 + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+              ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+          for (int y = -delta2; y<h; y+=delta)
+            for (int x = -delta2; x<w; x+=delta) {
+              const int x0 = cimg::mod(x,w), y0 = cimg::mod(y,h), x1 = (x + delta)%w, y1 = (y + delta)%h,
+                xc = (x + delta2)%w, yc = (y + delta2)%h;
+              const Tfloat val = (Tfloat)(0.25f*(ref(xc,y0) + ref(x0,yc) + ref(xc,y1) + ref(x1,yc)) +
+                                          r*cimg::rand(-1,1));
+                ref(xc,yc) = (T)(val<m?m:val>M?M:val);
+            }
+        }
+      }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal.
+    /**
+       \param x0 X-coordinate of the upper-left pixel.
+       \param y0 Y-coordinate of the upper-left pixel.
+       \param x1 X-coordinate of the lower-right pixel.
+       \param y1 Y-coordinate of the lower-right pixel.
+       \param colormap Colormap.
+       \param opacity Drawing opacity.
+       \param z0r Real part of the upper-left fractal vertex.
+       \param z0i Imaginary part of the upper-left fractal vertex.
+       \param z1r Real part of the lower-right fractal vertex.
+       \param z1i Imaginary part of the lower-right fractal vertex.
+       \param iteration_max Maximum number of iterations for each estimated point.
+       \param is_normalized_iteration Tells if iterations are normalized.
+       \param is_julia_set Tells if the Mandelbrot or Julia set is rendered.
+       \param param_r Real part of the Julia set parameter.
+       \param param_i Imaginary part of the Julia set parameter.
+       \note Fractal rendering is done by the Escape Time Algorithm.
+    **/
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const int x0, const int y0, const int x1, const int y1,
+                             const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      if (is_empty()) return *this;
+      CImg<tc> palette;
+      if (colormap) palette.assign(colormap._data,colormap.size()/colormap._spectrum,1,1,colormap._spectrum,true);
+      if (palette && palette._spectrum!=_spectrum)
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_mandelbrot(): Instance and specified colormap (%u,%u,%u,%u,%p) have "
+                                    "incompatible dimensions.",
+                                    cimg_instance,
+                                    colormap._width,colormap._height,colormap._depth,colormap._spectrum,colormap._data);
+
+      const float nopacity = cimg::abs(opacity), copacity = 1 - cimg::max(opacity,0), ln2 = (float)std::log(2.0);
+      const int
+        _x0 = x0<0?0:x0>=width()?width() - 1:x0,
+        _y0 = y0<0?0:y0>=height()?height() - 1:y0,
+        _x1 = x1<0?1:x1>=width()?width() - 1:x1,
+        _y1 = y1<0?1:y1>=height()?height() - 1:y1;
+#ifdef cimg_use_openmp
+#pragma omp parallel for collapse(2) if ((1 + _x1 - _x0)*(1 + _y1 - _y0)>=2048)
+#endif
+      for (int q = _y0; q<=_y1; ++q)
+        for (int p = _x0; p<=_x1; ++p) {
+          unsigned int iteration = 0;
+          const double x = z0r + p*(z1r-z0r)/_width, y = z0i + q*(z1i-z0i)/_height;
+          double zr, zi, cr, ci;
+          if (is_julia_set) { zr = x; zi = y; cr = param_r; ci = param_i; }
+          else { zr = param_r; zi = param_i; cr = x; ci = y; }
+          for (iteration=1; zr*zr + zi*zi<=4 && iteration<=iteration_max; ++iteration) {
+            const double temp = zr*zr - zi*zi + cr;
+            zi = 2*zr*zi + ci;
+            zr = temp;
+          }
+          if (iteration>iteration_max) {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette(0,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(0,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)0;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)((*this)(p,q,0,c)*copacity);
+            }
+          } else if (is_normalized_iteration) {
+            const float
+              normz = (float)cimg::abs(zr*zr + zi*zi),
+              niteration = (float)(iteration + 1 - std::log(std::log(normz))/ln2);
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._linear_atX(niteration,c);
+              else cimg_forC(*this,c)
+                     (*this)(p,q,0,c) = (T)(palette._linear_atX(niteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)niteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(niteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          } else {
+            if (palette) {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)palette._atX(iteration,c);
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(palette(iteration,c)*nopacity + (*this)(p,q,0,c)*copacity);
+            } else {
+              if (opacity>=1) cimg_forC(*this,c) (*this)(p,q,0,c) = (T)iteration;
+              else cimg_forC(*this,c) (*this)(p,q,0,c) = (T)(iteration*nopacity + (*this)(p,q,0,c)*copacity);
+            }
+          }
+        }
+      return *this;
+    }
+
+    //! Draw a quadratic Mandelbrot or Julia 2d fractal \overloading.
+    template<typename tc>
+    CImg<T>& draw_mandelbrot(const CImg<tc>& colormap, const float opacity=1,
+                             const double z0r=-2, const double z0i=-2, const double z1r=2, const double z1i=2,
+                             const unsigned int iteration_max=255,
+                             const bool is_normalized_iteration=false,
+                             const bool is_julia_set=false,
+                             const double param_r=0, const double param_i=0) {
+      return draw_mandelbrot(0,0,_width - 1,_height - 1,colormap,opacity,
+                             z0r,z0i,z1r,z1i,iteration_max,is_normalized_iteration,is_julia_set,param_r,param_i);
+    }
+
+    //! Draw a 1d gaussian function.
+   
