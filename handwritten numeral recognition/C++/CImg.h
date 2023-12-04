@@ -41828,4 +41828,144 @@ namespace cimg_library_suffixed {
                            const float lightx=0, const float lighty=0, const float lightz=-5e8,
                            const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
       return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
-                     
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    //! Draw a 3d object \simplification.
+    template<typename tp, typename tf, typename tc, typename tz>
+    CImg<T>& draw_object3d(const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,zbuffer);
+    }
+
+#ifdef cimg_use_board
+    template<typename tp, typename tf, typename tc, typename to>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type=4,
+                           const bool is_double_sided=false, const float focale=700,
+                           const float lightx=0, const float lighty=0, const float lightz=-5e8,
+                           const float specular_lightness=0.2f, const float specular_shininess=0.1f) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,CImg<floatT>::empty());
+    }
+
+    template<typename tp, typename tf, typename tc, typename to, typename tz>
+    CImg<T>& draw_object3d(LibBoard::Board& board,
+                           const float x0, const float y0, const float z0,
+                           const CImg<tp>& vertices, const CImgList<tf>& primitives,
+                           const CImgList<tc>& colors,
+                           const unsigned int render_type,
+                           const bool is_double_sided, const float focale,
+                           const float lightx, const float lighty, const float lightz,
+                           const float specular_lightness, const float specular_shininess,
+                           CImg<tz>& zbuffer) {
+      return draw_object3d(x0,y0,z0,vertices,primitives,colors,CImg<floatT>::const_empty(),
+                           render_type,is_double_sided,focale,lightx,lighty,lightz,
+                           specular_lightness,specular_shininess,zbuffer);
+    }
+#endif
+
+    template<typename t, typename to>
+    static float __draw_object3d(const CImgList<t>& opacities, const unsigned int n_primitive, CImg<to>& opacity) {
+      if (n_primitive>=opacities._width || opacities[n_primitive].is_empty()) { opacity.assign(); return 1; }
+      if (opacities[n_primitive].size()==1) { opacity.assign(); return opacities(n_primitive,0); }
+      opacity.assign(opacities[n_primitive],true);
+      return 1.0f;
+    }
+
+    template<typename t, typename to>
+    static float __draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive, CImg<to>& opacity) {
+      opacity.assign();
+      return n_primitive>=opacities._width?1.0f:(float)opacities[n_primitive];
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImgList<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width && opacities[n_primitive].size()==1?(float)opacities(n_primitive,0):1.0f;
+    }
+
+    template<typename t>
+    static float ___draw_object3d(const CImg<t>& opacities, const unsigned int n_primitive) {
+      return n_primitive<opacities._width?(float)opacities[n_primitive]:1.0f;
+    }
+
+    template<typename tz, typename tp, typename tf, typename tc, typename to>
+    CImg<T>& _draw_object3d(void *const pboard, CImg<tz>& zbuffer,
+                            const float X, const float Y, const float Z,
+                            const CImg<tp>& vertices,
+                            const CImgList<tf>& primitives,
+                            const CImgList<tc>& colors,
+                            const to& opacities,
+                            const unsigned int render_type,
+                            const bool is_double_sided, const float focale,
+                            const float lightx, const float lighty, const float lightz,
+                            const float specular_lightness, const float specular_shininess,
+                            const float sprite_scale) {
+      typedef typename cimg::superset2<tp,tz,float>::type tpfloat;
+      typedef typename to::value_type _to;
+      if (is_empty() || !vertices || !primitives) return *this;
+      CImg<char> error_message(1024);
+      if (!vertices.is_object3d(primitives,colors,opacities,false,error_message))
+        throw CImgArgumentException(_cimg_instance
+                                    "draw_object3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,vertices._width,primitives._width,error_message.data());
+#ifndef cimg_use_board
+      if (pboard) return *this;
+#endif
+      if (render_type==5) cimg::mutex(10);  // Static variable used in this case, breaks thread-safety.
+
+      const float
+        nspec = 1 - (specular_lightness<0.0f?0.0f:(specular_lightness>1.0f?1.0f:specular_lightness)),
+        nspec2 = 1 + (specular_shininess<0.0f?0.0f:specular_shininess),
+        nsl1 = (nspec2 - 1)/cimg::sqr(nspec - 1),
+        nsl2 = 1 - 2*nsl1*nspec,
+        nsl3 = nspec2 - nsl1 - nsl2;
+
+      // Create light texture for phong-like rendering.
+      CImg<floatT> light_texture;
+      if (render_type==5) {
+        if (colors._width>primitives._width) {
+          static CImg<floatT> default_light_texture;
+          static const tc *lptr = 0;
+          static tc ref_values[64] = { 0 };
+          const CImg<tc>& img = colors.back();
+          bool is_same_texture = (lptr==img._data);
+          if (is_same_texture)
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                if (ref_values[r++]!=img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum)) {
+                  is_same_texture = false; break;
+                }
+          if (!is_same_texture || default_light_texture._spectrum<_spectrum) {
+            (default_light_texture.assign(img,false)/=255).resize(-100,-100,1,_spectrum);
+            lptr = colors.back().data();
+            for (unsigned int r = 0, j = 0; j<8; ++j)
+              for (unsigned int i = 0; i<8; ++i)
+                ref_values[r++] = img(i*img._width/9,j*img._height/9,0,(i + j)%img._spectrum);
+          }
+          light_texture.assign(default_light_texture,true);
+        } else {
+          static CImg<floatT> default_light_texture;
+          static float olightx = 0, olighty = 0, olightz = 0, ospecular_shininess = 0;
+          if (!default_light_texture ||
+              lightx!=olightx || lighty!=olighty || lightz!=olightz ||
+              specular_shininess!=ospecular_shininess || default_light_texture._spectrum<_spectrum) {
+            default_light_texture.assign(512,512);
+            const float
+              dlx = lightx - X,
+              dly = lighty - Y,
+              dlz = lightz - Z,
+              nl = (float)s
