@@ -41968,4 +41968,182 @@ namespace cimg_library_suffixed {
               dlx = lightx - X,
               dly = lighty - Y,
               dlz = lightz - Z,
-              nl = (float)s
+              nl = (float)std::sqrt(dlx*dlx + dly*dly + dlz*dlz),
+              nlx = (default_light_texture._width - 1)/2*(1 + dlx/nl),
+              nly = (default_light_texture._height - 1)/2*(1 + dly/nl),
+              white[] = { 1 };
+            default_light_texture.draw_gaussian(nlx,nly,default_light_texture._width/3.0f,white);
+            cimg_forXY(default_light_texture,x,y) {
+              const float factor = default_light_texture(x,y);
+              if (factor>nspec) default_light_texture(x,y) = cimg::min(2,nsl1*factor*factor + nsl2*factor + nsl3);
+            }
+            default_light_texture.resize(-100,-100,1,_spectrum);
+            olightx = lightx; olighty = lighty; olightz = lightz; ospecular_shininess = specular_shininess;
+          }
+          light_texture.assign(default_light_texture,true);
+        }
+      }
+
+      // Compute 3d to 2d projection.
+      CImg<tpfloat> projections(vertices._width,2);
+      tpfloat parallzmin = cimg::type<tpfloat>::max();
+      const float absfocale = focale?cimg::abs(focale):0;
+      if (absfocale) {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(projections.size()>4096)
+#endif
+        cimg_forX(projections,l) { // Perspective projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          const tpfloat projectedz = z + Z + absfocale;
+          projections(l,1) = Y + absfocale*y/projectedz;
+          projections(l,0) = X + absfocale*x/projectedz;
+        }
+
+      } else {
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(projections.size()>4096)
+#endif
+        cimg_forX(projections,l) { // Parallel projection
+          const tpfloat
+            x = (tpfloat)vertices(l,0),
+            y = (tpfloat)vertices(l,1),
+            z = (tpfloat)vertices(l,2);
+          if (z<parallzmin) parallzmin = z;
+          projections(l,1) = Y + y;
+          projections(l,0) = X + x;
+        }
+      }
+      const float _focale = absfocale?absfocale:(1e5f-parallzmin);
+      float zmax = 0;
+      if (zbuffer) zmax = vertices.get_shared_row(2).max();
+
+      // Compute visible primitives.
+      CImg<uintT> visibles(primitives._width,1,1,1,~0U);
+      CImg<tpfloat> zrange(primitives._width);
+      const tpfloat zmin = absfocale?(tpfloat)(1.5f - absfocale):cimg::type<tpfloat>::min();
+      bool is_forward = zbuffer?true:false;
+
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(primitives.size()>4096)
+#endif
+      cimglist_for(primitives,l) {
+        const CImg<tf>& primitive = primitives[l];
+        switch (primitive.size()) {
+        case 1 : { // Point
+          CImg<_to> _opacity;
+          __draw_object3d(opacities,l,_opacity);
+          if (l<=colors.width() && (colors[l].size()!=_spectrum || _opacity)) is_forward = false;
+          const unsigned int i0 = (unsigned int)primitive(0);
+          const tpfloat z0 = Z + vertices(i0,2);
+          if (z0>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = z0;
+          }
+        } break;
+        case 5 : { // Sphere
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          const tpfloat
+            Xc = 0.5f*((float)vertices(i0,0) + (float)vertices(i1,0)),
+            Yc = 0.5f*((float)vertices(i0,1) + (float)vertices(i1,1)),
+            Zc = 0.5f*((float)vertices(i0,2) + (float)vertices(i1,2)),
+            _zc = Z + Zc,
+            zc = _zc + _focale,
+            xc = X + Xc*(absfocale?absfocale/zc:1),
+            yc = Y + Yc*(absfocale?absfocale/zc:1),
+            radius = 0.5f*std::sqrt(cimg::sqr(vertices(i1,0) - vertices(i0,0)) +
+                                    cimg::sqr(vertices(i1,1) - vertices(i0,1)) +
+                                    cimg::sqr(vertices(i1,2) - vertices(i0,2)))*(absfocale?absfocale/zc:1),
+            xm = xc - radius,
+            ym = yc - radius,
+            xM = xc + radius,
+            yM = yc + radius;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && _zc>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = _zc;
+          }
+          is_forward = false;
+        } break;
+        case 2 : // Segment
+        case 6 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin) {
+            visibles(l) = (unsigned int)l;
+            zrange(l) = (z0 + z1)/2;
+          }
+        } break;
+        case 3 :  // Triangle
+        case 9 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2),
+            x2 = projections(i2,0), y2 = projections(i2,1), z2 = Z + vertices(i2,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (x2<xm) xm = x2;
+          if (x2>xM) xM = x2;
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (y2<ym) ym = y2;
+          if (y2>yM) yM = y2;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin && z2>zmin) {
+            const tpfloat d = (x1-x0)*(y2-y0) - (x2-x0)*(y1-y0);
+            if (is_double_sided || d<0) {
+              visibles(l) = (unsigned int)l;
+              zrange(l) = (z0 + z1 + z2)/3;
+            }
+          }
+        } break;
+        case 4 : // Rectangle
+        case 12 : {
+          const unsigned int
+            i0 = (unsigned int)primitive(0),
+            i1 = (unsigned int)primitive(1),
+            i2 = (unsigned int)primitive(2),
+            i3 = (unsigned int)primitive(3);
+          const tpfloat
+            x0 = projections(i0,0), y0 = projections(i0,1), z0 = Z + vertices(i0,2),
+            x1 = projections(i1,0), y1 = projections(i1,1), z1 = Z + vertices(i1,2),
+            x2 = projections(i2,0), y2 = projections(i2,1), z2 = Z + vertices(i2,2),
+            x3 = projections(i3,0), y3 = projections(i3,1), z3 = Z + vertices(i3,2);
+          tpfloat xm, xM, ym, yM;
+          if (x0<x1) { xm = x0; xM = x1; } else { xm = x1; xM = x0; }
+          if (x2<xm) xm = x2;
+          if (x2>xM) xM = x2;
+          if (x3<xm) xm = x3;
+          if (x3>xM) xM = x3;
+          if (y0<y1) { ym = y0; yM = y1; } else { ym = y1; yM = y0; }
+          if (y2<ym) ym = y2;
+          if (y2>yM) yM = y2;
+          if (y3<ym) ym = y3;
+          if (y3>yM) yM = y3;
+          if (xM>=0 && xm<_width && yM>=0 && ym<_height && z0>zmin && z1>zmin && z2>zmin) {
+            const float d = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
+            if (is_double_sided || d<0) {
+              visibles(l) = (unsigned int)l;
+              zrange(l) = (z0 + z1 + z2 + z3)/4;
+            }
+          }
+        } break;
+        default :
+          if (render_type==5) cimg::mutex(10,0);
+          throw CImgArgumentException(_cimg_instance
+                                      "draw_object3d(): Invalid primitive[%u] with size %u "
+                                      "(should have size 1,2,3,4,5,6,9 or 12).",
+                                      cimg_instance,
+                                      l,primitive.size()
