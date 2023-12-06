@@ -42324,4 +42324,174 @@ namespace cimg_library_suffixed {
 
         switch (primitive.size()) {
         case 1 : { // Colored point or sprite
-          const unsigned int n0 = (unsigned int)primitive[0]
+          const unsigned int n0 = (unsigned int)primitive[0];
+          const int x0 = (int)projections(n0,0), y0 = (int)projections(n0,1);
+
+          if (_opacity.is_empty()) { // Scalar opacity.
+
+            if (color.size()==_spectrum) { // Colored point.
+              draw_point(x0,y0,pcolor,opacity);
+#ifdef cimg_use_board
+              if (pboard) {
+                board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+                board.fillCircle((float)x0,height()-(float)y0,0);
+              }
+#endif
+            } else { // Sprite.
+              const tpfloat z = Z + vertices(n0,2);
+              const float factor = focale<0?1:sprite_scale*(absfocale?absfocale/(z + absfocale):1);
+              const unsigned int
+                _sw = (unsigned int)(color._width*factor),
+                _sh = (unsigned int)(color._height*factor),
+                sw = _sw?_sw:1, sh = _sh?_sh:1;
+              const int nx0 = x0 - (int)sw/2, ny0 = y0 - (int)sh/2;
+              if (sw<=3*_width/2 && sh<=3*_height/2 &&
+                  (nx0 + (int)sw/2>=0 || nx0 - (int)sw/2<width() || ny0 + (int)sh/2>=0 || ny0 - (int)sh/2<height())) {
+                const CImg<tc>
+                  _sprite = (sw!=color._width || sh!=color._height)?
+                    color.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<tc>(),
+                  &sprite = _sprite?_sprite:color;
+                draw_image(nx0,ny0,sprite,opacity);
+#ifdef cimg_use_board
+                if (pboard) {
+                  board.setPenColorRGBi(128,128,128);
+                  board.setFillColor(LibBoard::Color::None);
+                  board.drawRectangle((float)nx0,height() - (float)ny0,sw,sh);
+                }
+#endif
+              }
+            }
+          } else { // Opacity mask.
+            const tpfloat z = Z + vertices(n0,2);
+            const float factor = focale<0?1:sprite_scale*(absfocale?absfocale/(z + absfocale):1);
+            const unsigned int
+              _sw = (unsigned int)(cimg::max(color._width,_opacity._width)*factor),
+              _sh = (unsigned int)(cimg::max(color._height,_opacity._height)*factor),
+              sw = _sw?_sw:1, sh = _sh?_sh:1;
+            const int nx0 = x0 - (int)sw/2, ny0 = y0 - (int)sh/2;
+            if (sw<=3*_width/2 && sh<=3*_height/2 &&
+                (nx0 + (int)sw/2>=0 || nx0 - (int)sw/2<width() || ny0 + (int)sh/2>=0 || ny0 - (int)sh/2<height())) {
+              const CImg<tc>
+                _sprite = (sw!=color._width || sh!=color._height)?
+                  color.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<tc>(),
+                &sprite = _sprite?_sprite:color;
+              const CImg<_to>
+                _nopacity = (sw!=_opacity._width || sh!=_opacity._height)?
+                  _opacity.get_resize(sw,sh,1,-100,render_type<=3?1:3):CImg<_to>(),
+                &nopacity = _nopacity?_nopacity:_opacity;
+              draw_image(nx0,ny0,sprite,nopacity);
+#ifdef cimg_use_board
+              if (pboard) {
+                board.setPenColorRGBi(128,128,128);
+                board.setFillColor(LibBoard::Color::None);
+                board.drawRectangle((float)nx0,height() - (float)ny0,sw,sh);
+              }
+#endif
+            }
+          }
+        } break;
+        case 2 : { // Colored line
+          const unsigned int
+            n0 = (unsigned int)primitive[0],
+            n1 = (unsigned int)primitive[1];
+          const int
+            x0 = (int)projections(n0,0), y0 = (int)projections(n0,1),
+            x1 = (int)projections(n1,0), y1 = (int)projections(n1,1);
+          const float
+            z0 = vertices(n0,2) + Z + _focale,
+            z1 = vertices(n1,2) + Z + _focale;
+          if (render_type) {
+            if (zbuffer) draw_line(zbuffer,x0,y0,z0,x1,y1,z1,pcolor,opacity);
+            else draw_line(x0,y0,x1,y1,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.drawLine((float)x0,height() - (float)y0,x1,height() - (float)y1);
+            }
+#endif
+          } else {
+            draw_point(x0,y0,pcolor,opacity).draw_point(x1,y1,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.drawCircle((float)x0,height() - (float)y0,0);
+              board.drawCircle((float)x1,height() - (float)y1,0);
+            }
+#endif
+          }
+        } break;
+        case 5 : { // Colored sphere
+          const unsigned int
+            n0 = (unsigned int)primitive[0],
+            n1 = (unsigned int)primitive[1],
+            is_wireframe = (unsigned int)primitive[2];
+          const float
+            Xc = 0.5f*((float)vertices(n0,0) + (float)vertices(n1,0)),
+            Yc = 0.5f*((float)vertices(n0,1) + (float)vertices(n1,1)),
+            Zc = 0.5f*((float)vertices(n0,2) + (float)vertices(n1,2)),
+            zc = Z + Zc + _focale,
+            xc = X + Xc*(absfocale?absfocale/zc:1),
+            yc = Y + Yc*(absfocale?absfocale/zc:1),
+            radius = 0.5f*std::sqrt(cimg::sqr(vertices(n1,0) - vertices(n0,0)) +
+                                    cimg::sqr(vertices(n1,1) - vertices(n0,1)) +
+                                    cimg::sqr(vertices(n1,2) - vertices(n0,2)))*(absfocale?absfocale/zc:1);
+          switch (render_type) {
+          case 0 :
+            draw_point((int)xc,(int)yc,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.fillCircle(xc,height() - yc,0);
+            }
+#endif
+            break;
+          case 1 :
+            draw_circle((int)xc,(int)yc,(int)radius,pcolor,opacity,~0U);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              board.setFillColor(LibBoard::Color::None);
+              board.drawCircle(xc,height() - yc,radius);
+            }
+#endif
+            break;
+          default :
+            if (is_wireframe) draw_circle((int)xc,(int)yc,(int)radius,pcolor,opacity,~0U);
+            else draw_circle((int)xc,(int)yc,(int)radius,pcolor,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+              board.setPenColorRGBi(color[0],color[1],color[2],(unsigned char)(opacity*255));
+              if (!is_wireframe) board.fillCircle(xc,height() - yc,radius);
+              else {
+                board.setFillColor(LibBoard::Color::None);
+                board.drawCircle(xc,height() - yc,radius);
+              }
+            }
+#endif
+            break;
+          }
+        } break;
+        case 6 : { // Textured line
+          if (!__color) {
+            if (render_type==5) cimg::mutex(10,0);
+            throw CImgArgumentException(_cimg_instance
+                                        "draw_object3d(): Undefined texture for line primitive [%u].",
+                                        cimg_instance,n_primitive);
+          }
+          const unsigned int
+            n0 = (unsigned int)primitive[0],
+            n1 = (unsigned int)primitive[1];
+          const int
+            tx0 = (int)primitive[2], ty0 = (int)primitive[3],
+            tx1 = (int)primitive[4], ty1 = (int)primitive[5],
+            x0 = (int)projections(n0,0), y0 = (int)projections(n0,1),
+            x1 = (int)projections(n1,0), y1 = (int)projections(n1,1);
+          const float
+            z0 = vertices(n0,2) + Z + _focale,
+            z1 = vertices(n1,2) + Z + _focale;
+          if (render_type) {
+            if (zbuffer) draw_line(zbuffer,x0,y0,z0,x1,y1,z1,color,tx0,ty0,tx1,ty1,opacity);
+            else draw_line(x0,y0,x1,y1,color,tx0,ty0,tx1,ty1,opacity);
+#ifdef cimg_use_board
+            if (pboard) {
+  
