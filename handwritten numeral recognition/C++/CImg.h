@@ -42146,4 +42146,182 @@ namespace cimg_library_suffixed {
                                       "draw_object3d(): Invalid primitive[%u] with size %u "
                                       "(should have size 1,2,3,4,5,6,9 or 12).",
                                       cimg_instance,
-                                      l,primitive.size()
+                                      l,primitive.size());
+        }
+      }
+
+      // Force transparent primitives to be drawn last when zbuffer is activated
+      // (and if object contains no spheres or sprites).
+      if (is_forward)
+        cimglist_for(primitives,l)
+          if (___draw_object3d(opacities,l)!=1) zrange(l) = 2*zmax - zrange(l);
+
+      // Sort only visibles primitives.
+      unsigned int *p_visibles = visibles._data;
+      tpfloat *p_zrange = zrange._data;
+      const tpfloat *ptrz = p_zrange;
+      cimg_for(visibles,ptr,unsigned int) {
+        if (*ptr!=~0U) { *(p_visibles++) = *ptr; *(p_zrange++) = *ptrz; }
+        ++ptrz;
+      }
+      const unsigned int nb_visibles = (unsigned int)(p_zrange - zrange._data);
+      if (!nb_visibles) {
+        if (render_type==5) cimg::mutex(10,0);
+        return *this;
+      }
+      CImg<uintT> permutations;
+      CImg<tpfloat>(zrange._data,nb_visibles,1,1,1,true).sort(permutations,is_forward);
+
+      // Compute light properties
+      CImg<floatT> lightprops;
+      switch (render_type) {
+      case 3 : { // Flat Shading
+        lightprops.assign(nb_visibles);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+        cimg_forX(lightprops,l) {
+          const CImg<tf>& primitive = primitives(visibles(permutations(l)));
+          const unsigned int psize = primitive.size();
+          if (psize==3 || psize==4 || psize==9 || psize==12) {
+            const unsigned int
+              i0 = (unsigned int)primitive(0),
+              i1 = (unsigned int)primitive(1),
+              i2 = (unsigned int)primitive(2);
+            const tpfloat
+              x0 = (tpfloat)vertices(i0,0), y0 = (tpfloat)vertices(i0,1), z0 = (tpfloat)vertices(i0,2),
+              x1 = (tpfloat)vertices(i1,0), y1 = (tpfloat)vertices(i1,1), z1 = (tpfloat)vertices(i1,2),
+              x2 = (tpfloat)vertices(i2,0), y2 = (tpfloat)vertices(i2,1), z2 = (tpfloat)vertices(i2,2),
+              dx1 = x1 - x0, dy1 = y1 - y0, dz1 = z1 - z0,
+              dx2 = x2 - x0, dy2 = y2 - y0, dz2 = z2 - z0,
+              nx = dy1*dz2 - dz1*dy2,
+              ny = dz1*dx2 - dx1*dz2,
+              nz = dx1*dy2 - dy1*dx2,
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              lx = X + (x0 + x1 + x2)/3 - lightx,
+              ly = Y + (y0 + y1 + y2)/3 - lighty,
+              lz = Z + (z0 + z1 + z2)/3 - lightz,
+              nl = (tpfloat)std::sqrt(1e-5f + lx*lx + ly*ly + lz*lz),
+              factor = cimg::max(cimg::abs(-lx*nx-ly*ny-lz*nz)/(norm*nl),0);
+            lightprops[l] = factor<=nspec?factor:(nsl1*factor*factor + nsl2*factor + nsl3);
+          } else lightprops[l] = 1;
+        }
+      } break;
+
+      case 4 : // Gouraud Shading
+      case 5 : { // Phong-Shading
+        CImg<tpfloat> vertices_normals(vertices._width,6,1,1,0);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+        for (unsigned int l = 0; l<nb_visibles; ++l) {
+          const CImg<tf>& primitive = primitives[visibles(l)];
+          const unsigned int psize = primitive.size();
+          const bool
+            triangle_flag = (psize==3) || (psize==9),
+            rectangle_flag = (psize==4) || (psize==12);
+          if (triangle_flag || rectangle_flag) {
+            const unsigned int
+              i0 = (unsigned int)primitive(0),
+              i1 = (unsigned int)primitive(1),
+              i2 = (unsigned int)primitive(2),
+              i3 = rectangle_flag?(unsigned int)primitive(3):0;
+            const tpfloat
+              x0 = (tpfloat)vertices(i0,0), y0 = (tpfloat)vertices(i0,1), z0 = (tpfloat)vertices(i0,2),
+              x1 = (tpfloat)vertices(i1,0), y1 = (tpfloat)vertices(i1,1), z1 = (tpfloat)vertices(i1,2),
+              x2 = (tpfloat)vertices(i2,0), y2 = (tpfloat)vertices(i2,1), z2 = (tpfloat)vertices(i2,2),
+              dx1 = x1 - x0, dy1 = y1 - y0, dz1 = z1 - z0,
+              dx2 = x2 - x0, dy2 = y2 - y0, dz2 = z2 - z0,
+              nnx = dy1*dz2 - dz1*dy2,
+              nny = dz1*dx2 - dx1*dz2,
+              nnz = dx1*dy2 - dy1*dx2,
+              norm = (tpfloat)(1e-5f + std::sqrt(nnx*nnx + nny*nny + nnz*nnz)),
+              nx = nnx/norm,
+              ny = nny/norm,
+              nz = nnz/norm;
+            unsigned int ix = 0, iy = 1, iz = 2;
+            if (is_double_sided && nz>0) { ix = 3; iy = 4; iz = 5; }
+            vertices_normals(i0,ix)+=nx; vertices_normals(i0,iy)+=ny; vertices_normals(i0,iz)+=nz;
+            vertices_normals(i1,ix)+=nx; vertices_normals(i1,iy)+=ny; vertices_normals(i1,iz)+=nz;
+            vertices_normals(i2,ix)+=nx; vertices_normals(i2,iy)+=ny; vertices_normals(i2,iz)+=nz;
+            if (rectangle_flag) {
+              vertices_normals(i3,ix)+=nx; vertices_normals(i3,iy)+=ny; vertices_normals(i3,iz)+=nz;
+            }
+          }
+        }
+
+        if (is_double_sided) cimg_forX(vertices_normals,p) {
+            const float
+              nx0 = vertices_normals(p,0), ny0 = vertices_normals(p,1), nz0 = vertices_normals(p,2),
+              nx1 = vertices_normals(p,3), ny1 = vertices_normals(p,4), nz1 = vertices_normals(p,5),
+              n0 = nx0*nx0 + ny0*ny0 + nz0*nz0, n1 = nx1*nx1 + ny1*ny1 + nz1*nz1;
+            if (n1>n0) {
+              vertices_normals(p,0) = -nx1;
+              vertices_normals(p,1) = -ny1;
+              vertices_normals(p,2) = -nz1;
+            }
+          }
+
+        if (render_type==4) {
+          lightprops.assign(vertices._width);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+          cimg_forX(lightprops,l) {
+            const tpfloat
+              nx = vertices_normals(l,0),
+              ny = vertices_normals(l,1),
+              nz = vertices_normals(l,2),
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              lx = X + vertices(l,0) - lightx,
+              ly = Y + vertices(l,1) - lighty,
+              lz = Z + vertices(l,2) - lightz,
+              nl = (tpfloat)std::sqrt(1e-5f + lx*lx + ly*ly + lz*lz),
+              factor = cimg::max((-lx*nx-ly*ny-lz*nz)/(norm*nl),0);
+            lightprops[l] = factor<=nspec?factor:(nsl1*factor*factor + nsl2*factor + nsl3);
+          }
+        } else {
+          const unsigned int
+            lw2 = light_texture._width/2 - 1,
+            lh2 = light_texture._height/2 - 1;
+          lightprops.assign(vertices._width,2);
+#ifdef cimg_use_openmp
+#pragma omp parallel for cimg_openmp_if(nb_visibles>4096)
+#endif
+          cimg_forX(lightprops,l) {
+            const tpfloat
+              nx = vertices_normals(l,0),
+              ny = vertices_normals(l,1),
+              nz = vertices_normals(l,2),
+              norm = (tpfloat)std::sqrt(1e-5f + nx*nx + ny*ny + nz*nz),
+              nnx = nx/norm,
+              nny = ny/norm;
+            lightprops(l,0) = lw2*(1 + nnx);
+            lightprops(l,1) = lh2*(1 + nny);
+          }
+        }
+      } break;
+      }
+
+      // Draw visible primitives
+      const CImg<tc> default_color(1,_spectrum,1,1,(tc)200);
+      CImg<_to> _opacity;
+
+      for (unsigned int l = 0; l<nb_visibles; ++l) {
+        const unsigned int n_primitive = visibles(permutations(l));
+        const CImg<tf>& primitive = primitives[n_primitive];
+        const CImg<tc>
+          &__color = n_primitive<colors._width?colors[n_primitive]:CImg<tc>(),
+          _color = (__color && __color.size()!=_spectrum && __color._spectrum<_spectrum)?
+            __color.get_resize(-100,-100,-100,_spectrum,0):CImg<tc>(),
+          &color = _color?_color:(__color?__color:default_color);
+        const tc *const pcolor = color._data;
+        const float opacity = __draw_object3d(opacities,n_primitive,_opacity);
+
+#ifdef cimg_use_board
+        LibBoard::Board &board = *(LibBoard::Board*)pboard;
+#endif
+
+        switch (primitive.size()) {
+        case 1 : { // Colored point or sprite
+          const unsigned int n0 = (unsigned int)primitive[0]
