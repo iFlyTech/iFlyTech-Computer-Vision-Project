@@ -43211,4 +43211,164 @@ namespace cimg_library_suffixed {
           } break;
         case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
             disp.set_fullscreen(false).
-              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resi
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).resize(cimg_fitscreen(_width,_height,_depth),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.resize(disp.screen_width(),disp.screen_height(),false).toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyV : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            is_view3d = !is_view3d; disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            if (visu0) {
+              (+visu0).draw_text(0,0," Saving snapshot... ",foreground_color,background_color,0.7f,13).display(disp);
+              visu0.save(filename);
+              (+visu0).draw_text(0,0," Snapshot '%s' saved. ",foreground_color,background_color,0.7f,13,filename._data).
+                display(disp);
+            }
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyO : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu0).draw_text(0,0," Saving instance... ",foreground_color,background_color,0.7f,13).display(disp);
+            save(filename);
+            (+visu0).draw_text(0,0," Instance '%s' saved. ",foreground_color,background_color,0.7f,13,filename._data).
+              display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        }
+
+        switch (area) {
+
+        case 0 : // When mouse is out of image range.
+          mx = my = -1; X = Y = Z = -1;
+          break;
+
+        case 1 : case 2 : case 3 : // When mouse is over the XY,XZ or YZ projections.
+          if (disp.button()&1 && phase<2 && clicked_area==area) { // When selection has been started (1st step).
+            if (_depth>1 && (X1!=(int)X || Y1!=(int)Y || Z1!=(int)Z)) visu0.assign();
+            X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z;
+          }
+          if (!(disp.button()&1) && phase>=2 && clicked_area!=area) { // When selection is at 2nd step (for volumes).
+            switch (starting_area) {
+            case 1 : if (Z1!=(int)Z) visu0.assign(); Z1 = (int)Z; break;
+            case 2 : if (Y1!=(int)Y) visu0.assign(); Y1 = (int)Y; break;
+            case 3 : if (X1!=(int)X) visu0.assign(); X1 = (int)X; break;
+            }
+          }
+          if (disp.button()&2 && clicked_area==area) { // When moving through the image/volume.
+            if (phase) {
+              if (_depth>1 && (X1!=(int)X || Y1!=(int)Y || Z1!=(int)Z)) visu0.assign();
+              X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z;
+            } else {
+              if (_depth>1 && (X0!=(int)X || Y0!=(int)Y || Z0!=(int)Z)) visu0.assign();
+              X0 = (int)X; Y0 = (int)Y; Z0 = (int)Z;
+            }
+          }
+          if (disp.button()&4) {
+            X = (float)X0; Y = (float)Y0; Z = (float)Z0; phase = area = clicked_area = starting_area = 0;
+            visu0.assign();
+          }
+          if (disp.wheel()) { // When moving through the slices of the volume (with mouse wheel).
+            if (_depth>1 && !disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT() &&
+                !disp.is_keySHIFTLEFT() && !disp.is_keySHIFTRIGHT() &&
+                !disp.is_keyALT() && !disp.is_keyALTGR()) {
+              switch (area) {
+              case 1 :
+                if (phase) Z = (float)(Z1+=disp.wheel()); else Z = (float)(Z0+=disp.wheel());
+                visu0.assign(); break;
+              case 2 :
+                if (phase) Y = (float)(Y1+=disp.wheel()); else Y = (float)(Y0+=disp.wheel());
+                visu0.assign(); break;
+              case 3 :
+                if (phase) X = (float)(X1+=disp.wheel()); else X = (float)(X0+=disp.wheel());
+                visu0.assign(); break;
+              }
+              disp.set_wheel();
+            } else key = ~0U;
+          }
+          if ((disp.button()&1)!=old_button) { // When left button has just been pressed or released.
+            switch (phase) {
+            case 0 :
+              if (area==clicked_area) {
+                X0 = X1 = (int)X; Y0 = Y1 = (int)Y; Z0 = Z1 = (int)Z; starting_area = area; ++phase;
+              } break;
+            case 1 :
+              if (area==starting_area) {
+                X1 = (int)X; Y1 = (int)Y; Z1 = (int)Z; ++phase;
+              } else if (!(disp.button()&1)) { X = (float)X0; Y = (float)Y0; Z = (float)Z0; phase = 0; visu0.assign(); }
+              break;
+            case 2 : ++phase; break;
+            }
+            old_button = disp.button()&1;
+          }
+          break;
+
+        case 4 : // When mouse is over the 3d view.
+          if (is_view3d && points3d) {
+            X3d = mx - width()*disp.width()/(width() + (depth()>1?depth():0));
+            Y3d = my - height()*disp.height()/(height() + (depth()>1?depth():0));
+            if (oX3d<0) { oX3d = X3d; oY3d = Y3d; }
+            // Left + right buttons: reset.
+            if ((disp.button()&3)==3) { pose3d.assign(); view3d.assign(); oX3d = oY3d = X3d = Y3d = -1; }
+            else if (disp.button()&1 && pose3d && (oX3d!=X3d || oY3d!=Y3d)) { // Left button: rotate.
+              const float
+                R = 0.45f*cimg::min(view3d._width,view3d._height),
+                R2 = R*R,
+                u0 = (float)(oX3d - view3d.width()/2),
+                v0 = (float)(oY3d - view3d.height()/2),
+                u1 = (float)(X3d - view3d.width()/2),
+                v1 = (float)(Y3d - view3d.height()/2),
+                n0 = (float)std::sqrt(u0*u0 + v0*v0),
+                n1 = (float)std::sqrt(u1*u1 + v1*v1),
+                nu0 = n0>R?(u0*R/n0):u0,
+                nv0 = n0>R?(v0*R/n0):v0,
+                nw0 = (float)std::sqrt(cimg::max(0,R2 - nu0*nu0 - nv0*nv0)),
+                nu1 = n1>R?(u1*R/n1):u1,
+                nv1 = n1>R?(v1*R/n1):v1,
+                nw1 = (float)std::sqrt(cimg::max(0,R2 - nu1*nu1 - nv1*nv1)),
+                u = nv0*nw1 - nw0*nv1,
+                v = nw0*nu1 - nu0*nw1,
+                w = nv0*nu1 - nu0*nv1,
+                n = (float)std::sqrt(u*u + v*v + w*w),
+                alpha = (float)std::asin(n/R2);
+              pose3d.draw_image(CImg<floatT>::rotation_matrix(u,v,w,alpha)*pose3d.get_crop(0,0,2,2));
+              view3d.assign();
+            } else if (disp.button()&2 && pose3d && oY3d!=Y3d) {  // Right button: zoom.
+              pose3d(3,2)-=(oY3d - Y3d)*1.5f; view3d.assign();
+            }
+            if (disp.wheel()) { // Wheel: zoom
+              pose3d(3,2)-=disp.wheel()*15; view3d.assign(); disp.set_wheel();
+            }
+            if (disp.button()&4 && pose3d && (oX3d!=X3d || oY3d!=Y3d)) { // Middle button: shift.
+              pose3d(3,0)-=oX3d - X3d; pose3d(3,1)-=oY3d - Y3d; view3d.assign();
+            }
+            oX3d = X3d; oY3d = Y3d;
+          }
+          mx = my = -1; X = Y = Z = -1;
+          break;
+        }
+
+        if (phase) {
+          
