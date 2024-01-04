@@ -43905,4 +43905,181 @@ namespace cimg_library_suffixed {
         case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
           disp.set_fullscreen(false).
             resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
-                   CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-
+                   CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+            _is_resized = true;
+          disp.set_key(key,false); okey = 0;
+        } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+          disp.set_fullscreen(false).
+            resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+          disp.set_key(key,false); okey = 0;
+        } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(CImgDisplay::screen_width()/2,
+                                    CImgDisplay::screen_height()/2,1),false)._is_resized = true;
+            disp.set_key(key,false); okey = 0;
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.resize(disp.screen_width(),disp.screen_height(),false).toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); okey = 0;
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            if (visu || visu0) {
+              CImg<ucharT> &screen = visu?visu:visu0;
+              std::FILE *file;
+              do {
+                cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+                if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+              } while (file);
+              (+screen).draw_text(0,0," Saving snapshot... ",black,gray,1,13).display(disp);
+              screen.save(filename);
+              (+screen).draw_text(0,0," Snapshot '%s' saved. ",black,gray,1,13,filename._data).display(disp);
+            }
+            disp.set_key(key,false); okey = 0;
+          } break;
+        case cimg::keyO : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            if (visu || visu0) {
+              CImg<ucharT> &screen = visu?visu:visu0;
+              std::FILE *file;
+              do {
+#ifdef cimg_use_zlib
+                cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+                cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+                if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+              } while (file);
+              (+screen).draw_text(0,0," Saving instance... ",black,gray,1,13).display(disp);
+              save(filename);
+              (+screen).draw_text(0,0," Instance '%s' saved. ",black,gray,1,13,filename._data).display(disp);
+            }
+            disp.set_key(key,false); okey = 0;
+          } break;
+        }
+
+        // Handle mouse motion and mouse buttons
+        if (obutton!=button || omouse_x!=mouse_x || omouse_y!=mouse_y) {
+          visu.assign();
+          if (disp.mouse_x()>=0 && disp.mouse_y()>=0) {
+            const int
+              mx = (mouse_x - 16)*(int)(siz - one)/(disp.width() - 32),
+              cx = mx<0?0:(mx>=(int)(siz - one)?(int)(siz - 1 - one):mx),
+              my = mouse_y - 16,
+              cy = my<=0?0:(my>=(disp.height() - 32)?(disp.height() - 32):my);
+            if (button&1) {
+              if (!obutton) { x0 = cx; y0 = -1; } else { x1 = cx; y1 = -1; }
+            }
+            else if (button&2) {
+              if (!obutton) { x0 = cx; y0 = cy; } else { x1 = cx; y1 = cy; }
+            }
+            else if (obutton) { x1 = x1>=0?cx:-1; y1 = y1>=0?cy:-1; selected = true; }
+          } else if (!button && obutton) selected = true;
+          obutton = button; omouse_x = mouse_x; omouse_y = mouse_y;
+        }
+        if (disp.is_resized()) { disp.resize(false); visu0.assign(); }
+        if (visu && visu0) disp.wait();
+        if (!exit_on_anykey && okey && okey!=cimg::keyESC &&
+            (okey!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          disp.set_key(key,false);
+          okey = 0;
+        }
+      }
+
+      disp._normalization = old_normalization;
+      if (x1>=0 && x1<x0) cimg::swap(x0,x1);
+      if (y1<y0) cimg::swap(y0,y1);
+      disp.set_key(okey);
+      return CImg<intT>(4,1,1,1,x0,y0,x1>=0?x1 + (int)one:-1,y1);
+    }
+
+    //! Load image from a file.
+    /**
+       \param filename Filename, as a C-string.
+       \note The extension of \c filename defines the file format. If no filename
+       extension is provided, CImg<T>::get_load() will try to load the file as a .cimg or .cimgz file.
+    **/
+    CImg<T>& load(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load(): Specified filename is (null).",
+                                    cimg_instance);
+
+      if (!cimg::strncasecmp(filename,"http://",7) || !cimg::strncasecmp(filename,"https://",8)) {
+        CImg<charT> filename_local(256);
+        load(cimg::load_network(filename,filename_local));
+        std::remove(filename_local);
+        return *this;
+      }
+
+      const char *const ext = cimg::split_filename(filename);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+#ifdef cimg_load_plugin
+        cimg_load_plugin(filename);
+#endif
+#ifdef cimg_load_plugin1
+        cimg_load_plugin1(filename);
+#endif
+#ifdef cimg_load_plugin2
+        cimg_load_plugin2(filename);
+#endif
+#ifdef cimg_load_plugin3
+        cimg_load_plugin3(filename);
+#endif
+#ifdef cimg_load_plugin4
+        cimg_load_plugin4(filename);
+#endif
+#ifdef cimg_load_plugin5
+        cimg_load_plugin5(filename);
+#endif
+#ifdef cimg_load_plugin6
+        cimg_load_plugin6(filename);
+#endif
+#ifdef cimg_load_plugin7
+        cimg_load_plugin7(filename);
+#endif
+#ifdef cimg_load_plugin8
+        cimg_load_plugin8(filename);
+#endif
+        // Ascii formats
+        if (!cimg::strcasecmp(ext,"asc")) load_ascii(filename);
+        else if (!cimg::strcasecmp(ext,"dlm") ||
+                 !cimg::strcasecmp(ext,"txt")) load_dlm(filename);
+
+        // 2d binary formats
+        else if (!cimg::strcasecmp(ext,"bmp")) load_bmp(filename);
+        else if (!cimg::strcasecmp(ext,"jpg") ||
+                 !cimg::strcasecmp(ext,"jpeg") ||
+                 !cimg::strcasecmp(ext,"jpe") ||
+                 !cimg::strcasecmp(ext,"jfif") ||
+                 !cimg::strcasecmp(ext,"jif")) load_jpeg(filename);
+        else if (!cimg::strcasecmp(ext,"png")) load_png(filename);
+        else if (!cimg::strcasecmp(ext,"ppm") ||
+                 !cimg::strcasecmp(ext,"pgm") ||
+                 !cimg::strcasecmp(ext,"pnm") ||
+                 !cimg::strcasecmp(ext,"pbm") ||
+                 !cimg::strcasecmp(ext,"pnk")) load_pnm(filename);
+        else if (!cimg::strcasecmp(ext,"pfm")) load_pfm(filename);
+        else if (!cimg::strcasecmp(ext,"tif") ||
+                 !cimg::strcasecmp(ext,"tiff")) load_tiff(filename);
+        else if (!cimg::strcasecmp(ext,"exr")) load_exr(filename);
+        else if (!cimg::strcasecmp(ext,"cr2") ||
+                 !cimg::strcasecmp(ext,"crw") ||
+                 !cimg::strcasecmp(ext,"dcr") ||
+                 !cimg::strcasecmp(ext,"mrw") ||
+                 !cimg::strcasecmp(ext,"nef") ||
+                 !cimg::strcasecmp(ext,"orf") ||
+                 !cimg::strcasecmp(ext,"pix") ||
+                 !cimg::strcasecmp(ext,"ptx") ||
+                 !cimg::strcasecmp(ext,"raf") ||
+                 !cimg::strcasecmp(ext,"srf")) load_dcraw_external(filename);
+        else if (!cimg::strcasecmp(ext,"gif")) load_gif_external(filename);
+
+        // 3d binary formats
+        else if (!cimg::strcasecmp(ext,"dcm") ||
+                 !cimg::strcasecmp(ext,"dicom")) load_medcon_external(filename);
+        else
