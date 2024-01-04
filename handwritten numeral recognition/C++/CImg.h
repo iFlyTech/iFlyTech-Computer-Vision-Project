@@ -43766,3 +43766,143 @@ namespace cimg_library_suffixed {
       static unsigned int odimv = 0;
       static CImg<ucharT> colormap;
       if (odimv!=_spectrum) {
+        odimv = _spectrum;
+        colormap = CImg<ucharT>(3,_spectrum,1,1,120).noise(70,1);
+        if (_spectrum==1) { colormap[0] = colormap[1] = 120; colormap[2] = 200; }
+        else {
+          colormap(0,0) = 220; colormap(1,0) = 10; colormap(2,0) = 10;
+          if (_spectrum>1) { colormap(0,1) = 10; colormap(1,1) = 220; colormap(2,1) = 10; }
+          if (_spectrum>2) { colormap(0,2) = 10; colormap(1,2) = 10; colormap(2,2) = 220; }
+        }
+      }
+
+      CImg<ucharT> visu0, visu, graph, text, axes;
+      int x0 = -1, x1 = -1, y0 = -1, y1 = -1, omouse_x = -2, omouse_y = -2;
+      const unsigned int one = plot_type==3?0U:1U;
+      unsigned int okey = 0, obutton = 0;
+      CImg<charT> message(1024);
+      CImg_3x3(I,unsigned char);
+
+      for (bool selected = false; !selected && !disp.is_closed() && !okey && !disp.wheel(); ) {
+        const int mouse_x = disp.mouse_x(), mouse_y = disp.mouse_y();
+        const unsigned int key = disp.key(), button = disp.button();
+
+        // Generate graph representation.
+        if (!visu0) {
+          visu0.assign(disp.width(),disp.height(),1,3,220);
+          const int gdimx = disp.width() - 32, gdimy = disp.height() - 32;
+          if (gdimx>0 && gdimy>0) {
+            graph.assign(gdimx,gdimy,1,3,255);
+            if (siz<32) {
+              if (siz>1) graph.draw_grid(gdimx/(float)(siz - one),gdimy/(float)(siz - one),0,0,
+                                         false,true,black,0.2f,0x33333333,0x33333333);
+            } else graph.draw_grid(-10,-10,0,0,false,true,black,0.2f,0x33333333,0x33333333);
+            cimg_forC(*this,c)
+              graph.draw_graph(get_shared_channel(c),&colormap(0,c),(plot_type!=3 || _spectrum==1)?1:0.6f,
+                               plot_type,vertex_type,nymax,nymin);
+
+            axes.assign(gdimx,gdimy,1,1,0);
+            const float
+              dx = (float)cimg::abs(nxmax - nxmin), dy = (float)cimg::abs(nymax - nymin),
+              px = (float)std::pow(10.0,(int)std::log10(dx?dx:1) - 2.0),
+              py = (float)std::pow(10.0,(int)std::log10(dy?dy:1) - 2.0);
+            const CImg<Tdouble>
+              seqx = dx<=0?CImg<Tdouble>::vector(nxmin):
+                CImg<Tdouble>::sequence(1 + gdimx/60,nxmin,one?nxmax:nxmin + (nxmax - nxmin)*(siz + 1)/siz).round(px),
+              seqy = CImg<Tdouble>::sequence(1 + gdimy/60,nymax,nymin).round(py);
+
+            const bool allow_zero = (nxmin*nxmax>0) || (nymin*nymax>0);
+            axes.draw_axes(seqx,seqy,white,1,~0U,~0U,13,allow_zero);
+            if (nymin>0) axes.draw_axis(seqx,gdimy - 1,gray,1,~0U,13,allow_zero);
+            if (nymax<0) axes.draw_axis(seqx,0,gray,1,~0U,13,allow_zero);
+            if (nxmin>0) axes.draw_axis(0,seqy,gray,1,~0U,13,allow_zero);
+            if (nxmax<0) axes.draw_axis(gdimx - 1,seqy,gray,1,~0U,13,allow_zero);
+
+            cimg_for3x3(axes,x,y,0,0,I,unsigned char)
+              if (Icc) {
+                if (Icc==255) cimg_forC(graph,c) graph(x,y,c) = 0;
+                else cimg_forC(graph,c) graph(x,y,c) = (unsigned char)(2*graph(x,y,c)/3);
+              }
+              else if (Ipc || Inc || Icp || Icn || Ipp || Inn || Ipn || Inp)
+                cimg_forC(graph,c) graph(x,y,c) = (unsigned char)((graph(x,y,c) + 511)/3);
+
+            visu0.draw_image(16,16,graph);
+            visu0.draw_line(15,15,16 + gdimx,15,gray2).draw_line(16 + gdimx,15,16 + gdimx,16 + gdimy,gray2).
+              draw_line(16 + gdimx,16 + gdimy,15,16 + gdimy,white).draw_line(15,16 + gdimy,15,15,white);
+          } else graph.assign();
+          text.assign().draw_text(0,0,labelx?labelx:"X-axis",white,ngray,1,13).resize(-100,-100,1,3);
+          visu0.draw_image((visu0.width() - text.width())/2,visu0.height() - 14,~text);
+          text.assign().draw_text(0,0,labely?labely:"Y-axis",white,ngray,1,13).rotate(-90).resize(-100,-100,1,3);
+          visu0.draw_image(1,(visu0.height() - text.height())/2,~text);
+          visu.assign();
+        }
+
+        // Generate and display current view.
+        if (!visu) {
+          visu.assign(visu0);
+          if (graph && x0>=0 && x1>=0) {
+            const int
+              nx0 = x0<=x1?x0:x1,
+              nx1 = x0<=x1?x1:x0,
+              ny0 = y0<=y1?y0:y1,
+              ny1 = y0<=y1?y1:y0,
+              sx0 = (int)(16 + nx0*(visu.width() - 32)/cimg::max(1U,siz - one)),
+              sx1 = (int)(15 + (nx1 + 1)*(visu.width() - 32)/cimg::max(1U,siz - one)),
+              sy0 = 16 + ny0,
+              sy1 = 16 + ny1;
+            if (y0>=0 && y1>=0)
+              visu.draw_rectangle(sx0,sy0,sx1,sy1,gray,0.5f).draw_rectangle(sx0,sy0,sx1,sy1,black,0.5f,0xCCCCCCCCU);
+            else visu.draw_rectangle(sx0,0,sx1,visu.height() - 17,gray,0.5f).
+                   draw_line(sx0,16,sx0,visu.height() - 17,black,0.5f,0xCCCCCCCCU).
+                   draw_line(sx1,16,sx1,visu.height() - 17,black,0.5f,0xCCCCCCCCU);
+          }
+          if (mouse_x>=16 && mouse_y>=16 && mouse_x<visu.width() - 16 && mouse_y<visu.height() - 16) {
+            if (graph) visu.draw_line(mouse_x,16,mouse_x,visu.height() - 17,black,0.5f,0x55555555U);
+            const unsigned int
+              x = (unsigned int)cimg::round((mouse_x - 16.0f)*(siz - one)/(disp.width() - 32),1,one?0:-1);
+            const double cx = nxmin + x*(nxmax - nxmin)/cimg::max(1U,siz - 1);
+            if (_spectrum>=7)
+              cimg_snprintf(message,message._width,"Value[%u:%g] = ( %g %g %g ... %g %g %g )",x,cx,
+                            (double)(*this)(x,0,0,0),(double)(*this)(x,0,0,1),(double)(*this)(x,0,0,2),
+                            (double)(*this)(x,0,0,_spectrum - 4),(double)(*this)(x,0,0,_spectrum - 3),
+                            (double)(*this)(x,0,0,_spectrum - 1));
+            else {
+              cimg_snprintf(message,message._width,"Value[%u:%g] = ( ",x,cx);
+              cimg_forC(*this,c) cimg_sprintf(message._data + std::strlen(message),"%g ",(double)(*this)(x,0,0,c));
+              cimg_sprintf(message._data + std::strlen(message),")");
+            }
+            if (x0>=0 && x1>=0) {
+              const unsigned int
+                nx0 = (unsigned int)(x0<=x1?x0:x1),
+                nx1 = (unsigned int)(x0<=x1?x1:x0),
+                ny0 = (unsigned int)(y0<=y1?y0:y1),
+                ny1 = (unsigned int)(y0<=y1?y1:y0);
+              const double
+                cx0 = nxmin + nx0*(nxmax - nxmin)/cimg::max(1U,siz - 1),
+                cx1 = nxmin + (nx1 + one)*(nxmax - nxmin)/cimg::max(1U,siz - 1),
+                cy0 = nymax - ny0*(nymax - nymin)/(visu._height - 32),
+                cy1 = nymax - ny1*(nymax - nymin)/(visu._height - 32);
+              if (y0>=0 && y1>=0)
+                cimg_sprintf(message._data + std::strlen(message)," - Range ( %u:%g, %g ) - ( %u:%g, %g )",
+                             x0,cx0,cy0,x1 + one,cx1,cy1);
+              else
+                cimg_sprintf(message._data + std::strlen(message)," - Range [ %u:%g - %u:%g ]",
+                             x0,cx0,x1 + one,cx1);
+            }
+            text.assign().draw_text(0,0,message,white,ngray,1,13).resize(-100,-100,1,3);
+            visu.draw_image((visu.width() - text.width())/2,1,~text);
+          }
+          visu.display(disp);
+        }
+
+        // Test keys.
+        CImg<charT> filename(32);
+        switch (okey = key) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT : case cimg::keySHIFTRIGHT :
+#endif
+        case cimg::keyCTRLLEFT : case cimg::keySHIFTLEFT : okey = 0; break;
+        case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+          disp.set_fullscreen(false).
+            resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                   CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-
