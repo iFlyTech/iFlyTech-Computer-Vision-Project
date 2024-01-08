@@ -44471,4 +44471,220 @@ namespace cimg_library_suffixed {
           cimg_forX(*this,x) {
             (*this)(x,y,2) = (T)*(ptrs++);
             (*this)(x,y,1) = (T)*(ptrs++);
-         
+            (*this)(x,y,0) = (T)*(ptrs++);
+            ++ptrs;
+          }
+          ptrs+=align_bytes;
+        }
+      } break;
+      }
+      if (dy<0) mirror('y');
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a JPEG file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_jpeg(const char *const filename) {
+      return _load_jpeg(0,filename);
+    }
+
+    //! Load image from a JPEG file \newinstance.
+    static CImg<T> get_load_jpeg(const char *const filename) {
+      return CImg<T>().load_jpeg(filename);
+    }
+
+    //! Load image from a JPEG file \overloading.
+    CImg<T>& load_jpeg(std::FILE *const file) {
+      return _load_jpeg(file,0);
+    }
+
+    //! Load image from a JPEG file \newinstance.
+    static CImg<T> get_load_jpeg(std::FILE *const file) {
+      return CImg<T>().load_jpeg(file);
+    }
+
+    // Custom error handler for libjpeg.
+#ifdef cimg_use_jpeg
+    struct _cimg_error_mgr {
+      struct jpeg_error_mgr original;
+      jmp_buf setjmp_buffer;
+      char message[JMSG_LENGTH_MAX];
+    };
+
+    typedef struct _cimg_error_mgr *_cimg_error_ptr;
+
+    METHODDEF(void) _cimg_jpeg_error_exit(j_common_ptr cinfo) {
+      _cimg_error_ptr c_err = (_cimg_error_ptr) cinfo->err;  // Return control to the setjmp point
+      (*cinfo->err->format_message)(cinfo,c_err->message);
+      jpeg_destroy(cinfo);  // Clean memory and temp files.
+      longjmp(c_err->setjmp_buffer,1);
+    }
+#endif
+
+    CImg<T>& _load_jpeg(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_jpeg(): Specified filename is (null).",
+                                    cimg_instance);
+
+#ifndef cimg_use_jpeg
+      if (file)
+        throw CImgIOException(_cimg_instance
+                              "load_jpeg(): Unable to load data from '(FILE*)' unless libjpeg is enabled.",
+                              cimg_instance);
+      else return load_other(filename);
+#else
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      struct jpeg_decompress_struct cinfo;
+      struct _cimg_error_mgr jerr;
+      cinfo.err = jpeg_std_error(&jerr.original);
+      jerr.original.error_exit = _cimg_jpeg_error_exit;
+      if (setjmp(jerr.setjmp_buffer)) { // JPEG error
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                             "load_jpeg(): Error message returned by libjpeg: %s.",
+                             cimg_instance,jerr.message);
+      }
+
+      jpeg_create_decompress(&cinfo);
+      jpeg_stdio_src(&cinfo,nfile);
+      jpeg_read_header(&cinfo,TRUE);
+      jpeg_start_decompress(&cinfo);
+
+      if (cinfo.output_components!=1 && cinfo.output_components!=3 && cinfo.output_components!=4) {
+        if (!file) {
+          cimg::fclose(nfile);
+          return load_other(filename);
+        } else
+          throw CImgIOException(_cimg_instance
+                                "load_jpeg(): Failed to load JPEG data from file '%s'.",
+                                cimg_instance,filename?filename:"(FILE*)");
+      }
+      CImg<ucharT> buffer(cinfo.output_width*cinfo.output_components);
+      JSAMPROW row_pointer[1];
+      try { assign(cinfo.output_width,cinfo.output_height,1,cinfo.output_components); }
+      catch (...) { if (!file) cimg::fclose(nfile); throw; }
+      T *ptr_r = _data, *ptr_g = _data + 1UL*_width*_height, *ptr_b = _data + 2UL*_width*_height,
+        *ptr_a = _data + 3UL*_width*_height;
+      while (cinfo.output_scanline<cinfo.output_height) {
+        *row_pointer = buffer._data;
+        if (jpeg_read_scanlines(&cinfo,row_pointer,1)!=1) {
+          cimg::warn(_cimg_instance
+                     "load_jpeg(): Incomplete data in file '%s'.",
+                     cimg_instance,filename?filename:"(FILE*)");
+          break;
+        }
+        const unsigned char *ptrs = buffer._data;
+        switch (_spectrum) {
+        case 1 : {
+          cimg_forX(*this,x) *(ptr_r++) = (T)*(ptrs++);
+        } break;
+        case 3 : {
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            *(ptr_g++) = (T)*(ptrs++);
+            *(ptr_b++) = (T)*(ptrs++);
+          }
+        } break;
+        case 4 : {
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            *(ptr_g++) = (T)*(ptrs++);
+            *(ptr_b++) = (T)*(ptrs++);
+            *(ptr_a++) = (T)*(ptrs++);
+          }
+        } break;
+        }
+      }
+      jpeg_finish_decompress(&cinfo);
+      jpeg_destroy_decompress(&cinfo);
+      if (!file) cimg::fclose(nfile);
+      return *this;
+#endif
+    }
+
+    //! Load image from a file, using Magick++ library.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    // Added April/may 2006 by Christoph Hormann <chris_hormann@gmx.de>
+    //   This is experimental code, not much tested, use with care.
+    CImg<T>& load_magick(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_magick(): Specified filename is (null).",
+                                    cimg_instance);
+#ifdef cimg_use_magick
+      Magick::Image image(filename);
+      const unsigned int W = image.size().width(), H = image.size().height();
+      switch (image.type()) {
+      case Magick::PaletteMatteType :
+      case Magick::TrueColorMatteType :
+      case Magick::ColorSeparationType : {
+        assign(W,H,1,4);
+        T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3);
+        Magick::PixelPacket *pixels = image.getPixels(0,0,W,H);
+        for (ulongT off = (ulongT)W*H; off; --off) {
+          *(ptr_r++) = (T)(pixels->red);
+          *(ptr_g++) = (T)(pixels->green);
+          *(ptr_b++) = (T)(pixels->blue);
+          *(ptr_a++) = (T)(pixels->opacity);
+          ++pixels;
+        }
+      } break;
+      case Magick::PaletteType :
+      case Magick::TrueColorType : {
+        assign(W,H,1,3);
+        T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+        Magick::PixelPacket *pixels = image.getPixels(0,0,W,H);
+        for (ulongT off = (ulongT)W*H; off; --off) {
+          *(ptr_r++) = (T)(pixels->red);
+          *(ptr_g++) = (T)(pixels->green);
+          *(ptr_b++) = (T)(pixels->blue);
+          ++pixels;
+        }
+      } break;
+      case Magick::GrayscaleMatteType : {
+        assign(W,H,1,2);
+        T *ptr_r = data(0,0,0,0), *ptr_a = data(0,0,0,1);
+        Magick::PixelPacket *pixels = image.getPixels(0,0,W,H);
+        for (ulongT off = (ulongT)W*H; off; --off) {
+          *(ptr_r++) = (T)(pixels->red);
+          *(ptr_a++) = (T)(pixels->opacity);
+          ++pixels;
+        }
+      } break;
+      default : {
+        assign(W,H,1,1);
+        T *ptr_r = data(0,0,0,0);
+        Magick::PixelPacket *pixels = image.getPixels(0,0,W,H);
+        for (ulongT off = (ulongT)W*H; off; --off) {
+          *(ptr_r++) = (T)(pixels->red);
+          ++pixels;
+        }
+      }
+      }
+      return *this;
+#else
+      throw CImgIOException(_cimg_instance
+                            "load_magick(): Unable to load file '%s' unless libMagick++ is enabled.",
+                            cimg_instance,
+                            filename);
+#endif
+    }
+
+    //! Load image from a file, using Magick++ library \newinstance.
+    static CImg<T> get_load_magick(const char *const filename) {
+      return CImg<T>().load_magick(filename);
+    }
+
+    //! Load image from a PNG file.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_png(const char *const filename) {
+      return _l
