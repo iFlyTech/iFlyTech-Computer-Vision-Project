@@ -45067,4 +45067,199 @@ namespace cimg_library_suffixed {
       } break;
       default :
         assign();
- 
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pnm(): PNM type 'P%d' found, but type is not supported.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)",ppm_type);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a PFM file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_pfm(const char *const filename) {
+      return _load_pfm(0,filename);
+    }
+
+    //! Load image from a PFM file \newinstance.
+    static CImg<T> get_load_pfm(const char *const filename) {
+      return CImg<T>().load_pfm(filename);
+    }
+
+    //! Load image from a PFM file \overloading.
+    CImg<T>& load_pfm(std::FILE *const file) {
+      return _load_pfm(file,0);
+    }
+
+    //! Load image from a PFM file \newinstance.
+    static CImg<T> get_load_pfm(std::FILE *const file) {
+      return CImg<T>().load_pfm(file);
+    }
+
+    CImg<T>& _load_pfm(std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_pfm(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      char pfm_type;
+      CImg<charT> item(16384,1,1,1,0);
+      int W = 0, H = 0, err = 0;
+      double scale = 0;
+      while ((err=std::fscanf(nfile,"%16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if (cimg_sscanf(item," P%c",&pfm_type)!=1) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pfm(): PFM header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+      if ((err=cimg_sscanf(item," %d %d",&W,&H))<2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pfm(): WIDTH and HEIGHT fields are undefined in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (err==2) {
+        while ((err=std::fscanf(nfile," %16383[^\n]",item.data()))!=EOF && (*item=='#' || !err)) std::fgetc(nfile);
+        if (cimg_sscanf(item,"%lf",&scale)!=1)
+          cimg::warn(_cimg_instance
+                     "load_pfm(): SCALE field is undefined in file '%s'.",
+                     cimg_instance,
+                     filename?filename:"(FILE*)");
+      }
+      std::fgetc(nfile);
+      const bool is_color = (pfm_type=='F'), is_inverted = (scale>0)!=cimg::endianness();
+      if (is_color) {
+        assign(W,H,1,3,0);
+        CImg<floatT> buf(3*W);
+        T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+        cimg_forY(*this,y) {
+          cimg::fread(buf._data,3*W,nfile);
+          if (is_inverted) cimg::invert_endianness(buf._data,3*W);
+          const float *ptrs = buf._data;
+          cimg_forX(*this,x) {
+            *(ptr_r++) = (T)*(ptrs++);
+            *(ptr_g++) = (T)*(ptrs++);
+            *(ptr_b++) = (T)*(ptrs++);
+          }
+        }
+      } else {
+        assign(W,H,1,1,0);
+        CImg<floatT> buf(W);
+        T *ptrd = data(0,0,0,0);
+        cimg_forY(*this,y) {
+          cimg::fread(buf._data,W,nfile);
+          if (is_inverted) cimg::invert_endianness(buf._data,W);
+          const float *ptrs = buf._data;
+          cimg_forX(*this,x) *(ptrd++) = (T)*(ptrs++);
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return mirror('y');  // Most of the .pfm files are flipped along the y-axis.
+    }
+
+    //! Load image from a RGB file.
+    /**
+      \param filename Filename, as a C-string.
+      \param dimw Width of the image buffer.
+      \param dimh Height of the image buffer.
+    **/
+    CImg<T>& load_rgb(const char *const filename, const unsigned int dimw, const unsigned int dimh=1) {
+      return _load_rgb(0,filename,dimw,dimh);
+    }
+
+    //! Load image from a RGB file \newinstance.
+    static CImg<T> get_load_rgb(const char *const filename, const unsigned int dimw, const unsigned int dimh=1) {
+      return CImg<T>().load_rgb(filename,dimw,dimh);
+    }
+
+    //! Load image from a RGB file \overloading.
+    CImg<T>& load_rgb(std::FILE *const file, const unsigned int dimw, const unsigned int dimh=1) {
+      return _load_rgb(file,0,dimw,dimh);
+    }
+
+    //! Load image from a RGB file \newinstance.
+    static CImg<T> get_load_rgb(std::FILE *const file, const unsigned int dimw, const unsigned int dimh=1) {
+      return CImg<T>().load_rgb(file,dimw,dimh);
+    }
+
+    CImg<T>& _load_rgb(std::FILE *const file, const char *const filename,
+                       const unsigned int dimw, const unsigned int dimh) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_rgb(): Specified filename is (null).",
+                                    cimg_instance);
+
+      if (!dimw || !dimh) return assign();
+      const longT cimg_iobuffer = (longT)24*1024*1024;
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<ucharT> raw;
+      assign(dimw,dimh,1,3);
+      T
+        *ptr_r = data(0,0,0,0),
+        *ptr_g = data(0,0,0,1),
+        *ptr_b = data(0,0,0,2);
+      for (longT to_read = (longT)size(); to_read>0; ) {
+        raw.assign(cimg::min(to_read,cimg_iobuffer));
+        cimg::fread(raw._data,raw._width,nfile);
+        to_read-=raw._width;
+        const unsigned char *ptrs = raw._data;
+        for (ulongT off = raw._width/3UL; off; --off) {
+          *(ptr_r++) = (T)*(ptrs++);
+          *(ptr_g++) = (T)*(ptrs++);
+          *(ptr_b++) = (T)*(ptrs++);
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a RGBA file.
+    /**
+       \param filename Filename, as a C-string.
+       \param dimw Width of the image buffer.
+       \param dimh Height of the image buffer.
+    **/
+    CImg<T>& load_rgba(const char *const filename, const unsigned int dimw, const unsigned int dimh=1) {
+      return _load_rgba(0,filename,dimw,dimh);
+    }
+
+    //! Load image from a RGBA file \newinstance.
+    static CImg<T> get_load_rgba(const char *const filename, const unsigned int dimw, const unsigned int dimh=1) {
+      return CImg<T>().load_rgba(filename,dimw,dimh);
+    }
+
+    //! Load image from a RGBA file \overloading.
+    CImg<T>& load_rgba(std::FILE *const file, const unsigned int dimw, const unsigned int dimh=1) {
+      return _load_rgba(file,0,dimw,dimh);
+    }
+
+    //! Load image from a RGBA file \newinstance.
+    static CImg<T> get_load_rgba(std::FILE *const file, const unsigned int dimw, const unsigned int dimh=1) {
+      return CImg<T>().load_rgba(file,dimw,dimh);
+    }
+
+    CImg<T>& _load_rgba(std::FILE *const file, const char *const filename,
+                        const unsigned int dimw, const unsigned int dimh) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_rgba(): Specified filename is (null).",
+                                    cimg_instance);
+
+      if (!dimw || !dimh) return assign();
+      const longT cimg_iobuffer = (longT)24*1024*1024;
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<ucharT> raw;
+      assign(dimw,dimh,1,4);
+      T
+        *ptr_r = data(0,0,0,0),
+        *ptr_g = data(0,0,0,1),
+  
