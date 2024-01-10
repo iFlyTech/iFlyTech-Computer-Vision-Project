@@ -45770,4 +45770,167 @@ namespace cimg_library_suffixed {
       case 8 : {
         int *const buffer = new int[(size_t)dimx*dimy*dimz*dimv];
         cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
-        if (endian) cimg::invert_en
+        if (endian) cimg::invert_endianness(buffer,dimx*dimy*dimz*dimv);
+        cimg_foroff(*this,off) _data[off] = (T)(buffer[off]*scalefactor);
+        delete[] buffer;
+      } break;
+      case 16 : {
+        float *const buffer = new float[(size_t)dimx*dimy*dimz*dimv];
+        cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
+        if (endian) cimg::invert_endianness(buffer,dimx*dimy*dimz*dimv);
+        cimg_foroff(*this,off) _data[off] = (T)(buffer[off]*scalefactor);
+        delete[] buffer;
+      } break;
+      case 64 : {
+        double *const buffer = new double[(size_t)dimx*dimy*dimz*dimv];
+        cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
+        if (endian) cimg::invert_endianness(buffer,dimx*dimy*dimz*dimv);
+        cimg_foroff(*this,off) _data[off] = (T)(buffer[off]*scalefactor);
+        delete[] buffer;
+      } break;
+      default :
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_analyze(): Unable to load datatype %d in file '%s'",
+                              cimg_instance,
+                              datatype,filename?filename:"(FILE*)");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a .cimg[z] file.
+    /**
+      \param filename Filename, as a C-string.
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    CImg<T>& load_cimg(const char *const filename, const char axis='z', const float align=0) {
+      CImgList<T> list;
+      list.load_cimg(filename);
+      if (list._width==1) return list[0].move_to(*this);
+      return assign(list.get_append(axis,align));
+    }
+
+    //! Load image from a .cimg[z] file \newinstance
+    static CImg<T> get_load_cimg(const char *const filename, const char axis='z', const float align=0) {
+      return CImg<T>().load_cimg(filename,axis,align);
+    }
+
+    //! Load image from a .cimg[z] file \overloading.
+    CImg<T>& load_cimg(std::FILE *const file, const char axis='z', const float align=0) {
+      CImgList<T> list;
+      list.load_cimg(file);
+      if (list._width==1) return list[0].move_to(*this);
+      return assign(list.get_append(axis,align));
+    }
+
+    //! Load image from a .cimg[z] file \newinstance
+    static CImg<T> get_load_cimg(std::FILE *const file, const char axis='z', const float align=0) {
+      return CImg<T>().load_cimg(file,axis,align);
+    }
+
+    //! Load sub-images of a .cimg file.
+    /**
+      \param filename Filename, as a C-string.
+      \param n0 Starting frame.
+      \param n1 Ending frame (~0U for max).
+      \param x0 X-coordinate of the starting sub-image vertex.
+      \param y0 Y-coordinate of the starting sub-image vertex.
+      \param z0 Z-coordinate of the starting sub-image vertex.
+      \param c0 C-coordinate of the starting sub-image vertex.
+      \param x1 X-coordinate of the ending sub-image vertex (~0U for max).
+      \param y1 Y-coordinate of the ending sub-image vertex (~0U for max).
+      \param z1 Z-coordinate of the ending sub-image vertex (~0U for max).
+      \param c1 C-coordinate of the ending sub-image vertex (~0U for max).
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    CImg<T>& load_cimg(const char *const filename,
+                       const unsigned int n0, const unsigned int n1,
+                       const unsigned int x0, const unsigned int y0,
+                       const unsigned int z0, const unsigned int c0,
+                       const unsigned int x1, const unsigned int y1,
+                       const unsigned int z1, const unsigned int c1,
+                       const char axis='z', const float align=0) {
+      CImgList<T> list;
+      list.load_cimg(filename,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+      if (list._width==1) return list[0].move_to(*this);
+      return assign(list.get_append(axis,align));
+    }
+
+    //! Load sub-images of a .cimg file \newinstance.
+    static CImg<T> get_load_cimg(const char *const filename,
+                                 const unsigned int n0, const unsigned int n1,
+                                 const unsigned int x0, const unsigned int y0,
+                                 const unsigned int z0, const unsigned int c0,
+                                 const unsigned int x1, const unsigned int y1,
+                                 const unsigned int z1, const unsigned int c1,
+                                 const char axis='z', const float align=0) {
+      return CImg<T>().load_cimg(filename,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1,axis,align);
+    }
+
+    //! Load sub-images of a .cimg file \overloading.
+    CImg<T>& load_cimg(std::FILE *const file,
+                       const unsigned int n0, const unsigned int n1,
+                       const unsigned int x0, const unsigned int y0,
+                       const unsigned int z0, const unsigned int c0,
+                       const unsigned int x1, const unsigned int y1,
+                       const unsigned int z1, const unsigned int c1,
+                       const char axis='z', const float align=0) {
+      CImgList<T> list;
+      list.load_cimg(file,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1);
+      if (list._width==1) return list[0].move_to(*this);
+      return assign(list.get_append(axis,align));
+    }
+
+    //! Load sub-images of a .cimg file \newinstance.
+    static CImg<T> get_load_cimg(std::FILE *const file,
+                                 const unsigned int n0, const unsigned int n1,
+                                 const unsigned int x0, const unsigned int y0,
+                                 const unsigned int z0, const unsigned int c0,
+                                 const unsigned int x1, const unsigned int y1,
+                                 const unsigned int z1, const unsigned int c1,
+                                 const char axis='z', const float align=0) {
+      return CImg<T>().load_cimg(file,n0,n1,x0,y0,z0,c0,x1,y1,z1,c1,axis,align);
+    }
+
+    //! Load image from an INRIMAGE-4 file.
+    /**
+       \param filename Filename, as a C-string.
+       \param[out] voxel_size Pointer to the three voxel sizes read from the file.
+    **/
+    CImg<T>& load_inr(const char *const filename, float *const voxel_size=0) {
+      return _load_inr(0,filename,voxel_size);
+    }
+
+    //! Load image from an INRIMAGE-4 file \newinstance.
+    static CImg<T> get_load_inr(const char *const filename, float *const voxel_size=0) {
+      return CImg<T>().load_inr(filename,voxel_size);
+    }
+
+    //! Load image from an INRIMAGE-4 file \overloading.
+    CImg<T>& load_inr(std::FILE *const file, float *const voxel_size=0) {
+      return _load_inr(file,0,voxel_size);
+    }
+
+    //! Load image from an INRIMAGE-4 file \newinstance.
+    static CImg<T> get_load_inr(std::FILE *const file, float *voxel_size=0) {
+      return CImg<T>().load_inr(file,voxel_size);
+    }
+
+    static void _load_inr_header(std::FILE *file, int out[8], float *const voxel_size) {
+      CImg<charT> item(1024), tmp1(64), tmp2(64);
+      *item = *tmp1 = *tmp2 = 0;
+      out[0] = std::fscanf(file,"%63s",item._data);
+      out[0] = out[1] = out[2] = out[3] = out[5] = 1; out[4] = out[6] = out[7] = -1;
+      if(cimg::strncasecmp(item,"#INRIMAGE-4#{",13)!=0)
+        throw CImgIOException("CImg<%s>::load_inr(): INRIMAGE-4 header not found.",
+                              pixel_type());
+
+      while (std::fscanf(file," %63[^\n]%*c",item._data)!=EOF && std::strncmp(item,"##}",3)) {
+        cimg_sscanf(item," XDIM%*[^0-9]%d",out);
+        cimg_sscanf(item," YDIM%*[^0-9]%d",out + 1);
+        cimg_sscanf(item," ZDIM%*[^0-9]%d",out + 2);
+        cimg_sscanf(item," VDIM%*[^0-9]%d",out + 3);
+       
