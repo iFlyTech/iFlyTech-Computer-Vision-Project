@@ -45262,4 +45262,167 @@ namespace cimg_library_suffixed {
       T
         *ptr_r = data(0,0,0,0),
         *ptr_g = data(0,0,0,1),
-  
+        *ptr_b = data(0,0,0,2),
+        *ptr_a = data(0,0,0,3);
+      for (longT to_read = (longT)size(); to_read>0; ) {
+        raw.assign(cimg::min(to_read,cimg_iobuffer));
+        cimg::fread(raw._data,raw._width,nfile);
+        to_read-=raw._width;
+        const unsigned char *ptrs = raw._data;
+        for (ulongT off = raw._width/4UL; off; --off) {
+          *(ptr_r++) = (T)*(ptrs++);
+          *(ptr_g++) = (T)*(ptrs++);
+          *(ptr_b++) = (T)*(ptrs++);
+          *(ptr_a++) = (T)*(ptrs++);
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a TIFF file.
+    /**
+       \param filename Filename, as a C-string.
+       \param first_frame First frame to read (for multi-pages tiff).
+       \param last_frame Last frame to read (for multi-pages tiff).
+       \param step_frame Step value of frame reading.
+       \note
+       - libtiff support is enabled by defining the precompilation
+        directive \c cimg_use_tif.
+       - When libtiff is enabled, 2D and 3D (multipage) several
+        channel per pixel are supported for
+        <tt>char,uchar,short,ushort,float</tt> and \c double pixel types.
+       - If \c cimg_use_tif is not defined at compile time the
+        function uses CImg<T>& load_other(const char*).
+     **/
+    CImg<T>& load_tiff(const char *const filename,
+                       const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                       const unsigned int step_frame=1,
+                       float *const voxel_size=0,
+                       CImg<charT> *const description=0) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_tiff(): Specified filename is (null).",
+                                    cimg_instance);
+
+      const unsigned int
+        nfirst_frame = first_frame<last_frame?first_frame:last_frame,
+        nstep_frame = step_frame?step_frame:1;
+      unsigned int nlast_frame = first_frame<last_frame?last_frame:first_frame;
+
+#ifndef cimg_use_tiff
+      cimg::unused(voxel_size,description);
+      if (nfirst_frame || nlast_frame!=~0U || nstep_frame>1)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_tiff(): Unable to read sub-images from file '%s' unless libtiff is enabled.",
+                                    cimg_instance,
+                                    filename);
+      return load_other(filename);
+#else
+      TIFF *tif = TIFFOpen(filename,"r");
+      if (tif) {
+        unsigned int nb_images = 0;
+        do ++nb_images; while (TIFFReadDirectory(tif));
+        if (nfirst_frame>=nb_images || (nlast_frame!=~0U && nlast_frame>=nb_images))
+          cimg::warn(_cimg_instance
+                     "load_tiff(): File '%s' contains %u image(s) while specified frame range is [%u,%u] (step %u).",
+                     cimg_instance,
+                     filename,nb_images,nfirst_frame,nlast_frame,nstep_frame);
+
+        if (nfirst_frame>=nb_images) return assign();
+        if (nlast_frame>=nb_images) nlast_frame = nb_images - 1;
+        TIFFSetDirectory(tif,0);
+        CImg<T> frame;
+        for (unsigned int l = nfirst_frame; l<=nlast_frame; l+=nstep_frame) {
+          frame._load_tiff(tif,l,voxel_size,description);
+          if (l==nfirst_frame)
+            assign(frame._width,frame._height,1 + (nlast_frame - nfirst_frame)/nstep_frame,frame._spectrum);
+          if (frame._width>_width || frame._height>_height || frame._spectrum>_spectrum)
+            resize(cimg::max(frame._width,_width),
+                   cimg::max(frame._height,_height),-100,
+                   cimg::max(frame._spectrum,_spectrum),0);
+          draw_image(0,0,(l - nfirst_frame)/nstep_frame,frame);
+        }
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimg_instance
+                                   "load_tiff(): Failed to open file '%s'.",
+                                   cimg_instance,
+                                   filename);
+      return *this;
+#endif
+    }
+
+    //! Load image from a TIFF file \newinstance.
+    static CImg<T> get_load_tiff(const char *const filename,
+                                 const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                 const unsigned int step_frame=1,
+                                 float *const voxel_size=0,
+                                 CImg<charT> *const description=0) {
+      return CImg<T>().load_tiff(filename,first_frame,last_frame,step_frame,voxel_size,description);
+    }
+
+    // (Original contribution by Jerome Boulanger).
+#ifdef cimg_use_tiff
+    template<typename t>
+    void _load_tiff_tiled_contig(TIFF *const tif, const uint16 samplesperpixel,
+                                 const uint32 nx, const uint32 ny, const uint32 tw, const uint32 th) {
+      t *const buf = (t*)_TIFFmalloc(TIFFTileSize(tif));
+      if (buf) {
+        for (unsigned int row = 0; row<ny; row+=th)
+          for (unsigned int col = 0; col<nx; col+=tw) {
+            if (TIFFReadTile(tif,buf,col,row,0,0)<0) {
+              _TIFFfree(buf); TIFFClose(tif);
+              throw CImgIOException(_cimg_instance
+                                    "load_tiff(): Invalid tile in file '%s'.",
+                                    cimg_instance,
+                                    TIFFFileName(tif));
+            }
+            const t *ptr = buf;
+            for (unsigned int rr = row; rr<cimg::min((unsigned int)(row + th),(unsigned int)ny); ++rr)
+              for (unsigned int cc = col; cc<cimg::min((unsigned int)(col + tw),(unsigned int)nx); ++cc)
+                for (unsigned int vv = 0; vv<samplesperpixel; ++vv)
+                  (*this)(cc,rr,vv) = (T)(ptr[(rr - row)*th*samplesperpixel + (cc - col)*samplesperpixel + vv]);
+          }
+        _TIFFfree(buf);
+      }
+    }
+
+    template<typename t>
+    void _load_tiff_tiled_separate(TIFF *const tif, const uint16 samplesperpixel,
+                                   const uint32 nx, const uint32 ny, const uint32 tw, const uint32 th) {
+      t *const buf = (t*)_TIFFmalloc(TIFFTileSize(tif));
+      if (buf) {
+        for (unsigned int vv = 0; vv<samplesperpixel; ++vv)
+          for (unsigned int row = 0; row<ny; row+=th)
+            for (unsigned int col = 0; col<nx; col+=tw) {
+              if (TIFFReadTile(tif,buf,col,row,0,vv)<0) {
+                _TIFFfree(buf); TIFFClose(tif);
+                throw CImgIOException(_cimg_instance
+                                      "load_tiff(): Invalid tile in file '%s'.",
+                                      cimg_instance,
+                                      TIFFFileName(tif));
+              }
+              const t *ptr = buf;
+              for (unsigned int rr = row; rr<cimg::min((unsigned int)(row + th),(unsigned int)ny); ++rr)
+                for (unsigned int cc = col; cc<cimg::min((unsigned int)(col + tw),(unsigned int)nx); ++cc)
+                  (*this)(cc,rr,vv) = (T)*(ptr++);
+            }
+        _TIFFfree(buf);
+      }
+    }
+
+    template<typename t>
+    void _load_tiff_contig(TIFF *const tif, const uint16 samplesperpixel, const uint32 nx, const uint32 ny) {
+      t *const buf = (t*)_TIFFmalloc(TIFFStripSize(tif));
+      if (buf) {
+        uint32 row, rowsperstrip = (uint32)-1;
+        TIFFGetField(tif,TIFFTAG_ROWSPERSTRIP,&rowsperstrip);
+        for (row = 0; row<ny; row+= rowsperstrip) {
+          uint32 nrow = (row + rowsperstrip>ny?ny - row:rowsperstrip);
+          tstrip_t strip = TIFFComputeStrip(tif, row, 0);
+          if ((TIFFReadEncodedStrip(tif,strip,buf,-1))<0) {
+            _TIFFfree(buf); TIFFClose(tif);
+            throw CImgIOException(_cimg_instance
+                                  "load_tiff(): Invalid strip in file '%s'.",
+                                  cimg_instance,
+              
