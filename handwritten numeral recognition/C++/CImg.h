@@ -45589,4 +45589,185 @@ namespace cimg_library_suffixed {
               else _load_tiff_contig<signed char>(tif,samplesperpixel,nx,ny);
               break;
             case 16 :
-              if (sampleformat==SAMPLEFORM
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_contig<unsigned short>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_contig<short>(tif,samplesperpixel,nx,ny);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_contig<unsigned int>(tif,samplesperpixel,nx,ny);
+              else if (sampleformat==SAMPLEFORMAT_INT) _load_tiff_contig<int>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_contig<float>(tif,samplesperpixel,nx,ny);
+              break;
+            } else switch (bitspersample) {
+            case 8 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned char>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<signed char>(tif,samplesperpixel,nx,ny);
+              break;
+            case 16 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned short>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<short>(tif,samplesperpixel,nx,ny);
+              break;
+            case 32 :
+              if (sampleformat==SAMPLEFORMAT_UINT) _load_tiff_separate<unsigned int>(tif,samplesperpixel,nx,ny);
+              else if (sampleformat==SAMPLEFORMAT_INT) _load_tiff_separate<int>(tif,samplesperpixel,nx,ny);
+              else _load_tiff_separate<float>(tif,samplesperpixel,nx,ny);
+              break;
+            }
+        }
+      }
+      return *this;
+    }
+#endif
+
+    //! Load image from a MINC2 file.
+    /**
+        \param filename Filename, as a C-string.
+    **/
+    // (Original code by Haz-Edine Assemlal).
+    CImg<T>& load_minc2(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_minc2(): Specified filename is (null).",
+                                    cimg_instance);
+#ifndef cimg_use_minc2
+      return load_other(filename);
+#else
+      minc::minc_1_reader rdr;
+      rdr.open(filename);
+      assign(rdr.ndim(1)?rdr.ndim(1):1,
+             rdr.ndim(2)?rdr.ndim(2):1,
+             rdr.ndim(3)?rdr.ndim(3):1,
+             rdr.ndim(4)?rdr.ndim(4):1);
+      if(typeid(T)==typeid(unsigned char))
+        rdr.setup_read_byte();
+      else if(typeid(T)==typeid(int))
+        rdr.setup_read_int();
+      else if(typeid(T)==typeid(double))
+        rdr.setup_read_double();
+      else
+        rdr.setup_read_float();
+      minc::load_standard_volume(rdr, this->_data);
+      return *this;
+#endif
+    }
+
+    //! Load image from a MINC2 file \newinstance.
+    static CImg<T> get_load_minc2(const char *const filename) {
+      return CImg<T>().load_analyze(filename);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file.
+    /**
+       \param filename Filename, as a C-string.
+       \param[out] voxel_size Pointer to the three voxel sizes read from the file.
+    **/
+    CImg<T>& load_analyze(const char *const filename, float *const voxel_size=0) {
+      return _load_analyze(0,filename,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \newinstance.
+    static CImg<T> get_load_analyze(const char *const filename, float *const voxel_size=0) {
+      return CImg<T>().load_analyze(filename,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \overloading.
+    CImg<T>& load_analyze(std::FILE *const file, float *const voxel_size=0) {
+      return _load_analyze(file,0,voxel_size);
+    }
+
+    //! Load image from an ANALYZE7.5/NIFTI file \newinstance.
+    static CImg<T> get_load_analyze(std::FILE *const file, float *const voxel_size=0) {
+      return CImg<T>().load_analyze(file,voxel_size);
+    }
+
+    CImg<T>& _load_analyze(std::FILE *const file, const char *const filename, float *const voxel_size=0) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_analyze(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *nfile_header = 0, *nfile = 0;
+      if (!file) {
+        CImg<charT> body(1024);
+        const char *const ext = cimg::split_filename(filename,body);
+        if (!cimg::strcasecmp(ext,"hdr")) { // File is an Analyze header file.
+          nfile_header = cimg::fopen(filename,"rb");
+          cimg_sprintf(body._data + std::strlen(body),".img");
+          nfile = cimg::fopen(body,"rb");
+        } else if (!cimg::strcasecmp(ext,"img")) { // File is an Analyze data file.
+          nfile = cimg::fopen(filename,"rb");
+          cimg_sprintf(body._data + std::strlen(body),".hdr");
+          nfile_header = cimg::fopen(body,"rb");
+        } else nfile_header = nfile = cimg::fopen(filename,"rb"); // File is a Niftii file.
+      } else nfile_header = nfile = file; // File is a Niftii file.
+      if (!nfile || !nfile_header)
+        throw CImgIOException(_cimg_instance
+                              "load_analyze(): Invalid Analyze7.5 or NIFTI header in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+
+      // Read header.
+      bool endian = false;
+      unsigned int header_size;
+      cimg::fread(&header_size,1,nfile_header);
+      if (!header_size)
+        throw CImgIOException(_cimg_instance
+                              "load_analyze(): Invalid zero-size header in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+
+      if (header_size>=4096) { endian = true; cimg::invert_endianness(header_size); }
+      unsigned char *const header = new unsigned char[header_size];
+      cimg::fread(header + 4,header_size - 4,nfile_header);
+      if (!file && nfile_header!=nfile) cimg::fclose(nfile_header);
+      if (endian) {
+        cimg::invert_endianness((short*)(header + 40),5);
+        cimg::invert_endianness((short*)(header + 70),1);
+        cimg::invert_endianness((short*)(header + 72),1);
+        cimg::invert_endianness((float*)(header + 76),4);
+        cimg::invert_endianness((float*)(header + 112),1);
+      }
+      unsigned short *dim = (unsigned short*)(header + 40), dimx = 1, dimy = 1, dimz = 1, dimv = 1;
+      if (!dim[0])
+        cimg::warn(_cimg_instance
+                   "load_analyze(): File '%s' defines an image with zero dimensions.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)");
+
+      if (dim[0]>4)
+        cimg::warn(_cimg_instance
+                   "load_analyze(): File '%s' defines an image with %u dimensions, reading only the 4 first.",
+                   cimg_instance,
+                   filename?filename:"(FILE*)",dim[0]);
+
+      if (dim[0]>=1) dimx = dim[1];
+      if (dim[0]>=2) dimy = dim[2];
+      if (dim[0]>=3) dimz = dim[3];
+      if (dim[0]>=4) dimv = dim[4];
+      float scalefactor = *(float*)(header + 112); if (scalefactor==0) scalefactor=1;
+      const unsigned short datatype = *(unsigned short*)(header + 70);
+      if (voxel_size) {
+        const float *vsize = (float*)(header + 76);
+        voxel_size[0] = vsize[1]; voxel_size[1] = vsize[2]; voxel_size[2] = vsize[3];
+      }
+      delete[] header;
+
+      // Read pixel data.
+      assign(dimx,dimy,dimz,dimv);
+      switch (datatype) {
+      case 2 : {
+        unsigned char *const buffer = new unsigned char[(size_t)dimx*dimy*dimz*dimv];
+        cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
+        cimg_foroff(*this,off) _data[off] = (T)(buffer[off]*scalefactor);
+        delete[] buffer;
+      } break;
+      case 4 : {
+        short *const buffer = new short[(size_t)dimx*dimy*dimz*dimv];
+        cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
+        if (endian) cimg::invert_endianness(buffer,dimx*dimy*dimz*dimv);
+        cimg_foroff(*this,off) _data[off] = (T)(buffer[off]*scalefactor);
+        delete[] buffer;
+      } break;
+      case 8 : {
+        int *const buffer = new int[(size_t)dimx*dimy*dimz*dimv];
+        cimg::fread(buffer,dimx*dimy*dimz*dimv,nfile);
+        if (endian) cimg::invert_en
