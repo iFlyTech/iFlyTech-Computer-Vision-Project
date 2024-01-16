@@ -46272,4 +46272,152 @@ namespace cimg_library_suffixed {
                               cimg_instance,
                               imageid,filename?filename:"(FILE*)");
       }
-      if (!file) cimg::fc
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a PAR-REC (Philips) file.
+    /**
+      \param filename Filename, as a C-string.
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    CImg<T>& load_parrec(const char *const filename, const char axis='c', const float align=0) {
+      CImgList<T> list;
+      list.load_parrec(filename);
+      if (list._width==1) return list[0].move_to(*this);
+      return assign(list.get_append(axis,align));
+    }
+
+    //! Load image from a PAR-REC (Philips) file \newinstance.
+    static CImg<T> get_load_parrec(const char *const filename, const char axis='c', const float align=0) {
+      return CImg<T>().load_parrec(filename,axis,align);
+    }
+
+    //! Load image from a raw binary file.
+    /**
+      \param filename Filename, as a C-string.
+      \param size_x Width of the image buffer.
+      \param size_y Height of the image buffer.
+      \param size_z Depth of the image buffer.
+      \param size_c Spectrum of the image buffer.
+      \param is_multiplexed Tells if the image values are multiplexed along the C-axis.
+      \param invert_endianness Tells if the endianness of the image buffer must be inverted.
+      \param offset Starting offset of the read in the specified file.
+    **/
+    CImg<T>& load_raw(const char *const filename,
+                      const unsigned int size_x=0, const unsigned int size_y=1,
+                      const unsigned int size_z=1, const unsigned int size_c=1,
+                      const bool is_multiplexed=false, const bool invert_endianness=false,
+                      const ulongT offset=0) {
+      return _load_raw(0,filename,size_x,size_y,size_z,size_c,is_multiplexed,invert_endianness,offset);
+    }
+
+    //! Load image from a raw binary file \newinstance.
+    static CImg<T> get_load_raw(const char *const filename,
+                                const unsigned int size_x=0, const unsigned int size_y=1,
+                                const unsigned int size_z=1, const unsigned int size_c=1,
+                                const bool is_multiplexed=false, const bool invert_endianness=false,
+                                const ulongT offset=0) {
+      return CImg<T>().load_raw(filename,size_x,size_y,size_z,size_c,is_multiplexed,invert_endianness,offset);
+    }
+
+    //! Load image from a raw binary file \overloading.
+    CImg<T>& load_raw(std::FILE *const file,
+                      const unsigned int size_x=0, const unsigned int size_y=1,
+                      const unsigned int size_z=1, const unsigned int size_c=1,
+                      const bool is_multiplexed=false, const bool invert_endianness=false,
+                      const ulongT offset=0) {
+      return _load_raw(file,0,size_x,size_y,size_z,size_c,is_multiplexed,invert_endianness,offset);
+    }
+
+    //! Load image from a raw binary file \newinstance.
+    static CImg<T> get_load_raw(std::FILE *const file,
+                                const unsigned int size_x=0, const unsigned int size_y=1,
+                                const unsigned int size_z=1, const unsigned int size_c=1,
+                                const bool is_multiplexed=false, const bool invert_endianness=false,
+                                const ulongT offset=0) {
+      return CImg<T>().load_raw(file,size_x,size_y,size_z,size_c,is_multiplexed,invert_endianness,offset);
+    }
+
+    CImg<T>& _load_raw(std::FILE *const file, const char *const filename,
+                       const unsigned int size_x, const unsigned int size_y,
+                       const unsigned int size_z, const unsigned int size_c,
+                       const bool is_multiplexed, const bool invert_endianness,
+                       const ulongT offset) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_raw(): Specified filename is (null).",
+                                    cimg_instance);
+      if (cimg::is_directory(filename))
+        throw CImgArgumentException(_cimg_instance
+                                    "load_raw(): Specified filename '%s' is a directory.",
+                                    cimg_instance,filename);
+
+      ulongT siz = (ulongT)size_x*size_y*size_z*size_c;
+      unsigned int
+        _size_x = size_x,
+        _size_y = size_y,
+        _size_z = size_z,
+        _size_c = size_c;
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      if (!siz) {  // Retrieve file size.
+        const longT fpos = cimg::ftell(nfile);
+        if (fpos<0) throw CImgArgumentException(_cimg_instance
+                                                "load_raw(): Cannot determine size of input file '%s'.",
+                                                cimg_instance,filename?filename:"(FILE*)");
+        cimg::fseek(nfile,0,SEEK_END);
+        siz = cimg::ftell(nfile)/sizeof(T);
+                _size_y = (unsigned int)siz;
+        _size_x = _size_z = _size_c = 1;
+        cimg::fseek(nfile,fpos,SEEK_SET);
+      }
+      cimg::fseek(nfile,offset,SEEK_SET);
+      assign(_size_x,_size_y,_size_z,_size_c,0);
+      if (siz && (!is_multiplexed || size_c==1)) {
+        cimg::fread(_data,siz,nfile);
+        if (invert_endianness) cimg::invert_endianness(_data,siz);
+      } else if (siz) {
+        CImg<T> buf(1,1,1,_size_c);
+        cimg_forXYZ(*this,x,y,z) {
+          cimg::fread(buf._data,_size_c,nfile);
+          if (invert_endianness) cimg::invert_endianness(buf._data,_size_c);
+          set_vector_at(buf,x,y,z);
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image sequence from a YUV file.
+    /**
+      \param filename Filename, as a C-string.
+      \param size_x Width of the frames.
+      \param size_y Height of the frames.
+      \param first_frame Index of the first frame to read.
+      \param last_frame Index of the last frame to read.
+      \param step_frame Step value for frame reading.
+      \param yuv2rgb Tells if the YUV to RGB transform must be applied.
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+    **/
+    CImg<T>& load_yuv(const char *const filename,
+                      const unsigned int size_x, const unsigned int size_y=1,
+                      const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                      const unsigned int step_frame=1, const bool yuv2rgb=true, const char axis='z') {
+      return get_load_yuv(filename,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb,axis).move_to(*this);
+    }
+
+    //! Load image sequence from a YUV file \newinstance.
+    static CImg<T> get_load_yuv(const char *const filename,
+                                const unsigned int size_x, const unsigned int size_y=1,
+                                const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                const unsigned int step_frame=1, const bool yuv2rgb=true, const char axis='z') {
+      return CImgList<T>().load_yuv(filename,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb).get_append(axis);
+    }
+
+    //! Load image sequence from a YUV file \overloading.
+    CImg<T>& load_yuv(std::FILE *const file,
+                      const unsigned int size_x, const unsigned int size_y=1,
+                      const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                      const unsigned int step_frame=1, const bool yuv2rgb=true, const char axis='z') {
+      return get_load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb,axis).mov
