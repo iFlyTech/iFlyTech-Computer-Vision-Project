@@ -45933,4 +45933,183 @@ namespace cimg_library_suffixed {
         cimg_sscanf(item," YDIM%*[^0-9]%d",out + 1);
         cimg_sscanf(item," ZDIM%*[^0-9]%d",out + 2);
         cimg_sscanf(item," VDIM%*[^0-9]%d",out + 3);
-       
+        cimg_sscanf(item," PIXSIZE%*[^0-9]%d",out + 6);
+        if (voxel_size) {
+          cimg_sscanf(item," VX%*[^0-9.+-]%f",voxel_size);
+          cimg_sscanf(item," VY%*[^0-9.+-]%f",voxel_size + 1);
+          cimg_sscanf(item," VZ%*[^0-9.+-]%f",voxel_size + 2);
+        }
+        if (cimg_sscanf(item," CPU%*[ =]%s",tmp1._data)) out[7] = cimg::strncasecmp(tmp1,"sun",3)?0:1;
+        switch (cimg_sscanf(item," TYPE%*[ =]%s %s",tmp1._data,tmp2._data)) {
+        case 0 : break;
+        case 2 : out[5] = cimg::strncasecmp(tmp1,"unsigned",8)?1:0; std::strncpy(tmp1,tmp2,tmp1._width - 1);
+        case 1 :
+          if (!cimg::strncasecmp(tmp1,"int",3) || !cimg::strncasecmp(tmp1,"fixed",5))  out[4] = 0;
+          if (!cimg::strncasecmp(tmp1,"float",5) || !cimg::strncasecmp(tmp1,"double",6)) out[4] = 1;
+          if (!cimg::strncasecmp(tmp1,"packed",6)) out[4] = 2;
+          if (out[4]>=0) break;
+        default :
+          throw CImgIOException("CImg<%s>::load_inr(): Invalid pixel type '%s' defined in header.",
+                                pixel_type(),
+                                tmp2._data);
+        }
+      }
+      if(out[0]<0 || out[1]<0 || out[2]<0 || out[3]<0)
+        throw CImgIOException("CImg<%s>::load_inr(): Invalid dimensions (%d,%d,%d,%d) defined in header.",
+                              pixel_type(),
+                              out[0],out[1],out[2],out[3]);
+      if(out[4]<0 || out[5]<0)
+        throw CImgIOException("CImg<%s>::load_inr(): Incomplete pixel type defined in header.",
+                              pixel_type());
+      if(out[6]<0)
+        throw CImgIOException("CImg<%s>::load_inr(): Incomplete PIXSIZE field defined in header.",
+                              pixel_type());
+      if(out[7]<0)
+        throw CImgIOException("CImg<%s>::load_inr(): Big/Little Endian coding type undefined in header.",
+                              pixel_type());
+    }
+
+    CImg<T>& _load_inr(std::FILE *const file, const char *const filename, float *const voxel_size) {
+#define _cimg_load_inr_case(Tf,sign,pixsize,Ts) \
+     if (!loaded && fopt[6]==pixsize && fopt[4]==Tf && fopt[5]==sign) { \
+        Ts *xval, *const val = new Ts[(size_t)fopt[0]*fopt[3]]; \
+        cimg_forYZ(*this,y,z) { \
+            cimg::fread(val,fopt[0]*fopt[3],nfile); \
+            if (fopt[7]!=endian) cimg::invert_endianness(val,fopt[0]*fopt[3]); \
+            xval = val; cimg_forX(*this,x) cimg_forC(*this,c) (*this)(x,y,z,c) = (T)*(xval++); \
+          } \
+        delete[] val; \
+        loaded = true; \
+      }
+
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_inr(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      int fopt[8], endian=cimg::endianness()?1:0;
+      bool loaded = false;
+      if (voxel_size) voxel_size[0] = voxel_size[1] = voxel_size[2] = 1;
+      _load_inr_header(nfile,fopt,voxel_size);
+      assign(fopt[0],fopt[1],fopt[2],fopt[3]);
+      _cimg_load_inr_case(0,0,8,unsigned char);
+      _cimg_load_inr_case(0,1,8,char);
+      _cimg_load_inr_case(0,0,16,unsigned short);
+      _cimg_load_inr_case(0,1,16,short);
+      _cimg_load_inr_case(0,0,32,unsigned int);
+      _cimg_load_inr_case(0,1,32,int);
+      _cimg_load_inr_case(1,0,32,float);
+      _cimg_load_inr_case(1,1,32,float);
+      _cimg_load_inr_case(1,0,64,double);
+      _cimg_load_inr_case(1,1,64,double);
+      if (!loaded) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_inr(): Unknown pixel type defined in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load image from a EXR file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_exr(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_exr(): Specified filename is (null).",
+                                    cimg_instance);
+
+#ifndef cimg_use_openexr
+      return load_other(filename);
+#else
+      Imf::RgbaInputFile file(filename);
+      Imath::Box2i dw = file.dataWindow();
+      const int
+        inwidth = dw.max.x - dw.min.x + 1,
+        inheight = dw.max.y - dw.min.y + 1;
+      Imf::Array2D<Imf::Rgba> pixels;
+      pixels.resizeErase(inheight,inwidth);
+      file.setFrameBuffer(&pixels[0][0] - dw.min.x - dw.min.y*inwidth, 1, inwidth);
+      file.readPixels(dw.min.y, dw.max.y);
+      assign(inwidth,inheight,1,4);
+      T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3);
+      cimg_forXY(*this,x,y) {
+        *(ptr_r++) = (T)pixels[y][x].r;
+        *(ptr_g++) = (T)pixels[y][x].g;
+        *(ptr_b++) = (T)pixels[y][x].b;
+        *(ptr_a++) = (T)pixels[y][x].a;
+      }
+      return *this;
+#endif
+    }
+
+    //! Load image from a EXR file \newinstance.
+    static CImg<T> get_load_exr(const char *const filename) {
+      return CImg<T>().load_exr(filename);
+    }
+
+    //! Load image from a PANDORE-5 file.
+    /**
+      \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_pandore(const char *const filename) {
+      return _load_pandore(0,filename);
+    }
+
+    //! Load image from a PANDORE-5 file \newinstance.
+    static CImg<T> get_load_pandore(const char *const filename) {
+      return CImg<T>().load_pandore(filename);
+    }
+
+    //! Load image from a PANDORE-5 file \overloading.
+    CImg<T>& load_pandore(std::FILE *const file) {
+      return _load_pandore(file,0);
+    }
+
+    //! Load image from a PANDORE-5 file \newinstance.
+    static CImg<T> get_load_pandore(std::FILE *const file) {
+      return CImg<T>().load_pandore(file);
+    }
+
+    CImg<T>& _load_pandore(std::FILE *const file, const char *const filename) {
+#define __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,ndim,stype) \
+        cimg::fread(dims,nbdim,nfile); \
+        if (endian) cimg::invert_endianness(dims,nbdim); \
+        assign(nwidth,nheight,ndepth,ndim); \
+        const size_t siz = size(); \
+        stype *buffer = new stype[siz]; \
+        cimg::fread(buffer,siz,nfile); \
+        if (endian) cimg::invert_endianness(buffer,siz); \
+        T *ptrd = _data; \
+        cimg_foroff(*this,off) *(ptrd++) = (T)*(buffer++); \
+        buffer-=siz; \
+        delete[] buffer
+
+#define _cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype1,stype2,stype3,ltype) { \
+        if (sizeof(stype1)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype1); } \
+        else if (sizeof(stype2)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype2); } \
+        else if (sizeof(stype3)==ltype) { __cimg_load_pandore_case(nbdim,nwidth,nheight,ndepth,dim,stype3); } \
+        else throw CImgIOException(_cimg_instance \
+                                   "load_pandore(): Unknown pixel datatype in file '%s'.", \
+                                   cimg_instance, \
+                                   filename?filename:"(FILE*)"); }
+
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_pandore(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      CImg<charT> header(32);
+      cimg::fread(header._data,12,nfile);
+      if (cimg::strncasecmp("PANDORE",header,7)) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_pandore(): PANDORE header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:
