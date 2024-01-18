@@ -46420,4 +46420,169 @@ namespace cimg_library_suffixed {
                       const unsigned int size_x, const unsigned int size_y=1,
                       const unsigned int first_frame=0, const unsigned int last_frame=~0U,
                       const unsigned int step_frame=1, const bool yuv2rgb=true, const char axis='z') {
-      return get_load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb,axis).mov
+      return get_load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb,axis).move_to(*this);
+    }
+
+    //! Load image sequence from a YUV file \newinstance.
+    static CImg<T> get_load_yuv(std::FILE *const file,
+                                const unsigned int size_x, const unsigned int size_y=1,
+                                const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                const unsigned int step_frame=1, const bool yuv2rgb=true, const char axis='z') {
+      return CImgList<T>().load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb).get_append(axis);
+    }
+
+    //! Load 3d object from a .OFF file.
+    /**
+        \param[out] primitives Primitives data of the 3d object.
+        \param[out] colors Colors data of the 3d object.
+        \param filename Filename, as a C-string.
+    **/
+    template<typename tf, typename tc>
+    CImg<T>& load_off(CImgList<tf>& primitives, CImgList<tc>& colors, const char *const filename) {
+      return _load_off(primitives,colors,0,filename);
+    }
+
+    //! Load 3d object from a .OFF file \newinstance.
+    template<typename tf, typename tc>
+    static CImg<T> get_load_off(CImgList<tf>& primitives, CImgList<tc>& colors, const char *const filename) {
+      return CImg<T>().load_off(primitives,colors,filename);
+    }
+
+    //! Load 3d object from a .OFF file \overloading.
+    template<typename tf, typename tc>
+    CImg<T>& load_off(CImgList<tf>& primitives, CImgList<tc>& colors, std::FILE *const file) {
+      return _load_off(primitives,colors,file,0);
+    }
+
+    //! Load 3d object from a .OFF file \newinstance.
+    template<typename tf, typename tc>
+    static CImg<T> get_load_off(CImgList<tf>& primitives, CImgList<tc>& colors, std::FILE *const file) {
+      return CImg<T>().load_off(primitives,colors,file);
+    }
+
+    template<typename tf, typename tc>
+    CImg<T>& _load_off(CImgList<tf>& primitives, CImgList<tc>& colors,
+                       std::FILE *const file, const char *const filename) {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_off(): Specified filename is (null).",
+                                    cimg_instance);
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"r");
+      unsigned int nb_points = 0, nb_primitives = 0, nb_read = 0;
+      CImg<charT> line(256); *line = 0;
+      int err;
+
+      // Skip comments, and read magic string OFF
+      do { err = std::fscanf(nfile,"%255[^\n] ",line._data); } while (!err || (err==1 && *line=='#'));
+      if (cimg::strncasecmp(line,"OFF",3) && cimg::strncasecmp(line,"COFF",4)) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_off(): OFF header not found in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+      do { err = std::fscanf(nfile,"%255[^\n] ",line._data); } while (!err || (err==1 && *line=='#'));
+      if ((err = cimg_sscanf(line,"%u%u%*[^\n] ",&nb_points,&nb_primitives))!=2) {
+        if (!file) cimg::fclose(nfile);
+        throw CImgIOException(_cimg_instance
+                              "load_off(): Invalid number of vertices or primitives specified in file '%s'.",
+                              cimg_instance,
+                              filename?filename:"(FILE*)");
+      }
+
+      // Read points data
+      assign(nb_points,3);
+      float X = 0, Y = 0, Z = 0;
+      cimg_forX(*this,l) {
+        do { err = std::fscanf(nfile,"%255[^\n] ",line._data); } while (!err || (err==1 && *line=='#'));
+        if ((err = cimg_sscanf(line,"%f%f%f%*[^\n] ",&X,&Y,&Z))!=3) {
+          if (!file) cimg::fclose(nfile);
+          throw CImgIOException(_cimg_instance
+                                "load_off(): Failed to read vertex %u/%u in file '%s'.",
+                                cimg_instance,
+                                l + 1,nb_points,filename?filename:"(FILE*)");
+        }
+        (*this)(l,0) = (T)X; (*this)(l,1) = (T)Y; (*this)(l,2) = (T)Z;
+      }
+
+      // Read primitive data
+      primitives.assign();
+      colors.assign();
+      bool stop_flag = false;
+      while (!stop_flag) {
+        float c0 = 0.7f, c1 = 0.7f, c2 = 0.7f;
+        unsigned int prim = 0, i0 = 0, i1 = 0, i2 = 0, i3 = 0, i4 = 0, i5 = 0, i6 = 0, i7 = 0;
+        *line = 0;
+        if ((err = std::fscanf(nfile,"%u",&prim))!=1) stop_flag = true;
+        else {
+          ++nb_read;
+          switch (prim) {
+          case 1 : {
+            if ((err = std::fscanf(nfile,"%u%255[^\n] ",&i0,line._data))<2) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0).move_to(primitives);
+              CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)).move_to(colors);
+            }
+          } break;
+          case 2 : {
+            if ((err = std::fscanf(nfile,"%u%u%255[^\n] ",&i0,&i1,line._data))<2) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i1).move_to(primitives);
+              CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)).move_to(colors);
+            }
+          } break;
+          case 3 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%255[^\n] ",&i0,&i1,&i2,line._data))<3) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i2,i1).move_to(primitives);
+              CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)).move_to(colors);
+            }
+          } break;
+          case 4 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%u%255[^\n] ",&i0,&i1,&i2,&i3,line._data))<4) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i3,i2,i1).move_to(primitives);
+              CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)).move_to(colors);
+            }
+          } break;
+          case 5 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%u%u%255[^\n] ",&i0,&i1,&i2,&i3,&i4,line._data))<5) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i3,i2,i1).move_to(primitives);
+              CIm
