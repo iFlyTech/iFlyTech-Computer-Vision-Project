@@ -46585,4 +46585,166 @@ namespace cimg_library_suffixed {
             } else {
               err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
               CImg<tf>::vector(i0,i3,i2,i1).move_to(primitives);
-              CIm
+              CImg<tf>::vector(i0,i4,i3).move_to(primitives);
+              colors.insert(2,CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)));
+              ++nb_primitives;
+            }
+          } break;
+          case 6 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%u%u%u%255[^\n] ",&i0,&i1,&i2,&i3,&i4,&i5,line._data))<6) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i3,i2,i1).move_to(primitives);
+              CImg<tf>::vector(i0,i5,i4,i3).move_to(primitives);
+              colors.insert(2,CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)));
+              ++nb_primitives;
+            }
+          } break;
+          case 7 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%u%u%u%u%255[^\n] ",&i0,&i1,&i2,&i3,&i4,&i5,&i6,line._data))<7) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i4,i3,i1).move_to(primitives);
+              CImg<tf>::vector(i0,i6,i5,i4).move_to(primitives);
+              CImg<tf>::vector(i3,i2,i1).move_to(primitives);
+              colors.insert(3,CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)));
+              ++(++nb_primitives);
+            }
+          } break;
+          case 8 : {
+            if ((err = std::fscanf(nfile,"%u%u%u%u%u%u%u%u%255[^\n] ",&i0,&i1,&i2,&i3,&i4,&i5,&i6,&i7,line._data))<7) {
+              cimg::warn(_cimg_instance
+                         "load_off(): Failed to read primitive %u/%u from file '%s'.",
+                         cimg_instance,
+                         nb_read,nb_primitives,filename?filename:"(FILE*)");
+
+              err = std::fscanf(nfile,"%*[^\n] ");
+            } else {
+              err = cimg_sscanf(line,"%f%f%f",&c0,&c1,&c2);
+              CImg<tf>::vector(i0,i3,i2,i1).move_to(primitives);
+              CImg<tf>::vector(i0,i5,i4,i3).move_to(primitives);
+              CImg<tf>::vector(i0,i7,i6,i5).move_to(primitives);
+              colors.insert(3,CImg<tc>::vector((tc)(c0*255),(tc)(c1*255),(tc)(c2*255)));
+              ++(++nb_primitives);
+            }
+          } break;
+          default :
+            cimg::warn(_cimg_instance
+                       "load_off(): Failed to read primitive %u/%u (%u vertices) from file '%s'.",
+                       cimg_instance,
+                       nb_read,nb_primitives,prim,filename?filename:"(FILE*)");
+
+            err = std::fscanf(nfile,"%*[^\n] ");
+          }
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      if (primitives._width!=nb_primitives)
+        cimg::warn(_cimg_instance
+                   "load_off(): Only %u/%u primitives read from file '%s'.",
+                   cimg_instance,
+                   primitives._width,nb_primitives,filename?filename:"(FILE*)");
+      return *this;
+    }
+
+    //! Load image sequence from a video file, using OpenCV library.
+    /**
+      \param filename Filename, as a C-string.
+      \param first_frame Index of the first frame to read.
+      \param last_frame Index of the last frame to read.
+      \param step_frame Step value for frame reading.
+    **/
+    CImg<T>& load_video(const char *const filename,
+                        const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                        const unsigned int step_frame=1,
+                        const char axis='z', const float align=0) {
+      return get_load_video(filename,first_frame,last_frame,step_frame,axis,align).move_to(*this);
+    }
+
+    //! Load image sequence from a video file, using OpenCV library \newinstance.
+    static CImg<T> get_load_video(const char *const filename,
+                                  const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                  const unsigned int step_frame=1,
+                                  const char axis='z', const float align=0) {
+      return CImgList<T>().load_video(filename,first_frame,last_frame,step_frame).get_append(axis,align);
+    }
+
+    //! Load image sequence using FFMPEG's external tool 'ffmpeg'.
+    /**
+      \param filename Filename, as a C-string.
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    CImg<T>& load_ffmpeg_external(const char *const filename, const char axis='z', const float align=0) {
+      return get_load_ffmpeg_external(filename,axis,align).move_to(*this);
+    }
+
+    //! Load image sequence using FFMPEG's external tool 'ffmpeg' \newinstance.
+    static CImg<T> get_load_ffmpeg_external(const char *const filename, const char axis='z', const float align=0) {
+      return CImgList<T>().load_ffmpeg_external(filename).get_append(axis,align);
+    }
+
+    //! Load gif file, using Imagemagick or GraphicsMagicks's external tools.
+    /**
+      \param filename Filename, as a C-string.
+      \param use_graphicsmagick Tells if GraphicsMagick's tool 'gm' is used instead of ImageMagick's tool 'convert'.
+      \param axis Appending axis, if file contains multiple images. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    CImg<T>& load_gif_external(const char *const filename,
+                               const char axis='z', const float align=0) {
+      return get_load_gif_external(filename,axis,align).move_to(*this);
+    }
+
+    //! Load gif file, using ImageMagick or GraphicsMagick's external tool 'convert' \newinstance.
+    static CImg<T> get_load_gif_external(const char *const filename,
+                                         const char axis='z', const float align=0) {
+      return CImgList<T>().load_gif_external(filename).get_append(axis,align);
+    }
+
+    //! Load image using GraphicsMagick's external tool 'gm'.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_graphicsmagick_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_graphicsmagick_external(): Specified filename is (null).",
+                                    cimg_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file = 0;
+      const CImg<charT> s_filename = CImg<charT>::string(filename)._system_strescape();
+#if cimg_OS==1
+      cimg_snprintf(command,command._width,"%s convert \"%s\" pnm:-",
+                    cimg::graphicsmagick_path(),s_filename.data());
+      file = popen(command,"r");
+      if (file) {
+        const unsigned int omode = cimg::exception_mode();
+        cimg::exception_mode(0);
+        try { load_pnm(file); } catch (...) {
+          pclose(file);
+          cimg::exception_mode(omode);
+          throw CImgIOException(_cimg_instance
+                                "load_graphicsmagick_external(): Failed to load file '%s' with external command 'gm'.",
+                                cimg_instance,
+                                filename);
+        }
+        pclose(file);
+        return *this;
+      }
+#endif
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp.
