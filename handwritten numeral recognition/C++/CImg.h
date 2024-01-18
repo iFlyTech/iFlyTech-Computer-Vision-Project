@@ -46747,4 +46747,168 @@ namespace cimg_library_suffixed {
       }
 #endif
       do {
-        cimg_snprintf(filename_tmp,filename_tmp.
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.pnm",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s convert \"%s\" \"%s\"",
+                    cimg::graphicsmagick_path(),s_filename.data(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command,cimg::graphicsmagick_path());
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimg_instance
+                              "load_graphicsmagick_external(): Failed to load file '%s' with external command 'gm'.",
+                              cimg_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load_pnm(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load image using GraphicsMagick's external tool 'gm' \newinstance.
+    static CImg<T> get_load_graphicsmagick_external(const char *const filename) {
+      return CImg<T>().load_graphicsmagick_external(filename);
+    }
+
+    //! Load gzipped image file, using external tool 'gunzip'.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_gzip_external(const char *const filename) {
+      if (!filename)
+        throw CImgIOException(_cimg_instance
+                              "load_gzip_external(): Specified filename is (null).",
+                              cimg_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *const ext = cimg::split_filename(filename,body),
+        *const ext2 = cimg::split_filename(body,0);
+
+      std::FILE *file = 0;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                    cimg::gunzip_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command);
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimg_instance
+                              "load_gzip_external(): Failed to load file '%s' with external command 'gunzip'.",
+                              cimg_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load gzipped image file, using external tool 'gunzip' \newinstance.
+    static CImg<T> get_load_gzip_external(const char *const filename) {
+      return CImg<T>().load_gzip_external(filename);
+    }
+
+    //! Load image using ImageMagick's external tool 'convert'.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_imagemagick_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_imagemagick_external(): Specified filename is (null).",
+                                    cimg_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file = 0;
+      const CImg<charT> s_filename = CImg<charT>::string(filename)._system_strescape();
+#if cimg_OS==1
+      cimg_snprintf(command,command._width,"%s%s \"%s\" pnm:-",
+                    cimg::imagemagick_path(),
+                    !cimg::strcasecmp(cimg::split_filename(filename),"pdf")?" -density 400x400":"",
+                    s_filename.data());
+      file = popen(command,"r");
+      if (file) {
+        const unsigned int omode = cimg::exception_mode();
+        cimg::exception_mode(0);
+        try { load_pnm(file); } catch (...) {
+          pclose(file);
+          cimg::exception_mode(omode);
+          throw CImgIOException(_cimg_instance
+                                "load_imagemagick_external(): Failed to load file '%s' with "
+                                "external command 'convert'.",
+                                cimg_instance,
+                                filename);
+        }
+        pclose(file);
+        return *this;
+      }
+#endif
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.pnm",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s%s \"%s\" \"%s\"",
+                    cimg::imagemagick_path(),
+                    !cimg::strcasecmp(cimg::split_filename(filename),"pdf")?" -density 400x400":"",
+                    s_filename.data(),CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command,cimg::imagemagick_path());
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimg_instance
+                              "load_imagemagick_external(): Failed to load file '%s' with external command 'convert'.",
+                              cimg_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load_pnm(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load image using ImageMagick's external tool 'convert' \newinstance.
+    static CImg<T> get_load_imagemagick_external(const char *const filename) {
+      return CImg<T>().load_imagemagick_external(filename);
+    }
+
+    //! Load image from a DICOM file, using XMedcon's external tool 'medcon'.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_medcon_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_medcon_external(): Specified filename is (null).",
+                                    cimg_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      cimg::fclose(cimg::fopen(filename,"r"));
+      std::FILE *file = 0;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s.hdr",cimg::filenamerand());
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s -w -c anlz -o \"%s\" -f \"%s\"",
+                    cimg::medcon_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    CImg<charT>::string(filename)._system_strescape().data());
+      cimg::system(command);
+      cimg::
