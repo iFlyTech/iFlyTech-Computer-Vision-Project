@@ -46911,4 +46911,175 @@ namespace cimg_library_suffixed {
                     CImg<charT>::string(filename_tmp)._system_strescape().data(),
                     CImg<charT>::string(filename)._system_strescape().data());
       cimg::system(command);
-      cimg::
+      cimg::split_filename(filename_tmp,body);
+
+      cimg_snprintf(command,command._width,"%s.hdr",body._data);
+      file = std::fopen(command,"rb");
+      if (!file) {
+        cimg_snprintf(command,command._width,"m000-%s.hdr",body._data);
+        file = std::fopen(command,"rb");
+        if (!file) {
+          throw CImgIOException(_cimg_instance
+                                "load_medcon_external(): Failed to load file '%s' with external command 'medcon'.",
+                                cimg_instance,
+                                filename);
+        }
+      }
+      cimg::fclose(file);
+      load_analyze(command);
+      std::remove(command);
+      cimg::split_filename(command,body);
+      cimg_snprintf(command,command._width,"%s.img",body._data);
+      std::remove(command);
+      return *this;
+    }
+
+    //! Load image from a DICOM file, using XMedcon's external tool 'medcon' \newinstance.
+    static CImg<T> get_load_medcon_external(const char *const filename) {
+      return CImg<T>().load_medcon_external(filename);
+    }
+
+    //! Load image from a RAW Color Camera file, using external tool 'dcraw'.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_dcraw_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_dcraw_external(): Specified filename is (null).",
+                                    cimg_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file = 0;
+      const CImg<charT> s_filename = CImg<charT>::string(filename)._system_strescape();
+#if cimg_OS==1
+      cimg_snprintf(command,command._width,"%s -w -4 -c \"%s\"",
+                    cimg::dcraw_path(),s_filename.data());
+      file = popen(command,"r");
+      if (file) {
+        const unsigned int omode = cimg::exception_mode();
+        cimg::exception_mode(0);
+        try { load_pnm(file); } catch (...) {
+          pclose(file);
+          cimg::exception_mode(omode);
+          throw CImgIOException(_cimg_instance
+                                "load_dcraw_external(): Failed to load file '%s' with external command 'dcraw'.",
+                                cimg_instance,
+                                filename);
+        }
+        pclose(file);
+        return *this;
+      }
+#endif
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.ppm",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s -w -4 -c \"%s\" > \"%s\"",
+                    cimg::dcraw_path(),s_filename.data(),CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command,cimg::dcraw_path());
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimg_instance
+                              "load_dcraw_external(): Failed to load file '%s' with external command 'dcraw'.",
+                              cimg_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load_pnm(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load image from a RAW Color Camera file, using external tool 'dcraw' \newinstance.
+    static CImg<T> get_load_dcraw_external(const char *const filename) {
+      return CImg<T>().load_dcraw_external(filename);
+    }
+
+    //! Load image from a camera stream, using OpenCV.
+    /**
+       \param camera_index Index of the camera to capture images from.
+       \param skip_frames Number of frames to skip before the capture.
+       \param release_camera Tells if the camera ressource must be released at the end of the method.
+    **/
+    CImg<T>& load_camera(const unsigned int camera_index=0, const unsigned int skip_frames=0,
+                         const bool release_camera=true, const unsigned int capture_width=0,
+                         const unsigned int capture_height=0) {
+#ifdef cimg_use_opencv
+      if (camera_index>99)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_camera(): Invalid request for camera #%u "
+                                    "(no more than 100 cameras can be managed simultaneously).",
+                                    cimg_instance,
+                                    camera_index);
+      static CvCapture *capture[100] = { 0 };
+      static unsigned int capture_w[100], capture_h[100];
+      if (release_camera) {
+        cimg::mutex(9);
+        if (capture[camera_index]) cvReleaseCapture(&(capture[camera_index]));
+        capture[camera_index] = 0;
+        capture_w[camera_index] = capture_h[camera_index] = 0;
+        cimg::mutex(9,0);
+        return *this;
+      }
+      if (!capture[camera_index]) {
+        cimg::mutex(9);
+        capture[camera_index] = cvCreateCameraCapture(camera_index);
+        capture_w[camera_index] = 0;
+        capture_h[camera_index] = 0;
+        cimg::mutex(9,0);
+        if (!capture[camera_index]) {
+          throw CImgIOException(_cimg_instance
+                                "load_camera(): Failed to initialize camera #%u.",
+                                cimg_instance,
+                                camera_index);
+        }
+      }
+      cimg::mutex(9);
+      if (capture_width!=capture_w[camera_index]) {
+        cvSetCaptureProperty(capture[camera_index],CV_CAP_PROP_FRAME_WIDTH,capture_width);
+        capture_w[camera_index] = capture_width;
+      }
+      if (capture_height!=capture_h[camera_index]) {
+        cvSetCaptureProperty(capture[camera_index],CV_CAP_PROP_FRAME_HEIGHT,capture_height);
+        capture_h[camera_index] = capture_height;
+      }
+      const IplImage *img = 0;
+      for (unsigned int i = 0; i<skip_frames; ++i) img = cvQueryFrame(capture[camera_index]);
+      img = cvQueryFrame(capture[camera_index]);
+      if (img) {
+        const int step = (int)(img->widthStep - 3*img->width);
+        assign(img->width,img->height,1,3);
+        const unsigned char* ptrs = (unsigned char*)img->imageData;
+        T *ptr_r = data(0,0,0,0), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2);
+        if (step>0) cimg_forY(*this,y) {
+            cimg_forX(*this,x) { *(ptr_b++) = (T)*(ptrs++); *(ptr_g++) = (T)*(ptrs++); *(ptr_r++) = (T)*(ptrs++); }
+            ptrs+=step;
+          } else for (ulongT siz = (ulongT)img->width*img->height; siz; --siz) {
+            *(ptr_b++) = (T)*(ptrs++); *(ptr_g++) = (T)*(ptrs++); *(ptr_r++) = (T)*(ptrs++);
+          }
+      }
+      cimg::mutex(9,0);
+      return *this;
+#else
+      cimg::unused(camera_index,skip_frames,release_camera,capture_width,capture_height);
+      throw CImgIOException(_cimg_instance
+                            "load_camera(): This function requires the OpenCV library to run "
+                            "(macro 'cimg_use_opencv' must be defined).",
+                            cimg_instance);
+#endif
+    }
+
+    //! Load image from a camera stream, using OpenCV \newinstance.
+    static CImg<T> get_load_camera(const unsigned int camera_index=0, const unsigned int skip_frames=0,
+                                   const bool release_camera=true,
+                                   const unsigned int capture_width=0, const unsigned int capture_height=0) {
+      return CImg<T>().load_camera(camera_index,skip_frames,release_camera,capture_width,capture_height);
+    }
+
+    //! Load image using various non-native ways.
+    /**
+       \param filename Filename, as a C-string.
+    **/
+    CImg<T>& load_other(c
