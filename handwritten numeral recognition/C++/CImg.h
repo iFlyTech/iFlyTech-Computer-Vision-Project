@@ -47082,4 +47082,175 @@ namespace cimg_library_suffixed {
     /**
        \param filename Filename, as a C-string.
     **/
-    CImg<T>& load_other(c
+    CImg<T>& load_other(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "load_other(): Specified filename is (null).",
+                                    cimg_instance);
+
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try { load_magick(filename); }
+      catch (CImgException&) {
+        try { load_imagemagick_external(filename); }
+        catch (CImgException&) {
+          try { load_graphicsmagick_external(filename); }
+          catch (CImgException&) {
+            try { load_cimg(filename); }
+            catch (CImgException&) {
+              try {
+                std::fclose(cimg::fopen(filename,"rb"));
+              } catch (CImgException&) {
+                cimg::exception_mode(omode);
+                throw CImgIOException(_cimg_instance
+                                      "load_other(): Failed to open file '%s'.",
+                                      cimg_instance,
+                                      filename);
+              }
+              cimg::exception_mode(omode);
+              throw CImgIOException(_cimg_instance
+                                    "load_other(): Failed to recognize format of file '%s'.",
+                                    cimg_instance,
+                                    filename);
+            }
+          }
+        }
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Load image using various non-native ways \newinstance.
+    static CImg<T> get_load_other(const char *const filename) {
+      return CImg<T>().load_other(filename);
+    }
+
+    //@}
+    //---------------------------
+    //
+    //! \name Data Output
+    //@{
+    //---------------------------
+
+    //! Display information about the image data.
+    /**
+       \param title Name for the considered image.
+       \param display_stats Tells to compute and display image statistics.
+    **/
+    const CImg<T>& print(const char *const title=0, const bool display_stats=true) const {
+      int xm = 0, ym = 0, zm = 0, vm = 0, xM = 0, yM = 0, zM = 0, vM = 0;
+      CImg<doubleT> st;
+      if (!is_empty() && display_stats) {
+        st = get_stats();
+        xm = (int)st[4]; ym = (int)st[5], zm = (int)st[6], vm = (int)st[7];
+        xM = (int)st[8]; yM = (int)st[9], zM = (int)st[10], vM = (int)st[11];
+      }
+      const ulongT siz = size(), msiz = siz*sizeof(T), siz1 = siz - 1,
+        mdisp = msiz<8*1024?0U:msiz<8*1024*1024?1U:2U, width1 = _width - 1;
+
+      CImg<charT> _title(64);
+      if (!title) cimg_snprintf(_title,_title._width,"CImg<%s>",pixel_type());
+
+      std::fprintf(cimg::output(),"%s%s%s%s: %sthis%s = %p, %ssize%s = (%u,%u,%u,%u) [%lu %s], %sdata%s = (%s*)%p",
+                   cimg::t_magenta,cimg::t_bold,title?title:_title._data,cimg::t_normal,
+                   cimg::t_bold,cimg::t_normal,(void*)this,
+                   cimg::t_bold,cimg::t_normal,_width,_height,_depth,_spectrum,
+                   mdisp==0?msiz:(mdisp==1?(msiz>>10):(msiz>>20)),
+                   mdisp==0?"b":(mdisp==1?"Kio":"Mio"),
+                   cimg::t_bold,cimg::t_normal,pixel_type(),(void*)begin());
+      if (_data)
+        std::fprintf(cimg::output(),"..%p (%s) = [ ",(void*)((char*)end() - 1),_is_shared?"shared":"non-shared");
+      else std::fprintf(cimg::output()," (%s) = [ ",_is_shared?"shared":"non-shared");
+
+      if (!is_empty()) cimg_foroff(*this,off) {
+        std::fprintf(cimg::output(),cimg::type<T>::format(),cimg::type<T>::format(_data[off]));
+        if (off!=siz1) std::fprintf(cimg::output(),"%s",off%_width==width1?" ; ":" ");
+        if (off==7 && siz>16) { off = siz1 - 8; std::fprintf(cimg::output(),"... "); }
+      }
+      if (!is_empty() && display_stats)
+        std::fprintf(cimg::output(),
+                     " ], %smin%s = %g, %smax%s = %g, %smean%s = %g, %sstd%s = %g, %scoords_min%s = (%u,%u,%u,%u), "
+                     "%scoords_max%s = (%u,%u,%u,%u).\n",
+                     cimg::t_bold,cimg::t_normal,st[0],
+                     cimg::t_bold,cimg::t_normal,st[1],
+                     cimg::t_bold,cimg::t_normal,st[2],
+                     cimg::t_bold,cimg::t_normal,std::sqrt(st[3]),
+                     cimg::t_bold,cimg::t_normal,xm,ym,zm,vm,
+                     cimg::t_bold,cimg::t_normal,xM,yM,zM,vM);
+      else std::fprintf(cimg::output(),"%s].\n",is_empty()?"":" ");
+      std::fflush(cimg::output());
+      return *this;
+    }
+
+    //! Display image into a CImgDisplay window.
+    /**
+       \param disp Display window.
+    **/
+    const CImg<T>& display(CImgDisplay& disp) const {
+      disp.display(*this);
+      return *this;
+    }
+
+    //! Display image into a CImgDisplay window, in an interactive way.
+    /**
+        \param disp Display window.
+        \param display_info Tells if image information are displayed on the standard output.
+    **/
+    const CImg<T>& display(CImgDisplay &disp, const bool display_info, unsigned int *const XYZ=0,
+                           const bool exit_on_anykey=false) const {
+      return _display(disp,0,display_info,XYZ,exit_on_anykey,false);
+    }
+
+    //! Display image into an interactive window.
+    /**
+        \param title Window title
+        \param display_info Tells if image information are displayed on the standard output.
+    **/
+    const CImg<T>& display(const char *const title=0, const bool display_info=true, unsigned int *const XYZ=0,
+                           const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _display(disp,title,display_info,XYZ,exit_on_anykey,false);
+    }
+
+    const CImg<T>& _display(CImgDisplay &disp, const char *const title, const bool display_info,
+                            unsigned int *const XYZ, const bool exit_on_anykey,
+                            const bool exit_on_simpleclick) const {
+      unsigned int oldw = 0, oldh = 0, _XYZ[3] = { 0 }, key = 0;
+      int x0 = 0, y0 = 0, z0 = 0, x1 = width() - 1, y1 = height() - 1, z1 = depth() - 1,
+        old_mouse_x = -1, old_mouse_y = -1;
+
+      if (!disp) {
+        disp.assign(cimg_fitscreen(_width,_height,_depth),title?title:0,1);
+        if (!title) disp.set_title("CImg<%s> (%ux%ux%ux%u)",pixel_type(),_width,_height,_depth,_spectrum);
+        else disp.set_title("%s",title);
+      } else if (title) disp.set_title("%s",title);
+      disp.show().flush();
+
+      const CImg<char> dtitle = CImg<char>::string(disp.title());
+      if (display_info) print(dtitle);
+
+      CImg<T> zoom;
+      for (bool reset_view = true, resize_disp = false, is_first_select = true; !key && !disp.is_closed(); ) {
+        if (reset_view) {
+          if (XYZ) { _XYZ[0] = XYZ[0]; _XYZ[1] = XYZ[1]; _XYZ[2] = XYZ[2]; }
+          else {
+            _XYZ[0] = (unsigned int)(x0 + x1)/2;
+            _XYZ[1] = (unsigned int)(y0 + y1)/2;
+            _XYZ[2] = (unsigned int)(z0 + z1)/2;
+          }
+          x0 = 0; y0 = 0; z0 = 0; x1 = width() - 1; y1 = height() - 1; z1 = depth() - 1;
+          oldw = disp._width; oldh = disp._height;
+          reset_view = false;
+        }
+        if (!x0 && !y0 && !z0 && x1==width() - 1 && y1==height() - 1 && z1==depth() - 1) {
+          if (is_empty()) zoom.assign(1,1,1,1,0); else zoom.assign();
+        } else zoom = get_crop(x0,y0,z0,x1,y1,z1);
+
+        const unsigned int
+          dx = 1U + x1 - x0, dy = 1U + y1 - y0, dz = 1U + z1 - z0,
+          tw = dx + (dz>1?dz:0U), th = dy + (dz>1?dz:0U);
+        if (!is_empty() && !disp.is_fullscreen() && resize_disp) {
+          const unsigned int
+            ttw = tw*disp.width()/oldw, tth = th*disp.height()/oldh,
+            dM = cimg::max(ttw,tth), diM = (unsigned int)cimg::max(disp.width(),disp.height()),
+            imgw = cimg::max(16U,ttw*diM/dM), imgh = cimg::max(16U,tth*d
