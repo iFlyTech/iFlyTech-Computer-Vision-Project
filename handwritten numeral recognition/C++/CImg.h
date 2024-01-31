@@ -47394,4 +47394,140 @@ namespace cimg_library_suffixed {
           if (mX<width() && mY>=height()) {
             X = x0 + mX*(1 + x1 - x0)/width(); Z = z0 + (mY - height())*(1 + z1 - z0)/depth(); Y = (int)_XYZ[1];
           }
-          if 
+          if (mX>=width() && mY<height()) {
+            Y = y0 + mY*(1 + y1 - y0)/height(); Z = z0 + (mX - width())*(1 + z1 - z0)/depth(); X = (int)_XYZ[0];
+          }
+          if (x1 - x0>4) { x0 = X - 3*(X - x0)/4; x1 = X + 3*(x1 - X)/4; }
+          if (y1 - y0>4) { y0 = Y - 3*(Y - y0)/4; y1 = Y + 3*(y1 - Y)/4; }
+          if (z1 - z0>4) { z0 = Z - 3*(Z - z0)/4; z1 = Z + 3*(z1 - Z)/4; }
+        }
+        if (go_out) {
+          const int
+            delta_x = (x1 - x0)/8, delta_y = (y1 - y0)/8, delta_z = (z1 - z0)/8,
+            ndelta_x = delta_x?delta_x:(_width>1?1:0),
+            ndelta_y = delta_y?delta_y:(_height>1?1:0),
+            ndelta_z = delta_z?delta_z:(_depth>1?1:0);
+          x0-=ndelta_x; y0-=ndelta_y; z0-=ndelta_z;
+          x1+=ndelta_x; y1+=ndelta_y; z1+=ndelta_z;
+          if (x0<0) { x1-=x0; x0 = 0; if (x1>=width()) x1 = width() - 1; }
+          if (y0<0) { y1-=y0; y0 = 0; if (y1>=height()) y1 = height() - 1; }
+          if (z0<0) { z1-=z0; z0 = 0; if (z1>=depth()) z1 = depth() - 1; }
+          if (x1>=width()) { x0-=(x1 - width() + 1); x1 = width() - 1; if (x0<0) x0 = 0; }
+          if (y1>=height()) { y0-=(y1 - height() + 1); y1 = height() - 1; if (y0<0) y0 = 0; }
+          if (z1>=depth()) { z0-=(z1 - depth() + 1); z1 = depth() - 1; if (z0<0) z0 = 0; }
+        }
+        if (go_left) {
+          const int delta = (x1 - x0)/4, ndelta = delta?delta:(_width>1?1:0);
+          if (x0 - ndelta>=0) { x0-=ndelta; x1-=ndelta; }
+          else { x1-=x0; x0 = 0; }
+        }
+        if (go_right) {
+          const int delta = (x1 - x0)/4, ndelta = delta?delta:(_width>1?1:0);
+          if (x1+ndelta<width()) { x0+=ndelta; x1+=ndelta; }
+          else { x0+=(width() - 1 - x1); x1 = width() - 1; }
+        }
+        if (go_up) {
+          const int delta = (y1 - y0)/4, ndelta = delta?delta:(_height>1?1:0);
+          if (y0 - ndelta>=0) { y0-=ndelta; y1-=ndelta; }
+          else { y1-=y0; y0 = 0; }
+        }
+        if (go_down) {
+          const int delta = (y1 - y0)/4, ndelta = delta?delta:(_height>1?1:0);
+          if (y1+ndelta<height()) { y0+=ndelta; y1+=ndelta; }
+          else { y0+=(height() - 1 - y1); y1 = height() - 1; }
+        }
+        if (go_inc) {
+          const int delta = (z1 - z0)/4, ndelta = delta?delta:(_depth>1?1:0);
+          if (z0 - ndelta>=0) { z0-=ndelta; z1-=ndelta; }
+          else { z1-=z0; z0 = 0; }
+        }
+        if (go_dec) {
+          const int delta = (z1 - z0)/4, ndelta = delta?delta:(_depth>1?1:0);
+          if (z1+ndelta<depth()) { z0+=ndelta; z1+=ndelta; }
+          else { z0+=(depth() - 1 - z1); z1 = depth() - 1; }
+        }
+        disp.wait(100);
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      disp.set_key(key);
+      if (XYZ) { XYZ[0] = _XYZ[0]; XYZ[1] = _XYZ[1]; XYZ[2] = _XYZ[2]; }
+      return *this;
+    }
+
+    //! Display object 3d in an interactive window.
+    /**
+       \param disp Display window.
+       \param vertices Vertices data of the 3d object.
+       \param primitives Primitives data of the 3d object.
+       \param colors Colors data of the 3d object.
+       \param opacities Opacities data of the 3d object.
+       \param centering Tells if the 3d object must be centered for the display.
+       \param render_static Rendering mode.
+       \param render_motion Rendering mode, when the 3d object is moved.
+       \param is_double_sided Tells if the object primitives are double-sided.
+       \param focale Focale
+       \param light_x X-coordinate of the light source.
+       \param light_y Y-coordinate of the light source.
+       \param light_z Z-coordinate of the light source.
+       \param specular_lightness Amount of specular light.
+       \param specular_shininess Shininess of the object material.
+       \param display_axes Tells if the 3d axes are displayed.
+       \param pose_matrix Pointer to 12 values, defining a 3d pose (as a 4x3 matrix).
+    **/
+    template<typename tp, typename tf, typename tc, typename to>
+    const CImg<T>& display_object3d(CImgDisplay& disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const to& opacities,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return _display_object3d(disp,0,vertices,primitives,colors,opacities,centering,render_static,
+                               render_motion,is_double_sided,focale,
+                               light_x,light_y,light_z,specular_lightness,specular_shininess,
+                               display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc, typename to>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const to& opacities,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _display_object3d(disp,title,vertices,primitives,colors,opacities,centering,render_static,
+                               render_motion,is_double_sided,focale,
+                               light_x,light_y,light_z,specular_lightness,specular_shininess,
+                               display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc>
+    const CImg<T>& display_object3d(CImgDisplay &disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return
