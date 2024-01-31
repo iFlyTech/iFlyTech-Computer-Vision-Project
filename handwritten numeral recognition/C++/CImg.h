@@ -47644,3 +47644,142 @@ namespace cimg_library_suffixed {
       // Check input arguments
       if (is_empty()) {
         if (disp) return CImg<T>(disp.width(),disp.height(),1,(colors && colors[0].size()==1)?1:3,0).
+                    _display_object3d(disp,title,vertices,primitives,colors,opacities,centering,
+                                      render_static,render_motion,is_double_sided,focale,
+                                      light_x,light_y,light_z,specular_lightness,specular_shininess,
+                                      display_axes,pose_matrix,exit_on_anykey);
+        else return CImg<T>(1,2,1,1,64,128).resize(cimg_fitscreen(CImgDisplay::screen_width()/2,
+                                                                  CImgDisplay::screen_height()/2,1),
+                                                   1,(colors && colors[0].size()==1)?1:3,3).
+               _display_object3d(disp,title,vertices,primitives,colors,opacities,centering,
+                                 render_static,render_motion,is_double_sided,focale,
+                                 light_x,light_y,light_z,specular_lightness,specular_shininess,
+                                 display_axes,pose_matrix,exit_on_anykey);
+      } else { if (disp) disp.resize(*this,false); }
+      CImg<charT> error_message(1024);
+      if (!vertices.is_object3d(primitives,colors,opacities,true,error_message))
+        throw CImgArgumentException(_cimg_instance
+                                    "display_object3d(): Invalid specified 3d object (%u,%u) (%s).",
+                                    cimg_instance,vertices._width,primitives._width,error_message.data());
+      if (vertices._width && !primitives) {
+        CImgList<tf> nprimitives(vertices._width,1,1,1,1);
+        cimglist_for(nprimitives,l) nprimitives(l,0) = (tf)l;
+        return _display_object3d(disp,title,vertices,nprimitives,colors,opacities,centering,
+                                 render_static,render_motion,is_double_sided,focale,
+                                 light_x,light_y,light_z,specular_lightness,specular_shininess,
+                                 display_axes,pose_matrix,exit_on_anykey);
+      }
+      if (!disp) {
+        disp.assign(cimg_fitscreen(_width,_height,_depth),title?title:0,3);
+        if (!title) disp.set_title("CImg<%s> (%u vertices, %u primitives)",
+                                   pixel_type(),vertices._width,primitives._width);
+      } else if (title) disp.set_title("%s",title);
+
+      // Init 3d objects and compute object statistics
+      CImg<floatT>
+        pose,
+        rotated_vertices(vertices._width,3),
+        bbox_vertices, rotated_bbox_vertices,
+        axes_vertices, rotated_axes_vertices,
+        bbox_opacities, axes_opacities;
+      CImgList<uintT> bbox_primitives, axes_primitives;
+      CImgList<tf> reverse_primitives;
+      CImgList<T> bbox_colors, bbox_colors2, axes_colors;
+      unsigned int ns_width = 0, ns_height = 0;
+      int _is_double_sided = (int)is_double_sided;
+      bool ndisplay_axes = display_axes;
+      const CImg<T>
+        background_color(1,1,1,_spectrum,0),
+        foreground_color(1,1,1,_spectrum,255);
+      float
+        Xoff = 0, Yoff = 0, Zoff = 0, sprite_scale = 1,
+        xm = 0, xM = vertices?vertices.get_shared_row(0).max_min(xm):0,
+        ym = 0, yM = vertices?vertices.get_shared_row(1).max_min(ym):0,
+        zm = 0, zM = vertices?vertices.get_shared_row(2).max_min(zm):0;
+      const float delta = cimg::max(xM - xm,yM - ym,zM - zm);
+
+      rotated_bbox_vertices = bbox_vertices.assign(8,3,1,1,
+                                                   xm,xM,xM,xm,xm,xM,xM,xm,
+                                                   ym,ym,yM,yM,ym,ym,yM,yM,
+                                                   zm,zm,zm,zm,zM,zM,zM,zM);
+      bbox_primitives.assign(6,1,4,1,1, 0,3,2,1, 4,5,6,7, 1,2,6,5, 0,4,7,3, 0,1,5,4, 2,3,7,6);
+      bbox_colors.assign(6,_spectrum,1,1,1,background_color[0]);
+      bbox_colors2.assign(6,_spectrum,1,1,1,foreground_color[0]);
+      bbox_opacities.assign(bbox_colors._width,1,1,1,0.3f);
+
+      rotated_axes_vertices = axes_vertices.assign(7,3,1,1,
+                                                   0,20,0,0,22,-6,-6,
+                                                   0,0,20,0,-6,22,-6,
+                                                   0,0,0,20,0,0,22);
+      axes_opacities.assign(3,1,1,1,1);
+      axes_colors.assign(3,_spectrum,1,1,1,foreground_color[0]);
+      axes_primitives.assign(3,1,2,1,1, 0,1, 0,2, 0,3);
+
+      // Begin user interaction loop
+      CImg<T> visu0(*this), visu;
+      CImg<tpfloat> zbuffer(visu0.width(),visu0.height(),1,1,0);
+      bool init_pose = true, clicked = false, redraw = true;
+      unsigned int key = 0;
+      int
+        x0 = 0, y0 = 0, x1 = 0, y1 = 0,
+        nrender_static = render_static,
+        nrender_motion = render_motion;
+      disp.show().flush();
+
+      while (!disp.is_closed() && !key) {
+
+        // Init object pose
+        if (init_pose) {
+          const float
+            ratio = delta>0?(2.0f*cimg::min(disp.width(),disp.height())/(3.0f*delta)):1,
+            dx = (xM + xm)/2, dy = (yM + ym)/2, dz = (zM + zm)/2;
+          if (centering)
+            CImg<floatT>(4,3,1,1, ratio,0.,0.,-ratio*dx, 0.,ratio,0.,-ratio*dy, 0.,0.,ratio,-ratio*dz).move_to(pose);
+          else CImg<floatT>(4,3,1,1, 1,0,0,0, 0,1,0,0, 0,0,1,0).move_to(pose);
+          if (pose_matrix) {
+            CImg<floatT> pose0(pose_matrix,4,3,1,1,false);
+            pose0.resize(4,4,1,1,0); pose.resize(4,4,1,1,0);
+            pose0(3,3) = pose(3,3) = 1;
+            (pose0*pose).get_crop(0,0,3,2).move_to(pose);
+            Xoff = pose_matrix[12]; Yoff = pose_matrix[13]; Zoff = pose_matrix[14]; sprite_scale = pose_matrix[15];
+          } else { Xoff = Yoff = Zoff = 0; sprite_scale = 1; }
+          init_pose = false;
+          redraw = true;
+        }
+
+        // Rotate and draw 3d object
+        if (redraw) {
+          const float
+            r00 = pose(0,0), r10 = pose(1,0), r20 = pose(2,0), r30 = pose(3,0),
+            r01 = pose(0,1), r11 = pose(1,1), r21 = pose(2,1), r31 = pose(3,1),
+            r02 = pose(0,2), r12 = pose(1,2), r22 = pose(2,2), r32 = pose(3,2);
+          if ((clicked && nrender_motion>=0) || (!clicked && nrender_static>=0))
+            cimg_forX(vertices,l) {
+              const float x = (float)vertices(l,0), y = (float)vertices(l,1), z = (float)vertices(l,2);
+              rotated_vertices(l,0) = r00*x + r10*y + r20*z + r30;
+              rotated_vertices(l,1) = r01*x + r11*y + r21*z + r31;
+              rotated_vertices(l,2) = r02*x + r12*y + r22*z + r32;
+            }
+          else cimg_forX(bbox_vertices,l) {
+              const float x = bbox_vertices(l,0), y = bbox_vertices(l,1), z = bbox_vertices(l,2);
+              rotated_bbox_vertices(l,0) = r00*x + r10*y + r20*z + r30;
+              rotated_bbox_vertices(l,1) = r01*x + r11*y + r21*z + r31;
+              rotated_bbox_vertices(l,2) = r02*x + r12*y + r22*z + r32;
+            }
+
+          // Draw objects
+          //#ifdef cimg_use_openmp
+          //          const bool render_with_zbuffer = true;
+          //#else
+          const bool render_with_zbuffer = !clicked && nrender_static>0;
+          //#endif
+          visu = visu0;
+          if ((clicked && nrender_motion<0) || (!clicked && nrender_static<0))
+            visu.draw_object3d(Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                               rotated_bbox_vertices,bbox_primitives,bbox_colors,bbox_opacities,2,false,focale).
+              draw_object3d(Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                            rotated_bbox_vertices,bbox_primitives,bbox_colors2,1,false,focale);
+          else visu._draw_object3d((void*)0,render_with_zbuffer?zbuffer.fill(0):CImg<tpfloat>::empty(),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,cl
