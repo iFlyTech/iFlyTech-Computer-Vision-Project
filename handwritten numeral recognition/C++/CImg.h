@@ -47530,4 +47530,117 @@ namespace cimg_library_suffixed {
                                     const float specular_lightness=0.2f, const float specular_shininess=0.1f,
                                     const bool display_axes=true, float *const pose_matrix=0,
                                     const bool exit_on_anykey=false) const {
-      return
+      return display_object3d(disp,vertices,primitives,colors,CImgList<floatT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf, typename tc>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const CImgList<tc>& colors,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(title,vertices,primitives,colors,CImgList<floatT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf>
+    const CImg<T>& display_object3d(CImgDisplay &disp,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(disp,vertices,primitives,CImgList<T>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp, typename tf>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const CImgList<tf>& primitives,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(title,vertices,primitives,CImgList<T>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp>
+    const CImg<T>& display_object3d(CImgDisplay &disp,
+                                    const CImg<tp>& vertices,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(disp,vertices,CImgList<uintT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    //! Display object 3d in an interactive window \simplification.
+    template<typename tp>
+    const CImg<T>& display_object3d(const char *const title,
+                                    const CImg<tp>& vertices,
+                                    const bool centering=true,
+                                    const int render_static=4, const int render_motion=1,
+                                    const bool is_double_sided=true, const float focale=700,
+                                    const float light_x=0, const float light_y=0, const float light_z=-5e8f,
+                                    const float specular_lightness=0.2f, const float specular_shininess=0.1f,
+                                    const bool display_axes=true, float *const pose_matrix=0,
+                                    const bool exit_on_anykey=false) const {
+      return display_object3d(title,vertices,CImgList<uintT>(),centering,
+                              render_static,render_motion,is_double_sided,focale,
+                              light_x,light_y,light_z,specular_lightness,specular_shininess,
+                              display_axes,pose_matrix,exit_on_anykey);
+    }
+
+    template<typename tp, typename tf, typename tc, typename to>
+    const CImg<T>& _display_object3d(CImgDisplay& disp, const char *const title,
+                                     const CImg<tp>& vertices,
+                                     const CImgList<tf>& primitives,
+                                     const CImgList<tc>& colors,
+                                     const to& opacities,
+                                     const bool centering,
+                                     const int render_static, const int render_motion,
+                                     const bool is_double_sided, const float focale,
+                                     const float light_x, const float light_y, const float light_z,
+                                     const float specular_lightness, const float specular_shininess,
+                                     const bool display_axes, float *const pose_matrix,
+                                     const bool exit_on_anykey) const {
+      typedef typename cimg::superset<tp,float>::type tpfloat;
+
+      // Check input arguments
+      if (is_empty()) {
+        if (disp) return CImg<T>(disp.width(),disp.height(),1,(colors && colors[0].size()==1)?1:3,0).
