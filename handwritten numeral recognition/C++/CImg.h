@@ -47782,4 +47782,150 @@ namespace cimg_library_suffixed {
           else visu._draw_object3d((void*)0,render_with_zbuffer?zbuffer.fill(0):CImg<tpfloat>::empty(),
                                    Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
                                    rotated_vertices,reverse_primitives?reverse_primitives:primitives,
-                                   colors,opacities,cl
+                                   colors,opacities,clicked?nrender_motion:nrender_static,_is_double_sided==1,focale,
+                                   width()/2.0f + light_x,height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,sprite_scale);
+          // Draw axes
+          if (ndisplay_axes) {
+            const float
+              n = (float)std::sqrt(1e-8 + r00*r00 + r01*r01 + r02*r02),
+              _r00 = r00/n, _r10 = r10/n, _r20 = r20/n,
+              _r01 = r01/n, _r11 = r11/n, _r21 = r21/n,
+              _r02 = r01/n, _r12 = r12/n, _r22 = r22/n,
+              Xaxes = 25, Yaxes = visu._height - 38.0f;
+            cimg_forX(axes_vertices,l) {
+              const float
+                x = axes_vertices(l,0),
+                y = axes_vertices(l,1),
+                z = axes_vertices(l,2);
+              rotated_axes_vertices(l,0) = _r00*x + _r10*y + _r20*z;
+              rotated_axes_vertices(l,1) = _r01*x + _r11*y + _r21*z;
+              rotated_axes_vertices(l,2) = _r02*x + _r12*y + _r22*z;
+            }
+            axes_opacities(0,0) = (rotated_axes_vertices(1,2)>0)?0.5f:1.0f;
+            axes_opacities(1,0) = (rotated_axes_vertices(2,2)>0)?0.5f:1.0f;
+            axes_opacities(2,0) = (rotated_axes_vertices(3,2)>0)?0.5f:1.0f;
+            visu.draw_object3d(Xaxes,Yaxes,0,rotated_axes_vertices,axes_primitives,
+                               axes_colors,axes_opacities,1,false,focale).
+              draw_text((int)(Xaxes + rotated_axes_vertices(4,0)),
+                        (int)(Yaxes + rotated_axes_vertices(4,1)),
+                        "X",axes_colors[0]._data,0,axes_opacities(0,0),13).
+              draw_text((int)(Xaxes + rotated_axes_vertices(5,0)),
+                        (int)(Yaxes + rotated_axes_vertices(5,1)),
+                        "Y",axes_colors[1]._data,0,axes_opacities(1,0),13).
+              draw_text((int)(Xaxes + rotated_axes_vertices(6,0)),
+                        (int)(Yaxes + rotated_axes_vertices(6,1)),
+                        "Z",axes_colors[2]._data,0,axes_opacities(2,0),13);
+          }
+          visu.display(disp);
+          if (!clicked || nrender_motion==nrender_static) redraw = false;
+        }
+
+        // Handle user interaction
+        disp.wait();
+        if ((disp.button() || disp.wheel()) && disp.mouse_x()>=0 && disp.mouse_y()>=0) {
+          redraw = true;
+          if (!clicked) { x0 = x1 = disp.mouse_x(); y0 = y1 = disp.mouse_y(); if (!disp.wheel()) clicked = true; }
+          else { x1 = disp.mouse_x(); y1 = disp.mouse_y(); }
+          if (disp.button()&1) {
+            const float
+              R = 0.45f*cimg::min(disp.width(),disp.height()),
+              R2 = R*R,
+              u0 = (float)(x0 - disp.width()/2),
+              v0 = (float)(y0 - disp.height()/2),
+              u1 = (float)(x1 - disp.width()/2),
+              v1 = (float)(y1 - disp.height()/2),
+              n0 = (float)std::sqrt(u0*u0 + v0*v0),
+              n1 = (float)std::sqrt(u1*u1 + v1*v1),
+              nu0 = n0>R?(u0*R/n0):u0,
+              nv0 = n0>R?(v0*R/n0):v0,
+              nw0 = (float)std::sqrt(cimg::max(0,R2 - nu0*nu0 - nv0*nv0)),
+              nu1 = n1>R?(u1*R/n1):u1,
+              nv1 = n1>R?(v1*R/n1):v1,
+              nw1 = (float)std::sqrt(cimg::max(0,R2 - nu1*nu1 - nv1*nv1)),
+              u = nv0*nw1 - nw0*nv1,
+              v = nw0*nu1 - nu0*nw1,
+              w = nv0*nu1 - nu0*nv1,
+              n = (float)std::sqrt(u*u + v*v + w*w),
+              alpha = (float)std::asin(n/R2);
+            (CImg<floatT>::rotation_matrix(u,v,w,alpha)*pose).move_to(pose);
+            x0 = x1; y0 = y1;
+          }
+          if (disp.button()&2) {
+            if (focale>0) Zoff-=(y0 - y1)*focale/400;
+            else { const float s = std::exp((y0 - y1)/400.0f); pose*=s; sprite_scale*=s; }
+            x0 = x1; y0 = y1;
+          }
+          if (disp.wheel()) {
+            if (focale>0) Zoff-=disp.wheel()*focale/20;
+            else { const float s = std::exp(disp.wheel()/20.0f); pose*=s; sprite_scale*=s; }
+            disp.set_wheel();
+          }
+          if (disp.button()&4) { Xoff+=(x1 - x0); Yoff+=(y1 - y0); x0 = x1; y0 = y1; }
+          if ((disp.button()&1) && (disp.button()&2)) {
+            init_pose = true; disp.set_button(); x0 = x1; y0 = y1;
+            pose = CImg<floatT>(4,3,1,1, 1,0,0,0, 0,1,0,0, 0,0,1,0);
+          }
+        } else if (clicked) { x0 = x1; y0 = y1; clicked = false; redraw = true; }
+
+        CImg<charT> filename(32);
+        switch (key = disp.key()) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT :
+#endif
+        case 0 : case cimg::keyCTRLLEFT : key = 0; break;
+        case cimg::keyD: if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                     CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).resize(cimg_fitscreen(_width,_height,_depth),false)._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            if (!ns_width || !ns_height ||
+                ns_width>(unsigned int)disp.screen_width() || ns_height>(unsigned int)disp.screen_height()) {
+              ns_width = disp.screen_width()*3U/4;
+              ns_height = disp.screen_height()*3U/4;
+            }
+            if (disp.is_fullscreen()) disp.resize(ns_width,ns_height,false);
+            else {
+              ns_width = disp._width; ns_height = disp._height;
+              disp.resize(disp.screen_width(),disp.screen_height(),false);
+            }
+            disp.toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyT : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            // Switch single/double-sided primitives.
+            if (--_is_double_sided==-2) _is_double_sided = 1;
+            if (_is_double_sided>=0) reverse_primitives.assign();
+            else primitives.get_reverse_object3d().move_to(reverse_primitives);
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyZ : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Enable/disable Z-buffer
+            if (zbuffer) zbuffer.assign();
+            else zbuffer.assign(visu0.width(),visu0.height(),1,1,0);
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyA : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Show/hide 3d axes.
+            ndisplay_axes = !ndisplay_axes;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF1 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to points.
+            nrender_motion = (nrender_static==0 && nrender_motion!=0)?0:-1; nrender_static = 0;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF2 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to lines.
+            nrender_motion = (nrender_static==1 && nrender_motion!=1)?1:-1; nrender_static = 1;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF3 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering
