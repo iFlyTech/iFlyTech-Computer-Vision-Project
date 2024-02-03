@@ -47928,4 +47928,135 @@ namespace cimg_library_suffixed {
             nrender_motion = (nrender_static==1 && nrender_motion!=1)?1:-1; nrender_static = 1;
             disp.set_key(key,false); key = 0; redraw = true;
           } break;
-        case cimg::keyF3 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering
+        case cimg::keyF3 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to flat.
+            nrender_motion = (nrender_static==2 && nrender_motion!=2)?2:-1; nrender_static = 2;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF4 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to flat-shaded.
+            nrender_motion = (nrender_static==3 && nrender_motion!=3)?3:-1; nrender_static = 3;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF5 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            // Set rendering mode to gouraud-shaded.
+            nrender_motion = (nrender_static==4 && nrender_motion!=4)?4:-1; nrender_static = 4;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyF6 : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Set rendering mode to phong-shaded.
+            nrender_motion = (nrender_static==5 && nrender_motion!=5)?5:-1; nrender_static = 5;
+            disp.set_key(key,false); key = 0; redraw = true;
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save snapshot
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            visu.save(filename);
+            (+visu).draw_text(0,0," Snapshot '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyG : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .off file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.off",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving object... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            vertices.save_off(reverse_primitives?reverse_primitives:primitives,colors,filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyO : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .cimg file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving object... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            vertices.get_object3dtoCImg3d(reverse_primitives?reverse_primitives:primitives,colors,opacities).
+              save(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+#ifdef cimg_use_board
+        case cimg::keyP : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .EPS file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.eps",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving EPS snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            LibBoard::Board board;
+            (+visu)._draw_object3d(&board,zbuffer.fill(0),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,clicked?nrender_motion:nrender_static,
+                                   _is_double_sided==1,focale,
+                                   visu.width()/2.0f + light_x,visu.height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,
+                                   sprite_scale);
+            board.saveEPS(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+        case cimg::keyV : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) { // Save object as a .SVG file
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.svg",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu).draw_text(0,0," Saving SVG snapshot... ",
+                              foreground_color._data,background_color._data,0.7f,13).display(disp);
+            LibBoard::Board board;
+            (+visu)._draw_object3d(&board,zbuffer.fill(0),
+                                   Xoff + visu._width/2.0f,Yoff + visu._height/2.0f,Zoff,
+                                   rotated_vertices,reverse_primitives?reverse_primitives:primitives,
+                                   colors,opacities,clicked?nrender_motion:nrender_static,
+                                   _is_double_sided==1,focale,
+                                   visu.width()/2.0f + light_x,visu.height()/2.0f + light_y,light_z + Zoff,
+                                   specular_lightness,specular_shininess,
+                                   sprite_scale);
+            board.saveSVG(filename);
+            (+visu).draw_text(0,0," Object '%s' saved. ",
+                              foreground_color._data,background_color._data,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false); key = 0;
+          } break;
+#endif
+        }
+        if (disp.is_resized()) {
+          disp.resize(false); visu0 = get_resize(disp,1);
+          if (zbuffer) zbuffer.assign(disp.width(),disp.height());
+          redraw = true;
+        }
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      if (pose_matrix) {
+        std::memcpy(pose_matrix,pose._data,12*sizeof(float));
+        pose_matrix[12] = Xoff; pose_matrix[13] = Yoff; pose_matrix[14] = Zoff; pose_matrix[15] = sprite_scale;
+      }
+      disp.set_button().set_key(key);
+      return *this;
+    }
+
+    //! Display 1d graph
