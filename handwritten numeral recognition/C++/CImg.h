@@ -48591,4 +48591,192 @@ namespace cimg_library_suffixed {
       struct jpeg_compress_struct cinfo;
       struct jpeg_error_mgr jerr;
       cinfo.err = jpeg_std_error(&jerr);
-      jpeg_create_comp
+      jpeg_create_compress(&cinfo);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      jpeg_stdio_dest(&cinfo,nfile);
+      cinfo.image_width = _width;
+      cinfo.image_height = _height;
+      cinfo.input_components = dimbuf;
+      cinfo.in_color_space = colortype;
+      jpeg_set_defaults(&cinfo);
+      jpeg_set_quality(&cinfo,quality<100?quality:100,TRUE);
+      jpeg_start_compress(&cinfo,TRUE);
+
+      JSAMPROW row_pointer[1];
+      CImg<ucharT> buffer(_width*dimbuf);
+
+      while (cinfo.next_scanline<cinfo.image_height) {
+        unsigned char *ptrd = buffer._data;
+
+        // Fill pixel buffer
+        switch (_spectrum) {
+        case 1 : { // Greyscale images
+          const T *ptr_g = data(0, cinfo.next_scanline);
+          for (unsigned int b = 0; b<cinfo.image_width; b++)
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+        } break;
+        case 2 : { // RG images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = 0;
+          }
+        } break;
+        case 3 : { // RGB images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1),
+            *ptr_b = data(0,cinfo.next_scanline,0,2);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = (unsigned char)*(ptr_b++);
+          }
+        } break;
+        default : { // CMYK images
+          const T *ptr_r = data(0,cinfo.next_scanline,0,0),
+            *ptr_g = data(0,cinfo.next_scanline,0,1),
+            *ptr_b = data(0,cinfo.next_scanline,0,2),
+            *ptr_a = data(0,cinfo.next_scanline,0,3);
+          for (unsigned int b = 0; b<cinfo.image_width; ++b) {
+            *(ptrd++) = (unsigned char)*(ptr_r++);
+            *(ptrd++) = (unsigned char)*(ptr_g++);
+            *(ptrd++) = (unsigned char)*(ptr_b++);
+            *(ptrd++) = (unsigned char)*(ptr_a++);
+          }
+        }
+        }
+        *row_pointer = buffer._data;
+        jpeg_write_scanlines(&cinfo,row_pointer,1);
+      }
+      jpeg_finish_compress(&cinfo);
+      if (!file) cimg::fclose(nfile);
+      jpeg_destroy_compress(&cinfo);
+      return *this;
+#endif
+    }
+
+    //! Save image, using built-in ImageMagick++ library.
+    /**
+      \param filename Filename, as a C-string.
+      \param bytes_per_pixel Force the number of bytes per pixel for the saving, when possible.
+    **/
+    const CImg<T>& save_magick(const char *const filename, const unsigned int bytes_per_pixel=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_magick(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifdef cimg_use_magick
+      double stmin, stmax = (double)max_min(stmin);
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (_spectrum>3)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance is multispectral, only the three first channels will be "
+                   "saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (stmin<0 || (bytes_per_pixel==1 && stmax>=256) || stmax>=65536)
+        cimg::warn(_cimg_instance
+                   "save_magick(): Instance has pixel values in [%g,%g], probable type overflow in file '%s'.",
+                   cimg_instance,
+                   filename,stmin,stmax);
+
+      Magick::Image image(Magick::Geometry(_width,_height),"black");
+      image.type(Magick::TrueColorType);
+      image.depth(bytes_per_pixel?(8*bytes_per_pixel):(stmax>=256?16:8));
+      const T
+        *ptr_r = data(0,0,0,0),
+        *ptr_g = _spectrum>1?data(0,0,0,1):0,
+        *ptr_b = _spectrum>2?data(0,0,0,2):0;
+      Magick::PixelPacket *pixels = image.getPixels(0,0,_width,_height);
+      switch (_spectrum) {
+      case 1 : // Scalar images
+        for (ulongT off = (ulongT)_width*_height; off; --off) {
+          pixels->red = pixels->green = pixels->blue = (Magick::Quantum)*(ptr_r++);
+          ++pixels;
+        }
+        break;
+      case 2 : // RG images
+        for (ulongT off = (ulongT)_width*_height; off; --off) {
+          pixels->red = (Magick::Quantum)*(ptr_r++);
+          pixels->green = (Magick::Quantum)*(ptr_g++);
+          pixels->blue = 0; ++pixels;
+        }
+        break;
+      default : // RGB images
+        for (ulongT off = (ulongT)_width*_height; off; --off) {
+          pixels->red = (Magick::Quantum)*(ptr_r++);
+          pixels->green = (Magick::Quantum)*(ptr_g++);
+          pixels->blue = (Magick::Quantum)*(ptr_b++);
+          ++pixels;
+        }
+      }
+      image.syncPixels();
+      image.write(filename);
+      return *this;
+#else
+      cimg::unused(bytes_per_pixel);
+      throw CImgIOException(_cimg_instance
+                            "save_magick(): Unable to save file '%s' unless libMagick++ is enabled.",
+                            cimg_instance,
+                            filename);
+#endif
+    }
+
+    //! Save image as a PNG file.
+    /**
+       \param filename Filename, as a C-string.
+       \param bytes_per_pixel Force the number of bytes per pixels for the saving, when possible.
+    **/
+    const CImg<T>& save_png(const char *const filename, const unsigned int bytes_per_pixel=0) const {
+      return _save_png(0,filename,bytes_per_pixel);
+    }
+
+    //! Save image as a PNG file \overloading.
+    const CImg<T>& save_png(std::FILE *const file, const unsigned int bytes_per_pixel=0) const {
+      return _save_png(file,0,bytes_per_pixel);
+    }
+
+    const CImg<T>& _save_png(std::FILE *const file, const char *const filename,
+                             const unsigned int bytes_per_pixel=0) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_png(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+#ifndef cimg_use_png
+      cimg::unused(bytes_per_pixel);
+      if (!file) return save_other(filename);
+      else throw CImgIOException(_cimg_instance
+                                 "save_png(): Unable to save data in '(*FILE)' unless libpng is enabled.",
+                                 cimg_instance);
+#else
+      const char *volatile nfilename = filename; // two 'volatile' here to remove a g++ warning due to 'setjmp'.
+      std::FILE *volatile nfile = file?file:cimg::fopen(nfilename,"wb");
+      volatile double stmin, stmax = (double)max_min(stmin);
+
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_png(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (_spectrum>4)
+        cimg::warn(_cimg_instance
+                   "save_png(): Instance is multispectral, only the three first channels will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+      if (stmin<0 || (bytes_per_pixel==1 && stmax>=256) || stmax>=65536)
+        cimg::warn(_cimg_instance
+                   "save_png(): Instance has pixel values 
