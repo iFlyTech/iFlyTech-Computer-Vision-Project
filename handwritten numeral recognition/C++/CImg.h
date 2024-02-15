@@ -49344,4 +49344,164 @@ namespace cimg_library_suffixed {
         for (ulongT k = 0; k<wh; ++k) {
           *(nbuffer++) = (unsigned char)(*(ptr1++));
           *(nbuffer++) = (unsigned char)(*(ptr2++));
-        
+          *(nbuffer++) = 0;
+          *(nbuffer++) = 255;
+        }
+      } break;
+      case 3 : { // RGB images
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = (unsigned char)(*(ptr3++));
+          *(nbuffer++) = 255;
+        }
+      } break;
+      default : { // RGBA images
+        for (ulongT k = 0; k<wh; ++k) {
+          *(nbuffer++) = (unsigned char)(*(ptr1++));
+          *(nbuffer++) = (unsigned char)(*(ptr2++));
+          *(nbuffer++) = (unsigned char)(*(ptr3++));
+          *(nbuffer++) = (unsigned char)(*(ptr4++));
+        }
+      }
+      }
+      cimg::fwrite(buffer,4*wh,nfile);
+      if (!file) cimg::fclose(nfile);
+      delete[] buffer;
+      return *this;
+    }
+
+    //! Save image as a TIFF file.
+    /**
+       \param filename Filename, as a C-string.
+       \param compression_type Type of data compression. Can be <tt>{ 0=None | 1=LZW | 2=JPEG }</tt>.
+       \note
+       - libtiff support is enabled by defining the precompilation
+        directive \c cimg_use_tif.
+       - When libtiff is enabled, 2D and 3D (multipage) several
+        channel per pixel are supported for
+        <tt>char,uchar,short,ushort,float</tt> and \c double pixel types.
+       - If \c cimg_use_tif is not defined at compile time the
+        function uses CImg<T>&save_other(const char*).
+     **/
+    const CImg<T>& save_tiff(const char *const filename, const unsigned int compression_type=0,
+                             const float *const voxel_size=0, const char *const description=0,
+                             const bool use_bigtiff=true) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_tiff(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifdef cimg_use_tiff
+      const bool
+        _use_bigtiff = use_bigtiff && sizeof(ulongT)>=8 && size()*sizeof(T)>=1UL<<31; // No bigtiff for small images.
+      TIFF *tif = TIFFOpen(filename,_use_bigtiff?"w8":"w4");
+      if (tif) {
+        cimg_forZ(*this,z) _save_tiff(tif,z,z,compression_type,voxel_size,description);
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimg_instance
+                                   "save_tiff(): Failed to open file '%s' for writing.",
+                                   cimg_instance,
+                                   filename);
+      return *this;
+#else
+      cimg::unused(compression_type,voxel_size,description,use_bigtiff);
+      return save_other(filename);
+#endif
+    }
+
+#ifdef cimg_use_tiff
+
+#define _cimg_save_tiff(types,typed,compression_type) if (!std::strcmp(types,pixel_type())) { \
+      const typed foo = (typed)0; return _save_tiff(tif,directory,z,foo,compression_type,voxel_size,description); }
+
+    // [internal] Save a plane into a tiff file
+    template<typename t>
+    const CImg<T>& _save_tiff(TIFF *tif, const unsigned int directory, const unsigned int z, const t& pixel_t,
+                              const unsigned int compression_type, const float *const voxel_size,
+                              const char *const description) const {
+      if (is_empty() || !tif || pixel_t) return *this;
+      const char *const filename = TIFFFileName(tif);
+      uint32 rowsperstrip = (uint32)-1;
+      uint16 spp = _spectrum, bpp = sizeof(t)*8, photometric;
+      if (spp==3 || spp==4) photometric = PHOTOMETRIC_RGB;
+      else photometric = PHOTOMETRIC_MINISBLACK;
+      TIFFSetDirectory(tif,directory);
+      TIFFSetField(tif,TIFFTAG_IMAGEWIDTH,_width);
+      TIFFSetField(tif,TIFFTAG_IMAGELENGTH,_height);
+      if (voxel_size) {
+        const float vx = voxel_size[0], vy = voxel_size[1], vz = voxel_size[2];
+        TIFFSetField(tif,TIFFTAG_RESOLUTIONUNIT,RESUNIT_NONE);
+        TIFFSetField(tif,TIFFTAG_XRESOLUTION,1.0f/vx);
+        TIFFSetField(tif,TIFFTAG_YRESOLUTION,1.0f/vy);
+        CImg<charT> s_description(256);
+        cimg_snprintf(s_description,s_description._width,"VX=%g VY=%g VZ=%g spacing=%g",vx,vy,vz,vz);
+        TIFFSetField(tif,TIFFTAG_IMAGEDESCRIPTION,s_description.data());
+      }
+      if (description) TIFFSetField(tif,TIFFTAG_IMAGEDESCRIPTION,description);
+      TIFFSetField(tif,TIFFTAG_ORIENTATION,ORIENTATION_TOPLEFT);
+      TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,spp);
+      if (cimg::type<t>::is_float()) TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,3);
+      else if (cimg::type<t>::min()==0) TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,1);
+      else TIFFSetField(tif,TIFFTAG_SAMPLEFORMAT,2);
+      TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bpp);
+      TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
+      TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,photometric);
+      TIFFSetField(tif,TIFFTAG_COMPRESSION,compression_type==2?COMPRESSION_JPEG:
+                   compression_type==1?COMPRESSION_LZW:COMPRESSION_NONE);
+      rowsperstrip = TIFFDefaultStripSize(tif,rowsperstrip);
+      TIFFSetField(tif,TIFFTAG_ROWSPERSTRIP,rowsperstrip);
+      TIFFSetField(tif,TIFFTAG_FILLORDER,FILLORDER_MSB2LSB);
+      TIFFSetField(tif,TIFFTAG_SOFTWARE,"CImg");
+      t *const buf = (t*)_TIFFmalloc(TIFFStripSize(tif));
+      if (buf) {
+        for (unsigned int row = 0; row<_height; row+=rowsperstrip) {
+          uint32 nrow = (row + rowsperstrip>_height?_height - row:rowsperstrip);
+          tstrip_t strip = TIFFComputeStrip(tif,row,0);
+          tsize_t i = 0;
+          for (unsigned int rr = 0; rr<nrow; ++rr)
+            for (unsigned int cc = 0; cc<_width; ++cc)
+              for (unsigned int vv = 0; vv<spp; ++vv)
+                buf[i++] = (t)(*this)(cc,row + rr,z,vv);
+          if (TIFFWriteEncodedStrip(tif,strip,buf,i*sizeof(t))<0)
+            throw CImgIOException(_cimg_instance
+                                  "save_tiff(): Invalid strip writing when saving file '%s'.",
+                                  cimg_instance,
+                                  filename?filename:"(FILE*)");
+        }
+        _TIFFfree(buf);
+      }
+      TIFFWriteDirectory(tif);
+      return (*this);
+    }
+
+    const CImg<T>& _save_tiff(TIFF *tif, const unsigned int directory, const unsigned int z,
+                              const unsigned int compression_type, const float *const voxel_size,
+                              const char *const description) const {
+      _cimg_save_tiff("bool",unsigned char,compression_type);
+      _cimg_save_tiff("unsigned char",unsigned char,compression_type);
+      _cimg_save_tiff("char",char,compression_type);
+      _cimg_save_tiff("unsigned short",unsigned short,compression_type);
+      _cimg_save_tiff("short",short,compression_type);
+      _cimg_save_tiff("unsigned int",unsigned int,compression_type);
+      _cimg_save_tiff("int",int,compression_type);
+      _cimg_save_tiff("unsigned int64",unsigned int,compression_type);
+      _cimg_save_tiff("int64",int,compression_type);
+      _cimg_save_tiff("float",float,compression_type);
+      _cimg_save_tiff("double",float,compression_type);
+      const char *const filename = TIFFFileName(tif);
+      throw CImgInstanceException(_cimg_instance
+                                  "save_tiff(): Unsupported pixel type '%s' for file '%s'.",
+                                  cimg_instance,
+                                  pixel_type(),filename?filename:"(FILE*)");
+      return *this;
+    }
+#endif
+
+    //! Save image as a MINC2 file.
+    /**
+       \param filename Filename, as a C-string.
+       \param imitate_file If non-zero, reference filename, as a C-string, to borrow header from.
+    **/
+    const CImg<T
