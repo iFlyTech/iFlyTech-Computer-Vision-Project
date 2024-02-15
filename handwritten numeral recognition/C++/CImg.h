@@ -49504,4 +49504,179 @@ namespace cimg_library_suffixed {
        \param filename Filename, as a C-string.
        \param imitate_file If non-zero, reference filename, as a C-string, to borrow header from.
     **/
-    const CImg<T
+    const CImg<T>& save_minc2(const char *const filename,
+                              const char *const imitate_file=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                   "save_minc2(): Specified filename is (null).",
+                                   cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifndef cimg_use_minc2
+     cimg::unused(imitate_file);
+     return save_other(filename);
+#else
+     minc::minc_1_writer wtr;
+     if (imitate_file)
+       wtr.open(filename, imitate_file);
+     else {
+       minc::minc_info di;
+       if(width()) di.push_back(minc::dim_info(width(),width()*0.5,-1,minc::dim_info::DIM_X));
+       if(height()) di.push_back(minc::dim_info(height(),height()*0.5,-1,minc::dim_info::DIM_Y));
+       if(depth()) di.push_back(minc::dim_info(depth(),depth()*0.5,-1,minc::dim_info::DIM_Z));
+       if(spectrum()) di.push_back(minc::dim_info(spectrum(),spectrum()*0.5,-1,minc::dim_info::DIM_TIME));
+       wtr.open(filename,di,1,NC_FLOAT,0);
+     }
+     if(typeid(T)==typeid(unsigned char))
+       wtr.setup_write_byte();
+     else if(typeid(T)==typeid(int))
+       wtr.setup_write_int();
+     else if(typeid(T)==typeid(double))
+       wtr.setup_write_double();
+     else
+       wtr.setup_write_float();
+     minc::save_standard_volume(wtr, this->_data);
+     return *this;
+#endif
+    }
+
+    //! Save image as an ANALYZE7.5 or NIFTI file.
+    /**
+      \param filename Filename, as a C-string.
+      \param voxel_size Pointer to 3 consecutive values that tell about the voxel sizes along the X,Y and Z dimensions.
+    **/
+    const CImg<T>& save_analyze(const char *const filename, const float *const voxel_size=0) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_analyze(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      std::FILE *file;
+      CImg<charT> header(348,1,1,1,0), hname(1024), iname(1024);
+      const char *const ext = cimg::split_filename(filename);
+      short datatype = -1;
+      if (!*ext) {
+        cimg_snprintf(hname,hname._width,"%s.hdr",filename);
+        cimg_snprintf(iname,iname._width,"%s.img",filename);
+      }
+      if (!cimg::strncasecmp(ext,"hdr",3)) {
+        std::strcpy(hname,filename);
+        std::strncpy(iname,filename,iname._width - 1);
+        cimg_sprintf(iname._data + std::strlen(iname) - 3,"img");
+      }
+      if (!cimg::strncasecmp(ext,"img",3)) {
+        std::strcpy(hname,filename);
+        std::strncpy(iname,filename,iname._width - 1);
+        cimg_sprintf(hname._data + std::strlen(iname) - 3,"hdr");
+      }
+      if (!cimg::strncasecmp(ext,"nii",3)) {
+        std::strncpy(hname,filename,hname._width - 1); *iname = 0;
+      }
+      int *const iheader = (int*)header._data;
+      *iheader = 348;
+      std::strcpy(header._data + 4,"CImg");
+      std::strcpy(header._data + 14," ");
+      ((short*)&(header[36]))[0] = 4096;
+      ((char*)&(header[38]))[0] = 114;
+      ((short*)&(header[40]))[0] = 4;
+      ((short*)&(header[40]))[1] = (short)_width;
+      ((short*)&(header[40]))[2] = (short)_height;
+      ((short*)&(header[40]))[3] = (short)_depth;
+      ((short*)&(header[40]))[4] = (short)_spectrum;
+      if (!cimg::strcasecmp(pixel_type(),"bool")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned char")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"char")) datatype = 2;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned short")) datatype = 4;
+      if (!cimg::strcasecmp(pixel_type(),"short")) datatype = 4;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"int")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int64")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"int64")) datatype = 8;
+      if (!cimg::strcasecmp(pixel_type(),"float")) datatype = 16;
+      if (!cimg::strcasecmp(pixel_type(),"double")) datatype = 64;
+      if (datatype<0)
+        throw CImgIOException(_cimg_instance
+                              "save_analyze(): Unsupported pixel type '%s' for file '%s'.",
+                              cimg_instance,
+                              pixel_type(),filename);
+
+      ((short*)&(header[70]))[0] = datatype;
+      ((short*)&(header[72]))[0] = sizeof(T);
+      ((float*)&(header[112]))[0] = 1;
+      ((float*)&(header[76]))[0] = 0;
+      if (voxel_size) {
+        ((float*)&(header[76]))[1] = voxel_size[0];
+        ((float*)&(header[76]))[2] = voxel_size[1];
+        ((float*)&(header[76]))[3] = voxel_size[2];
+      } else ((float*)&(header[76]))[1] = ((float*)&(header[76]))[2] = ((float*)&(header[76]))[3] = 1;
+      file = cimg::fopen(hname,"wb");
+      cimg::fwrite(header._data,348,file);
+      if (*iname) { cimg::fclose(file); file = cimg::fopen(iname,"wb"); }
+      cimg::fwrite(_data,size(),file);
+      cimg::fclose(file);
+      return *this;
+    }
+
+    //! Save image as a .cimg file.
+    /**
+      \param filename Filename, as a C-string.
+      \param is_compressed Tells if the file contains compressed image data.
+    **/
+    const CImg<T>& save_cimg(const char *const filename, const bool is_compressed=false) const {
+      CImgList<T>(*this,true).save_cimg(filename,is_compressed);
+      return *this;
+    }
+
+    //! Save image as a .cimg file \overloading.
+    const CImg<T>& save_cimg(std::FILE *const file, const bool is_compressed=false) const {
+      CImgList<T>(*this,true).save_cimg(file,is_compressed);
+      return *this;
+    }
+
+    //! Save image as a sub-image into an existing .cimg file.
+    /**
+      \param filename Filename, as a C-string.
+      \param n0 Index of the image inside the file.
+      \param x0 X-coordinate of the sub-image location.
+      \param y0 Y-coordinate of the sub-image location.
+      \param z0 Z-coordinate of the sub-image location.
+      \param c0 C-coordinate of the sub-image location.
+    **/
+    const CImg<T>& save_cimg(const char *const filename,
+                             const unsigned int n0,
+                             const unsigned int x0, const unsigned int y0,
+                             const unsigned int z0, const unsigned int c0) const {
+      CImgList<T>(*this,true).save_cimg(filename,n0,x0,y0,z0,c0);
+      return *this;
+    }
+
+    //! Save image as a sub-image into an existing .cimg file \overloading.
+    const CImg<T>& save_cimg(std::FILE *const file,
+                             const unsigned int n0,
+                             const unsigned int x0, const unsigned int y0,
+                             const unsigned int z0, const unsigned int c0) const {
+      CImgList<T>(*this,true).save_cimg(file,n0,x0,y0,z0,c0);
+      return *this;
+    }
+
+    //! Save blank image as a .cimg file.
+    /**
+        \param filename Filename, as a C-string.
+        \param dx Width of the image.
+        \param dy Height of the image.
+        \param dz Depth of the image.
+        \param dc Number of channels of the image.
+        \note
+        - All pixel values of the saved image are set to \c 0.
+        - Use this method to save large images without having to instanciate and allocate them.
+    **/
+    static void save_empty_cimg(const char *const filename,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return CImgList<T>::save_empty_cimg(filename,1,dx,dy,dz,dc);
+    }
+
+    //! Save blank image as a .cimg file \overloading.
+    /**
+       Same as save_empty_cimg(const char *,unsigned int,unsigned int,unsigned int,unsigned in
