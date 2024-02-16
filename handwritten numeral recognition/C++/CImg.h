@@ -49679,4 +49679,177 @@ namespace cimg_library_suffixed {
 
     //! Save blank image as a .cimg file \overloading.
     /**
-       Same as save_empty_cimg(const char *,unsigned int,unsigned int,unsigned int,unsigned in
+       Same as save_empty_cimg(const char *,unsigned int,unsigned int,unsigned int,unsigned int)
+       with a file stream argument instead of a filename string.
+    **/
+    static void save_empty_cimg(std::FILE *const file,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return CImgList<T>::save_empty_cimg(file,1,dx,dy,dz,dc);
+    }
+
+    //! Save image as an INRIMAGE-4 file.
+    /**
+      \param filename Filename, as a C-string.
+      \param voxel_size Pointer to 3 values specifying the voxel sizes along the X,Y and Z dimensions.
+    **/
+    const CImg<T>& save_inr(const char *const filename, const float *const voxel_size=0) const {
+      return _save_inr(0,filename,voxel_size);
+    }
+
+    //! Save image as an INRIMAGE-4 file \overloading.
+    const CImg<T>& save_inr(std::FILE *const file, const float *const voxel_size=0) const {
+      return _save_inr(file,0,voxel_size);
+    }
+
+    const CImg<T>& _save_inr(std::FILE *const file, const char *const filename, const float *const voxel_size) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_inr(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+
+      int inrpixsize = -1;
+      const char *inrtype = "unsigned fixed\nPIXSIZE=8 bits\nSCALE=2**0";
+      if (!cimg::strcasecmp(pixel_type(),"unsigned char")) {
+        inrtype = "unsigned fixed\nPIXSIZE=8 bits\nSCALE=2**0"; inrpixsize = 1;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"char")) {
+        inrtype = "fixed\nPIXSIZE=8 bits\nSCALE=2**0"; inrpixsize = 1;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"unsigned short")) {
+        inrtype = "unsigned fixed\nPIXSIZE=16 bits\nSCALE=2**0";inrpixsize = 2;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"short")) {
+        inrtype = "fixed\nPIXSIZE=16 bits\nSCALE=2**0"; inrpixsize = 2;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"unsigned int")) {
+        inrtype = "unsigned fixed\nPIXSIZE=32 bits\nSCALE=2**0";inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"int")) {
+        inrtype = "fixed\nPIXSIZE=32 bits\nSCALE=2**0"; inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"float")) {
+        inrtype = "float\nPIXSIZE=32 bits"; inrpixsize = 4;
+      }
+      if (!cimg::strcasecmp(pixel_type(),"double")) {
+        inrtype = "float\nPIXSIZE=64 bits"; inrpixsize = 8;
+      }
+      if (inrpixsize<=0)
+        throw CImgIOException(_cimg_instance
+                              "save_inr(): Unsupported pixel type '%s' for file '%s'",
+                              cimg_instance,
+                              pixel_type(),filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      CImg<charT> header(257);
+      int err = cimg_snprintf(header,header._width,"#INRIMAGE-4#{\nXDIM=%u\nYDIM=%u\nZDIM=%u\nVDIM=%u\n",
+                              _width,_height,_depth,_spectrum);
+      if (voxel_size) err+=cimg_sprintf(header._data + err,"VX=%g\nVY=%g\nVZ=%g\n",
+                                        voxel_size[0],voxel_size[1],voxel_size[2]);
+      err+=cimg_sprintf(header._data + err,"TYPE=%s\nCPU=%s\n",inrtype,cimg::endianness()?"sun":"decm");
+      std::memset(header._data + err,'\n',252 - err);
+      std::memcpy(header._data + 252,"##}\n",4);
+      cimg::fwrite(header._data,256,nfile);
+      cimg_forXYZ(*this,x,y,z) cimg_forC(*this,c) cimg::fwrite(&((*this)(x,y,z,c)),1,nfile);
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save image as an OpenEXR file.
+    /**
+       \param filename Filename, as a C-string.
+       \note The OpenEXR file format is <a href="http://en.wikipedia.org/wiki/OpenEXR">described here</a>.
+    **/
+    const CImg<T>& save_exr(const char *const filename) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_exr(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_exr(): Instance is volumetric, only the first slice will be saved in file '%s'.",
+                   cimg_instance,
+                   filename);
+
+#ifndef cimg_use_openexr
+      return save_other(filename);
+#else
+      Imf::Rgba *const ptrd0 = new Imf::Rgba[(size_t)_width*_height], *ptrd = ptrd0, rgba;
+      switch (_spectrum) {
+      case 1 : { // Grayscale image.
+        for (const T *ptr_r = data(), *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = rgba.g = rgba.b = (half)(*(ptr_r++));
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      case 2 : { // RG image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e; ) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)0;
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      case 3 : { // RGB image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)(*(ptr_b++));
+          rgba.a = (half)1;
+          *(ptrd++) = rgba;
+        }
+      } break;
+      default : { // RGBA image.
+        for (const T *ptr_r = data(), *ptr_g = data(0,0,0,1), *ptr_b = data(0,0,0,2), *ptr_a = data(0,0,0,3),
+               *const ptr_e = ptr_r + (ulongT)_width*_height; ptr_r<ptr_e;) {
+          rgba.r = (half)(*(ptr_r++));
+          rgba.g = (half)(*(ptr_g++));
+          rgba.b = (half)(*(ptr_b++));
+          rgba.a = (half)(*(ptr_a++));
+          *(ptrd++) = rgba;
+        }
+      } break;
+      }
+      Imf::RgbaOutputFile outFile(filename,_width,_height,
+                                  _spectrum==1?Imf::WRITE_Y:_spectrum==2?Imf::WRITE_YA:_spectrum==3?
+                                  Imf::WRITE_RGB:Imf::WRITE_RGBA);
+      outFile.setFrameBuffer(ptrd0,1,_width);
+      outFile.writePixels(_height);
+      delete[] ptrd0;
+      return *this;
+#endif
+    }
+
+    //! Save image as a Pandore-5 file.
+    /**
+       \param filename Filename, as a C-string.
+       \param colorspace Colorspace data field in output file
+       (see <a href="http://www.greyc.ensicaen.fr/~regis/Pandore/#documentation">Pandore file specifications</a>
+       for more information).
+    **/
+    const CImg<T>& save_pandore(const char *const filename, const unsigned int colorspace=0) const {
+      return _save_pandore(0,filename,colorspace);
+    }
+
+    //! Save image as a Pandore-5 file \overloading.
+    /**
+        Same as save_pandore(const char *,unsigned int) const
+        with a file stream argument instead of a filename string.
+    **/
+    const CImg<T>& save_pandore(std::FILE *const file, const unsigned int colorspace=0) const {
+      return _save_pandore(file,0,colorspace);
+    }
+
+    unsigned int _save_pandore_header_length(unsigned int id, unsigned int *dims, const unsigned int colorspace) const {
+      unsigned int nbdims = 0;
+      if (id==2 || id==3 || id==4) {
+        dims[0] = 1; dims[1] = _width; nbdims = 2;
+      }
+      if (id==5 || id==6 || id==7) {
+        dims[0] = 1; dims[1] = _height; di
