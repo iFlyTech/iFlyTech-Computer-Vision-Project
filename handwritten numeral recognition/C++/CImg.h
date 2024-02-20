@@ -50500,4 +50500,216 @@ namespace cimg_library_suffixed {
 
     //! Serialize a CImg<T> instance into a raw CImg<unsigned char> buffer.
     /**
-  
+       \param is_compressed tells if zlib compression must be used for serialization
+       (this requires 'cimg_use_zlib' been enabled).
+    **/
+    CImg<ucharT> get_serialize(const bool is_compressed=false) const {
+      return CImgList<T>(*this,true).get_serialize(is_compressed);
+    }
+
+    // [internal] Return a 40x38 color logo of a 'danger' item.
+    static CImg<T> _logo40x38() {
+      CImg<T> res(40,38,1,3);
+      const unsigned char *ptrs = cimg::logo40x38;
+      T *ptr1 = res.data(0,0,0,0), *ptr2 = res.data(0,0,0,1), *ptr3 = res.data(0,0,0,2);
+      for (ulongT off = 0; off<(ulongT)res._width*res._height;) {
+        const unsigned char n = *(ptrs++), r = *(ptrs++), g = *(ptrs++), b = *(ptrs++);
+        for (unsigned int l = 0; l<n; ++off, ++l) { *(ptr1++) = (T)r; *(ptr2++) = (T)g; *(ptr3++) = (T)b; }
+      }
+      return res;
+    }
+
+    //@}
+  };
+
+  /*
+   #-----------------------------------------
+   #
+   #
+   #
+   # Definition of the CImgList<T> structure
+   #
+   #
+   #
+   #------------------------------------------
+   */
+  //! Represent a list of images CImg<T>.
+  template<typename T>
+  struct CImgList {
+    unsigned int _width, _allocated_width;
+    CImg<T> *_data;
+
+    //! Simple iterator type, to loop through each image of a list.
+    /**
+       \note
+       - The \c CImgList<T>::iterator type is defined as a <tt>CImg<T>*</tt>.
+       - You may use it like this:
+       \code
+       CImgList<> list;   // Assuming this image list is not empty.
+       for (CImgList<>::iterator it = list.begin(); it<list.end(); ++it) (*it).mirror('x');
+       \endcode
+       - Using the loop macro \c cimglist_for is another (more concise) alternative:
+       \code
+       cimglist_for(list,l) list[l].mirror('x');
+       \endcode
+    **/
+    typedef CImg<T>* iterator;
+
+    //! Simple const iterator type, to loop through each image of a \c const list instance.
+    /**
+       \note
+       - The \c CImgList<T>::const_iterator type is defined to be a <tt>const CImg<T>*</tt>.
+       - Similar to CImgList<T>::iterator, but for constant list instances.
+    **/
+    typedef const CImg<T>* const_iterator;
+
+    //! Pixel value type.
+    /**
+       Refer to the pixels value type of the images in the list.
+       \note
+       - The \c CImgList<T>::value_type type of a \c CImgList<T> is defined to be a \c T.
+         It is then similar to CImg<T>::value_type.
+       - \c CImgList<T>::value_type is actually not used in %CImg methods. It has been mainly defined for
+         compatibility with STL naming conventions.
+    **/
+    typedef T value_type;
+
+    // Define common types related to template type T.
+    typedef typename cimg::superset<T,bool>::type Tbool;
+    typedef typename cimg::superset<T,unsigned char>::type Tuchar;
+    typedef typename cimg::superset<T,char>::type Tchar;
+    typedef typename cimg::superset<T,unsigned short>::type Tushort;
+    typedef typename cimg::superset<T,short>::type Tshort;
+    typedef typename cimg::superset<T,unsigned int>::type Tuint;
+    typedef typename cimg::superset<T,int>::type Tint;
+    typedef typename cimg::superset<T,cimg_ulong>::type Tulong;
+    typedef typename cimg::superset<T,cimg_long>::type Tlong;
+    typedef typename cimg::superset<T,float>::type Tfloat;
+    typedef typename cimg::superset<T,double>::type Tdouble;
+    typedef typename cimg::last<T,bool>::type boolT;
+    typedef typename cimg::last<T,unsigned char>::type ucharT;
+    typedef typename cimg::last<T,char>::type charT;
+    typedef typename cimg::last<T,unsigned short>::type ushortT;
+    typedef typename cimg::last<T,short>::type shortT;
+    typedef typename cimg::last<T,unsigned int>::type uintT;
+    typedef typename cimg::last<T,int>::type intT;
+    typedef typename cimg::last<T,cimg_ulong>::type ulongT;
+    typedef typename cimg::last<T,cimg_long>::type longT;
+    typedef typename cimg::last<T,cimg_uint64>::type uint64T;
+    typedef typename cimg::last<T,cimg_int64>::type int64T;
+    typedef typename cimg::last<T,float>::type floatT;
+    typedef typename cimg::last<T,double>::type doubleT;
+
+    //@}
+    //---------------------------
+    //
+    //! \name Plugins
+    //@{
+    //---------------------------
+#ifdef cimglist_plugin
+#include cimglist_plugin
+#endif
+#ifdef cimglist_plugin1
+#include cimglist_plugin1
+#endif
+#ifdef cimglist_plugin2
+#include cimglist_plugin2
+#endif
+#ifdef cimglist_plugin3
+#include cimglist_plugin3
+#endif
+#ifdef cimglist_plugin4
+#include cimglist_plugin4
+#endif
+#ifdef cimglist_plugin5
+#include cimglist_plugin5
+#endif
+#ifdef cimglist_plugin6
+#include cimglist_plugin6
+#endif
+#ifdef cimglist_plugin7
+#include cimglist_plugin7
+#endif
+#ifdef cimglist_plugin8
+#include cimglist_plugin8
+#endif
+
+    //@}
+    //--------------------------------------------------------
+    //
+    //! \name Constructors / Destructor / Instance Management
+    //@{
+    //--------------------------------------------------------
+
+    //! Destructor.
+    /**
+       Destroy current list instance.
+       \note
+       - Any allocated buffer is deallocated.
+       - Destroying an empty list does nothing actually.
+     **/
+    ~CImgList() {
+      delete[] _data;
+    }
+
+    //! Default constructor.
+    /**
+       Construct a new empty list instance.
+       \note
+       - An empty list has no pixel data and its dimension width() is set to \c 0, as well as its
+         image buffer pointer data().
+       - An empty list may be reassigned afterwards, with the family of the assign() methods.
+         In all cases, the type of pixels stays \c T.
+     **/
+    CImgList():
+      _width(0),_allocated_width(0),_data(0) {}
+
+    //! Construct list containing empty images.
+    /**
+       \param n Number of empty images.
+       \note Useful when you know by advance the number of images you want to manage, as
+       it will allocate the right amount of memory for the list, without needs for reallocation
+       (that may occur when starting from an empty list and inserting several images in it).
+    **/
+    explicit CImgList(const unsigned int n):_width(n) {
+      if (n) _data = new CImg<T>[_allocated_width = cimg::max(16UL,cimg::nearest_pow2(n))];
+      else { _allocated_width = 0; _data = 0; }
+    }
+
+    //! Construct list containing images of specified size.
+    /**
+       \param n Number of images.
+       \param width Width of images.
+       \param height Height of images.
+       \param depth Depth of images.
+       \param spectrum Number of channels of images.
+       \note Pixel values are not initialized and may probably contain garbage.
+    **/
+    CImgList(const unsigned int n, const unsigned int width, const unsigned int height=1,
+             const unsigned int depth=1, const unsigned int spectrum=1):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(n);
+      cimglist_apply(*this,assign)(width,height,depth,spectrum);
+    }
+
+    //! Construct list containing images of specified size, and initialize pixel values.
+    /**
+       \param n Number of images.
+       \param width Width of images.
+       \param height Height of images.
+       \param depth Depth of images.
+       \param spectrum Number of channels of images.
+       \param val Initialization value for images pixels.
+    **/
+    CImgList(const unsigned int n, const unsigned int width, const unsigned int height,
+             const unsigned int depth, const unsigned int spectrum, const T& val):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(n);
+      cimglist_apply(*this,assign)(width,height,depth,spectrum,val);
+    }
+
+    //! Construct list containing images of specified size, and initialize pixel values from a sequence of integers.
+    /**
+       \param n Number of images.
+       \param width Width of images.
+       \param heig
