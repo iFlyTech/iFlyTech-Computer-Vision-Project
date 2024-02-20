@@ -50158,4 +50158,166 @@ namespace cimg_library_suffixed {
                               (unsigned int)primitives(l,1),r,g,b); break;
         case 4 : std::fprintf(nfile,"4 %u %u %u %u %f %f %f\n",
                               (unsigned int)primitives(l,0),(unsigned int)primitives(l,3),
-                              (unsigned int)primitives(l,2),(unsigned int)primitives
+                              (unsigned int)primitives(l,2),(unsigned int)primitives(l,1),r,g,b); break;
+        case 5 : std::fprintf(nfile,"2 %u %u %f %f %f\n",
+                              (unsigned int)primitives(l,0),(unsigned int)primitives(l,1),r,g,b); break;
+        case 6 : {
+          const unsigned int xt = (unsigned int)primitives(l,2), yt = (unsigned int)primitives(l,3);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"2 %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        case 9 : {
+          const unsigned int xt = (unsigned int)primitives(l,3), yt = (unsigned int)primitives(l,4);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"3 %u %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,2),
+                       (unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        case 12 : {
+          const unsigned int xt = (unsigned int)primitives(l,4), yt = (unsigned int)primitives(l,5);
+          const float
+            rt = color.atXY(xt,yt,0)/255.0f,
+            gt = (csiz>1?color.atXY(xt,yt,1):r)/255.0f,
+            bt = (csiz>2?color.atXY(xt,yt,2):g)/255.0f;
+          std::fprintf(nfile,"4 %u %u %u %u %f %f %f\n",
+                       (unsigned int)primitives(l,0),(unsigned int)primitives(l,3),
+                       (unsigned int)primitives(l,2),(unsigned int)primitives(l,1),rt,gt,bt);
+        } break;
+        }
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save volumetric image as a video, using the OpenCV library.
+    /**
+      \param filename Filename to write data to.
+      \param fps Number of frames per second.
+      \param codec Type of compression (See http://www.fourcc.org/codecs.php to see available codecs).
+      \param keep_open Tells if the video writer associated to the specified filename
+        must be kept open or not (to allow frames to be added in the same file afterwards).
+    **/
+    const CImg<T>& save_video(const char *const filename, const unsigned int fps=25,
+                              const char *codec=0, const bool keep_open=false) const {
+      if (is_empty()) { CImgList<T>().save_video(filename,fps,codec,keep_open); return *this; }
+      CImgList<T> list;
+      get_split('z').move_to(list);
+      list.save_video(filename,fps,codec,keep_open);
+      return *this;
+    }
+
+    //! Save volumetric image as a video, using ffmpeg external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \param fps Video framerate.
+       \param codec Video codec, as a C-string.
+       \param bitrate Video bitrate.
+       \note
+       - Each slice of the instance image is considered to be a single frame of the output video file.
+       - This method uses \c ffmpeg, an external executable binary provided by
+         <a href="http://www.ffmpeg.org">FFmpeg</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_ffmpeg_external(const char *const filename, const unsigned int fps=25,
+                                        const char *const codec=0, const unsigned int bitrate=2048) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_ffmpeg_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      CImgList<T> list;
+      get_split('z').move_to(list);
+      list.save_ffmpeg_external(filename,fps,codec,bitrate);
+      return *this;
+    }
+
+    //! Save image using gzip external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \note This method uses \c gzip, an external executable binary provided by
+         <a href="//http://www.gzip.org">gzip</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_gzip_external(const char *const filename) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_gzip_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      save(filename_tmp);
+      cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                    cimg::gzip_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    CImg<charT>::string(filename)._system_strescape().data());
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimg_instance
+                              "save_gzip_external(): Failed to save file '%s' with external command 'gzip'.",
+                              cimg_instance,
+                              filename);
+
+      else cimg::fclose(file);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Save image using GraphicsMagick's external binary.
+    /**
+       \param filename Filename, as a C-string.
+       \param quality Image quality (expressed in percent), when the file format supports it.
+       \note This method uses \c gm, an external executable binary provided by
+         <a href="http://www.graphicsmagick.org">GraphicsMagick</a>.
+       It must be installed for the method to succeed.
+    **/
+    const CImg<T>& save_graphicsmagick_external(const char *const filename, const unsigned int quality=100) const {
+      if (!filename)
+        throw CImgArgumentException(_cimg_instance
+                                    "save_graphicsmagick_external(): Specified filename is (null).",
+                                    cimg_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+      if (_depth>1)
+        cimg::warn(_cimg_instance
+                   "save_other(): File '%s', saving a volumetric image with an external call to "
+                   "GraphicsMagick only writes the first image slice.",
+                   cimg_instance,filename);
+
+#ifdef cimg_use_png
+#define _cimg_sge_ext1 "png"
+#define _cimg_sge_ext2 "png"
+#else
+#define _cimg_sge_ext1 "pgm"
+#define _cimg_sge_ext2 "ppm"
+#endif
+      CImg<charT> command(1024), filename_tmp(256);
+      std::FILE *file;
+      do {
+        cimg_snprin
