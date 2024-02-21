@@ -50712,4 +50712,162 @@ namespace cimg_library_suffixed {
     /**
        \param n Number of images.
        \param width Width of images.
-       \param heig
+       \param height Height of images.
+       \param depth Depth of images.
+       \param spectrum Number of channels of images.
+       \param val0 First value of the initializing integers sequence.
+       \param val1 Second value of the initializing integers sequence.
+       \warning You must specify at least <tt>width*height*depth*spectrum</tt> values in your argument list,
+         or you will probably segfault.
+    **/
+    CImgList(const unsigned int n, const unsigned int width, const unsigned int height,
+             const unsigned int depth, const unsigned int spectrum, const int val0, const int val1, ...):
+      _width(0),_allocated_width(0),_data(0) {
+#define _CImgList_stdarg(t) { \
+        assign(n,width,height,depth,spectrum); \
+        const ulongT siz = (ulongT)width*height*depth*spectrum, nsiz = siz*n; \
+        T *ptrd = _data->_data; \
+        va_list ap; \
+        va_start(ap,val1); \
+        for (ulongT l = 0, s = 0, i = 0; i<nsiz; ++i) { \
+          *(ptrd++) = (T)(i==0?val0:(i==1?val1:va_arg(ap,t))); \
+          if ((++s)==siz) { ptrd = _data[++l]._data; s = 0; } \
+        } \
+        va_end(ap); \
+      }
+      _CImgList_stdarg(int);
+    }
+
+    //! Construct list containing images of specified size, and initialize pixel values from a sequence of doubles.
+    /**
+       \param n Number of images.
+       \param width Width of images.
+       \param height Height of images.
+       \param depth Depth of images.
+       \param spectrum Number of channels of images.
+       \param val0 First value of the initializing doubles sequence.
+       \param val1 Second value of the initializing doubles sequence.
+       \warning You must specify at least <tt>width*height*depth*spectrum</tt> values in your argument list,
+         or you will probably segfault.
+    **/
+    CImgList(const unsigned int n, const unsigned int width, const unsigned int height,
+             const unsigned int depth, const unsigned int spectrum, const double val0, const double val1, ...):
+      _width(0),_allocated_width(0),_data(0) {
+      _CImgList_stdarg(double);
+    }
+
+    //! Construct list containing copies of an input image.
+    /**
+       \param n Number of images.
+       \param img Input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of \c img.
+    **/
+    template<typename t>
+    CImgList(const unsigned int n, const CImg<t>& img, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(n);
+      cimglist_apply(*this,assign)(img,is_shared);
+    }
+
+    //! Construct list from one image.
+    /**
+       \param img Input image to copy in the constructed list.
+       \param is_shared Tells if the element of the list is a shared or non-shared copy of \c img.
+     **/
+    template<typename t>
+    explicit CImgList(const CImg<t>& img, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(1);
+      _data[0].assign(img,is_shared);
+    }
+
+    //! Construct list from two images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of input images.
+     **/
+    template<typename t1, typename t2>
+    CImgList(const CImg<t1>& img1, const CImg<t2>& img2, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(2);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared);
+    }
+
+    //! Construct list from three images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param img3 Third input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of input images.
+    **/
+    template<typename t1, typename t2, typename t3>
+    CImgList(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(3);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+    }
+
+    //! Construct list from four images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param img3 Third input image to copy in the constructed list.
+       \param img4 Fourth input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of input images.
+    **/
+    template<typename t1, typename t2, typename t3, typename t4>
+    CImgList(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+             const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(4);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared);
+    }
+
+    //! Construct list from five images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param img3 Third input image to copy in the constructed list.
+       \param img4 Fourth input image to copy in the constructed list.
+       \param img5 Fifth input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of input images.
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5>
+    CImgList(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+             const CImg<t5>& img5, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(5);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared);
+    }
+
+    //! Construct list from six images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param img3 Third input image to copy in the constructed list.
+       \param img4 Fourth input image to copy in the constructed list.
+       \param img5 Fifth input image to copy in the constructed list.
+       \param img6 Sixth input image to copy in the constructed list.
+       \param is_shared Tells if the elements of the list are shared or non-shared copies of input images.
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6>
+    CImgList(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+             const CImg<t5>& img5, const CImg<t6>& img6, const bool is_shared=false):
+      _width(0),_allocated_width(0),_data(0) {
+      assign(6);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+    }
+
+    //! Construct list from seven images.
+    /**
+       \param img1 First input image to copy in the constructed list.
+       \param img2 Second input image to copy in the constructed list.
+       \param img3 Third input image to copy in the constructed list.
+       \param img4 Fourth input image to copy in the constructed list.
+       \param img5 Fifth input image to copy in the constructed list.
+       \param img6 Sixth input image to copy in the constructed list.
+       \param img7 Seventh input image to copy in the constructe
