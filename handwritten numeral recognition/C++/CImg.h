@@ -51059,4 +51059,182 @@ namespace cimg_library_suffixed {
     //! Construct list from one image \inplace.
     /**
        \see CImgList(const CImg<t>&, bool).
-    *
+    **/
+    template<typename t>
+    CImgList<T>& assign(const CImg<t>& img, const bool is_shared=false) {
+      assign(1);
+      _data[0].assign(img,is_shared);
+      return *this;
+    }
+
+    //! Construct list from two images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const bool is_shared=false) {
+      assign(2);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared);
+      return *this;
+    }
+
+    //! Construct list from three images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const bool is_shared=false) {
+      assign(3);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      return *this;
+    }
+
+    //! Construct list from four images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const bool is_shared=false) {
+      assign(4);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared);
+      return *this;
+    }
+
+    //! Construct list from five images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const bool is_shared=false) {
+      assign(5);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared);
+      return *this;
+    }
+
+    //! Construct list from six images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const bool is_shared=false) {
+      assign(6);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      return *this;
+    }
+
+    //! Construct list from seven images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6, typename t7>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const CImg<t7>& img7, const bool is_shared=false) {
+      assign(7);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      _data[6].assign(img7,is_shared);
+      return *this;
+    }
+
+    //! Construct list from eight images \inplace.
+    /**
+       \see CImgList(const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, const CImg<t>&, bool).
+    **/
+    template<typename t1, typename t2, typename t3, typename t4, typename t5, typename t6, typename t7, typename t8>
+    CImgList<T>& assign(const CImg<t1>& img1, const CImg<t2>& img2, const CImg<t3>& img3, const CImg<t4>& img4,
+                        const CImg<t5>& img5, const CImg<t6>& img6, const CImg<t7>& img7, const CImg<t8>& img8,
+                        const bool is_shared=false) {
+      assign(8);
+      _data[0].assign(img1,is_shared); _data[1].assign(img2,is_shared); _data[2].assign(img3,is_shared);
+      _data[3].assign(img4,is_shared); _data[4].assign(img5,is_shared); _data[5].assign(img6,is_shared);
+      _data[6].assign(img7,is_shared); _data[7].assign(img8,is_shared);
+      return *this;
+    }
+
+    //! Construct list as a copy of an existing list and force the shared state of the list elements \inplace.
+    /**
+      \see CImgList(const CImgList<t>&, bool is_shared).
+    **/
+    template<typename t>
+    CImgList<T>& assign(const CImgList<t>& list, const bool is_shared=false) {
+      cimg::unused(is_shared);
+      assign(list._width);
+      cimglist_for(*this,l) _data[l].assign(list[l],false);
+      return *this;
+    }
+
+    //! Construct list as a copy of an existing list and force shared state of elements \inplace \specialization.
+    CImgList<T>& assign(const CImgList<T>& list, const bool is_shared=false) {
+      if (this==&list) return *this;
+      CImgList<T> res(list._width);
+      cimglist_for(res,l) res[l].assign(list[l],is_shared);
+      return res.move_to(*this);
+    }
+
+    //! Construct list by reading the content of a file \inplace.
+    /**
+      \see CImgList(const char *const).
+    **/
+    CImgList<T>& assign(const char *const filename) {
+      return load(filename);
+    }
+
+    //! Construct list from the content of a display window \inplace.
+    /**
+      \see CImgList(const CImgDisplay&).
+    **/
+    CImgList<T>& assign(const CImgDisplay &disp) {
+      return assign(CImg<T>(disp));
+    }
+
+    //! Transfer the content of the list instance to another list.
+    /**
+       \param list Destination list.
+       \note When returning, the current list instance is empty and the initial content of \c list is destroyed.
+    **/
+    template<typename t>
+    CImgList<t>& move_to(CImgList<t>& list) {
+      list.assign(_width);
+      bool is_one_shared_element = false;
+      cimglist_for(*this,l) is_one_shared_element|=_data[l]._is_shared;
+      if (is_one_shared_element) cimglist_for(*this,l) list[l].assign(_data[l]);
+      else cimglist_for(*this,l) _data[l].move_to(list[l]);
+      assign();
+      return list;
+    }
+
+    //! Transfer the content of the list instance at a specified position in another list.
+    /**
+       \param list Destination list.
+       \param pos Index of the insertion in the list.
+       \note When returning, the list instance is empty and the initial content of \c list is preserved
+       (only images indexes may be modified).
+     **/
+    template<typename t>
+    CImgList<t>& move_to(CImgList<t>& list, const unsigned int pos) {
+      if (is_empty()) return list;
+      const unsigned int npos = pos>list._width?list._width:pos;
+      list.insert(_width,npos);
+      bool is_one_shared_element = false;
+      cimglist_for(*this,l) is_one_shared_element|=_data[l]._is_shared;
+      if (is_one_shared_element) cimglist_for(*this,l) list[npos + l].assign(_data[l]);
+      else cimglist_for(*this,l) _data[l].move_to(list[npos + l]);
+      assign();
+      return list;
+    }
+
+    //! Swap all fields between two list instances.
+    /**
+       \param list List to swap fields with.
+       \note Can be used to exchange the content of two lists in a fast way.
+    **/
+    CImgList<T>& swap(CImgList<T>& list) {
+      cimg::swap(_width,list._width,_allocated_width,list._allocated_width);
+      cimg::swap(_data,list._data);
+      return li
