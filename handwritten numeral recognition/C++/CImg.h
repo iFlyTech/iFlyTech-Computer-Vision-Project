@@ -51237,4 +51237,246 @@ namespace cimg_library_suffixed {
     CImgList<T>& swap(CImgList<T>& list) {
       cimg::swap(_width,list._width,_allocated_width,list._allocated_width);
       cimg::swap(_data,list._data);
-      return li
+      return list;
+    }
+
+    //! Return a reference to an empty list.
+    /**
+      \note Can be used to define default values in a function taking a CImgList<T> as an argument.
+      \code
+      void f(const CImgList<char>& list=CImgList<char>::empty());
+      \endcode
+    **/
+    static CImgList<T>& empty() {
+      static CImgList<T> _empty;
+      return _empty.assign();
+    }
+
+    //! Return a reference to an empty list \const.
+    static const CImgList<T>& const_empty() {
+      static const CImgList<T> _empty;
+      return _empty;
+    }
+
+    //@}
+    //------------------------------------------
+    //
+    //! \name Overloaded Operators
+    //@{
+    //------------------------------------------
+
+    //! Return a reference to one image element of the list.
+    /**
+       \param pos Indice of the image element.
+    **/
+    CImg<T>& operator()(const unsigned int pos) {
+#if cimg_verbosity>=3
+      if (pos>=_width) {
+        cimg::warn(_cimglist_instance
+                   "operator(): Invalid image request, at position [%u].",
+                   cimglist_instance,
+                   pos);
+        return *_data;
+      }
+#endif
+      return _data[pos];
+    }
+
+    //! Return a reference to one image of the list.
+    /**
+       \param pos Indice of the image element.
+    **/
+    const CImg<T>& operator()(const unsigned int pos) const {
+      return const_cast<CImgList<T>*>(this)->operator()(pos);
+    }
+
+    //! Return a reference to one pixel value of one image of the list.
+    /**
+       \param pos Indice of the image element.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list(n,x,y,z,c)</tt> is equivalent to <tt>list[n](x,y,z,c)</tt>.
+    **/
+    T& operator()(const unsigned int pos, const unsigned int x, const unsigned int y=0,
+                  const unsigned int z=0, const unsigned int c=0) {
+      return (*this)[pos](x,y,z,c);
+    }
+
+    //! Return a reference to one pixel value of one image of the list \const.
+    const T& operator()(const unsigned int pos, const unsigned int x, const unsigned int y=0,
+                        const unsigned int z=0, const unsigned int c=0) const {
+      return (*this)[pos](x,y,z,c);
+    }
+
+    //! Return pointer to the first image of the list.
+    /**
+       \note Images in a list are stored as a buffer of \c CImg<T>.
+    **/
+    operator CImg<T>*() {
+      return _data;
+    }
+
+    //! Return pointer to the first image of the list \const.
+    operator const CImg<T>*() const {
+      return _data;
+    }
+
+    //! Construct list from one image \inplace.
+    /**
+        \param img Input image to copy in the constructed list.
+        \note <tt>list = img;</tt> is equivalent to <tt>list.assign(img);</tt>.
+    **/
+    template<typename t>
+    CImgList<T>& operator=(const CImg<t>& img) {
+      return assign(img);
+    }
+
+    //! Construct list from another list.
+    /**
+       \param list Input list to copy.
+       \note <tt>list1 = list2</tt> is equivalent to <tt>list1.assign(list2);</tt>.
+    **/
+    template<typename t>
+    CImgList<T>& operator=(const CImgList<t>& list) {
+      return assign(list);
+    }
+
+    //! Construct list from another list \specialization.
+    CImgList<T>& operator=(const CImgList<T>& list) {
+      return assign(list);
+    }
+
+    //! Construct list by reading the content of a file \inplace.
+    /**
+       \see CImgList(const char *const).
+    **/
+    CImgList<T>& operator=(const char *const filename) {
+      return assign(filename);
+    }
+
+    //! Construct list from the content of a display window \inplace.
+    /**
+        \see CImgList(const CImgDisplay&).
+    **/
+    CImgList<T>& operator=(const CImgDisplay& disp) {
+      return assign(disp);
+    }
+
+    //! Return a non-shared copy of a list.
+    /**
+        \note <tt>+list</tt> is equivalent to <tt>CImgList<T>(list,false)</tt>.
+          It forces the copy to have non-shared elements.
+    **/
+    CImgList<T> operator+() const {
+      return CImgList<T>(*this,false);
+    }
+
+    //! Return a copy of the list instance, where image \c img has been inserted at the end.
+    /**
+       \param img Image inserted at the end of the instance copy.
+       \note Define a convenient way to create temporary lists of images, as in the following code:
+       \code
+       (img1,img2,img3,img4).display("My four images");
+       \endcode
+    **/
+    template<typename t>
+    CImgList<T>& operator,(const CImg<t>& img) {
+      return insert(img);
+    }
+
+    //! Return a copy of the list instance, where image \c img has been inserted at the end \const.
+    template<typename t>
+    CImgList<T> operator,(const CImg<t>& img) const {
+      return (+*this).insert(img);
+    }
+
+    //! Return a copy of the list instance, where all elements of input list \c list have been inserted at the end.
+    /**
+       \param list List inserted at the end of the instance copy.
+    **/
+    template<typename t>
+    CImgList<T>& operator,(const CImgList<t>& list) {
+      return insert(list);
+    }
+
+    //! Return a copy of the list instance, where all elements of input \c list have been inserted at the end \const.
+    template<typename t>
+    CImgList<T>& operator,(const CImgList<t>& list) const {
+      return (+*this).insert(list);
+    }
+
+    //! Return image corresponding to the appending of all images of the instance list along specified axis.
+    /**
+      \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \note <tt>list>'x'</tt> is equivalent to <tt>list.get_append('x')</tt>.
+    **/
+    CImg<T> operator>(const char axis) const {
+      return get_append(axis,0);
+    }
+
+    //! Return list corresponding to the splitting of all images of the instance list along specified axis.
+    /**
+      \param axis Axis used for image splitting.
+      \note <tt>list<'x'</tt> is equivalent to <tt>list.get_split('x')</tt>.
+    **/
+    CImgList<T> operator<(const char axis) const {
+      return get_split(axis);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Characteristics
+    //@{
+    //-------------------------------------
+
+    //! Return the type of image pixel values as a C string.
+    /**
+       Return a \c char* string containing the usual type name of the image pixel values
+       (i.e. a stringified version of the template parameter \c T).
+       \note
+       - The returned string may contain spaces (as in \c "unsigned char").
+       - If the pixel type \c T does not correspond to a registered type, the string <tt>"unknown"</tt> is returned.
+    **/
+    static const char* pixel_type() {
+      return cimg::type<T>::string();
+    }
+
+    //! Return the size of the list, i.e. the number of images contained in it.
+    /**
+      \note Similar to size() but returns result as a (signed) integer.
+    **/
+    int width() const {
+      return (int)_width;
+    }
+
+    //! Return the size of the list, i.e. the number of images contained in it.
+    /**
+      \note Similar to width() but returns result as an unsigned integer.
+    **/
+    unsigned int size() const {
+      return _width;
+    }
+
+    //! Return pointer to the first image of the list.
+    /**
+       \note Images in a list are stored as a buffer of \c CImg<T>.
+    **/
+    CImg<T> *data() {
+      return _data;
+    }
+
+    //! Return pointer to the first image of the list \const.
+    const CImg<T> *data() const {
+      return _data;
+    }
+
+    //! Return pointer to the pos-th image of the list.
+    /**
+       \param pos Indice of the image element to access.
+       \note <tt>list.data(n);</tt> is equivalent to <tt>list.data + n;</tt>.
+    **/
+#if cimg_verbosity>=3
+    CImg<T> *data(const un
