@@ -51479,4 +51479,206 @@ namespace cimg_library_suffixed {
        \note <tt>list.data(n);</tt> is equivalent to <tt>list.data + n;</tt>.
     **/
 #if cimg_verbosity>=3
-    CImg<T> *data(const un
+    CImg<T> *data(const unsigned int pos) {
+      if (pos>=size())
+        cimg::warn(_cimglist_instance
+                   "data(): Invalid pointer request, at position [%u].",
+                   cimglist_instance,
+                   pos);
+      return _data + pos;
+    }
+
+    const CImg<T> *data(const unsigned int l) const {
+      return const_cast<CImgList<T>*>(this)->data(l);
+    }
+#else
+    CImg<T> *data(const unsigned int l) {
+      return _data + l;
+    }
+
+    //! Return pointer to the pos-th image of the list \const.
+    const CImg<T> *data(const unsigned int l) const {
+      return _data + l;
+    }
+#endif
+
+    //! Return iterator to the first image of the list.
+    /**
+    **/
+    iterator begin() {
+      return _data;
+    }
+
+    //! Return iterator to the first image of the list \const.
+    const_iterator begin() const {
+      return _data;
+    }
+
+    //! Return iterator to one position after the last image of the list.
+    /**
+    **/
+    iterator end() {
+      return _data + _width;
+    }
+
+    //! Return iterator to one position after the last image of the list \const.
+    const_iterator end() const {
+      return _data + _width;
+    }
+
+    //! Return reference to the first image of the list.
+    /**
+    **/
+    CImg<T>& front() {
+      return *_data;
+    }
+
+    //! Return reference to the first image of the list \const.
+    const CImg<T>& front() const {
+      return *_data;
+    }
+
+    //! Return a reference to the last image of the list.
+    /**
+    **/
+    const CImg<T>& back() const {
+      return *(_data + _width - 1);
+    }
+
+    //! Return a reference to the last image of the list \const.
+    CImg<T>& back() {
+      return *(_data + _width - 1);
+    }
+
+    //! Return pos-th image of the list.
+    /**
+       \param pos Indice of the image element to access.
+    **/
+    CImg<T>& at(const int pos) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "at(): Empty instance.",
+                                    cimglist_instance);
+
+      return _data[pos<0?0:pos>=(int)_width?(int)_width - 1:pos];
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions.
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+       \note <tt>list.atNXYZC(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZC(x,y,z,c);</tt>.
+    **/
+    T& atNXYZC(const int pos, const int x, const int y, const int z, const int c, const T& out_value) {
+      return (pos<0 || pos>=(int)_width)?(cimg::temporary(out_value)=out_value):_data[pos].atXYZC(x,y,z,c,out_value);
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions \const.
+    T atNXYZC(const int pos, const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (pos<0 || pos>=(int)_width)?out_value:_data[pos].atXYZC(x,y,z,c,out_value);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions.
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list.atNXYZC(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZC(x,y,z,c);</tt>.
+    **/
+    T& atNXYZC(const int pos, const int x, const int y, const int z, const int c) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZC(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZC(pos,x,y,z,c);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions \const.
+    T atNXYZC(const int pos, const int x, const int y, const int z, const int c) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZC(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZC(pos,x,y,z,c);
+    }
+
+    T& _atNXYZC(const int pos, const int x, const int y, const int z, const int c) {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atXYZC(x,y,z,c);
+    }
+
+    T _atNXYZC(const int pos, const int x, const int y, const int z, const int c) const {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atXYZC(x,y,z,c);
+    }
+
+    //! Access pixel value with Dirichlet boundary conditions for the 3 first coordinates (\c pos, \c x,\c y,\c z).
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+       \note <tt>list.atNXYZ(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZ(x,y,z,c);</tt>.
+    **/
+    T& atNXYZ(const int pos, const int x, const int y, const int z, const int c, const T& out_value) {
+      return (pos<0 || pos>=(int)_width)?(cimg::temporary(out_value)=out_value):_data[pos].atXYZ(x,y,z,c,out_value);
+    }
+
+    //! Access pixel value with Dirichlet boundary conditions for the 3 first coordinates (\c pos, \c x,\c y,\c z) \const.
+    T atNXYZ(const int pos, const int x, const int y, const int z, const int c, const T& out_value) const {
+      return (pos<0 || pos>=(int)_width)?out_value:_data[pos].atXYZ(x,y,z,c,out_value);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions for the 4 first coordinates (\c pos, \c x,\c y,\c z).
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \note <tt>list.atNXYZ(p,x,y,z,c);</tt> is equivalent to <tt>list[p].atXYZ(x,y,z,c);</tt>.
+    **/
+   T& atNXYZ(const int pos, const int x, const int y, const int z, const int c=0) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZ(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZ(pos,x,y,z,c);
+    }
+
+    //! Access to pixel value with Neumann boundary conditions for the 4 first coordinates (\c pos, \c x,\c y,\c z) \const.
+    T atNXYZ(const int pos, const int x, const int y, const int z, const int c=0) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "atNXYZ(): Empty instance.",
+                                    cimglist_instance);
+
+      return _atNXYZ(pos,x,y,z,c);
+    }
+
+    T& _atNXYZ(const int pos, const int x, const int y, const int z, const int c=0) {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atXYZ(x,y,z,c);
+    }
+
+    T _atNXYZ(const int pos, const int x, const int y, const int z, const int c=0) const {
+      return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)].atXYZ(x,y,z,c);
+    }
+
+    //! Access to pixel value with Dirichlet boundary conditions for the 3 first coordinates (\c pos, \c x,\c y).
+    /**
+       \param pos Indice of the image element to access.
+       \param x X-coordinate of the pixel value.
+       \param y Y-coordinate of the pixel value.
+       \param z Z-coordinate of the pixel value.
+       \param c C-coordinate of the pixel value.
+       \param out_value Default value returned if \c offset is outside image bounds.
+ 
