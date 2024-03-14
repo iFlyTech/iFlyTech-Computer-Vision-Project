@@ -51836,4 +51836,196 @@ namespace cimg_library_suffixed {
       return _data[pos<0?0:(pos>=(int)_width?(int)_width - 1:pos)](x,y,z,c);
     }
 
-    //! Return a C-string containing the values of all
+    //! Return a C-string containing the values of all images in the instance list.
+    /**
+       \param separator Character separator set between consecutive pixel values.
+       \param max_size Maximum size of the returned string.
+       \note The result is returne as a <tt>CImg<char></tt> image whose pixel buffer contains the desired C-string.
+    **/
+    CImg<charT> value_string(const char separator=',', const unsigned int max_size=0) const {
+      if (is_empty()) return CImg<ucharT>(1,1,1,1,0);
+      CImgList<charT> items;
+      for (unsigned int l = 0; l<_width - 1; ++l) {
+        CImg<charT> item = _data[l].value_string(separator,0);
+        item.back() = separator;
+        item.move_to(items);
+      }
+      _data[_width - 1].value_string(separator,0).move_to(items);
+      CImg<charT> res; (items>'x').move_to(res);
+      if (max_size) { res.crop(0,max_size); res(max_size) = 0; }
+      return res;
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Instance Checking
+    //@{
+    //-------------------------------------
+
+    //! Return \c true if list is empty.
+    /**
+    **/
+    bool is_empty() const {
+      return (!_data || !_width);
+    }
+
+    //! Test if number of image elements is equal to specified value.
+    /**
+        \param size_n Number of image elements to test.
+    **/
+    bool is_sameN(const unsigned int size_n) const {
+      return _width==size_n;
+    }
+
+    //! Test if number of image elements is equal between two images lists.
+    /**
+        \param list Input list to compare with.
+    **/
+    template<typename t>
+    bool is_sameN(const CImgList<t>& list) const {
+      return is_sameN(list._width);
+    }
+
+    // Define useful functions to check list dimensions.
+    // (cannot be documented because macro-generated).
+#define _cimglist_def_is_same1(axis) \
+    bool is_same##axis(const unsigned int val) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis(val); return res; \
+    } \
+    bool is_sameN##axis(const unsigned int n, const unsigned int val) const { \
+      return is_sameN(n) && is_same##axis(val); \
+    } \
+
+#define _cimglist_def_is_same2(axis1,axis2) \
+    bool is_same##axis1##axis2(const unsigned int val1, const unsigned int val2) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis1##axis2(val1,val2); return res; \
+    } \
+    bool is_sameN##axis1##axis2(const unsigned int n, const unsigned int val1, const unsigned int val2) const { \
+      return is_sameN(n) && is_same##axis1##axis2(val1,val2); \
+    } \
+
+#define _cimglist_def_is_same3(axis1,axis2,axis3) \
+    bool is_same##axis1##axis2##axis3(const unsigned int val1, const unsigned int val2, \
+                                      const unsigned int val3) const { \
+      bool res = true; \
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis1##axis2##axis3(val1,val2,val3); \
+      return res; \
+    } \
+    bool is_sameN##axis1##axis2##axis3(const unsigned int n, const unsigned int val1, \
+                                       const unsigned int val2, const unsigned int val3) const { \
+      return is_sameN(n) && is_same##axis1##axis2##axis3(val1,val2,val3); \
+    } \
+
+#define _cimglist_def_is_same(axis) \
+    template<typename t> bool is_same##axis(const CImg<t>& img) const { \
+      bool res = true; for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_same##axis(img); return res; \
+    } \
+    template<typename t> bool is_same##axis(const CImgList<t>& list) const { \
+      const unsigned int lmin = cimg::min(_width,list._width); \
+      bool res = true; for (unsigned int l = 0; l<lmin && res; ++l) res = _data[l].is_same##axis(list[l]); return res; \
+    } \
+    template<typename t> bool is_sameN##axis(const unsigned int n, const CImg<t>& img) const { \
+      return (is_sameN(n) && is_same##axis(img)); \
+    } \
+    template<typename t> bool is_sameN##axis(const CImgList<t>& list) const { \
+      return (is_sameN(list) && is_same##axis(list)); \
+    }
+
+    _cimglist_def_is_same(XY)
+    _cimglist_def_is_same(XZ)
+    _cimglist_def_is_same(XC)
+    _cimglist_def_is_same(YZ)
+    _cimglist_def_is_same(YC)
+    _cimglist_def_is_same(XYZ)
+    _cimglist_def_is_same(XYC)
+    _cimglist_def_is_same(YZC)
+    _cimglist_def_is_same(XYZC)
+    _cimglist_def_is_same1(X)
+    _cimglist_def_is_same1(Y)
+    _cimglist_def_is_same1(Z)
+    _cimglist_def_is_same1(C)
+    _cimglist_def_is_same2(X,Y)
+    _cimglist_def_is_same2(X,Z)
+    _cimglist_def_is_same2(X,C)
+    _cimglist_def_is_same2(Y,Z)
+    _cimglist_def_is_same2(Y,C)
+    _cimglist_def_is_same2(Z,C)
+    _cimglist_def_is_same3(X,Y,Z)
+    _cimglist_def_is_same3(X,Y,C)
+    _cimglist_def_is_same3(X,Z,C)
+    _cimglist_def_is_same3(Y,Z,C)
+
+    //! Test if dimensions of each image of the list match specified arguments.
+    /**
+      \param dx Checked image width.
+      \param dy Checked image height.
+      \param dz Checked image depth.
+      \param dc Checked image spectrum.
+    **/
+    bool is_sameXYZC(const unsigned int dx, const unsigned int dy,
+                     const unsigned int dz, const unsigned int dc) const {
+      bool res = true;
+      for (unsigned int l = 0; l<_width && res; ++l) res = _data[l].is_sameXYZC(dx,dy,dz,dc);
+      return res;
+    }
+
+    //! Test if list dimensions match specified arguments.
+    /**
+       \param n Number of images in the list.
+       \param dx Checked image width.
+       \param dy Checked image height.
+       \param dz Checked image depth.
+       \param dc Checked image spectrum.
+    **/
+    bool is_sameNXYZC(const unsigned int n,
+                      const unsigned int dx, const unsigned int dy,
+                      const unsigned int dz, const unsigned int dc) const {
+      return is_sameN(n) && is_sameXYZC(dx,dy,dz,dc);
+    }
+
+    //! Test if list contains one particular pixel location.
+    /**
+       \param n Index of the image whom checked pixel value belong to.
+       \param x X-coordinate of the checked pixel value.
+       \param y Y-coordinate of the checked pixel value.
+       \param z Z-coordinate of the checked pixel value.
+       \param c C-coordinate of the checked pixel value.
+    **/
+    bool containsNXYZC(const int n, const int x=0, const int y=0, const int z=0, const int c=0) const {
+      if (is_empty()) return false;
+      return n>=0 && n<(int)_width && x>=0 && x<_data[n].width() && y>=0 && y<_data[n].height() &&
+        z>=0 && z<_data[n].depth() && c>=0 && c<_data[n].spectrum();
+    }
+
+    //! Test if list contains image with specified indice.
+    /**
+       \param n Index of the checked image.
+    **/
+    bool containsN(const int n) const {
+      if (is_empty()) return false;
+      return n>=0 && n<(int)_width;
+    }
+
+    //! Test if one image of the list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \param[out] c C-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y,z,c).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y, t& z, t& c) const {
+      if (is_empty()) return false;
+      cimglist_for(*this,l) if (_data[l].contains(pixel,x,y,z,c)) { n = (t)l; return true; }
+      return false;
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel v
