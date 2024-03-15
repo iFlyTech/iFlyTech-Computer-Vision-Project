@@ -52028,4 +52028,225 @@ namespace cimg_library_suffixed {
 
     //! Test if one of the image list contains the specified referenced value.
     /**
-       \param pixel Reference to pixel v
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \param[out] z Z-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y,z).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y, t& z) const {
+      t c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \param[out] y Y-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x,y).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x, t&y) const {
+      t z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \param[out] x X-coordinate of the pixel value, if test succeeds.
+       \note If true, set coordinates (n,x).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n, t& x) const {
+      t y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+       \param[out] n Index of image containing the pixel value, if test succeeds.
+       \note If true, set coordinates (n).
+    **/
+    template<typename t>
+    bool contains(const T& pixel, t& n) const {
+      t x, y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if one of the image list contains the specified referenced value.
+    /**
+       \param pixel Reference to pixel value to test.
+    **/
+    bool contains(const T& pixel) const {
+      unsigned int n, x, y, z, c;
+      return contains(pixel,n,x,y,z,c);
+    }
+
+    //! Test if the list contains the image 'img'.
+    /**
+       \param img Reference to image to test.
+       \param[out] n Index of image in the list, if test succeeds.
+       \note If true, returns the position (n) of the image in the list.
+    **/
+    template<typename t>
+    bool contains(const CImg<T>& img, t& n) const {
+      if (is_empty()) return false;
+      const CImg<T> *const ptr = &img;
+      cimglist_for(*this,i) if (_data + i==ptr) { n = (t)i; return true; }
+      return false;
+    }
+
+    //! Test if the list contains the image img.
+    /**
+       \param img Reference to image to test.
+    **/
+    bool contains(const CImg<T>& img) const {
+      unsigned int n;
+      return contains(img,n);
+    }
+
+    //@}
+    //-------------------------------------
+    //
+    //! \name Mathematical Functions
+    //@{
+    //-------------------------------------
+
+    //! Return a reference to the minimum pixel value of the instance list.
+    /**
+    **/
+    T& min() {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_min = _data->_data;
+      T min_value = *ptr_min;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      }
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list \const.
+    const T& min() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_min = _data->_data;
+      T min_value = *ptr_min;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs<min_value) min_value = *(ptr_min=ptrs);
+      }
+      return *ptr_min;
+    }
+
+    //! Return a reference to the maximum pixel value of the instance list.
+    /**
+    **/
+    T& max() {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_max = _data->_data;
+      T max_value = *ptr_max;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      }
+      return *ptr_max;
+    }
+
+    //! Return a reference to the maximum pixel value of the instance list \const.
+    const T& max() const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_max = _data->_data;
+      T max_value = *ptr_max;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) if (*ptrs>max_value) max_value = *(ptr_max=ptrs);
+      }
+      return *ptr_max;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the maximum vvalue as well.
+    /**
+       \param[out] max_val Value of the maximum value found.
+    **/
+    template<typename t>
+    T& min_max(t& max_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min_max(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_min = _data->_data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val<min_value) { min_value = val; ptr_min = ptrs; }
+          if (val>max_value) max_value = val;
+        }
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the maximum vvalue as well \const.
+    /**
+       \param[out] max_val Value of the maximum value found.
+    **/
+    template<typename t>
+    const T& min_max(t& max_val) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "min_max(): Empty instance.",
+                                    cimglist_instance);
+      const T *ptr_min = _data->_data;
+      T min_value = *ptr_min, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val<min_value) { min_value = val; ptr_min = ptrs; }
+          if (val>max_value) max_value = val;
+        }
+      }
+      max_val = (t)max_value;
+      return *ptr_min;
+    }
+
+    //! Return a reference to the minimum pixel value of the instance list and return the minimum value as well.
+    /**
+       \param[out] min_val Value of the minimum value found.
+    **/
+    template<typename t>
+    T& max_min(t& min_val) {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "max_min(): Empty instance.",
+                                    cimglist_instance);
+      T *ptr_max = _data->_data;
+      T min_value = *ptr_max, max_value = min_value;
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_for(img,ptrs,T) {
+          const T val = *ptrs;
+          if (val>max_value) { max_value = val; ptr_max = ptrs; }
+          if (val<min_value) min_value = val;
+    
