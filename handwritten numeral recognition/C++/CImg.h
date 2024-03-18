@@ -52418,4 +52418,192 @@ namespace cimg_library_suffixed {
        \param is_shared Tells if inserted images are shared copies of \c img or not.
     **/
     template<typename t>
-    CImgList<T>& insert(const unsigned int n, const CImg<
+    CImgList<T>& insert(const unsigned int n, const CImg<t>& img, const unsigned int pos=~0U,
+                        const bool is_shared=false) {
+      if (!n) return *this;
+      const unsigned int npos = pos==~0U?_width:pos;
+      insert(img,npos,is_shared);
+      for (unsigned int i = 1; i<n; ++i) insert(_data[npos],npos + i,is_shared);
+      return *this;
+    }
+
+    //! Insert \c n copies of the image \c img into the current image list, at position \c pos \newinstance.
+    template<typename t>
+    CImgList<T> get_insert(const unsigned int n, const CImg<t>& img, const unsigned int pos=~0U,
+                           const bool is_shared=false) const {
+      return (+*this).insert(n,img,pos,is_shared);
+    }
+
+    //! Insert a copy of the image list \c list into the current image list, starting from position \c pos.
+    /**
+      \param list Image list to insert.
+      \param pos Index of the insertion.
+      \param is_shared Tells if inserted images are shared copies of images of \c list or not.
+    **/
+    template<typename t>
+    CImgList<T>& insert(const CImgList<t>& list, const unsigned int pos=~0U, const bool is_shared=false) {
+      const unsigned int npos = pos==~0U?_width:pos;
+      if ((void*)this!=(void*)&list) cimglist_for(list,l) insert(list[l],npos + l,is_shared);
+      else insert(CImgList<T>(list),npos,is_shared);
+      return *this;
+    }
+
+    //! Insert a copy of the image list \c list into the current image list, starting from position \c pos \newinstance.
+    template<typename t>
+    CImgList<T> get_insert(const CImgList<t>& list, const unsigned int pos=~0U, const bool is_shared=false) const {
+      return (+*this).insert(list,pos,is_shared);
+    }
+
+    //! Insert n copies of the list \c list at position \c pos of the current list.
+    /**
+      \param n Number of list copies to insert.
+      \param list Image list to insert.
+      \param pos Index of the insertion.
+      \param is_shared Tells if inserted images are shared copies of images of \c list or not.
+    **/
+    template<typename t>
+    CImgList<T>& insert(const unsigned int n, const CImgList<t>& list, const unsigned int pos=~0U,
+                        const bool is_shared=false) {
+      if (!n) return *this;
+      const unsigned int npos = pos==~0U?_width:pos;
+      for (unsigned int i = 0; i<n; ++i) insert(list,npos,is_shared);
+      return *this;
+    }
+
+    //! Insert n copies of the list \c list at position \c pos of the current list \newinstance.
+    template<typename t>
+    CImgList<T> get_insert(const unsigned int n, const CImgList<t>& list, const unsigned int pos=~0U,
+                           const bool is_shared=false) const {
+      return (+*this).insert(n,list,pos,is_shared);
+    }
+
+    //! Remove all images between from indexes.
+    /**
+      \param pos1 Starting index of the removal.
+      \param pos2 Ending index of the removal.
+    **/
+    CImgList<T>& remove(const unsigned int pos1, const unsigned int pos2) {
+      const unsigned int
+        npos1 = pos1<pos2?pos1:pos2,
+        tpos2 = pos1<pos2?pos2:pos1,
+        npos2 = tpos2<_width?tpos2:_width - 1;
+      if (npos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "remove(): Invalid remove request at positions %u->%u.",
+                                    cimglist_instance,
+                                    npos1,tpos2);
+      else {
+        if (tpos2>=_width)
+          throw CImgArgumentException(_cimglist_instance
+                                      "remove(): Invalid remove request at positions %u->%u.",
+                                      cimglist_instance,
+                                      npos1,tpos2);
+
+        for (unsigned int k = npos1; k<=npos2; ++k) _data[k].assign();
+        const unsigned int nb = 1 + npos2 - npos1;
+        if (!(_width-=nb)) return assign();
+        if (_width>(_allocated_width>>2) || _allocated_width<=16) { // Removing items without reallocation.
+          if (npos1!=_width) std::memmove(_data + npos1,_data + npos2 + 1,sizeof(CImg<T>)*(_width - npos1));
+          std::memset(_data + _width,0,sizeof(CImg<T>)*nb);
+        } else { // Removing items with reallocation.
+          _allocated_width>>=2;
+          while (_allocated_width>16 && _width<(_allocated_width>>1)) _allocated_width>>=1;
+          CImg<T> *const new_data = new CImg<T>[_allocated_width];
+          if (npos1) std::memcpy(new_data,_data,sizeof(CImg<T>)*npos1);
+          if (npos1!=_width) std::memcpy(new_data + npos1,_data + npos2 + 1,sizeof(CImg<T>)*(_width - npos1));
+          if (_width!=_allocated_width) std::memset(new_data + _width,0,sizeof(CImg<T>)*(_allocated_width - _width));
+          std::memset(_data,0,sizeof(CImg<T>)*(_width + nb));
+          delete[] _data;
+          _data = new_data;
+        }
+      }
+      return *this;
+    }
+
+    //! Remove all images between from indexes \newinstance.
+    CImgList<T> get_remove(const unsigned int pos1, const unsigned int pos2) const {
+      return (+*this).remove(pos1,pos2);
+    }
+
+    //! Remove image at index \c pos from the image list.
+    /**
+      \param pos Index of the image to remove.
+    **/
+    CImgList<T>& remove(const unsigned int pos) {
+      return remove(pos,pos);
+    }
+
+    //! Remove image at index \c pos from the image list \newinstance.
+    CImgList<T> get_remove(const unsigned int pos) const {
+      return (+*this).remove(pos);
+    }
+
+    //! Remove last image.
+    /**
+    **/
+    CImgList<T>& remove() {
+      return remove(_width - 1);
+    }
+
+    //! Remove last image \newinstance.
+    CImgList<T> get_remove() const {
+      return (+*this).remove();
+    }
+
+    //! Reverse list order.
+    CImgList<T>& reverse() {
+      for (unsigned int l = 0; l<_width/2; ++l) (*this)[l].swap((*this)[_width - 1 - l]);
+      return *this;
+    }
+
+    //! Reverse list order \newinstance.
+    CImgList<T> get_reverse() const {
+      return (+*this).reverse();
+    }
+
+    //! Return a sublist.
+    /**
+      \param pos0 Starting index of the sublist.
+      \param pos1 Ending index of the sublist.
+    **/
+    CImgList<T>& images(const unsigned int pos0, const unsigned int pos1) {
+      return get_images(pos0,pos1).move_to(*this);
+    }
+
+    //! Return a sublist \newinstance.
+    CImgList<T> get_images(const unsigned int pos0, const unsigned int pos1) const {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l]);
+      return res;
+    }
+
+    //! Return a shared sublist.
+    /**
+      \param pos0 Starting index of the sublist.
+      \param pos1 Ending index of the sublist.
+    **/
+    CImgList<T> get_shared_images(const unsigned int pos0, const unsigned int pos1) {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "get_shared_images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l],_data[pos0 + l]?true:false);
+      return res;
+    }
+
+    //! Return a shared sublist \newinstance.
+    const CImgList<T> get_shared_images(const unsigned int pos0, const unsigned int pos1) const {
+      if (pos0>pos1 || pos1>=_width)
+        throw CImgArgumentException(_cimglist_instance
+                                    "get_shared_images(): Specified sub-list indices (%u->%u) are out of bounds.",
+                                    cimglist_instance,
+                                    pos0,pos1);
+      CImgList<T> res(pos1 - pos0 + 1);
+     
