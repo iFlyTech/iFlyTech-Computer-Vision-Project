@@ -52606,4 +52606,220 @@ namespace cimg_library_suffixed {
                                     cimglist_instance,
                                     pos0,pos1);
       CImgList<T> res(pos1 - pos0 + 1);
-     
+      cimglist_for(res,l) res[l].assign(_data[pos0 + l],_data[pos0 + l]?true:false);
+      return res;
+    }
+
+    //! Return a single image which is the appending of all images of the current CImgList instance.
+    /**
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Appending alignment.
+    **/
+    CImg<T> get_append(const char axis, const float align=0) const {
+      if (is_empty()) return CImg<T>();
+      if (_width==1) return +((*this)[0]);
+      unsigned int dx = 0, dy = 0, dz = 0, dc = 0, pos = 0;
+      CImg<T> res;
+      switch (cimg::uncase(axis)) {
+      case 'x' : { // Along the X-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx+=img._width;
+            dy = cimg::max(dy,img._height);
+            dz = cimg::max(dz,img._depth);
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image(pos,
+                                    (int)(align*(dy - img._height)),
+                                    (int)(align*(dz - img._depth)),
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._width;
+          }
+      } break;
+      case 'y' : { // Along the Y-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy+=img._height;
+            dz = cimg::max(dz,img._depth);
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    pos,
+                                    (int)(align*(dz - img._depth)),
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._height;
+          }
+      } break;
+      case 'z' : { // Along the Z-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy = cimg::max(dy,img._height);
+            dz+=img._depth;
+            dc = cimg::max(dc,img._spectrum);
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    (int)(align*(dy - img._height)),
+                                    pos,
+                                    (int)(align*(dc - img._spectrum)),
+                                    img);
+            pos+=img._depth;
+          }
+      } break;
+      default : { // Along the C-axis.
+        cimglist_for(*this,l) {
+          const CImg<T>& img = (*this)[l];
+          if (img) {
+            dx = cimg::max(dx,img._width);
+            dy = cimg::max(dy,img._height);
+            dz = cimg::max(dz,img._depth);
+            dc+=img._spectrum;
+          }
+        }
+        res.assign(dx,dy,dz,dc,0);
+        if (res) cimglist_for(*this,l) {
+            const CImg<T>& img = (*this)[l];
+            if (img) res.draw_image((int)(align*(dx - img._width)),
+                                    (int)(align*(dy - img._height)),
+                                    (int)(align*(dz - img._depth)),
+                                    pos,
+                                    img);
+            pos+=img._spectrum;
+          }
+      }
+      }
+      return res;
+    }
+
+    //! Return a list where each image has been split along the specified axis.
+    /**
+        \param axis Axis to split images along.
+        \param nb Number of spliting parts for each image.
+    **/
+    CImgList<T>& split(const char axis, const int nb=-1) {
+      return get_split(axis,nb).move_to(*this);
+    }
+
+    //! Return a list where each image has been split along the specified axis \newinstance.
+    CImgList<T> get_split(const char axis, const int nb=-1) const {
+      CImgList<T> res;
+      cimglist_for(*this,l) _data[l].get_split(axis,nb).move_to(res,~0U);
+      return res;
+    }
+
+    //! Insert image at the end of the list.
+    /**
+      \param img Image to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_back(const CImg<t>& img) {
+      return insert(img);
+    }
+
+    //! Insert image at the front of the list.
+    /**
+      \param img Image to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_front(const CImg<t>& img) {
+      return insert(img,0);
+    }
+
+    //! Insert list at the end of the current list.
+    /**
+      \param list List to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_back(const CImgList<t>& list) {
+      return insert(list);
+    }
+
+    //! Insert list at the front of the current list.
+    /**
+      \param list List to insert.
+    **/
+    template<typename t>
+    CImgList<T>& push_front(const CImgList<t>& list) {
+      return insert(list,0);
+    }
+
+    //! Remove last image.
+    /**
+    **/
+    CImgList<T>& pop_back() {
+      return remove(_width - 1);
+    }
+
+    //! Remove first image.
+    /**
+    **/
+    CImgList<T>& pop_front() {
+      return remove(0);
+    }
+
+    //! Remove image pointed by iterator.
+    /**
+      \param iter Iterator pointing to the image to remove.
+    **/
+    CImgList<T>& erase(const iterator iter) {
+      return remove(iter - _data);
+    }
+
+    //@}
+    //----------------------------------
+    //
+    //! \name Data Input
+    //@{
+    //----------------------------------
+
+    //! Display a simple interactive interface to select images or sublists.
+    /**
+       \param disp Window instance to display selection and user interface.
+       \param feature_type Can be \c false to select a single image, or \c true to select a sublist.
+       \param axis Axis along whom images are appended for visualization.
+       \param align Alignment setting when images have not all the same size.
+       \return A one-column vector containing the selected image indexes.
+    **/
+    CImg<intT> get_select(CImgDisplay &disp, const bool feature_type=true,
+                          const char axis='x', const float align=0,
+                          const bool exit_on_anykey=false) const {
+      return _get_select(disp,0,feature_type,axis,align,exit_on_anykey,0,false,false,false);
+    }
+
+    //! Display a simple interactive interface to select images or sublists.
+    /**
+       \param title Title of a new window used to display selection and user interface.
+       \param feature_type Can be \c false to select a single image, or \c true to select a sublist.
+       \param axis Axis along whom images are appended for visualization.
+       \param align Alignment setting when images have not all the same size.
+       \return A one-column vector containing the selected image indexes.
+    **/
+    CImg<intT> get_select(const char *const title, const bool feature_type=true,
+                          const char axis='x', const float align=0,
+                          const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      return _get_select(disp,title,feature_type,axis,align,exit_on_anykey,0,false,false,false);
+    }
+
+    CImg<intT> _get_select(CImgDisplay &disp, const char *const title, const bool feature_type,
+                           const char axis, const float align, const bool exit_on_anykey,
+                           const unsigned int orig, const bool resize_disp,
+                           const bool ex
