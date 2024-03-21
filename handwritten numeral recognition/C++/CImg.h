@@ -52973,4 +52973,178 @@ namespace cimg_library_suffixed {
         if (disp.wheel() && exit_on_wheel) is_selected = true;
 
         CImg<charT> filename(32);
-   
+        switch (key = disp.key()) {
+#if cimg_OS!=2
+        case cimg::keyCTRLRIGHT :
+#endif
+        case 0 : case cimg::keyCTRLLEFT : key = 0; break;
+        case cimg::keyD : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,false),
+                     CImgDisplay::_fitscreen(3*disp.width()/2,3*disp.height()/2,1,128,-100,true),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyC : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(2*disp.width()/3,2*disp.height()/3,1),false)._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyR : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.set_fullscreen(false).
+              resize(cimg_fitscreen(axis=='x'?sum_width:max_width,axis=='x'?max_height:sum_height,1),false).
+              _is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyF : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            disp.resize(disp.screen_width(),disp.screen_height(),false).toggle_fullscreen()._is_resized = true;
+            disp.set_key(key,false); key = 0; visu0.assign();
+          } break;
+        case cimg::keyS : if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.bmp",snap_number++);
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            if (visu0) {
+              (+visu0).draw_text(0,0," Saving snapshot... ",
+                                 foreground_color,background_color,0.7f,13).display(disp);
+              visu0.save(filename);
+              (+visu0).draw_text(0,0," Snapshot '%s' saved. ",
+                                 foreground_color,background_color,0.7f,13,filename._data).display(disp);
+            }
+            disp.set_key(key,false).wait(); key = 0;
+          } break;
+        case cimg::keyO :
+          if (disp.is_keyCTRLLEFT() || disp.is_keyCTRLRIGHT()) {
+            static unsigned int snap_number = 0;
+            std::FILE *file;
+            do {
+#ifdef cimg_use_zlib
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimgz",snap_number++);
+#else
+              cimg_snprintf(filename,filename._width,cimg_appname "_%.4u.cimg",snap_number++);
+#endif
+              if ((file=std::fopen(filename,"r"))!=0) cimg::fclose(file);
+            } while (file);
+            (+visu0).draw_text(0,0," Saving instance... ",
+                               foreground_color,background_color,0.7f,13).display(disp);
+            save(filename);
+            (+visu0).draw_text(0,0," Instance '%s' saved. ",
+                               foreground_color,background_color,0.7f,13,filename._data).display(disp);
+            disp.set_key(key,false).wait(); key = 0;
+          } break;
+        }
+        if (disp.is_resized()) { disp.resize(false); visu0.assign(); }
+        if (ym>=0 && ym<13) { if (!text_down) { visu.assign(); text_down = true; }}
+        else if (ym>=visu.height() - 13) { if(text_down) { visu.assign(); text_down = false; }}
+        if (!exit_on_anykey && key && key!=cimg::keyESC &&
+            (key!=cimg::keyW || (!disp.is_keyCTRLLEFT() && !disp.is_keyCTRLRIGHT()))) {
+          key = 0;
+        }
+      }
+      CImg<intT> res(1,2,1,1,-1);
+      if (is_selected) {
+        if (feature_type) res.fill(cimg::min(indice0,indice1),cimg::max(indice0,indice1));
+        else res.fill(indice0);
+      }
+      if (!(disp.button()&2)) disp.set_button();
+      disp._normalization = old_normalization;
+      disp._is_resized = old_is_resized;
+      disp.set_key(key);
+      return res;
+    }
+
+    //! Load a list from a file.
+    /**
+     \param filename Filename to read data from.
+    **/
+    CImgList<T>& load(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load(): Specified filename is (null).",
+                                    cimglist_instance);
+
+      if (!cimg::strncasecmp(filename,"http://",7) || !cimg::strncasecmp(filename,"https://",8)) {
+        CImg<charT> filename_local(256);
+        load(cimg::load_network(filename,filename_local));
+        std::remove(filename_local);
+        return *this;
+      }
+
+      const bool is_stdin = *filename=='-' && (!filename[1] || filename[1]=='.');
+      const char *const ext = cimg::split_filename(filename);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      try {
+#ifdef cimglist_load_plugin
+        cimglist_load_plugin(filename);
+#endif
+#ifdef cimglist_load_plugin1
+        cimglist_load_plugin1(filename);
+#endif
+#ifdef cimglist_load_plugin2
+        cimglist_load_plugin2(filename);
+#endif
+#ifdef cimglist_load_plugin3
+        cimglist_load_plugin3(filename);
+#endif
+#ifdef cimglist_load_plugin4
+        cimglist_load_plugin4(filename);
+#endif
+#ifdef cimglist_load_plugin5
+        cimglist_load_plugin5(filename);
+#endif
+#ifdef cimglist_load_plugin6
+        cimglist_load_plugin6(filename);
+#endif
+#ifdef cimglist_load_plugin7
+        cimglist_load_plugin7(filename);
+#endif
+#ifdef cimglist_load_plugin8
+        cimglist_load_plugin8(filename);
+#endif
+        if (!cimg::strcasecmp(ext,"tif") ||
+            !cimg::strcasecmp(ext,"tiff")) load_tiff(filename);
+        else if (!cimg::strcasecmp(ext,"gif")) load_gif_external(filename);
+        else if (!cimg::strcasecmp(ext,"cimg") ||
+                 !cimg::strcasecmp(ext,"cimgz") ||
+                 !*ext) load_cimg(filename);
+        else if (!cimg::strcasecmp(ext,"rec") ||
+                 !cimg::strcasecmp(ext,"par")) load_parrec(filename);
+        else if (!cimg::strcasecmp(ext,"avi") ||
+                 !cimg::strcasecmp(ext,"mov") ||
+                 !cimg::strcasecmp(ext,"asf") ||
+                 !cimg::strcasecmp(ext,"divx") ||
+                 !cimg::strcasecmp(ext,"flv") ||
+                 !cimg::strcasecmp(ext,"mpg") ||
+                 !cimg::strcasecmp(ext,"m1v") ||
+                 !cimg::strcasecmp(ext,"m2v") ||
+                 !cimg::strcasecmp(ext,"m4v") ||
+                 !cimg::strcasecmp(ext,"mjp") ||
+                 !cimg::strcasecmp(ext,"mp4") ||
+                 !cimg::strcasecmp(ext,"mkv") ||
+                 !cimg::strcasecmp(ext,"mpe") ||
+                 !cimg::strcasecmp(ext,"movie") ||
+                 !cimg::strcasecmp(ext,"ogm") ||
+                 !cimg::strcasecmp(ext,"ogg") ||
+                 !cimg::strcasecmp(ext,"ogv") ||
+                 !cimg::strcasecmp(ext,"qt") ||
+                 !cimg::strcasecmp(ext,"rm") ||
+                 !cimg::strcasecmp(ext,"vob") ||
+                 !cimg::strcasecmp(ext,"wmv") ||
+                 !cimg::strcasecmp(ext,"xvid") ||
+                 !cimg::strcasecmp(ext,"mpeg")) load_video(filename);
+        else if (!cimg::strcasecmp(ext,"gz")) load_gzip_external(filename);
+        else throw CImgIOException("CImgList<%s>::load()",
+                                   pixel_type());
+      } catch (CImgIOException&) {
+        std::FILE *file = 0;
+        if (!is_stdin) try {
+            file = cimg::fopen(filename,"rb");
+          } catch (CImgIOException&) {
+            cimg::exception_mode(omode);
+            throw CImgIOException(_cimglist_instance
+                                  "load(): Failed to open file '%s'.",
+                      
