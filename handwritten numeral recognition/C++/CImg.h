@@ -53641,4 +53641,159 @@ namespace cimg_library_suffixed {
     //! Load a list from a YUV image sequence file \newinstance.
     static CImgList<T> get_load_yuv(const char *const filename,
                                     const unsigned int size_x, const unsigned int size_y=1,
-  
+                                    const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                    const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return CImgList<T>().load_yuv(filename,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    //! Load a list from an image sequence YUV file \overloading.
+    CImgList<T>& load_yuv(std::FILE *const file,
+                          const unsigned int size_x, const unsigned int size_y,
+                          const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                          const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return _load_yuv(file,0,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    //! Load a list from an image sequence YUV file \newinstance.
+    static CImgList<T> get_load_yuv(std::FILE *const file,
+                                    const unsigned int size_x, const unsigned int size_y=1,
+                                    const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                    const unsigned int step_frame=1, const bool yuv2rgb=true) {
+      return CImgList<T>().load_yuv(file,size_x,size_y,first_frame,last_frame,step_frame,yuv2rgb);
+    }
+
+    CImgList<T>& _load_yuv(std::FILE *const file, const char *const filename,
+                           const unsigned int size_x, const unsigned int size_y,
+                           const unsigned int first_frame, const unsigned int last_frame,
+                           const unsigned int step_frame, const bool yuv2rgb) {
+      if (!filename && !file)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (size_x%2 || size_y%2)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Invalid odd XY dimensions %ux%u in file '%s'.",
+                                    cimglist_instance,
+                                    size_x,size_y,filename?filename:"(FILE*)");
+      if (!size_x || !size_y)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_yuv(): Invalid sequence size (%u,%u) in file '%s'.",
+                                    cimglist_instance,
+                                    size_x,size_y,filename?filename:"(FILE*)");
+
+      const unsigned int
+        nfirst_frame = first_frame<last_frame?first_frame:last_frame,
+        nlast_frame = first_frame<last_frame?last_frame:first_frame,
+        nstep_frame = step_frame?step_frame:1;
+
+      CImg<ucharT> tmp(size_x,size_y,1,3), UV(size_x/2,size_y/2,1,2);
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
+      bool stop_flag = false;
+      int err;
+      if (nfirst_frame) {
+        err = cimg::fseek(nfile,nfirst_frame*(size_x*size_y + size_x*size_y/2),SEEK_CUR);
+        if (err) {
+          if (!file) cimg::fclose(nfile);
+          throw CImgIOException(_cimglist_instance
+                                "load_yuv(): File '%s' doesn't contain frame number %u.",
+                                cimglist_instance,
+                                filename?filename:"(FILE*)",nfirst_frame);
+        }
+      }
+      unsigned int frame;
+      for (frame = nfirst_frame; !stop_flag && frame<=nlast_frame; frame+=nstep_frame) {
+        tmp.fill(0);
+        // *TRY* to read the luminance part, do not replace by cimg::fread!
+        err = (int)std::fread((void*)(tmp._data),1,(ulongT)tmp._width*tmp._height,nfile);
+        if (err!=(int)(tmp._width*tmp._height)) {
+          stop_flag = true;
+          if (err>0)
+            cimg::warn(_cimglist_instance
+                       "load_yuv(): File '%s' contains incomplete data or given image dimensions "
+                       "(%u,%u) are incorrect.",
+                       cimglist_instance,
+                       filename?filename:"(FILE*)",size_x,size_y);
+        } else {
+          UV.fill(0);
+          // *TRY* to read the luminance part, do not replace by cimg::fread!
+          err = (int)std::fread((void*)(UV._data),1,(size_t)(UV.size()),nfile);
+          if (err!=(int)(UV.size())) {
+            stop_flag = true;
+            if (err>0)
+              cimg::warn(_cimglist_instance
+                         "load_yuv(): File '%s' contains incomplete data or given image dimensions (%u,%u) "
+                         "are incorrect.",
+                         cimglist_instance,
+                         filename?filename:"(FILE*)",size_x,size_y);
+          } else {
+            cimg_forXY(UV,x,y) {
+              const int x2 = x*2, y2 = y*2;
+              tmp(x2,y2,1) = tmp(x2 + 1,y2,1) = tmp(x2,y2 + 1,1) = tmp(x2 + 1,y2 + 1,1) = UV(x,y,0);
+              tmp(x2,y2,2) = tmp(x2 + 1,y2,2) = tmp(x2,y2 + 1,2) = tmp(x2 + 1,y2 + 1,2) = UV(x,y,1);
+            }
+            if (yuv2rgb) tmp.YCbCrtoRGB();
+            insert(tmp);
+            if (nstep_frame>1) cimg::fseek(nfile,(nstep_frame - 1)*(size_x*size_y + size_x*size_y/2),SEEK_CUR);
+          }
+        }
+      }
+      if (stop_flag && nlast_frame!=~0U && frame!=nlast_frame)
+        cimg::warn(_cimglist_instance
+                   "load_yuv(): Frame %d not reached since only %u frames were found in file '%s'.",
+                   cimglist_instance,
+                   nlast_frame,frame - 1,filename?filename:"(FILE*)");
+
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Load an image from a video file, using OpenCV library.
+    /**
+      \param filename Filename, as a C-string.
+      \param first_frame Index of the first frame to read.
+      \param last_frame Index of the last frame to read.
+      \param step_frame Step value for frame reading.
+      \note If step_frame==0, the current video stream is forced to be released (without any frames read).
+    **/
+    CImgList<T>& load_video(const char *const filename,
+                            const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                            const unsigned int step_frame=1) {
+#ifndef cimg_use_opencv
+      if (first_frame || last_frame!=~0U || step_frame>1)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_video() : File '%s', arguments 'first_frame', 'last_frame' "
+                                    "and 'step_frame' can be only set when using OpenCV "
+                                    "(-Dcimg_use_opencv must be enabled).",
+                                    cimglist_instance,filename);
+      return load_ffmpeg_external(filename);
+#else
+      static CvCapture *captures[32] = { 0 };
+      static CImgList<charT> filenames(32);
+      static CImg<uintT> positions(32,1,1,1,0);
+      static int last_used_index = -1;
+
+      // Detect if a video capture already exists for the specified filename.
+      cimg::mutex(9);
+      int index = -1;
+      if (filename) {
+        if (last_used_index>=0 && !std::strcmp(filename,filenames[last_used_index])) {
+          index = last_used_index;
+        } else cimglist_for(filenames,l) if (filenames[l] && !std::strcmp(filename,filenames[l])) {
+            index = l; break;
+          }
+      } else index = last_used_index;
+      cimg::mutex(9,0);
+
+      // Release stream if needed.
+      if (!step_frame || (index>=0 && positions[index]>first_frame)) {
+        if (index>=0) {
+          cimg::mutex(9);
+          cvReleaseCapture(&captures[index]);
+          captures[index] = 0; filenames[index].assign(); positions[index] = 0;
+          if (last_used_index==index) last_used_index = -1;
+          index = -1;
+          cimg::mutex(9,0);
+        } else
+          if (filename)
+            cimg::warn(_cimglist_instance
+                       "load_video() : File '%s', no opened video stream associated with filename fou
