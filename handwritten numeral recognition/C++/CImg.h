@@ -53969,4 +53969,157 @@ namespace cimg_library_suffixed {
     CImgList<T>& load_gif_external(const char *const filename) {
       if (!filename)
         throw CImgArgumentException(_cimglist_instance
-                                    "load_gif_external(): Spe
+                                    "load_gif_external(): Specified filename is (null).",
+                                    cimglist_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      if (!_load_gif_external(filename,false))
+        if (!_load_gif_external(filename,true))
+          try { assign(CImg<T>().load_other(filename)); } catch (CImgException&) { assign(); }
+      if (is_empty())
+        throw CImgIOException(_cimglist_instance
+                              "load_gif_external(): Failed to open file '%s'.",
+                              cimglist_instance,filename);
+      return *this;
+    }
+
+    CImgList<T>& _load_gif_external(const char *const filename, const bool use_graphicsmagick=false) {
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      std::FILE *file = 0;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        if (use_graphicsmagick) cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s.png.0",filename_tmp._data);
+        else cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s-0.png",filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+#if cimg_OS!=2
+      if (use_graphicsmagick) cimg_snprintf(command,command._width,"%s convert \"%s\" \"%s.png\" >/dev/null 2>&1",
+                                            cimg::graphicsmagick_path(),
+                                            CImg<charT>::string(filename)._system_strescape().data(),
+                                            CImg<charT>::string(filename_tmp)._system_strescape().data());
+      else cimg_snprintf(command,command._width,"%s \"%s\" \"%s.png\" >/dev/null 2>&1",
+                         cimg::imagemagick_path(),
+                         CImg<charT>::string(filename)._system_strescape().data(),
+                         CImg<charT>::string(filename_tmp)._system_strescape().data());
+#else
+      if (use_graphicsmagick) cimg_snprintf(command,command._width,"\"%s convert \"%s\" \"%s.png\"\" >NUL 2>&1",
+                                            cimg::graphicsmagick_path(),
+                                            CImg<charT>::string(filename)._system_strescape().data(),
+                                            CImg<charT>::string(filename_tmp)._system_strescape().data());
+      else cimg_snprintf(command,command._width,"\"%s \"%s\" \"%s.png\"\" >NUL 2>&1",
+                         cimg::imagemagick_path(),
+                         CImg<charT>::string(filename)._system_strescape().data(),
+                         CImg<charT>::string(filename_tmp)._system_strescape().data());
+#endif
+      cimg::system(command,0);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      assign();
+
+      // Try to read a single frame gif.
+      cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s.png",filename_tmp._data);
+      CImg<T> img;
+      try { img.load_png(filename_tmp2); }
+      catch (CImgException&) { }
+      if (img) { img.move_to(*this); std::remove(filename_tmp2); }
+      else { // Try to read animated gif.
+        unsigned int i = 0;
+        for (bool stop_flag = false; !stop_flag; ++i) {
+          if (use_graphicsmagick) cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s.png.%u",filename_tmp._data,i);
+          else cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s-%u.png",filename_tmp._data,i);
+          CImg<T> img;
+          try { img.load_png(filename_tmp2); }
+          catch (CImgException&) { stop_flag = true; }
+          if (img) { img.move_to(*this); std::remove(filename_tmp2); }
+        }
+      }
+      cimg::exception_mode(omode);
+      return *this;
+    }
+
+    //! Load gif file, using ImageMagick or GraphicsMagick's external tools \newinstance.
+    static CImgList<T> get_load_gif_external(const char *const filename) {
+      return CImgList<T>().load_gif_external(filename);
+    }
+
+    //! Load a gzipped list, using external tool 'gunzip'.
+    /**
+      \param filename Filename to read data from.
+    **/
+    CImgList<T>& load_gzip_external(const char *const filename) {
+      if (!filename)
+        throw CImgIOException(_cimglist_instance
+                              "load_gzip_external(): Specified filename is (null).",
+                              cimglist_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file = 0;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                    cimg::gunzip_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data());
+      cimg::system(command);
+      if (!(file = std::fopen(filename_tmp,"rb"))) {
+        cimg::fclose(cimg::fopen(filename,"r"));
+        throw CImgIOException(_cimglist_instance
+                              "load_gzip_external(): Failed to open file '%s'.",
+                              cimglist_instance,
+                              filename);
+
+      } else cimg::fclose(file);
+      load(filename_tmp);
+      std::remove(filename_tmp);
+      return *this;
+    }
+
+    //! Load a gzipped list, using external tool 'gunzip' \newinstance.
+    static CImgList<T> get_load_gzip_external(const char *const filename) {
+      return CImgList<T>().load_gzip_external(filename);
+    }
+
+    //! Load a 3d object from a .OFF file.
+    /**
+      \param filename Filename to read data from.
+      \param[out] primitives At return, contains the list of 3d object primitives.
+      \param[out] colors At return, contains the list of 3d object colors.
+      \return List of 3d object vertices.
+    **/
+    template<typename tf, typename tc>
+    CImgList<T>& load_off(const char *const filename,
+                          CImgList<tf>& primitives, CImgList<tc>& colors) {
+      return get_load_off(filename,primitives,colors).move_to(*this);
+    }
+
+    //! Load a 3d object from a .OFF file \newinstance.
+    template<typename tf, typename tc>
+      static CImgList<T> get_load_off(const char *const filename,
+                                      CImgList<tf>& primitives, CImgList<tc>& colors) {
+      return CImg<T>().load_off(filename,primitives,colors)<'x';
+    }
+
+    //! Load images from a TIFF file.
+    /**
+        \param filename Filename to read data from.
+        \param first_frame Index of first image frame to read.
+        \param last_frame Index of last image frame to read.
+        \param step_frame Step applied between each frame.
+    **/
+    CImgList<T>& load_tiff(const char *const filename,
+                           c
