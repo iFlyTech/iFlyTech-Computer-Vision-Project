@@ -53796,4 +53796,177 @@ namespace cimg_library_suffixed {
         } else
           if (filename)
             cimg::warn(_cimglist_instance
-                       "load_video() : File '%s', no opened video stream associated with filename fou
+                       "load_video() : File '%s', no opened video stream associated with filename found.",
+                       cimglist_instance,filename);
+          else
+            cimg::warn(_cimglist_instance
+                       "load_video() : No opened video stream found.",
+                       cimglist_instance,filename);
+        if (!step_frame) return *this;
+      }
+
+      // Find empty slot for capturing video stream.
+      if (index<0) {
+        if (!filename)
+          throw CImgArgumentException(_cimglist_instance
+                                      "load_video(): No already open video reader found. You must specify a "
+                                      "non-(null) filename argument for the first call.",
+                                      cimglist_instance);
+        else { cimg::mutex(9); cimglist_for(filenames,l) if (!filenames[l]) { index = l; break; } cimg::mutex(9,0); }
+        if (index<0)
+          throw CImgIOException(_cimglist_instance
+                                "load_video(): File '%s', no video reader slots available. "
+                                "You have to release some of your previously opened videos.",
+                                cimglist_instance,filename);
+        cimg::mutex(9);
+        captures[index] = cvCaptureFromFile(filename);
+        CImg<charT>::string(filename).move_to(filenames[index]);
+        positions[index] = 0;
+        cimg::mutex(9,0);
+        if (!captures[index]) {
+          filenames[index].assign();
+          std::fclose(cimg::fopen(filename,"rb"));  // Check file availability.
+          throw CImgIOException(_cimglist_instance
+                                "load_video(): File '%s', unable to detect format of video file.",
+                                cimglist_instance,filename);
+        }
+      }
+
+      cimg::mutex(9);
+      const unsigned int nb_frames = (unsigned int)cimg::max(0.,cvGetCaptureProperty(captures[index],
+                                                                                     CV_CAP_PROP_FRAME_COUNT));
+      cimg::mutex(9,0);
+      assign();
+
+      // Skip frames if necessary.
+      unsigned int &pos = positions[index];
+      while (pos<first_frame) {
+        cimg::mutex(9);
+        if (!cvGrabFrame(captures[index])) {
+          cimg::mutex(9,0);
+          throw CImgIOException(_cimglist_instance
+                                "load_video(): File '%s', unable to locate frame %u.",
+                                cimglist_instance,filename,first_frame);
+        }
+        cimg::mutex(9,0);
+        ++pos;
+      }
+
+      // Read and convert frames.
+      const unsigned int _last_frame = cimg::min(nb_frames?nb_frames - 1:~0U,last_frame);
+      const IplImage *src = 0;
+      while (pos<=_last_frame) {
+        cimg::mutex(9);
+        src = cvQueryFrame(captures[index]);
+        if (src) {
+          CImg<T> frame(src->width,src->height,1,3);
+          const int step = (int)(src->widthStep - 3*src->width);
+          const unsigned char* ptrs = (unsigned char*)src->imageData;
+          T *ptr_r = frame.data(0,0,0,0), *ptr_g = frame.data(0,0,0,1), *ptr_b = frame.data(0,0,0,2);
+          if (step>0) cimg_forY(frame,y) {
+              cimg_forX(frame,x) { *(ptr_b++) = (T)*(ptrs++); *(ptr_g++) = (T)*(ptrs++); *(ptr_r++) = (T)*(ptrs++); }
+              ptrs+=step;
+            } else for (ulongT siz = (ulongT)src->width*src->height; siz; --siz) {
+              *(ptr_b++) = (T)*(ptrs++); *(ptr_g++) = (T)*(ptrs++); *(ptr_r++) = (T)*(ptrs++);
+            }
+          frame.move_to(*this);
+          ++pos;
+
+          bool skip_failed = false;
+          for (unsigned int i = 1; i<step_frame && pos<=_last_frame; ++i, ++pos)
+            if (!cvGrabFrame(captures[index])) { skip_failed = true; break; }
+          if (skip_failed) src = 0;
+        }
+        cimg::mutex(9,0);
+        if (!src) break;
+      }
+
+      if (!src || (nb_frames && pos>=nb_frames)) { // Close video stream when necessary.
+        cimg::mutex(9);
+        cvReleaseCapture(&captures[index]);
+        captures[index] = 0;
+        filenames[index].assign();
+        positions[index] = 0;
+        index = -1;
+        cimg::mutex(9,0);
+      }
+
+      cimg::mutex(9);
+      last_used_index = index;
+      cimg::mutex(9,0);
+      return *this;
+#endif
+    }
+
+    //! Load an image from a video file, using OpenCV library \newinstance.
+    static CImgList<T> get_load_video(const char *const filename,
+                           const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                           const unsigned int step_frame=1) {
+      return CImgList<T>().load_video(filename,first_frame,last_frame,step_frame);
+    }
+
+    //! Load an image from a video file using the external tool 'ffmpeg'.
+    /**
+      \param filename Filename to read data from.
+    **/
+    CImgList<T>& load_ffmpeg_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_ffmpeg_external(): Specified filename is (null).",
+                                    cimglist_instance);
+      std::fclose(cimg::fopen(filename,"rb"));            // Check if file exists.
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      std::FILE *file = 0;
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_000001.ppm",filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%%6d.ppm",filename_tmp._data);
+#if cimg_OS!=2
+      cimg_snprintf(command,command._width,"%s -i \"%s\" \"%s\" >/dev/null 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp2)._system_strescape().data());
+#else
+      cimg_snprintf(command,command._width,"\"%s -i \"%s\" \"%s\"\" >NUL 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename)._system_strescape().data(),
+                    CImg<charT>::string(filename_tmp2)._system_strescape().data());
+#endif
+      cimg::system(command,0);
+      const unsigned int omode = cimg::exception_mode();
+      cimg::exception_mode(0);
+      assign();
+      unsigned int i = 1;
+      for (bool stop_flag = false; !stop_flag; ++i) {
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%.6u.ppm",filename_tmp._data,i);
+        CImg<T> img;
+        try { img.load_pnm(filename_tmp2); }
+        catch (CImgException&) { stop_flag = true; }
+        if (img) { img.move_to(*this); std::remove(filename_tmp2); }
+      }
+      cimg::exception_mode(omode);
+      if (is_empty())
+        throw CImgIOException(_cimglist_instance
+                              "load_ffmpeg_external(): Failed to open file '%s' with external command 'ffmpeg'.",
+                              cimglist_instance,
+                              filename);
+      return *this;
+    }
+
+    //! Load an image from a video file using the external tool 'ffmpeg' \newinstance.
+    static CImgList<T> get_load_ffmpeg_external(const char *const filename) {
+      return CImgList<T>().load_ffmpeg_external(filename);
+    }
+
+    //! Load gif file, using ImageMagick or GraphicsMagick's external tools.
+    /**
+      \param filename Filename to read data from.
+      \param use_graphicsmagick Tells if GraphicsMagick's tool 'gm' is used instead of ImageMagick's tool 'convert'.
+    **/
+    CImgList<T>& load_gif_external(const char *const filename) {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_gif_external(): Spe
