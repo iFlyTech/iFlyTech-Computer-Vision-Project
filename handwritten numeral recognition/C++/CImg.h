@@ -54122,4 +54122,162 @@ namespace cimg_library_suffixed {
         \param step_frame Step applied between each frame.
     **/
     CImgList<T>& load_tiff(const char *const filename,
-                           c
+                           const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                           const unsigned int step_frame=1,
+                           float *const voxel_size=0,
+                           CImg<charT> *const description=0) {
+      const unsigned int
+        nfirst_frame = first_frame<last_frame?first_frame:last_frame,
+        nstep_frame = step_frame?step_frame:1;
+      unsigned int nlast_frame = first_frame<last_frame?last_frame:first_frame;
+#ifndef cimg_use_tiff
+      cimg::unused(voxel_size,description);
+      if (nfirst_frame || nlast_frame!=~0U || nstep_frame!=1)
+        throw CImgArgumentException(_cimglist_instance
+                                    "load_tiff(): Unable to load sub-images from file '%s' unless libtiff is enabled.",
+                                    cimglist_instance,
+                                    filename);
+
+      return assign(CImg<T>::get_load_tiff(filename));
+#else
+      TIFF *tif = TIFFOpen(filename,"r");
+      if (tif) {
+        unsigned int nb_images = 0;
+        do ++nb_images; while (TIFFReadDirectory(tif));
+        if (nfirst_frame>=nb_images || (nlast_frame!=~0U && nlast_frame>=nb_images))
+          cimg::warn(_cimglist_instance
+                     "load_tiff(): Invalid specified frame range is [%u,%u] (step %u) since "
+                     "file '%s' contains %u image(s).",
+                     cimglist_instance,
+                     nfirst_frame,nlast_frame,nstep_frame,filename,nb_images);
+
+        if (nfirst_frame>=nb_images) return assign();
+        if (nlast_frame>=nb_images) nlast_frame = nb_images - 1;
+        assign(1 + (nlast_frame - nfirst_frame)/nstep_frame);
+        TIFFSetDirectory(tif,0);
+#if cimg_verbosity>=3
+        TIFFSetWarningHandler(0);
+        TIFFSetErrorHandler(0);
+#endif
+        cimglist_for(*this,l) _data[l]._load_tiff(tif,nfirst_frame + l*nstep_frame,voxel_size,description);
+        TIFFClose(tif);
+      } else throw CImgIOException(_cimglist_instance
+                                   "load_tiff(): Failed to open file '%s'.",
+                                   cimglist_instance,
+                                   filename);
+      return *this;
+#endif
+    }
+
+    //! Load a multi-page TIFF file \newinstance.
+    static CImgList<T> get_load_tiff(const char *const filename,
+                                     const unsigned int first_frame=0, const unsigned int last_frame=~0U,
+                                     const unsigned int step_frame=1,
+                                     float *const voxel_size=0,
+                                     CImg<charT> *const description=0) {
+      return CImgList<T>().load_tiff(filename,first_frame,last_frame,step_frame,voxel_size,description);
+    }
+
+    //@}
+    //----------------------------------
+    //
+    //! \name Data Output
+    //@{
+    //----------------------------------
+
+    //! Print information about the list on the standard output.
+    /**
+      \param title Label set to the information displayed.
+      \param display_stats Tells if image statistics must be computed and displayed.
+    **/
+    const CImgList<T>& print(const char *const title=0, const bool display_stats=true) const {
+      unsigned int msiz = 0;
+      cimglist_for(*this,l) msiz+=_data[l].size();
+      msiz*=sizeof(T);
+      const unsigned int mdisp = msiz<8*1024?0U:msiz<8*1024*1024?1U:2U;
+      CImg<charT> _title(64);
+      if (!title) cimg_snprintf(_title,_title._width,"CImgList<%s>",pixel_type());
+      std::fprintf(cimg::output(),"%s%s%s%s: %sthis%s = %p, %ssize%s = %u/%u [%u %s], %sdata%s = (CImg<%s>*)%p",
+                   cimg::t_magenta,cimg::t_bold,title?title:_title._data,cimg::t_normal,
+                   cimg::t_bold,cimg::t_normal,(void*)this,
+                   cimg::t_bold,cimg::t_normal,_width,_allocated_width,
+                   mdisp==0?msiz:(mdisp==1?(msiz>>10):(msiz>>20)),
+                   mdisp==0?"b":(mdisp==1?"Kio":"Mio"),
+                   cimg::t_bold,cimg::t_normal,pixel_type(),(void*)begin());
+      if (_data) std::fprintf(cimg::output(),"..%p.\n",(void*)((char*)end() - 1));
+      else std::fprintf(cimg::output(),".\n");
+
+      char tmp[16] = { 0 };
+      cimglist_for(*this,ll) {
+        cimg_snprintf(tmp,sizeof(tmp),"[%d]",ll);
+        std::fprintf(cimg::output(),"  ");
+        _data[ll].print(tmp,display_stats);
+        if (ll==3 && width()>8) { ll = width() - 5; std::fprintf(cimg::output(),"  ...\n"); }
+      }
+      std::fflush(cimg::output());
+      return *this;
+    }
+
+    //! Display the current CImgList instance in an existing CImgDisplay window (by reference).
+    /**
+       \param disp Reference to an existing CImgDisplay instance, where the current image list will be displayed.
+       \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+       \param align Appending alignmenet.
+       \note This function displays the list images of the current CImgList instance into an existing
+         CImgDisplay window.
+       Images of the list are appended in a single temporarly image for visualization purposes.
+       The function returns immediately.
+    **/
+    const CImgList<T>& display(CImgDisplay &disp, const char axis='x', const float align=0) const {
+      disp.display(*this,axis,align);
+      return *this;
+    }
+
+    //! Display the current CImgList instance in a new display window.
+    /**
+        \param disp Display window.
+        \param display_info Tells if image information are displayed on the standard output.
+       \param axis Alignment axis for images viewing.
+       \param align Apending alignment.
+       \note This function opens a new window with a specific title and displays the list images of the
+         current CImgList instance into it.
+       Images of the list are appended in a single temporarly image for visualization purposes.
+       The function returns when a key is pressed or the display window is closed by the user.
+    **/
+    const CImgList<T>& display(CImgDisplay &disp, const bool display_info,
+                               const char axis='x', const float align=0,
+                               unsigned int *const XYZ=0, const bool exit_on_anykey=false) const {
+      bool is_exit = false;
+      return _display(disp,0,display_info,axis,align,XYZ,exit_on_anykey,0,true,is_exit);
+    }
+
+    //! Display the current CImgList instance in a new display window.
+    /**
+      \param title Title of the opening display window.
+      \param display_info Tells if list information must be written on standard output.
+      \param axis Appending axis. Can be <tt>{ 'x' | 'y' | 'z' | 'c' }</tt>.
+      \param align Appending alignment.
+    **/
+    const CImgList<T>& display(const char *const title=0, const bool display_info=true,
+                               const char axis='x', const float align=0,
+                               unsigned int *const XYZ=0, const bool exit_on_anykey=false) const {
+      CImgDisplay disp;
+      bool is_exit = false;
+      return _display(disp,title,display_info,axis,align,XYZ,exit_on_anykey,0,true,is_exit);
+    }
+
+    const CImgList<T>& _display(CImgDisplay &disp, const char *const title, const bool display_info,
+                                const char axis, const float align, unsigned int *const XYZ,
+                                const bool exit_on_anykey, const unsigned int orig, const bool is_first_call,
+                                bool &is_exit) const {
+      if (is_empty())
+        throw CImgInstanceException(_cimglist_instance
+                                    "display(): Empty instance.",
+                                    cimglist_instance);
+      if (!disp) {
+        if (axis=='x') {
+          unsigned int sum_width = 0, max_height = 0;
+          cimglist_for(*this,l) {
+            const CImg<T> &img = _data[l];
+            const unsigned int
+              w = CImgDisplay::_fitscreen(img._width,img._he
