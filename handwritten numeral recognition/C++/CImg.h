@@ -54280,4 +54280,180 @@ namespace cimg_library_suffixed {
           cimglist_for(*this,l) {
             const CImg<T> &img = _data[l];
             const unsigned int
-              w = CImgDisplay::_fitscreen(img._width,img._he
+              w = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,false),
+              h = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,true);
+            sum_width+=w;
+            if (h>max_height) max_height = h;
+          }
+          disp.assign(cimg_fitscreen(sum_width,max_height,1),title?title:0,1);
+        } else {
+          unsigned int max_width = 0, sum_height = 0;
+          cimglist_for(*this,l) {
+            const CImg<T> &img = _data[l];
+            const unsigned int
+              w = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,false),
+              h = CImgDisplay::_fitscreen(img._width,img._height,img._depth,128,-85,true);
+            if (w>max_width) max_width = w;
+            sum_height+=h;
+          }
+          disp.assign(cimg_fitscreen(max_width,sum_height,1),title?title:0,1);
+        }
+        if (!title) disp.set_title("CImgList<%s> (%u)",pixel_type(),_width);
+      } else if (title) disp.set_title("%s",title);
+      const CImg<char> dtitle = CImg<char>::string(disp.title());
+      if (display_info) print(disp.title());
+      disp.show().flush();
+
+      if (_width==1) {
+        const unsigned int dw = disp._width, dh = disp._height;
+        if (!is_first_call)
+          disp.resize(cimg_fitscreen(_data[0]._width,_data[0]._height,_data[0]._depth),false).
+            set_title("%s (%ux%ux%ux%u)",
+                      dtitle.data(),_data[0]._width,_data[0]._height,_data[0]._depth,_data[0]._spectrum);
+        _data[0]._display(disp,0,false,XYZ,exit_on_anykey,!is_first_call);
+        if (disp.key()) is_exit = true;
+        disp.resize(cimg_fitscreen(dw,dh,1),false).set_title("%s",dtitle.data());
+      } else {
+        bool disp_resize = !is_first_call;
+        while (!disp.is_closed() && !is_exit) {
+          const CImg<intT> s = _get_select(disp,0,true,axis,align,exit_on_anykey,orig,disp_resize,!is_first_call,true);
+          disp_resize = true;
+          if (s[0]<0) { // No selections done.
+            if (disp.button()&2) { disp.flush(); break; }
+            is_exit = true;
+          } else if (disp.wheel()) { // Zoom in/out.
+            const int wheel = disp.wheel();
+            disp.set_wheel();
+            if (!is_first_call && wheel<0) break;
+            if (wheel>0 && _width>=4) {
+              const unsigned int
+                delta = cimg::max(1U,(unsigned int)cimg::round(0.3*_width)),
+                ind0 = (unsigned int)cimg::max(0,s[0] - (int)delta),
+                ind1 = (unsigned int)cimg::min(width() - 1,s[0] + (int)delta);
+              if ((ind0!=0 || ind1!=_width - 1) && ind1 - ind0>=3)
+                get_shared_images(ind0,ind1)._display(disp,0,false,axis,align,XYZ,exit_on_anykey,
+                                                      orig + ind0,false,is_exit);
+            }
+          } else if (s[0]!=0 || s[1]!=width() - 1)
+            get_shared_images(s[0],s[1])._display(disp,0,false,axis,align,XYZ,exit_on_anykey,
+                                                  orig + s[0],false,is_exit);
+        }
+      }
+      return *this;
+    }
+
+    //! Save list into a file.
+    /**
+      \param filename Filename to write data to.
+      \param number When positive, represents an index added to the filename. Otherwise, no number is added.
+      \param digits Number of digits used for adding the number to the filename.
+    **/
+    const CImgList<T>& save(const char *const filename, const int number=-1, const unsigned int digits=6) const {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save(): Specified filename is (null).",
+                                    cimglist_instance);
+      // Do not test for empty instances, since .cimg format is able to manage empty instances.
+      const bool is_stdout = *filename=='-' && (!filename[1] || filename[1]=='.');
+      const char *const ext = cimg::split_filename(filename);
+      CImg<charT> nfilename(1024);
+      const char *const fn = is_stdout?filename:number>=0?cimg::number_filename(filename,number,digits,nfilename):
+        filename;
+
+#ifdef cimglist_save_plugin
+      cimglist_save_plugin(fn);
+#endif
+#ifdef cimglist_save_plugin1
+      cimglist_save_plugin1(fn);
+#endif
+#ifdef cimglist_save_plugin2
+      cimglist_save_plugin2(fn);
+#endif
+#ifdef cimglist_save_plugin3
+      cimglist_save_plugin3(fn);
+#endif
+#ifdef cimglist_save_plugin4
+      cimglist_save_plugin4(fn);
+#endif
+#ifdef cimglist_save_plugin5
+      cimglist_save_plugin5(fn);
+#endif
+#ifdef cimglist_save_plugin6
+      cimglist_save_plugin6(fn);
+#endif
+#ifdef cimglist_save_plugin7
+      cimglist_save_plugin7(fn);
+#endif
+#ifdef cimglist_save_plugin8
+      cimglist_save_plugin8(fn);
+#endif
+      if (!cimg::strcasecmp(ext,"cimgz")) return save_cimg(fn,true);
+      else if (!cimg::strcasecmp(ext,"cimg") || !*ext) return save_cimg(fn,false);
+      else if (!cimg::strcasecmp(ext,"yuv")) return save_yuv(fn,true);
+      else if (!cimg::strcasecmp(ext,"avi") ||
+               !cimg::strcasecmp(ext,"mov") ||
+               !cimg::strcasecmp(ext,"asf") ||
+               !cimg::strcasecmp(ext,"divx") ||
+               !cimg::strcasecmp(ext,"flv") ||
+               !cimg::strcasecmp(ext,"mpg") ||
+               !cimg::strcasecmp(ext,"m1v") ||
+               !cimg::strcasecmp(ext,"m2v") ||
+               !cimg::strcasecmp(ext,"m4v") ||
+               !cimg::strcasecmp(ext,"mjp") ||
+               !cimg::strcasecmp(ext,"mp4") ||
+               !cimg::strcasecmp(ext,"mkv") ||
+               !cimg::strcasecmp(ext,"mpe") ||
+               !cimg::strcasecmp(ext,"movie") ||
+               !cimg::strcasecmp(ext,"ogm") ||
+               !cimg::strcasecmp(ext,"ogg") ||
+               !cimg::strcasecmp(ext,"ogv") ||
+               !cimg::strcasecmp(ext,"qt") ||
+               !cimg::strcasecmp(ext,"rm") ||
+               !cimg::strcasecmp(ext,"vob") ||
+               !cimg::strcasecmp(ext,"wmv") ||
+               !cimg::strcasecmp(ext,"xvid") ||
+               !cimg::strcasecmp(ext,"mpeg")) return save_video(fn);
+#ifdef cimg_use_tiff
+      else if (!cimg::strcasecmp(ext,"tif") ||
+          !cimg::strcasecmp(ext,"tiff")) return save_tiff(fn);
+#endif
+      else if (!cimg::strcasecmp(ext,"gz")) return save_gzip_external(fn);
+      else {
+        if (_width==1) _data[0].save(fn,-1);
+        else cimglist_for(*this,l) { _data[l].save(fn,is_stdout?-1:l); if (is_stdout) std::fputc(EOF,stdout); }
+      }
+      return *this;
+    }
+
+    //! Tell if an image list can be saved as one single file.
+    /**
+       \param filename Filename, as a C-string.
+       \return \c true if the file format supports multiple images, \c false otherwise.
+    **/
+    static bool is_saveable(const char *const filename) {
+      const char *const ext = cimg::split_filename(filename);
+      if (!cimg::strcasecmp(ext,"cimgz") ||
+#ifdef cimg_use_tiff
+          !cimg::strcasecmp(ext,"tif") ||
+          !cimg::strcasecmp(ext,"tiff") ||
+#endif
+          !cimg::strcasecmp(ext,"yuv") ||
+          !cimg::strcasecmp(ext,"avi") ||
+          !cimg::strcasecmp(ext,"mov") ||
+          !cimg::strcasecmp(ext,"asf") ||
+          !cimg::strcasecmp(ext,"divx") ||
+          !cimg::strcasecmp(ext,"flv") ||
+          !cimg::strcasecmp(ext,"mpg") ||
+          !cimg::strcasecmp(ext,"m1v") ||
+          !cimg::strcasecmp(ext,"m2v") ||
+          !cimg::strcasecmp(ext,"m4v") ||
+          !cimg::strcasecmp(ext,"mjp") ||
+          !cimg::strcasecmp(ext,"mp4") ||
+          !cimg::strcasecmp(ext,"mkv") ||
+          !cimg::strcasecmp(ext,"mpe") ||
+          !cimg::strcasecmp(ext,"movie") ||
+          !cimg::strcasecmp(ext,"ogm") ||
+          !cimg::strcasecmp(ext,"ogg") ||
+          !cimg::strcasecmp(ext,"ogv") ||
+          !cimg::strcasecmp(ext,"qt") ||
+          !ci
