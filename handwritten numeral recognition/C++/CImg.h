@@ -54456,4 +54456,176 @@ namespace cimg_library_suffixed {
           !cimg::strcasecmp(ext,"ogg") ||
           !cimg::strcasecmp(ext,"ogv") ||
           !cimg::strcasecmp(ext,"qt") ||
-          !ci
+          !cimg::strcasecmp(ext,"rm") ||
+          !cimg::strcasecmp(ext,"vob") ||
+          !cimg::strcasecmp(ext,"wmv") ||
+          !cimg::strcasecmp(ext,"xvid") ||
+          !cimg::strcasecmp(ext,"mpeg")) return true;
+      return false;
+    }
+
+    //! Save image sequence as a GIF animated file.
+    /**
+       \param filename Filename to write data to.
+       \param fps Number of desired frames per second.
+       \param nb_loops Number of loops (\c 0 for infinite looping).
+    **/
+    const CImgList<T>& save_gif_external(const char *const filename, const float fps=25,
+                                         const unsigned int nb_loops=0) {
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      CImgList<charT> filenames;
+      std::FILE *file = 0;
+
+#ifdef cimg_use_png
+#define _cimg_save_gif_ext "png"
+#else
+#define _cimg_save_gif_ext "ppm"
+#endif
+
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_000001." _cimg_save_gif_ext,filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimglist_for(*this,l) {
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%.6u." _cimg_save_gif_ext,filename_tmp._data,l + 1);
+        CImg<charT>::string(filename_tmp2).move_to(filenames);
+        if (_data[l]._depth>1 || _data[l]._spectrum!=3) _data[l].get_resize(-100,-100,1,3).save(filename_tmp2);
+        else _data[l].save(filename_tmp2);
+      }
+
+#if cimg_OS!=2
+      cimg_snprintf(command,command._width,"%s -delay %u -loop %u",
+                    cimg::imagemagick_path(),(unsigned int)cimg::max(0.0f,cimg::round(100/fps)),nb_loops);
+      CImg<ucharT>::string(command).move_to(filenames,0);
+      cimg_snprintf(command,command._width,"\"%s\" >/dev/null 2>&1",
+                    CImg<charT>::string(filename)._system_strescape().data());
+      CImg<ucharT>::string(command).move_to(filenames);
+#else
+      cimg_snprintf(command,command._width,"\"%s -delay %u -loop %u",
+                    cimg::imagemagick_path(),(unsigned int)cimg::max(0.0f,cimg::round(100/fps)),nb_loops);
+      CImg<ucharT>::string(command).move_to(filenames,0);
+      cimg_snprintf(command,command._width,"\"%s\"\" >NUL 2>&1",
+                    CImg<charT>::string(filename)._system_strescape().data());
+      CImg<ucharT>::string(command).move_to(filenames);
+#endif
+      CImg<charT> _command = filenames>'x';
+      cimg_for(_command,p,char) if (!*p) *p = ' ';
+      _command.back() = 0;
+
+      cimg::system(_command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimglist_instance
+                              "save_gif_external(): Failed to save file '%s' with external command 'convert'.",
+                              cimglist_instance,
+                              filename);
+      else cimg::fclose(file);
+      cimglist_for_in(*this,1,filenames._width - 1,l) std::remove(filenames[l]);
+      return *this;
+    }
+
+    const CImgList<T>& _save_yuv(std::FILE *const file, const char *const filename, const bool is_rgb) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_yuv(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(file,filename); return *this; }
+      if ((*this)[0].width()%2 || (*this)[0].height()%2)
+        throw CImgInstanceException(_cimglist_instance
+                                    "save_yuv(): Invalid odd instance dimensions (%u,%u) for file '%s'.",
+                                    cimglist_instance,
+                                    (*this)[0].width(),(*this)[0].height(),
+                                    filename?filename:"(FILE*)");
+
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      cimglist_for(*this,l) {
+        CImg<ucharT> YCbCr((*this)[l]);
+        if (is_rgb) YCbCr.RGBtoYCbCr();
+        cimg::fwrite(YCbCr._data,(size_t)YCbCr._width*YCbCr._height,nfile);
+        cimg::fwrite(YCbCr.get_resize(YCbCr._width/2, YCbCr._height/2,1,3,3).data(0,0,0,1),
+                     (size_t)YCbCr._width*YCbCr._height/2,nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save list as a YUV image sequence file.
+    /**
+      \param filename Filename to write data to.
+      \param is_rgb Tells if the RGB to YUV conversion must be done for saving.
+    **/
+    const CImgList<T>& save_yuv(const char *const filename=0, const bool is_rgb=true) const {
+      return _save_yuv(0,filename,is_rgb);
+    }
+
+    //! Save image sequence into a YUV file.
+    /**
+      \param file File to write data to.
+      \param is_rgb Tells if the RGB to YUV conversion must be done for saving.
+    **/
+    const CImgList<T>& save_yuv(std::FILE *const file, const bool is_rgb=true) const {
+      return _save_yuv(file,0,is_rgb);
+    }
+
+    const CImgList<T>& _save_cimg(std::FILE *const file, const char *const filename, const bool is_compressed) const {
+      if (!file && !filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_cimg(): Specified filename is (null).",
+                                    cimglist_instance);
+#ifndef cimg_use_zlib
+      if (is_compressed)
+        cimg::warn(_cimglist_instance
+                   "save_cimg(): Unable to save compressed data in file '%s' unless zlib is enabled, "
+                   "saving them uncompressed.",
+                   cimglist_instance,
+                   filename?filename:"(FILE*)");
+#endif
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const char *const ptype = pixel_type(), *const etype = cimg::endianness()?"big":"little";
+      if (std::strstr(ptype,"unsigned")==ptype) std::fprintf(nfile,"%u unsigned_%s %s_endian\n",_width,ptype + 9,etype);
+      else std::fprintf(nfile,"%u %s %s_endian\n",_width,ptype,etype);
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        std::fprintf(nfile,"%u %u %u %u",img._width,img._height,img._depth,img._spectrum);
+        if (img._data) {
+          CImg<T> tmp;
+          if (cimg::endianness()) { tmp = img; cimg::invert_endianness(tmp._data,tmp.size()); }
+          const CImg<T>& ref = cimg::endianness()?tmp:img;
+          bool failed_to_compress = true;
+          if (is_compressed) {
+#ifdef cimg_use_zlib
+            const ulongT siz = sizeof(T)*ref.size();
+            uLongf csiz = siz + siz/100 + 16;
+            Bytef *const cbuf = new Bytef[csiz];
+            if (compress(cbuf,&csiz,(Bytef*)ref._data,siz))
+              cimg::warn(_cimglist_instance
+                         "save_cimg(): Failed to save compressed data for file '%s', saving them uncompressed.",
+                         cimglist_instance,
+                         filename?filename:"(FILE*)");
+            else {
+              std::fprintf(nfile," #%lu\n",csiz);
+              cimg::fwrite(cbuf,csiz,nfile);
+              delete[] cbuf;
+              failed_to_compress = false;
+            }
+#endif
+          }
+          if (failed_to_compress) { // Write in a non-compressed way.
+            std::fputc('\n',nfile);
+            cimg::fwrite(ref._data,ref.size(),nfile);
+          }
+        } else std::fputc('\n',nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+      return *this;
+    }
+
+    //! Save list into a .cimg file.
+    /**
+       \param filename Filename to write data to.
+       \param is_compressed Tells if data compression must be enabled.
+    **/
+    const CImgList<T>& save_cimg(const char *const filename, const bool is_compressed=false) const {
+      retu
