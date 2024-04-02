@@ -54783,4 +54783,175 @@ namespace cimg_library_suffixed {
     const CImgList<T>& save_cimg(std::FILE *const file,
                                  const unsigned int n0,
                                  const unsigned int x0, const unsigned int y0,
-                                 const unsigned int z0, const unsigned int c0) cons
+                                 const unsigned int z0, const unsigned int c0) const {
+      return _save_cimg(file,0,n0,x0,y0,z0,c0);
+    }
+
+    static void _save_empty_cimg(std::FILE *const file, const char *const filename,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy,
+                                const unsigned int dz, const unsigned int dc) {
+      std::FILE *const nfile = file?file:cimg::fopen(filename,"wb");
+      const ulongT siz = (ulongT)dx*dy*dz*dc*sizeof(T);
+      std::fprintf(nfile,"%u %s\n",nb,pixel_type());
+      for (unsigned int i=nb; i; --i) {
+        std::fprintf(nfile,"%u %u %u %u\n",dx,dy,dz,dc);
+        for (ulongT off = siz; off; --off) std::fputc(0,nfile);
+      }
+      if (!file) cimg::fclose(nfile);
+    }
+
+    //! Save empty (non-compressed) .cimg file with specified dimensions.
+    /**
+        \param filename Filename to write data to.
+        \param nb Number of images to write.
+        \param dx Width of images in the written file.
+        \param dy Height of images in the written file.
+        \param dz Depth of images in the written file.
+        \param dc Spectrum of images in the written file.
+    **/
+    static void save_empty_cimg(const char *const filename,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return _save_empty_cimg(0,filename,nb,dx,dy,dz,dc);
+    }
+
+    //! Save empty .cimg file with specified dimensions.
+    /**
+        \param file File to write data to.
+        \param nb Number of images to write.
+        \param dx Width of images in the written file.
+        \param dy Height of images in the written file.
+        \param dz Depth of images in the written file.
+        \param dc Spectrum of images in the written file.
+    **/
+    static void save_empty_cimg(std::FILE *const file,
+                                const unsigned int nb,
+                                const unsigned int dx, const unsigned int dy=1,
+                                const unsigned int dz=1, const unsigned int dc=1) {
+      return _save_empty_cimg(file,0,nb,dx,dy,dz,dc);
+    }
+
+    //! Save list as a TIFF file.
+    /**
+      \param filename Filename to write data to.
+      \param compression_type Compression mode used to write data.
+    **/
+    const CImgList<T>& save_tiff(const char *const filename, const unsigned int compression_type=0,
+                                 const float *const voxel_size=0, const char *const description=0,
+                                 const bool use_bigtiff=true) const {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_tiff(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+#ifndef cimg_use_tiff
+      if (_width==1) _data[0].save_tiff(filename,compression_type,voxel_size,description,use_bigtiff);
+      else cimglist_for(*this,l) {
+          CImg<charT> nfilename(1024);
+          cimg::number_filename(filename,l,6,nfilename);
+          _data[l].save_tiff(nfilename,compression_type,voxel_size,description,use_bigtiff);
+        }
+#else
+      ulongT siz = 0;
+      cimglist_for(*this,l) siz+=_data[l].size();
+      const bool _use_bigtiff = use_bigtiff && sizeof(siz)>=8 && siz*sizeof(T)>=1UL<<31; // No bigtiff for small images.
+      TIFF *tif = TIFFOpen(filename,_use_bigtiff?"w8":"w4");
+      if (tif) {
+        for (unsigned int dir = 0, l = 0; l<_width; ++l) {
+          const CImg<T>& img = (*this)[l];
+          cimg_forZ(img,z) img._save_tiff(tif,dir++,z,compression_type,voxel_size,description);
+        }
+        TIFFClose(tif);
+      } else
+        throw CImgIOException(_cimglist_instance
+                              "save_tiff(): Failed to open stream for file '%s'.",
+                              cimglist_instance,
+                              filename);
+#endif
+      return *this;
+    }
+
+    //! Save list as a gzipped file, using external tool 'gzip'.
+    /**
+      \param filename Filename to write data to.
+    **/
+    const CImgList<T>& save_gzip_external(const char *const filename) const {
+      if (!filename)
+        throw CImgIOException(_cimglist_instance
+                              "save_gzip_external(): Specified filename is (null).",
+                              cimglist_instance);
+
+      CImg<charT> command(1024), filename_tmp(256), body(256);
+      const char
+        *ext = cimg::split_filename(filename,body),
+        *ext2 = cimg::split_filename(body,0);
+      std::FILE *file;
+      do {
+        if (!cimg::strcasecmp(ext,"gz")) {
+          if (*ext2) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                   cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext2);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        } else {
+          if (*ext) cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.%s",
+                                  cimg::temporary_path(),cimg_file_separator,cimg::filenamerand(),ext);
+          else cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s.cimg",
+                             cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        }
+        if ((file=std::fopen(filename_tmp,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+
+      if (is_saveable(body)) {
+        save(filename_tmp);
+        cimg_snprintf(command,command._width,"%s -c \"%s\" > \"%s\"",
+                      cimg::gzip_path(),
+                      CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                      CImg<charT>::string(filename)._system_strescape().data());
+        cimg::system(command);
+        file = std::fopen(filename,"rb");
+        if (!file)
+          throw CImgIOException(_cimglist_instance
+                                "save_gzip_external(): Failed to save file '%s' with external command 'gzip'.",
+                                cimglist_instance,
+                                filename);
+        else cimg::fclose(file);
+        std::remove(filename_tmp);
+      } else {
+        CImg<charT> nfilename(1024);
+        cimglist_for(*this,l) {
+          cimg::number_filename(body,l,6,nfilename);
+          if (*ext) cimg_sprintf(nfilename._data + std::strlen(nfilename),".%s",ext);
+          _data[l].save_gzip_external(nfilename);
+        }
+      }
+      return *this;
+    }
+
+    //! Save image sequence, using the OpenCV library.
+    /**
+       \param filename Filename to write data to.
+       \param fps Number of frames per second.
+       \param codec Type of compression (See http://www.fourcc.org/codecs.php to see available codecs).
+       \param keep_open Tells if the video writer associated to the specified filename
+       must be kept open or not (to allow frames to be added in the same file afterwards).
+    **/
+    const CImgList<T>& save_video(const char *const filename, const unsigned int fps=25,
+                                  const char *codec=0, const bool keep_open=false) const {
+#ifndef cimg_use_opencv
+      cimg::unused(codec,keep_open);
+      return save_ffmpeg_external(filename,fps);
+#else
+      static CvVideoWriter *writers[32] = { 0 };
+      static CImgList<charT> filenames(32);
+      static CImg<intT> sizes(32,2,1,1,0);
+      static int last_used_index = -1;
+
+      // Detect if a video writer already exists for the specified filename.
+      cimg::mutex(9);
+      int index = -1;
+      if (filename) {
+        if (last_used_index>=0 && !std::strcmp(filename,filenames[last_used_index])) {
+   
