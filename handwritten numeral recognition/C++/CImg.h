@@ -55111,4 +55111,168 @@ namespace cimg_library_suffixed {
       file = std::fopen(filename,"rb");
       if (!file)
         throw CImgIOException(_cimglist_instance
-                              "save_ffmpeg_external(): Fa
+                              "save_ffmpeg_external(): Failed to save file '%s' with external command 'ffmpeg'.",
+                              cimglist_instance,
+                              filename);
+      else cimg::fclose(file);
+      cimglist_for(*this,l) std::remove(filenames[l]);
+      return *this;
+    }
+
+    //! Serialize a CImgList<T> instance into a raw CImg<unsigned char> buffer.
+    /**
+       \param is_compressed tells if zlib compression must be used for serialization
+       (this requires 'cimg_use_zlib' been enabled).
+    **/
+    CImg<ucharT> get_serialize(const bool is_compressed=false) const {
+#ifndef cimg_use_zlib
+      if (is_compressed)
+        cimg::warn(_cimglist_instance
+                   "get_serialize(): Unable to compress data unless zlib is enabled, "
+                   "storing them uncompressed.",
+                   cimglist_instance);
+#endif
+      CImgList<ucharT> stream;
+      CImg<charT> tmpstr(128);
+      const char *const ptype = pixel_type(), *const etype = cimg::endianness()?"big":"little";
+      if (std::strstr(ptype,"unsigned")==ptype)
+        cimg_snprintf(tmpstr,tmpstr._width,"%u unsigned_%s %s_endian\n",_width,ptype + 9,etype);
+      else
+        cimg_snprintf(tmpstr,tmpstr._width,"%u %s %s_endian\n",_width,ptype,etype);
+      CImg<ucharT>::string(tmpstr,false).move_to(stream);
+      cimglist_for(*this,l) {
+        const CImg<T>& img = _data[l];
+        cimg_snprintf(tmpstr,tmpstr._width,"%u %u %u %u",img._width,img._height,img._depth,img._spectrum);
+        CImg<ucharT>::string(tmpstr,false).move_to(stream);
+        if (img._data) {
+          CImg<T> tmp;
+          if (cimg::endianness()) { tmp = img; cimg::invert_endianness(tmp._data,tmp.size()); }
+          const CImg<T>& ref = cimg::endianness()?tmp:img;
+          bool failed_to_compress = true;
+          if (is_compressed) {
+#ifdef cimg_use_zlib
+            const ulongT siz = sizeof(T)*ref.size();
+            uLongf csiz = (ulongT)compressBound(siz);
+            Bytef *const cbuf = new Bytef[csiz];
+            if (compress(cbuf,&csiz,(Bytef*)ref._data,siz))
+              cimg::warn(_cimglist_instance
+                         "get_serialize(): Failed to save compressed data, saving them uncompressed.",
+                         cimglist_instance);
+            else {
+              cimg_snprintf(tmpstr,tmpstr._width," #%lu\n",csiz);
+              CImg<ucharT>::string(tmpstr,false).move_to(stream);
+              CImg<ucharT>(cbuf,csiz).move_to(stream);
+              delete[] cbuf;
+              failed_to_compress = false;
+            }
+#endif
+          }
+          if (failed_to_compress) { // Write in a non-compressed way.
+            CImg<charT>::string("\n",false).move_to(stream);
+            stream.insert(1);
+            stream.back().assign((unsigned char*)ref._data,ref.size()*sizeof(T),1,1,1,true);
+          }
+        } else CImg<charT>::string("\n",false).move_to(stream);
+      }
+      cimglist_apply(stream,unroll)('y');
+      return stream>'y';
+    }
+
+    //! Unserialize a CImg<unsigned char> serialized buffer into a CImgList<T> list.
+    template<typename t>
+    static CImgList<T> get_unserialize(const CImg<t>& buffer) {
+#ifdef cimg_use_zlib
+#define _cimgz_unserialize_case(Tss) { \
+        Bytef *cbuf = (Bytef*)stream; \
+        if (sizeof(t)!=1 || cimg::type<t>::string()==cimg::type<bool>::string()) { \
+          cbuf = new Bytef[csiz]; Bytef *_cbuf = cbuf; \
+          for (ulongT i = 0; i<csiz; ++i) *(_cbuf++) = (Bytef)*(stream++); \
+          is_bytef = false; \
+        } else { stream+=csiz; is_bytef = true; } \
+        CImg<Tss> raw(W,H,D,C); \
+        uLongf destlen = raw.size()*sizeof(Tss); \
+        uncompress((Bytef*)raw._data,&destlen,cbuf,csiz); \
+        if (!is_bytef) delete[] cbuf; \
+        if (endian!=cimg::endianness()) cimg::invert_endianness(raw._data,raw.size()); \
+        raw.move_to(img); \
+      }
+#else
+#define _cimgz_unserialize_case(Tss) \
+      throw CImgArgumentException("CImgList<%s>::get_unserialize(): Unable to unserialize compressed data " \
+                                  "unless zlib is enabled.", \
+                                  pixel_type());
+#endif
+
+#define _cimg_unserialize_case(Ts,Tss) \
+      if (!loaded && !cimg::strcasecmp(Ts,str_pixeltype)) { \
+        for (unsigned int l = 0; l<N; ++l) { \
+          j = 0; while ((i=(int)*stream)!='\n' && stream<estream && j<255) { ++stream; tmp[j++] = (char)i; } \
+          ++stream; tmp[j] = 0; \
+          W = H = D = C = 0; csiz = 0; \
+          if ((err = cimg_sscanf(tmp,"%u %u %u %u #%lu",&W,&H,&D,&C,&csiz))<4) \
+            throw CImgArgumentException("CImgList<%s>::unserialize(): Invalid specified size (%u,%u,%u,%u) for " \
+                                        "image #%u in serialized buffer.", \
+                                        pixel_type(),W,H,D,C,l); \
+          if (W*H*D*C>0) { \
+            CImg<T> &img = res._data[l]; \
+            if (err==5) _cimgz_unserialize_case(Tss) \
+            else { \
+              if (sizeof(t)!=1) { \
+                CImg<ucharT> raw(W*sizeof(Tss),H,D,C);  \
+                cimg_for(raw,p,unsigned char) *p = (unsigned char)*(stream++); \
+                img.assign((Tss*)raw._data,W,H,D,C); \
+              } else img.assign((Tss*)stream,W,H,D,C); \
+              if (endian!=cimg::endianness()) cimg::invert_endianness(img._data,img.size()); \
+            } \
+          } \
+        } \
+        loaded = true; \
+      }
+
+      if (buffer.is_empty())
+        throw CImgArgumentException("CImgList<%s>::get_unserialize(): Specified serialized buffer is (null).",
+                                    pixel_type());
+      CImgList<T> res;
+      const t *stream = buffer._data, *const estream = buffer._data + buffer.size();
+      bool loaded = false, endian = cimg::endianness(), is_bytef = false;
+      CImg<charT> tmp(256), str_pixeltype(256), str_endian(256);
+      *tmp = *str_pixeltype = *str_endian = 0;
+      unsigned int j, N = 0, W, H, D, C;
+      ulongT csiz;
+      int i, err;
+      cimg::unused(is_bytef);
+      do {
+        j = 0; while ((i=(int)*stream)!='\n' && stream<estream && j<255) { ++stream; tmp[j++] = (char)i; }
+        ++stream; tmp[j] = 0;
+      } while (*tmp=='#' && stream<estream);
+      err = cimg_sscanf(tmp,"%u%*c%255[A-Za-z64_]%*c%255[sA-Za-z_ ]",
+                        &N,str_pixeltype._data,str_endian._data);
+      if (err<2)
+        throw CImgArgumentException("CImgList<%s>::get_unserialize(): CImg header not found in serialized buffer.",
+                                    pixel_type());
+      if (!cimg::strncasecmp("little",str_endian,6)) endian = false;
+      else if (!cimg::strncasecmp("big",str_endian,3)) endian = true;
+      res.assign(N);
+      _cimg_unserialize_case("bool",bool);
+      _cimg_unserialize_case("unsigned_char",unsigned char);
+      _cimg_unserialize_case("uchar",unsigned char);
+      _cimg_unserialize_case("char",char);
+      _cimg_unserialize_case("unsigned_short",unsigned short);
+      _cimg_unserialize_case("ushort",unsigned short);
+      _cimg_unserialize_case("short",short);
+      _cimg_unserialize_case("unsigned_int",unsigned int);
+      _cimg_unserialize_case("uint",unsigned int);
+      _cimg_unserialize_case("int",int);
+      _cimg_unserialize_case("unsigned_int64",uint64T);
+      _cimg_unserialize_case("uint64",uint64T);
+      _cimg_unserialize_case("int64",int64T);
+      _cimg_unserialize_case("float",float);
+      _cimg_unserialize_case("double",double);
+      if (!loaded)
+        throw CImgArgumentException("CImgList<%s>::get_unserialize(): Unsupported pixel type '%s' defined "
+                                    "in serialized buffer.",
+                                    pixel_type(),str_pixeltype._data);
+      return res;
+    }
+
+   
