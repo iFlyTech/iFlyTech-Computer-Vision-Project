@@ -54954,4 +54954,161 @@ namespace cimg_library_suffixed {
       int index = -1;
       if (filename) {
         if (last_used_index>=0 && !std::strcmp(filename,filenames[last_used_index])) {
-   
+          index = last_used_index;
+        } else cimglist_for(filenames,l) if (filenames[l] && !std::strcmp(filename,filenames[l])) {
+            index = l; break;
+          }
+      } else index = last_used_index;
+      cimg::mutex(9,0);
+
+      // Find empty slot for capturing video stream.
+      if (index<0) {
+        if (!filename)
+          throw CImgArgumentException(_cimglist_instance
+                                      "save_video(): No already open video writer found. You must specify a "
+                                      "non-(null) filename argument for the first call.",
+                                      cimglist_instance);
+        else { cimg::mutex(9); cimglist_for(filenames,l) if (!filenames[l]) { index = l; break; } cimg::mutex(9,0); }
+        if (index<0)
+          throw CImgIOException(_cimglist_instance
+                                "save_video(): File '%s', no video writer slots available. "
+                                "You have to release some of your previously opened videos.",
+                                cimglist_instance,filename);
+        if (is_empty())
+          throw CImgInstanceException(_cimglist_instance
+                                      "save_video(): Instance list is empty.",
+                                      cimglist_instance);
+        const unsigned int W = _data?_data[0]._width:0, H = _data?_data[0]._height:0;
+        if (!W || !H)
+          throw CImgInstanceException(_cimglist_instance
+                                      "save_video(): Frame [0] is an empty image.",
+                                      cimglist_instance);
+
+#define _cimg_docase(x) ((x)>='a'&&(x)<='z'?(x) + 'A' - 'a':(x))
+        const char
+          *const _codec = codec && *codec?codec:"mp4v",
+          codec0 = _cimg_docase(_codec[0]),
+          codec1 = _codec[0]?_cimg_docase(_codec[1]):0,
+          codec2 = _codec[1]?_cimg_docase(_codec[2]):0,
+          codec3 = _codec[2]?_cimg_docase(_codec[3]):0;
+        cimg::mutex(9);
+        writers[index] = cvCreateVideoWriter(filename,CV_FOURCC(codec0,codec1,codec2,codec3),
+                                             fps,cvSize(W,H));
+        CImg<charT>::string(filename).move_to(filenames[index]);
+        sizes(index,0) = W; sizes(index,1) = H;
+        cimg::mutex(9,0);
+        if (!writers[index])
+          throw CImgIOException(_cimglist_instance
+                                "save_video(): File '%s', unable to initialize video writer with codec '%c%c%c%c'.",
+                                cimglist_instance,filename,
+                                codec0,codec1,codec2,codec3);
+      }
+
+      if (!is_empty()) {
+        const unsigned int W = sizes(index,0), H = sizes(index,1);
+        cimg::mutex(9);
+        IplImage *ipl = cvCreateImage(cvSize(W,H),8,3);
+        cimglist_for(*this,l) {
+          CImg<T> &src = _data[l];
+          if (src.is_empty())
+            cimg::warn(_cimglist_instance
+                       "save_video(): Skip empty frame %d for file '%s'.",
+                       cimglist_instance,l,filename);
+          if (src._depth>1 || src._spectrum>3)
+            cimg::warn(_cimglist_instance
+                       "save_video(): Frame %u has incompatible dimension (%u,%u,%u,%u). "
+                       "Some image data may be ignored when writing frame into video file '%s'.",
+                       cimglist_instance,l,src._width,src._height,src._depth,src._spectrum,filename);
+          if (src._width==W && src._height==H && src._spectrum==3) {
+            const T *ptr_r = src.data(0,0,0,0), *ptr_g = src.data(0,0,0,1), *ptr_b = src.data(0,0,0,2);
+            char *ptrd = ipl->imageData;
+            cimg_forXY(src,x,y) {
+              *(ptrd++) = (char)*(ptr_b++); *(ptrd++) = (char)*(ptr_g++); *(ptrd++) = (char)*(ptr_r++);
+            }
+          } else {
+            CImg<unsigned char> _src(src,false);
+            _src.channels(0,cimg::min(_src._spectrum - 1,2U)).resize(W,H);
+            _src.resize(W,H,1,3,_src._spectrum==1?1:0);
+            const unsigned char *ptr_r = _src.data(0,0,0,0), *ptr_g = _src.data(0,0,0,1), *ptr_b = _src.data(0,0,0,2);
+            char *ptrd = ipl->imageData;
+            cimg_forXY(_src,x,y) {
+              *(ptrd++) = (char)*(ptr_b++); *(ptrd++) = (char)*(ptr_g++); *(ptrd++) = (char)*(ptr_r++);
+            }
+          }
+          cvWriteFrame(writers[index],ipl);
+        }
+        cvReleaseImage(&ipl);
+        cimg::mutex(9,0);
+      }
+
+      cimg::mutex(9);
+      if (!keep_open) {
+        cvReleaseVideoWriter(&writers[index]);
+        writers[index] = 0;
+        filenames[index].assign();
+        sizes(index,0) = sizes(index,1) = 0;
+        last_used_index = -1;
+      } else last_used_index = index;
+      cimg::mutex(9,0);
+
+      return *this;
+#endif
+    }
+
+    //! Save image sequence, using the external tool 'ffmpeg'.
+    /**
+      \param filename Filename to write data to.
+      \param fps Number of frames per second.
+      \param codec Type of compression.
+      \param bitrate Output bitrate
+    **/
+    const CImgList<T>& save_ffmpeg_external(const char *const filename, const unsigned int fps=25,
+                                            const char *const codec=0, const unsigned int bitrate=2048) const {
+      if (!filename)
+        throw CImgArgumentException(_cimglist_instance
+                                    "save_ffmpeg_external(): Specified filename is (null).",
+                                    cimglist_instance);
+      if (is_empty()) { cimg::fempty(0,filename); return *this; }
+
+      const char
+        *const ext = cimg::split_filename(filename),
+        *const _codec = codec?codec:!cimg::strcasecmp(ext,"flv")?"flv":"mpeg2video";
+
+      CImg<charT> command(1024), filename_tmp(256), filename_tmp2(256);
+      CImgList<charT> filenames;
+      std::FILE *file = 0;
+      cimglist_for(*this,l) if (!_data[l].is_sameXYZ(_data[0]))
+        throw CImgInstanceException(_cimglist_instance
+                                    "save_ffmpeg_external(): Invalid instance dimensions for file '%s'.",
+                                    cimglist_instance,
+                                    filename);
+      do {
+        cimg_snprintf(filename_tmp,filename_tmp._width,"%s%c%s",
+                      cimg::temporary_path(),cimg_file_separator,cimg::filenamerand());
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_000001.ppm",filename_tmp._data);
+        if ((file=std::fopen(filename_tmp2,"rb"))!=0) cimg::fclose(file);
+      } while (file);
+      cimglist_for(*this,l) {
+        cimg_snprintf(filename_tmp2,filename_tmp2._width,"%s_%.6u.ppm",filename_tmp._data,l + 1);
+        CImg<charT>::string(filename_tmp2).move_to(filenames);
+        if (_data[l]._depth>1 || _data[l]._spectrum!=3) _data[l].get_resize(-100,-100,1,3).save_pnm(filename_tmp2);
+        else _data[l].save_pnm(filename_tmp2);
+      }
+#if cimg_OS!=2
+      cimg_snprintf(command,command._width,"%s -i \"%s_%%6d.ppm\" -vcodec %s -b %uk -r %u -y \"%s\" >/dev/null 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    _codec,bitrate,fps,
+                    CImg<charT>::string(filename)._system_strescape().data());
+#else
+      cimg_snprintf(command,command._width,"\"%s -i \"%s_%%6d.ppm\" -vcodec %s -b %uk -r %u -y \"%s\"\" >NUL 2>&1",
+                    cimg::ffmpeg_path(),
+                    CImg<charT>::string(filename_tmp)._system_strescape().data(),
+                    _codec,bitrate,fps,
+                    CImg<charT>::string(filename)._system_strescape().data());
+#endif
+      cimg::system(command);
+      file = std::fopen(filename,"rb");
+      if (!file)
+        throw CImgIOException(_cimglist_instance
+                              "save_ffmpeg_external(): Fa
