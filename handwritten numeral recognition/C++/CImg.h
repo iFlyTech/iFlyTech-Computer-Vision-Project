@@ -55804,4 +55804,239 @@ namespace cimg {
 #else
       if (!path_found) {
         std::strcpy(s_path,"./medcon");
-        if ((file=std::fo
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"medcon");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the FFMPEG's \c ffmpeg binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c ffmpeg binary.
+  **/
+  inline const char *ffmpeg_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\ffmpeg.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"ffmpeg.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./ffmpeg");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"ffmpeg");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c gzip binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c gzip binary.
+  **/
+  inline const char *gzip_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\gzip.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gzip.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./gzip");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gzip");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c gunzip binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c gunzip binary.
+  **/
+  inline const char *gunzip_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\gunzip.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gunzip.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./gunzip");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"gunzip");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c dcraw binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c dcraw binary.
+  **/
+  inline const char *dcraw_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\dcraw.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"dcraw.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./dcraw");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"dcraw");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c wget binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c wget binary.
+  **/
+  inline const char *wget_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\wget.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"wget.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./wget");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"wget");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  //! Get/set path to the \c curl binary.
+  /**
+     \param user_path Specified path, or \c 0 to get the path currently used.
+     \param reinit_path Force path to be recalculated (may take some time).
+     \return Path containing the \c curl binary.
+  **/
+  inline const char *curl_path(const char *const user_path, const bool reinit_path) {
+    static CImg<char> s_path;
+    cimg::mutex(7);
+    if (reinit_path) s_path.assign();
+    if (user_path) {
+      if (!s_path) s_path.assign(1024);
+      std::strncpy(s_path,user_path,1023);
+    } else if (!s_path) {
+      s_path.assign(1024);
+      bool path_found = false;
+      std::FILE *file = 0;
+#if cimg_OS==2
+      if (!path_found) {
+        std::strcpy(s_path,".\\curl.exe");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"curl.exe");
+#else
+      if (!path_found) {
+        std::strcpy(s_path,"./curl");
+        if ((file=std::fopen(s_path,"r"))!=0) { cimg::fclose(file); path_found = true; }
+      }
+      if (!path_found) std::strcpy(s_path,"curl");
+#endif
+      winformat_string(s_path);
+    }
+    cimg::mutex(7,0);
+    return s_path;
+  }
+
+  // [internal] Sorting function, used by cimg::files().
+  inline int _sort_files(const void* a, const void* b) {
+    const CImg<char> &sa = *(CImg<char>*)a, &sb = *(CImg<char>*)b;
+    return std::strcmp(sa._data,sb._data);
+  }
+
+  //! Return list of files/directories in specified directory.
+  /**
+     \param path Path to the directory. Set to 0 for current directory.
+     \param is_pattern Tell if specified path has a matc
