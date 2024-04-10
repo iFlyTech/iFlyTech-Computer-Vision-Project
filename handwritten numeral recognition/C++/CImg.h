@@ -56039,4 +56039,183 @@ namespace cimg {
   //! Return list of files/directories in specified directory.
   /**
      \param path Path to the directory. Set to 0 for current directory.
-     \param is_pattern Tell if specified path has a matc
+     \param is_pattern Tell if specified path has a matching pattern in it.
+     \param mode Output type, can be primary { 0=files only | 1=folders only | 2=files + folders }.
+     \param include_path Tell if \c path must be included in resulting filenames.
+     \return A list of filenames.
+  **/
+  inline CImgList<char> files(const char *const path, const bool is_pattern=false,
+                              const unsigned int mode=2, const bool include_path=false) {
+    if (!path || !*path) return files("*",true,mode,include_path);
+    CImgList<char> res;
+
+    // If path is a valid folder name, ignore argument 'is_pattern'.
+    const bool _is_pattern = is_pattern && !cimg::is_directory(path);
+    bool is_root = false, is_current = false;
+    cimg::unused(is_root,is_current);
+
+    // Clean format of input path.
+    CImg<char> pattern, _path = CImg<char>::string(path);
+#if cimg_OS==2
+    for (char *ps = _path; *ps; ++ps) if (*ps=='\\') *ps='/';
+#endif
+    char *pd = _path;
+    for (char *ps = pd; *ps; ++ps) { if (*ps!='/' || *ps!=*(ps+1)) *(pd++) = *ps; }
+    *pd = 0;
+    unsigned int lp = (unsigned int)std::strlen(_path);
+    if (!_is_pattern && lp && _path[lp - 1]=='/') {
+      _path[lp - 1] = 0; --lp;
+#if cimg_OS!=2
+      is_root = !*_path;
+#endif
+    }
+
+    // Separate folder path and matching pattern.
+    if (_is_pattern) {
+      const unsigned int bpos = (unsigned int)(cimg::basename(_path,'/') - _path.data());
+      CImg<char>::string(_path).move_to(pattern);
+      if (bpos) {
+        _path[bpos - 1] = 0; // End 'path' at last slash.
+#if cimg_OS!=2
+        is_root = !*_path;
+#endif
+      } else { // No path to folder specified, assuming current folder.
+        is_current = true; *_path = 0;
+      }
+      lp = (unsigned int)std::strlen(_path);
+    }
+
+    // Windows version.
+#if cimg_OS==2
+    if (!_is_pattern) {
+      pattern.assign(lp + 3);
+      std::memcpy(pattern,_path,lp);
+      pattern[lp] = '/'; pattern[lp + 1] = '*'; pattern[lp + 2] = 0;
+    }
+    WIN32_FIND_DATAA file_data;
+    const HANDLE dir = FindFirstFileA(pattern.data(),&file_data);
+    if (dir==INVALID_HANDLE_VALUE) return CImgList<char>::const_empty();
+    do {
+      const char *const filename = file_data.cFileName;
+      if (*filename!='.' || (filename[1] && (filename[1]!='.' || filename[2]))) {
+        const unsigned int lf = (unsigned int)std::strlen(filename);
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!=0;
+        if ((!mode && !is_directory) || (mode==1 && is_directory) || mode>=2) {
+          if (include_path) {
+            CImg<char> full_filename((lp?lp+1:0) + lf + 1);
+            if (lp) { std::memcpy(full_filename,_path,lp); full_filename[lp] = '/'; }
+            std::memcpy(full_filename._data + (lp?lp + 1:0),filename,lf + 1);
+            full_filename.move_to(res);
+          } else CImg<char>(filename,lf + 1).move_to(res);
+        }
+      }
+    } while (FindNextFileA(dir,&file_data));
+    FindClose(dir);
+
+    // Unix version (posix).
+#else
+    DIR *const dir = opendir(is_root?"/":is_current?".":_path.data());
+    if (!dir) return CImgList<char>::const_empty();
+    struct dirent *ent;
+    while ((ent=readdir(dir))!=0) {
+      const char *const filename = ent->d_name;
+      if (*filename!='.' || (filename[1] && (filename[1]!='.' || filename[2]))) {
+        const unsigned int lf = (unsigned int)std::strlen(filename);
+        CImg<char> full_filename(lp + lf + 2);
+
+        if (!is_current) {
+          full_filename.assign(lp + lf + 2);
+          if (lp) std::memcpy(full_filename,_path,lp);
+          full_filename[lp] = '/';
+          std::memcpy(full_filename._data + lp + 1,filename,lf + 1);
+        } else full_filename.assign(filename,lf + 1);
+
+        struct stat st;
+        if (stat(full_filename,&st)==-1) continue;
+        const bool is_directory = (st.st_mode & S_IFDIR)!=0;
+        if ((!mode && !is_directory) || (mode==1 && is_directory) || mode==2) {
+          if (include_path) {
+            if (!_is_pattern || (_is_pattern && !fnmatch(pattern,full_filename,0)))
+              full_filename.move_to(res);
+          } else {
+            if (!_is_pattern || (_is_pattern && !fnmatch(pattern,full_filename,0)))
+              CImg<char>(filename,lf + 1).move_to(res);
+          }
+        }
+      }
+    }
+    closedir(dir);
+#endif
+
+    // Sort resulting list by lexicographic order.
+  if (res._width>=2) std::qsort(res._data,res._width,sizeof(CImg<char>),_sort_files);
+
+    return res;
+  }
+
+  //! Try to guess format from an image file.
+  /**
+     \param file Input file (can be \c 0 if \c filename is set).
+     \param filename Filename, as a C-string (can be \c 0 if \c file is set).
+     \return C-string containing the guessed file format, or \c 0 if nothing has been guessed.
+  **/
+  inline const char *ftype(std::FILE *const file, const char *const filename) {
+    if (!file && !filename)
+      throw CImgArgumentException("cimg::ftype(): Specified filename is (null).");
+    static const char
+      *const _pnm = "pnm",
+      *const _pfm = "pfm",
+      *const _bmp = "bmp",
+      *const _gif = "gif",
+      *const _jpg = "jpg",
+      *const _off = "off",
+      *const _pan = "pan",
+      *const _png = "png",
+      *const _tif = "tif",
+      *const _inr = "inr",
+      *const _dcm = "dcm";
+    const char *f_type = 0;
+    CImg<char> header;
+    const unsigned int omode = cimg::exception_mode();
+    cimg::exception_mode(0);
+    try {
+      header._load_raw(file,filename,512,1,1,1,false,false,0);
+      const unsigned char *const uheader = (unsigned char*)header._data;
+      if (!std::strncmp(header,"OFF\n",4)) f_type = _off; // OFF.
+      else if (!std::strncmp(header,"#INRIMAGE",9)) f_type = _inr; // INRIMAGE.
+      else if (!std::strncmp(header,"PANDORE",7)) f_type = _pan; // PANDORE.
+      else if (!std::strncmp(header.data() + 128,"DICM",4)) f_type = _dcm; // DICOM.
+      else if (uheader[0]==0xFF && uheader[1]==0xD8 && uheader[2]==0xFF) f_type = _jpg;  // JPEG.
+      else if (header[0]=='B' && header[1]=='M') f_type = _bmp;  // BMP.
+      else if (header[0]=='G' && header[1]=='I' && header[2]=='F' && header[3]=='8' && header[5]=='a' && // GIF.
+               (header[4]=='7' || header[4]=='9')) f_type = _gif;
+      else if (uheader[0]==0x89 && uheader[1]==0x50 && uheader[2]==0x4E && uheader[3]==0x47 &&  // PNG.
+               uheader[4]==0x0D && uheader[5]==0x0A && uheader[6]==0x1A && uheader[7]==0x0A) f_type = _png;
+      else if ((uheader[0]==0x49 && uheader[1]==0x49) || (uheader[0]==0x4D && uheader[1]==0x4D)) f_type = _tif; // TIFF.
+      else { // PNM or PFM.
+        CImgList<char> _header = header.get_split(CImg<char>::vector('\n'),0,false);
+        cimglist_for(_header,l) {
+          if (_header(l,0)=='#') continue;
+          if (_header[l]._height==2 && _header(l,0)=='P') {
+            const char c = _header(l,1);
+            if (c=='f' || c=='F') { f_type = _pfm; break; }
+            if (c>='1' && c<='9') { f_type = _pnm; break; }
+          }
+          f_type = 0; break;
+        }
+      }
+    } catch (CImgIOException&) { }
+    cimg::exception_mode(omode);
+    return f_type;
+  }
+
+  //! Load file from network as a local temporary file.
+  /**
+     \param filename Filename, as a C-string.
+     \param[out] filename_local C-string containing the path to a local copy of \c filename.
+     \param timeout Maximum time (in seconds) authorized for downloading the file from the URL.
+     \param try_fallback When using libcurl, tells using system calls as fallbacks in case of libcurl failure.
+     \return Value of \c filename_local.
+     \note Use the \c libcurl library, or the external binaries \c wget or \c curl to perform the download.
+  **/
+  inline char *load_network(const char 
