@@ -56537,4 +56537,108 @@ namespace cimg {
         refresh = false;
       }
       disp.wait(15);
-      if (
+      if (disp.is_resized()) disp.resize(disp,false);
+
+      if (disp.button()&1)  {
+        oclicked = clicked;
+        clicked = -1;
+        cimglist_for(buttons,l)
+          if (disp.mouse_y()>=(int)by && disp.mouse_y()<(int)(by + bh) &&
+              disp.mouse_x()>=(int)xbuttons[l] && disp.mouse_x()<(int)(xbuttons[l] + bw)) {
+            clicked = selected = l;
+            refresh = true;
+          }
+        if (clicked!=oclicked) refresh = true;
+      } else if (clicked>=0) stop_flag = true;
+
+      if (disp.key()) {
+        oselected = selected;
+        switch (disp.key()) {
+        case cimg::keyESC : selected = -1; stop_flag = true; break;
+        case cimg::keyENTER : if (selected<0) selected = 0; stop_flag = true; break;
+        case cimg::keyTAB :
+        case cimg::keyARROWRIGHT :
+        case cimg::keyARROWDOWN : selected = (selected + 1)%buttons.width(); break;
+        case cimg::keyARROWLEFT :
+        case cimg::keyARROWUP : selected = (selected + buttons.width() - 1)%buttons.width(); break;
+        }
+        disp.set_key();
+        if (selected!=oselected) refresh = true;
+      }
+    }
+    if (!disp) selected = -1;
+    return selected;
+#endif
+  }
+
+  //! Display a simple dialog box, and wait for the user's response \specialization.
+  inline int dialog(const char *const title, const char *const msg,
+                    const char *const button1_label, const char *const button2_label, const char *const button3_label,
+                    const char *const button4_label, const char *const button5_label, const char *const button6_label,
+                    const bool is_centered) {
+    return dialog(title,msg,button1_label,button2_label,button3_label,button4_label,button5_label,button6_label,
+                  CImg<unsigned char>::_logo40x38(),is_centered);
+  }
+
+  //! Evaluate math expression.
+  /**
+     \param expression C-string describing the formula to evaluate.
+     \param x Value of the pre-defined variable \c x.
+     \param y Value of the pre-defined variable \c y.
+     \param z Value of the pre-defined variable \c z.
+     \param c Value of the pre-defined variable \c c.
+     \return Result of the formula evaluation.
+     \note Set \c expression to \c 0 to keep evaluating the last specified \c expression.
+     \par Example
+     \code
+     const double
+     res1 = cimg::eval("cos(x)^2 + sin(y)^2",2,2),  // will return '1'.
+     res2 = cimg::eval(0,1,1);                    // will return '1' too.
+     \endcode
+  **/
+  inline double eval(const char *const expression, const double x, const double y, const double z, const double c) {
+    static const CImg<float> empty;
+    return empty.eval(expression,x,y,z,c);
+  }
+
+  template<typename t>
+  inline CImg<typename cimg::superset<double,t>::type> eval(const char *const expression, const CImg<t>& xyzc) {
+    static const CImg<float> empty;
+    return empty.eval(expression,xyzc);
+  }
+
+  // End of cimg:: namespace
+}
+
+  // End of cimg_library:: namespace
+}
+
+//! Short alias name.
+namespace cil = cimg_library_suffixed;
+
+#ifdef _cimg_redefine_False
+#define False 0
+#endif
+#ifdef _cimg_redefine_True
+#define True 1
+#endif
+#ifdef _cimg_redefine_None
+#define None 0
+#endif
+#ifdef _cimg_redefine_min
+#define min(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifdef _cimg_redefine_max
+#define max(a,b) (((a)>(b))?(a):(b))
+#endif
+#ifdef _cimg_redefine_PI
+#define PI 3.141592653589793238462643383
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+#endif
+// Local Variables:
+// mode: c++
+// End:
