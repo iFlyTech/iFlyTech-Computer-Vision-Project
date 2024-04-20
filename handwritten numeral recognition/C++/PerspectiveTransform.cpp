@@ -61,4 +61,33 @@ PerspectiveTransform PerspectiveTransform::times(PerspectiveTransform other) {
 		* other.a33, a12 * other.a11 + a22 * other.a12 + a32 * other.a13, a12 * other.a21 + a22
 		* other.a22 + a32 * other.a23, a12 * other.a31 + a22 * other.a32 + a32 * other.a33, a13
 		* other.a11 + a23 * other.a12 + a33 * other.a13, a13 * other.a21 + a23 * other.a22 + a33
-		*
+		* other.a23, a13 * other.a31 + a23 * other.a32 + a33 * other.a33));
+	return result;
+}
+
+CImg<> PerspectiveTransform::getTransform(string filePath)
+{
+	CImg<uchar> src;
+	src.load(filePath.c_str());
+	Hough hough(filePath.c_str());
+	int width = hough.width;
+	int height = hough.height;
+
+	PerspectiveTransform H = quadrilateralToQuadrilateral(0, 0, width - 1, 0, 0, height - 1, width - 1, height - 1,
+		hough.vertex[0].first, hough.vertex[0].second, hough.vertex[1].first, hough.vertex[1].second,
+		hough.vertex[2].first, hough.vertex[2].second, hough.vertex[3].first, hough.vertex[3].second);
+
+	/* Method 1: Projective Transforming */
+	CImg<uchar> dest(width, height, 1, 3);
+	cimg_forXY(dest, x, y)
+	{
+		double denominator = H.a13 * x + H.a23 * y + H.a33;
+		double tx = (H.a11 * x + H.a21 * y + H.a31) / denominator;
+		double ty = (H.a12 * x + H.a22 * y + H.a32) / denominator;
+		//cout << tx << " " << ty << endl;
+		cimg_forC(dest, c)
+			dest(x, y, c) = src.linear_atXYZC(tx, ty, c);
+	}
+
+	return dest;
+}
